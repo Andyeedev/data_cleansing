@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Control Execution Dashboard</title>
+<style>
+body { font-family: Arial; background:#0f172a; color:white; padding:20px;}
+.card { background:#1e293b; padding:20px; border-radius:8px; }
+table { width:100%; border-collapse: collapse;}
+th, td { padding:8px; }
+th { background:#334155; }
+.green { color:#22c55e; }
+.red { color:#ef4444; }
+</style>
+</head>
+<body>
+
+<h1>Control Execution Detail</h1>
+
+<div class="card">
+<table>
+<tr>
+<th>Control</th>
+<th>Entity</th>
+<th>Status</th>
+<th>Severity</th>
+<th>Exec Time (s)</th>
+</tr>
+
+<tr><td>C01</td><td>accounts</td><td class="green">PASS</td><td>HIGH</td><td>0.0054</td></tr>
+<tr><td>C02</td><td>balances</td><td class="green">PASS</td><td>CRITICAL</td><td>0.0045</td></tr>
+<tr><td>C03</td><td>customer_accounts</td><td class="green">PASS</td><td>LOW</td><td>0.002</td></tr>
+
+<tr><td>C03</td><td>customer_accounts</td><td class="red">FAIL</td><td>LOW</td><td>0.004</td></tr>
+<tr><td>C02</td><td>balances</td><td class="green">PASS</td><td>CRITICAL</td><td>0.0035</td></tr>
+
+</table>
+</div>
+
+</body>
+</html>

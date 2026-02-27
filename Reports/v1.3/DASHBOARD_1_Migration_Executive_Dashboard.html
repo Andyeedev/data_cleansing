@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Migration Executive Dashboard</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
+h1 { margin-bottom: 10px; }
+.card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.metric {
+    font-size: 32px;
+    font-weight: bold;
+}
+.green { color: #22c55e; }
+.red { color: #ef4444; }
+.orange { color: #f97316; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+th { background: #334155; }
+tr:nth-child(even) { background: #1e293b; }
+</style>
+</head>
+<body>
+
+<h1>Migration Readiness Overview</h1>
+
+<div class="card">
+    <div>Latest Batch</div>
+    <div class="metric green">PASS</div>
+    <div>Overall Score: <span class="metric">100%</span></div>
+</div>
+
+<div class="card">
+    <h3>Last 5 Executions</h3>
+    <table>
+        <tr>
+            <th>Batch</th>
+            <th>Status</th>
+            <th>Score</th>
+        </tr>
+        <tr><td>3abc9ddb</td><td class="green">PASS</td><td>100%</td></tr>
+        <tr><td>5c3083b7</td><td class="red">FAIL</td><td>88.89%</td></tr>
+        <tr><td>50096f92</td><td class="orange">BLOCKED</td><td>44.44%</td></tr>
+        <tr><td>5e12b3c4</td><td class="red">FAIL</td><td>66.67%</td></tr>
+        <tr><td>8e246102</td><td class="green">PASS</td><td>100%</td></tr>
+    </table>
+</div>
+
+</body>
+</html>

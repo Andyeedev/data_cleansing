@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Batch Processing & Data Quality Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; background: #f0f0f0; }
+
+  /* Sidebar for filters */
+  #sidebar {
+    width: 250px; background: #1E3A8A; display: flex; flex-direction: column; padding: 10px; color: #fff;
+  }
+
+  .slicer-group { margin-bottom: 20px; }
+  .slicer-label { margin-bottom: 8px; font-weight: bold; font-size: 14px; }
+  .slicer { display: flex; flex-wrap: wrap; gap: 8px; }
+  .toggle-button {
+    padding: 8px 12px; border: 2px solid #fff; border-radius: 4px; background: transparent; cursor: pointer; font-size: 14px; transition: 0.3s;
+  }
+  .toggle-button.selected { background: #fff; color: #1E3A8A; }
+
+  input[type=date] { width: 100%; margin-top: 4px; }
+
+  #clearFilters { background: #ef4444; color: #fff; border: none; padding: 10px; margin-top: 10px; width: 100%; border-radius: 4px; cursor: pointer; }
+
+  /* Main area */
+  #main {
+    flex: 1; display: flex; flex-direction: column; overflow-y: auto;
+  }
+
+  /* Header with logo and title */
+  #header {
+    display: flex; align-items: center; padding: 15px; background: #0a2a66; color: #fff;
+  }
+  #logo {
+    width: 50px; height: 50px; background: #fff; border-radius: 50%; margin-right: 10px;
+  }
+  #title { font-size: 20px; }
+
+  /* Storytelling sections */
+  .story-section {
+    background: #fff; margin: 10px 20px; padding: 15px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  }
+  .story-section h2 { margin-bottom: 10px; color: #1E3A8A; }
+  .story-section p { font-size: 14px; color: #333; line-height: 1.4; }
+
+  /* KPIs */
+  #kpis {
+    display: flex; justify-content: space-around; padding: 10px 20px; background: #f9f9f9;
+  }
+  .kpi {
+    background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.05); width: 30%; text-align: center;
+  }
+  .kpi h2 { font-size: 24px; margin-bottom: 8px; color: #1E3A8A; }
+  .kpi p { font-size: 14px; color: #555; }
+
+  /* Charts grid with descriptions */
+  #charts-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; /* no gaps */
+  }
+  .chart-block {
+    padding: 10px; border-bottom: 1px solid #ddd; /* optional separator for clarity, can be removed for seamless look */
+  }
+  .chart-container { height: 300px; }
+  canvas { width: 100% !important; height: 100% !important; }
+
+  /* Description below each chart */
+  .chart-desc {
+    font-size: 13px; color: #555; margin-top: 8px; padding: 0 10px;
+  }
+
+  /* Responsive adjustments */
+  @media(max-width: 1200px){
+    #charts-grid { grid-template-columns: 1fr; }
+    .kpi { width: 100%; margin-bottom: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar for filters -->
+<div id="sidebar">
+  <div style="margin-bottom:20px;">
+    <button id="clearFilters">Clear Filters</button>
+  </div>
+  <div class="slicer-group">
+    <div class="slicer-label">Category Filter</div>
+    <div class="slicer" id="categorySlicer">
+      <button class="toggle-button" data-value="A">A</button>
+      <button class="toggle-button" data-value="B">B</button>
+      <button class="toggle-button" data-value="C">C</button>
+    </div>
+  </div>
+  <div class="slicer-group">
+    <div class="slicer-label">Segment Filter</div>
+    <div class="slicer" id="segmentSlicer">
+      <button class="toggle-button" data-value="X">X</button>
+      <button class="toggle-button" data-value="Y">Y</button>
+      <button class="toggle-button" data-value="Z">Z</button>
+    </div>
+  </div>
+  <div class="slicer-group">
+    <div class="slicer-label">Date Range</div>
+    <input type="date" id="startDate"/>
+    <input type="date" id="endDate"/>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div id="main">
+  <!-- Header with logo and title -->
+  <div id="header">
+    <div style="display:flex; align-items:center;">
+      <div id="logo"></div>
+      <div id="title">Batch & Data Quality Dashboard</div>
+    </div>
+  </div>
+
+  <!-- Storyline for each chart -->
+  <div class="story-section">
+    <h2>Batch Trends Over Time</h2>
+    <p>This line chart shows the trend of batch processing success over the month. It highlights periods with high success rates and identifies days with increased failures, helping to pinpoint operational issues.</p>
+  </div>
+
+  <div class="story-section">
+    <h2>Batch Success & Failure Summary</h2>
+    <p>This pie chart summarizes the overall batch outcomes, revealing that most batches pass successfully, but a notable proportion are blocked or fail, pointing to potential quality or process issues.</p>
+  </div>
+
+  <div class="story-section">
+    <h2>Control Rule Failures Breakdown</h2>
+    <p>The donut chart displays the proportion of control rule failures, emphasizing that 'C01_ROWCOUNT' and 'C03_REFERENTIAL' are the most common issues, indicating areas for data integrity improvements.</p>
+  </div>
+
+  <div class="story-section">
+    <h2>Control Rules Failure Count</h2>
+    <p>This bar chart shows the count of failures for each critical control rule, highlighting recurring issues that require process review or data corrections.</p>
+  </div>
+
+  <!-- KPIs -->
+  <div id="kpis">
+    <div class="kpi">
+      <h2 id="kpi-success-rate">70%</h2>
+      <p>Batch Success Rate</p>
+    </div>
+    <div class="kpi">
+      <h2 id="kpi-failures">30%</h2>
+      <p>Failures & Blocked Batches</p>
+    </div>
+    <div class="kpi">
+      <h2 id="kpi-control-failures">15</h2>
+      <p>Control Failures</p>
+    </div>
+  </div>
+
+  <!-- Charts with descriptions -->
+  <div id="charts-grid">
+    <!-- Chart 1: Line Chart with Date Timeline -->
+    <div class="chart-block">
+      <div class="chart-container">
+        <canvas id="chart1"></canvas>
+      </div>
+      <div class="chart-desc">
+        <strong>Trend of Batch Success Over Time:</strong> This line chart shows how batch success varies daily, helping identify periods of stability or issues.
+      </div>
+    </div>
+    <!-- Chart 2: Pie Chart -->
+    <div class="chart-block">
+      <div class="chart-container">
+        <canvas id="chart2"></canvas>
+      </div>
+      <div class="chart-desc">
+        <strong>Overall Batch Outcomes:</strong> The pie chart visualizes the proportion of successful, failed, and blocked batches.
+      </div>
+    </div>
+    <!-- Chart 3: Donut Chart -->
+    <div class="chart-block">
+      <div class="chart-container">
+        <canvas id="chart3"></canvas>
+      </div>
+      <div class="chart-desc">
+        <strong>Control Rule Failures Breakdown:</strong> This donut chart highlights the most common control rule issues.
+      </div>
+    </div>
+    <!-- Chart 4: Bar Chart -->
+    <div class="chart-block">
+      <div class="chart-container">
+        <canvas id="chart4"></canvas>
+      </div>
+      <div class="chart-desc">
+        <strong>Failure Count for Control Rules:</strong> Bar chart showing how often each rule failed during validation.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sample data for the line chart (trend over days)
+  const trendData = {
+    labels: ['2026-02-01','2026-02-05','2026-02-10','2026-02-15','2026-02-20','2026-02-25','2026-02-28'],
+    datasets: [{
+      label: 'Success Rate',
+      data: [80, 75, 65, 70, 85, 78, 80],
+      borderColor: 'rgba(34, 197, 94, 1)',
+      backgroundColor: 'rgba(34, 197, 94, 0.2)',
+      fill: true,
+      tension: 0.4
+    }]
+  };
+
+  const ctx1 = document.getElementById('chart1').getContext('2d');
+  const chart1 = new Chart(ctx1, {
+    type: 'line',
+    data: trendData,
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'day', tooltipFormat: 'MMM DD' },
+          title: { display: true, text: 'Date' }
+        },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: { display: true, text: 'Success Rate (%)' }
+        }
+      }
+    }
+  });
+
+  // Chart 2: Pie chart for batch outcomes
+  const outcomeData = {
+    labels: ['Success', 'Failure', 'Blocked'],
+    datasets: [{
+      data: [70, 20, 10],
+      backgroundColor: ['#22C55E', '#EF4444', '#FBBF24']
+    }]
+  };
+  const ctx2 = document.getElementById('chart2').getContext('2d');
+  const chart2 = new Chart(ctx2, {
+    type: 'pie',
+    data: outcomeData,
+    options: { responsive: true }
+  });
+
+  // Chart 3: Donut for control failures
+  const controlFailureData = {
+    labels: ['C01_ROWCOUNT', 'C02_BALANCE_RECON', 'C03_REFERENTIAL'],
+    datasets: [{
+      label: 'Failures',
+      data: [7, 3, 6],
+      backgroundColor: ['#EF4444', '#FBBF24', '#3B82F6']
+    }]
+  };
+  const ctx3 = document.getElementById('chart3').getContext('2d');
+  const chart3 = new Chart(ctx3, {
+    type: 'doughnut',
+    data: controlFailureData,
+    options: { responsive: true }
+  });
+
+  // Chart 4: Bar for failure counts
+  const failureCountData = {
+    labels: ['C01_ROWCOUNT', 'C02_BALANCE_RECON', 'C03_REFERENTIAL'],
+    datasets: [{
+      label: 'Failures',
+      data: [7, 3, 6],
+      backgroundColor: ['#EF4444', '#FBBF24', '#3B82F6']
+    }]
+  };
+  const ctx4 = document.getElementById('chart4').getContext('2d');
+  const chart4 = new Chart(ctx4, {
+    type: 'bar',
+    data: failureCountData,
+    options: { responsive: true, scales: { y: { beginAtZero:true } } }
+  });
+
+  // Filter toggle logic
+  document.querySelectorAll('.toggle-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+    });
+  });
+
+  // Clear filters button
+  document.getElementById('clearFilters').addEventListener('click', () => {
+    document.querySelectorAll('.toggle-button').forEach(btn => btn.classList.remove('selected'));
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    // Optionally, refresh charts with default data
+    // For demo, randomly update KPIs and charts
+    document.getElementById('kpi-success-rate').innerText = '70%';
+    document.getElementById('kpi-failures').innerText = '30%';
+    document.getElementById('kpi-control-failures').innerText = '15';
+
+    // Update charts with default values if needed
+  });
+
+  // Apply filters button
+  document.getElementById('applyBtn').addEventListener('click', () => {
+    // For demo, update KPIs randomly
+    document.getElementById('kpi-success-rate').innerText = Math.floor(Math.random() * 20 + 70) + '%';
+    document.getElementById('kpi-failures').innerText = Math.floor(Math.random() * 20) + ' issues';
+    document.getElementById('kpi-control-failures').innerText = Math.floor(Math.random() * 10 + 5);
+    // Update charts accordingly (simulate)
+    [chart1, chart2, chart3, chart4].forEach(c => {
+      if(c.data.datasets) {
+        c.data.datasets.forEach(ds => {
+          ds.data = ds.data.map(() => Math.floor(Math.random() * 20 + 1));
+        });
+        c.update();
+      }
+    });
+  });
+</script>
+</body>
+</html>

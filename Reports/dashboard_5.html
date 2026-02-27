@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migration Governance Dashboard</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+    --primary: #0b1f3a;
+    --accent: #2563eb;
+    --success: #16a34a;
+    --danger: #dc2626;
+    --warning: #f59e0b;
+    --bg: #f4f6fa;
+    --card-bg: #ffffff;
+    --text-dark: #1f2937;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-dark);
+}
+
+/* Layout */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    background: #ffffff;
+    padding: 20px;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar select,
+.sidebar input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    width: 100%;
+}
+
+/* Main Section */
+.main {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.header {
+    background: var(--primary);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.logo-placeholder {
+    background: white;
+    width: 120px;
+    height: 30px;
+    border-radius: 4px;
+}
+
+/* KPI Section */
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    gap: 16px;
+    padding: 20px;
+}
+
+.kpi-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+}
+
+.kpi-value {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.kpi-label {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Charts */
+.charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px,1fr));
+    gap: 20px;
+    padding: 20px;
+    flex: 1;
+}
+
+.chart-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+/* Loading Spinner */
+.loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+}
+
+@media(max-width: 900px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="dashboard-container" role="application">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Filters">
+        <div>
+            <label>Environment</label>
+            <select id="environmentFilter">
+                <option value="ALL">All</option>
+                <option value="PROD">PROD</option>
+                <option value="UAT">UAT</option>
+                <option value="DEV">DEV</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Status</label>
+            <select id="statusFilter">
+                <option value="ALL">All</option>
+                <option value="PASS">PASS</option>
+                <option value="FAIL">FAIL</option>
+                <option value="BLOCKED">BLOCKED</option>
+                <option value="RUNNING">RUNNING</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Date Range</label>
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- HEADER -->
+        <header class="header">
+            <h1>Enterprise Migration Governance Dashboard</h1>
+            <div class="logo-placeholder"></div>
+        </header>
+
+        <!-- KPIs -->
+        <section class="kpis">
+            <div class="kpi-card">
+                <div class="kpi-value" id="totalBatches">0</div>
+                <div class="kpi-label">Total Batches</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="passRate">0%</div>
+                <div class="kpi-label">Pass Rate</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="avgScore">0</div>
+                <div class="kpi-label">Average Score</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value" id="blockedCount">0</div>
+                <div class="kpi-label">Blocked Releases</div>
+            </div>
+        </section>
+
+        <!-- CHARTS -->
+        <section class="charts">
+            <div class="chart-card">
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <canvas id="scoreTrendChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <canvas id="controlFailureChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <canvas id="severityChart"></canvas>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+
+/* -----------------------
+   SAMPLE DATA (Replace with API / Power BI dataset)
+------------------------*/
+const batches = [
+    {date:"2026-02-17", status:"PASS", score:100},
+    {date:"2026-02-17", status:"FAIL", score:66},
+    {date:"2026-02-18", status:"BLOCKED", score:44},
+    {date:"2026-02-18", status:"PASS", score:100},
+    {date:"2026-02-18", status:"FAIL", score:72}
+];
+
+/* -----------------------
+   KPI UPDATE
+------------------------*/
+function updateDashboard() {
+
+    const filtered = batches;
+
+    document.getElementById("totalBatches").innerText = filtered.length;
+
+    const passCount = filtered.filter(b=>b.status==="PASS").length;
+    document.getElementById("passRate").innerText =
+        ((passCount/filtered.length)*100).toFixed(1)+"%";
+
+    const avg = filtered.reduce((a,b)=>a+b.score,0)/filtered.length;
+    document.getElementById("avgScore").innerText = avg.toFixed(1);
+
+    document.getElementById("blockedCount").innerText =
+        filtered.filter(b=>b.status==="BLOCKED").length;
+}
+
+updateDashboard();
+
+/* -----------------------
+   CHARTS
+------------------------*/
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['PASS','FAIL','BLOCKED'],
+        datasets: [{
+            data: [2,2,1]
+        }]
+    }
+});
+
+new Chart(document.getElementById('scoreTrendChart'), {
+    type: 'line',
+    data: {
+        labels: batches.map(b=>b.date),
+        datasets: [{
+            label: "Score",
+            data: batches.map(b=>b.score)
+        }]
+    }
+});
+
+new Chart(document.getElementById('controlFailureChart'), {
+    type: 'bar',
+    data: {
+        labels: ['C01','C02','C03'],
+        datasets: [{
+            label: "Failures",
+            data: [6,2,3]
+        }]
+    }
+});
+
+new Chart(document.getElementById('severityChart'), {
+    type: 'pie',
+    data: {
+        labels: ['LOW','MEDIUM','HIGH','CRITICAL'],
+        datasets: [{
+            data: [5,8,4,2]
+        }]
+    }
+});
+
+</script>
+</body>
+</html>

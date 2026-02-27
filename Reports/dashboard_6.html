@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Migration Governance Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --primary: #0b3d91;
+  --accent: #1e88e5;
+  --success: #2e7d32;
+  --danger: #c62828;
+  --warning: #f9a825;
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --text: #1f2937;
+  --transition: all 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* LEFT PANEL */
+.sidebar {
+  width: 260px;
+  background: var(--card);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-right: 1px solid #e5e7eb;
+}
+
+.sidebar h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.segmented button {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.segmented button.active {
+  background: var(--accent);
+  color: white;
+}
+
+input[type="date"] {
+  width: 100%;
+  padding: 8px;
+}
+
+.apply-btn {
+  padding: 10px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.apply-btn:hover {
+  background: #072a63;
+}
+
+/* MAIN CONTENT */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.header {
+  background: var(--primary);
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header .logo {
+  width: 120px;
+  height: 30px;
+  background: white;
+}
+
+/* KPI PANEL */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  background: var(--card);
+}
+
+.kpi {
+  padding: 15px;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.kpi h2 {
+  font-size: 22px;
+}
+
+.kpi span {
+  font-size: 12px;
+  color: gray;
+}
+
+/* CHART GRID */
+.charts {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.chart-container {
+  position: relative;
+  padding: 10px;
+  background: var(--card);
+}
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Loading */
+.loader {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: none;
+}
+.loader.active { display: flex; }
+
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div>
+    <h3>Environment</h3>
+    <div class="segmented">
+      <button class="active">ALL</button>
+      <button>DEV</button>
+      <button>UAT</button>
+      <button>PROD</button>
+    </div>
+  </div>
+
+  <div>
+    <h3>Status</h3>
+    <div class="segmented">
+      <button class="active">ALL</button>
+      <button>PASS</button>
+      <button>FAIL</button>
+      <button>BLOCKED</button>
+    </div>
+  </div>
+
+  <div>
+    <h3>Date</h3>
+    <input type="date">
+  </div>
+
+  <button class="apply-btn" onclick="applyFilters()">Apply Filters</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="header">
+    <h1>Enterprise Migration Governance</h1>
+    <div class="logo"></div>
+  </div>
+
+  <!-- KPI PANEL -->
+  <div class="kpis">
+    <div class="kpi">
+      <h2 id="totalBatches">0</h2>
+      <span>Total Batches</span>
+    </div>
+    <div class="kpi">
+      <h2 id="approvalRate">0%</h2>
+      <span>Approval Rate</span>
+    </div>
+    <div class="kpi">
+      <h2 id="avgScore">0</h2>
+      <span>Avg Score</span>
+    </div>
+    <div class="kpi">
+      <h2 id="criticalCount">0</h2>
+      <span>Critical Failures</span>
+    </div>
+  </div>
+
+  <!-- CHART AREA -->
+  <div class="charts">
+    <div class="chart-container">
+      <div class="loader" id="loader1">Loading...</div>
+      <canvas id="statusChart"></canvas>
+    </div>
+    <div class="chart-container">
+      <div class="loader" id="loader2">Loading...</div>
+      <canvas id="scoreTrend"></canvas>
+    </div>
+    <div class="chart-container">
+      <div class="loader" id="loader3">Loading...</div>
+      <canvas id="controlFailures"></canvas>
+    </div>
+    <div class="chart-container">
+      <div class="loader" id="loader4">Loading...</div>
+      <canvas id="severityChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+/* MOCK DATA derived from your fact tables */
+
+const data = [
+  {status:"PASS", score:100},
+  {status:"PASS", score:100},
+  {status:"BLOCKED", score:44.44},
+  {status:"PASS", score:100},
+  {status:"FAIL", score:88.89},
+  {status:"FAIL", score:66.67}
+];
+
+function applyFilters() {
+  document.querySelectorAll(".loader").forEach(l=>l.classList.add("active"));
+
+  setTimeout(()=>{
+
+    const total = data.length;
+    const approved = data.filter(d=>d.status==="PASS").length;
+    const avg = (data.reduce((a,b)=>a+b.score,0)/total).toFixed(2);
+    const critical = data.filter(d=>d.status==="BLOCKED").length;
+
+    document.getElementById("totalBatches").innerText = total;
+    document.getElementById("approvalRate").innerText = ((approved/total)*100).toFixed(1)+"%";
+    document.getElementById("avgScore").innerText = avg;
+    document.getElementById("criticalCount").innerText = critical;
+
+    updateCharts();
+
+    document.querySelectorAll(".loader").forEach(l=>l.classList.remove("active"));
+
+  },1000);
+}
+
+let statusChart = new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['PASS','FAIL','BLOCKED'],
+    datasets: [{
+      data: [3,2,1],
+      backgroundColor: ['#2e7d32','#c62828','#f9a825']
+    }]
+  }
+});
+
+let scoreTrend = new Chart(document.getElementById('scoreTrend'), {
+  type: 'line',
+  data: {
+    labels: ['B1','B2','B3','B4','B5','B6'],
+    datasets: [{
+      label: 'Score Trend',
+      data: data.map(d=>d.score),
+      borderColor: '#1e88e5',
+      fill:false
+    }]
+  }
+});
+
+let controlFailures = new Chart(document.getElementById('controlFailures'), {
+  type: 'bar',
+  data: {
+    labels: ['C01','C02','C03'],
+    datasets: [{
+      label:'Failures',
+      data:[5,2,3],
+      backgroundColor:'#c62828'
+    }]
+  }
+});
+
+let severityChart = new Chart(document.getElementById('severityChart'), {
+  type: 'bar',
+  data: {
+    labels:['LOW','MEDIUM','HIGH','CRITICAL'],
+    datasets:[{
+      data:[2,4,6,3],
+      backgroundColor:'#1e88e5'
+    }]
+  }
+});
+
+function updateCharts(){
+  statusChart.update();
+  scoreTrend.update();
+  controlFailures.update();
+  severityChart.update();
+}
+
+applyFilters();
+
+</script>
+
+</body>
+</html>

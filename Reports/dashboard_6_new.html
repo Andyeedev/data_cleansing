@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Migration Governance</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --primary:#0b3d91;
+  --accent:#1e88e5;
+  --success:#2e7d32;
+  --danger:#c62828;
+  --warning:#f9a825;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+}
+
+*{box-sizing:border-box;font-family:Segoe UI, sans-serif;}
+
+body{
+  margin:0;
+  background:var(--bg);
+  overflow-y:auto;
+}
+
+.container{
+  display:flex;
+  min-height:100vh;
+}
+
+/* SIDEBAR */
+.sidebar{
+  width:260px;
+  background:white;
+  padding:20px;
+  border-right:1px solid #ddd;
+}
+
+.sidebar h3{font-size:14px;margin-bottom:8px;}
+
+.segmented button{
+  width:100%;
+  padding:8px;
+  margin-bottom:5px;
+  border:1px solid #ddd;
+  background:#eee;
+  cursor:pointer;
+}
+
+.segmented button.active{
+  background:var(--accent);
+  color:white;
+}
+
+input{
+  width:100%;
+  padding:8px;
+  margin-bottom:10px;
+}
+
+.apply-btn{
+  padding:10px;
+  background:var(--primary);
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+
+/* MAIN */
+.main{
+  flex:1;
+  padding:20px;
+}
+
+/* KPI */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.kpi{
+  background:white;
+  padding:15px;
+  text-align:center;
+  border-radius:6px;
+}
+
+/* CHART GRID */
+.charts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.chart-box{
+  background:white;
+  padding:15px;
+  border-radius:6px;
+  height:350px;
+}
+
+canvas{
+  width:100%!important;
+  height:100%!important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="sidebar">
+  <h3>Environment</h3>
+  <div class="segmented" id="envFilter">
+    <button data-value="ALL" class="active">ALL</button>
+    <button data-value="DEV">DEV</button>
+    <button data-value="UAT">UAT</button>
+    <button data-value="PROD">PROD</button>
+  </div>
+
+  <h3>Status</h3>
+  <div class="segmented" id="statusFilter">
+    <button data-value="ALL" class="active">ALL</button>
+    <button data-value="PASS">PASS</button>
+    <button data-value="FAIL">FAIL</button>
+    <button data-value="BLOCKED">BLOCKED</button>
+  </div>
+
+  <h3>Date Range</h3>
+  <input type="date" id="dateFrom">
+  <input type="date" id="dateTo">
+
+  <button class="apply-btn" onclick="applyFilters()">Apply Filters</button>
+</div>
+
+<div class="main">
+
+<h1>Enterprise Migration Governance</h1>
+
+<div class="kpis">
+  <div class="kpi"><h2 id="totalBatches">0</h2>Total Batches</div>
+  <div class="kpi"><h2 id="approvalRate">0%</h2>Approval Rate</div>
+  <div class="kpi"><h2 id="avgScore">0</h2>Avg Score</div>
+  <div class="kpi"><h2 id="blockedCount">0</h2>Blocked</div>
+</div>
+
+<div class="charts">
+  <div class="chart-box"><canvas id="statusChart"></canvas></div>
+  <div class="chart-box"><canvas id="scoreTrend"></canvas></div>
+  <div class="chart-box"><canvas id="controlChart"></canvas></div>
+  <div class="chart-box"><canvas id="severityChart"></canvas></div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+/* SYNTHETIC DATA */
+const rawData = [
+ {env:"DEV",status:"PASS",score:100,date:"2026-02-10"},
+ {env:"DEV",status:"FAIL",score:66.7,date:"2026-02-11"},
+ {env:"UAT",status:"PASS",score:100,date:"2026-02-12"},
+ {env:"PROD",status:"BLOCKED",score:44.4,date:"2026-02-13"},
+ {env:"PROD",status:"PASS",score:100,date:"2026-02-14"},
+ {env:"UAT",status:"FAIL",score:88.9,date:"2026-02-15"}
+];
+
+/* SLICER TOGGLE LOGIC */
+document.querySelectorAll('.segmented button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const parent = btn.parentElement;
+    parent.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+/* CHART INIT */
+let statusChart = new Chart(document.getElementById("statusChart"),{
+  type:'doughnut',
+  data:{labels:[],datasets:[{data:[],backgroundColor:["#2e7d32","#c62828","#f9a825"]}]}
+});
+
+let scoreTrend = new Chart(document.getElementById("scoreTrend"),{
+  type:'line',
+  data:{labels:[],datasets:[{label:"Score",data:[],borderColor:"#1e88e5"}]}
+});
+
+let controlChart = new Chart(document.getElementById("controlChart"),{
+  type:'bar',
+  data:{labels:["C01","C02","C03"],datasets:[{label:"Failures",data:[2,3,1],backgroundColor:"#c62828"}]}
+});
+
+let severityChart = new Chart(document.getElementById("severityChart"),{
+  type:'bar',
+  data:{labels:["LOW","MEDIUM","HIGH","CRITICAL"],datasets:[{data:[2,3,4,1],backgroundColor:"#1e88e5"}]}
+});
+
+/* FILTER LOGIC */
+function applyFilters(){
+
+  const env = document.querySelector('#envFilter .active').dataset.value;
+  const status = document.querySelector('#statusFilter .active').dataset.value;
+  const from = document.getElementById("dateFrom").value;
+  const to = document.getElementById("dateTo").value;
+
+  let filtered = rawData.filter(d=>{
+    return (env==="ALL"||d.env===env) &&
+           (status==="ALL"||d.status===status) &&
+           (!from || d.date>=from) &&
+           (!to || d.date<=to);
+  });
+
+  const total = filtered.length;
+  const approved = filtered.filter(d=>d.status==="PASS").length;
+  const avg = total? (filtered.reduce((a,b)=>a+b.score,0)/total).toFixed(2):0;
+  const blocked = filtered.filter(d=>d.status==="BLOCKED").length;
+
+  document.getElementById("totalBatches").innerText = total;
+  document.getElementById("approvalRate").innerText = total?((approved/total)*100).toFixed(1)+"%":"0%";
+  document.getElementById("avgScore").innerText = avg;
+  document.getElementById("blockedCount").innerText = blocked;
+
+  /* Update Charts */
+  const statusCounts = {
+    PASS: filtered.filter(d=>d.status==="PASS").length,
+    FAIL: filtered.filter(d=>d.status==="FAIL").length,
+    BLOCKED: filtered.filter(d=>d.status==="BLOCKED").length
+  };
+
+  statusChart.data.labels = Object.keys(statusCounts);
+  statusChart.data.datasets[0].data = Object.values(statusCounts);
+  statusChart.update();
+
+  scoreTrend.data.labels = filtered.map((d,i)=>"B"+(i+1));
+  scoreTrend.data.datasets[0].data = filtered.map(d=>d.score);
+  scoreTrend.update();
+}
+
+applyFilters();
+
+</script>
+</body>
+</html>

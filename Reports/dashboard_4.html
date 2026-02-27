@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Enterprise Migration Governance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Segoe UI, Arial, sans-serif;
+            background-color: #f4f6f9;
+        }
+
+        /* Layout Grid */
+        .container {
+            display: grid;
+            grid-template-columns: 260px auto;
+            grid-template-rows: 70px 120px 1fr 1fr;
+            height: 100vh;
+        }
+
+        /* LEFT FILTER PANEL */
+        .sidebar {
+            grid-row: 1 / span 4;
+            background-color: #ffffff;
+            padding: 20px;
+            border-right: 1px solid #dcdcdc;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+        }
+
+        .filter-group {
+            margin-bottom: 25px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        /* HEADER */
+        .header {
+            background-color: #0b2e59;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+        }
+
+        .logo-placeholder {
+            width: 120px;
+            height: 40px;
+            background-color: #ffffff33;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* KPI SECTION */
+        .kpi-section {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: white;
+            border-bottom: 1px solid #dcdcdc;
+        }
+
+        .kpi {
+            text-align: center;
+        }
+
+        .kpi h2 {
+            margin: 5px 0;
+            color: #0b2e59;
+        }
+
+        /* CHART AREA */
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .chart-box {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- LEFT SIDEBAR FILTERS -->
+    <div class="sidebar">
+        <h3>Filters</h3>
+
+        <div class="filter-group">
+            <label>Batch Status</label>
+            <select id="statusFilter">
+                <option value="ALL">All</option>
+                <option value="PASS">PASS</option>
+                <option value="FAIL">FAIL</option>
+                <option value="BLOCKED">BLOCKED</option>
+                <option value="RUNNING">RUNNING</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Control ID</label>
+            <select id="controlFilter">
+                <option value="ALL">All</option>
+                <option value="C01">C01</option>
+                <option value="C02">C02</option>
+                <option value="C03">C03</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>Date</label>
+            <input type="date" id="dateFilter" value="2026-02-18"/>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header">
+        <h2>Enterprise Migration Governance Dashboard</h2>
+        <div class="logo-placeholder">LOGO</div>
+    </div>
+
+    <!-- KPI SECTION -->
+    <div class="kpi-section">
+        <div class="kpi">
+            <h4>Total Batches</h4>
+            <h2 id="totalBatches">0</h2>
+        </div>
+        <div class="kpi">
+            <h4>Approval Rate</h4>
+            <h2 id="approvalRate">0%</h2>
+        </div>
+        <div class="kpi">
+            <h4>Avg Score</h4>
+            <h2 id="avgScore">0</h2>
+        </div>
+        <div class="kpi">
+            <h4>Critical Failures</h4>
+            <h2 id="criticalFails">0</h2>
+        </div>
+    </div>
+
+    <!-- CHART AREA -->
+    <div class="charts">
+
+        <div class="chart-box">
+            <canvas id="statusChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <canvas id="controlChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <canvas id="severityChart"></canvas>
+        </div>
+
+        <div class="chart-box">
+            <canvas id="trendChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* ======= SAMPLE DATA (Based on Your Extracts) ======= */
+
+const batchData = [
+    {status:"PASS", score:100, date:"2026-02-18"},
+    {status:"FAIL", score:66.67, date:"2026-02-18"},
+    {status:"BLOCKED", score:44.44, date:"2026-02-18"},
+    {status:"PASS", score:100, date:"2026-02-17"},
+    {status:"FAIL", score:72.73, date:"2026-02-18"}
+];
+
+const ruleSeverity = {
+    LOW:5,
+    MEDIUM:8,
+    HIGH:6,
+    CRITICAL:4
+};
+
+function updateDashboard() {
+
+    const filtered = batchData;
+
+    document.getElementById("totalBatches").innerText = filtered.length;
+
+    const approved = filtered.filter(b => b.status === "PASS").length;
+    document.getElementById("approvalRate").innerText =
+        ((approved / filtered.length) * 100).toFixed(1) + "%";
+
+    const avgScore = filtered.reduce((a,b)=>a+b.score,0) / filtered.length;
+    document.getElementById("avgScore").innerText = avgScore.toFixed(1);
+
+    document.getElementById("criticalFails").innerText = ruleSeverity.CRITICAL;
+
+}
+
+/* STATUS DISTRIBUTION */
+new Chart(document.getElementById('statusChart'), {
+    type: 'bar',
+    data: {
+        labels: ['PASS','FAIL','BLOCKED','RUNNING'],
+        datasets: [{
+            label: 'Batch Count',
+            data: [12,8,5,10]
+        }]
+    }
+});
+
+/* CONTROL PERFORMANCE */
+new Chart(document.getElementById('controlChart'), {
+    type: 'pie',
+    data: {
+        labels: ['C01','C02','C03'],
+        datasets: [{
+            data: [40,35,25]
+        }]
+    }
+});
+
+/* SEVERITY DISTRIBUTION */
+new Chart(document.getElementById('severityChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['LOW','MEDIUM','HIGH','CRITICAL'],
+        datasets: [{
+            data: [5,8,6,4]
+        }]
+    }
+});
+
+/* TREND */
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: ['Feb16','Feb17','Feb18'],
+        datasets: [{
+            label: 'Avg Score',
+            data: [55,70,82],
+            fill:false
+        }]
+    }
+});
+
+updateDashboard();
+
+</script>
+
+</body>
+</html>

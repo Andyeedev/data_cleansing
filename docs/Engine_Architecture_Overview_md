@@ -1,0 +1,30 @@
+🧠 ENGINE ARCHITECTURE OVERVIEW (Python Side)
+
+The engine will consist of:
+
+main.py                → entry point
+config_loader.py       → loads YAML config
+db_connector.py        → DB abstraction (engine + source + target)
+execution_engine.py    → core execution lifecycle
+rule_executor.py       → executes SQL rules
+scoring_engine.py      → computes batch score
+logger.py              → structured logging
+
+
+We start with a clean skeleton that:
+
+Creates execution batch
+
+Loops controls sequentially
+
+Loads rules for each control
+
+Executes SQL template
+
+Logs results
+
+Stores defects
+
+Calculates score
+
+Finalises batch

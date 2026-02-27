@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Enterprise Migration Governance Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
+}
+.dashboard {
+    width: 1280px;
+    height: 720px;
+    margin: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.title {
+    font-size: 22px;
+    font-weight: bold;
+}
+.slicers select {
+    padding: 5px;
+    margin-left: 10px;
+}
+.kpi-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+.kpi {
+    background: white;
+    padding: 15px;
+    width: 23%;
+    border-radius: 6px;
+    box-shadow: 0px 1px 4px rgba(0,0,0,0.1);
+}
+.kpi-title {
+    font-size: 12px;
+    color: gray;
+}
+.kpi-value {
+    font-size: 22px;
+    font-weight: bold;
+}
+.chart-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+.chart-box {
+    background: white;
+    padding: 15px;
+    width: 48%;
+    border-radius: 6px;
+    box-shadow: 0px 1px 4px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+
+<div class="header">
+    <div class="title">Enterprise Migration Governance Dashboard</div>
+    <div class="slicers">
+        <select id="statusFilter">
+            <option value="ALL">All Status</option>
+            <option value="PASS">PASS</option>
+            <option value="FAIL">FAIL</option>
+            <option value="BLOCKED">BLOCKED</option>
+        </select>
+
+        <select id="gateFilter">
+            <option value="ALL">All Gate Results</option>
+            <option value="APPROVED">APPROVED</option>
+            <option value="REJECTED">REJECTED</option>
+        </select>
+    </div>
+</div>
+
+<div class="kpi-container">
+    <div class="kpi">
+        <div class="kpi-title">Total Batches</div>
+        <div class="kpi-value" id="totalBatches"></div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-title">Approval Rate</div>
+        <div class="kpi-value" id="approvalRate"></div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-title">Average Score</div>
+        <div class="kpi-value" id="avgScore"></div>
+    </div>
+    <div class="kpi">
+        <div class="kpi-title">Failure Rate</div>
+        <div class="kpi-value" id="failureRate"></div>
+    </div>
+</div>
+
+<div class="chart-row">
+    <div class="chart-box">
+        <canvas id="statusChart"></canvas>
+    </div>
+    <div class="chart-box">
+        <canvas id="gateChart"></canvas>
+    </div>
+</div>
+
+</div>
+
+<script>
+
+// ===== SAMPLE DATA FROM YOUR DATASET (Condensed for demo) =====
+
+const batches = [
+    {status:"PASS", score:100, gate:"APPROVED"},
+    {status:"PASS", score:100, gate:"APPROVED"},
+    {status:"BLOCKED", score:44.44, gate:"REJECTED"},
+    {status:"FAIL", score:88.89, gate:"REJECTED"},
+    {status:"FAIL", score:66.67, gate:"REJECTED"},
+    {status:"PASS", score:100, gate:"APPROVED"},
+    {status:"BLOCKED", score:33.33, gate:"REJECTED"},
+    {status:"PASS", score:100, gate:"APPROVED"}
+];
+
+// ===== FILTERING =====
+
+function applyFilters() {
+    const statusFilter = document.getElementById("statusFilter").value;
+    const gateFilter = document.getElementById("gateFilter").value;
+
+    let filtered = batches.filter(b =>
+        (statusFilter === "ALL" || b.status === statusFilter) &&
+        (gateFilter === "ALL" || b.gate === gateFilter)
+    );
+
+    updateKPIs(filtered);
+    updateCharts(filtered);
+}
+
+function updateKPIs(data) {
+    document.getElementById("totalBatches").innerText = data.length;
+
+    const approved = data.filter(d => d.gate === "APPROVED").length;
+    const approvalRate = data.length ? ((approved / data.length) * 100).toFixed(1) : 0;
+    document.getElementById("approvalRate").innerText = approvalRate + "%";
+
+    const avgScore = data.length ? 
+        (data.reduce((sum, d) => sum + (d.score || 0), 0) / data.length).toFixed(1)
+        : 0;
+    document.getElementById("avgScore").innerText = avgScore;
+
+    const failed = data.filter(d => d.status === "FAIL").length;
+    const failureRate = data.length ? ((failed / data.length) * 100).toFixed(1) : 0;
+    document.getElementById("failureRate").innerText = failureRate + "%";
+}
+
+let statusChart, gateChart;
+
+function updateCharts(data) {
+
+    const statusCounts = {
+        PASS: data.filter(d => d.status === "PASS").length,
+        FAIL: data.filter(d => d.status === "FAIL").length,
+        BLOCKED: data.filter(d => d.status === "BLOCKED").length
+    };
+
+    const gateCounts = {
+        APPROVED: data.filter(d => d.gate === "APPROVED").length,
+        REJECTED: data.filter(d => d.gate === "REJECTED").length
+    };
+
+    statusChart.data.datasets[0].data = Object.values(statusCounts);
+    statusChart.update();
+
+    gateChart.data.datasets[0].data = Object.values(gateCounts);
+    gateChart.update();
+}
+
+// ===== INITIAL CHART LOAD =====
+
+window.onload = function() {
+
+    statusChart = new Chart(document.getElementById("statusChart"), {
+        type: 'bar',
+        data: {
+            labels: ["PASS", "FAIL", "BLOCKED"],
+            datasets: [{
+                label: "Batch Status Distribution",
+                data: [0,0,0]
+            }]
+        }
+    });
+
+    gateChart = new Chart(document.getElementById("gateChart"), {
+        type: 'pie',
+        data: {
+            labels: ["APPROVED", "REJECTED"],
+            datasets: [{
+                data: [0,0]
+            }]
+        }
+    });
+
+    applyFilters();
+
+    document.getElementById("statusFilter").addEventListener("change", applyFilters);
+    document.getElementById("gateFilter").addEventListener("change", applyFilters);
+}
+
+</script>
+
+</body>
+</html>

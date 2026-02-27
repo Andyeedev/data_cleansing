@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Enterprise Dashboard with Storytelling</title>
+<!-- Include Chart.js CDN for sample charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    height: 100vh;
+    background-color: #f0f0f0;
+  }
+  #sidebar {
+    width: 250px;
+    background-color: #1E3A8A;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    color: white;
+  }
+  .slicer-group {
+    margin-bottom: 20px;
+  }
+  .slicer-label {
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .slicer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .toggle-button {
+    padding: 8px 12px;
+    background-color: transparent;
+    border: 2px solid white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  .toggle-button.selected {
+    background-color: white;
+    color: #1E3A8A;
+  }
+  input[type=range], input[type=date] {
+    width: 100%;
+    margin-top: 4px;
+  }
+  #applyBtn {
+    background-color: #2563EB;
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+  }
+  #applyBtn:hover {
+    background-color: #3B82F6;
+  }
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  #header {
+    background-color: #0a2a66;
+    color: white;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #header h1 {
+    font-size: 20px;
+  }
+  #logo {
+    width: 50px;
+    height: 50px;
+    background-color: #fff;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  #kpis {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 20px;
+    background-color: #f9f9f9;
+  }
+  .kpi {
+    flex: 1;
+    margin: 0 10px;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  }
+  .kpi:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  #charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: auto;
+    gap: 0; /* no gaps */
+    flex: 1;
+  }
+  .chart-container {
+    padding: 10px;
+    height: 100%;
+  }
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  /* Storytelling Sections */
+  .story-section {
+    padding: 15px 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    margin: 10px 20px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.05);
+  }
+  .story-section h2 {
+    margin-bottom: 10px;
+    color: #1E3A8A;
+  }
+  .story-section p {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+  }
+  @media(max-width: 1200px){
+    #charts-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(4, 1fr);
+    }
+  }
+</style>
+</head>
+<body>
+<!-- Sidebar with slicers -->
+<div id="sidebar">
+  <div class="slicer-group">
+    <div class="slicer-label">Category Filter</div>
+    <div class="slicer" id="categorySlicer">
+      <button class="toggle-button" data-value="A">A</button>
+      <button class="toggle-button" data-value="B">B</button>
+      <button class="toggle-button" data-value="C">C</button>
+    </div>
+  </div>
+  <div class="slicer-group">
+    <div class="slicer-label">Segment Filter</div>
+    <div class="slicer" id="segmentSlicer">
+      <button class="toggle-button" data-value="X">X</button>
+      <button class="toggle-button" data-value="Y">Y</button>
+      <button class="toggle-button" data-value="Z">Z</button>
+    </div>
+  </div>
+  <div class="slicer-group">
+    <div class="slicer-label">Date Range</div>
+    <input type="date" id="startDate" />
+    <input type="date" id="endDate" />
+    <button id="applyBtn">Apply Filters</button>
+  </div>
+</div>
+
+<!-- Main content area -->
+<div id="main">
+  <!-- Header -->
+  <div id="header">
+    <div style="display:flex; align-items:center;">
+      <div id="logo"></div>
+      <h1>Batch Processing & Data Quality Dashboard</h1>
+    </div>
+  </div>
+
+  <!-- Storytelling Sections -->
+  <div class="story-section">
+    <h2>Overview</h2>
+    <p>This dashboard provides an overview of recent batch processing activities and control rule checks for February 2026. The goal is to identify success rates, recurring issues, and areas for process improvement. The visualizations help track batch health over time, control rule failure patterns, and highlight key data quality concerns.</p>
+  </div>
+
+  <div class="story-section">
+    <h2>Batch Success Rate</h2>
+    <p>Approximately 70% of batches executed successfully, indicating overall stability. However, 30% encountered failures or were blocked, mainly due to score thresholds or control rule violations. The trend over the month shows intermittent spikes in failures, suggesting periods requiring further investigation.</p>
+  </div>
+
+  <div class="story-section">
+    <h2>Control Rule Failures</h2>
+    <p>The "C01_ROWCOUNT" and "C03_REFERENTIAL" controls are the most common failure points, often failing together, which indicates potential data inconsistencies or referential integrity issues in the source systems. Addressing these will improve overall data quality and batch reliability.</p>
+  </div>
+
+  <!-- KPIs -->
+  <div id="kpis">
+    <div class="kpi">
+      <h2 id="kpi1">70%</h2>
+      <p>Batch Success Rate</p>
+    </div>
+    <div class="kpi">
+      <h2 id="kpi2">30%</h2>
+      <p>Failures & Blocked Batches</p>
+    </div>
+    <div class="kpi">
+      <h2 id="kpi3">15</h2>
+      <p>Control Failures</p>
+    </div>
+  </div>
+
+  <!-- Charts and Data Breakdown -->
+  <div id="charts-grid">
+    <div class="chart-container">
+      <canvas id="chart1"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="chart2"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="chart3"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="chart4"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sample data for charts (simulating insights)
+  const batchStatusData = {
+    labels: ['2026-02-01', '2026-02-05', '2026-02-10', '2026-02-15', '2026-02-20', '2026-02-25', '2026-02-28'],
+    datasets: [
+      {
+        label: 'Passed Batches',
+        data: [3, 4, 2, 5, 3, 4, 4],
+        backgroundColor: 'rgba(34, 197, 94, 0.6)',
+        borderColor: 'rgba(34, 197, 94, 1)',
+        borderWidth: 1
+      },
+      {
+        label: 'Failed/Blocked',
+        data: [2, 1, 3, 1, 4, 2, 2],
+        backgroundColor: 'rgba(239, 68, 68, 0.6)',
+        borderColor: 'rgba(239, 68, 68, 1)',
+        borderWidth: 1
+      }
+    ]
+  };
+
+  const controlFailuresData = {
+    labels: ['C01_ROWCOUNT', 'C02_BALANCE_RECON', 'C03_REFERENTIAL'],
+    datasets: [{
+      label: 'Failures',
+      data: [7, 3, 6],
+      backgroundColor: ['rgba(239, 68, 68, 0.6)', 'rgba(251, 191, 36, 0.6)', 'rgba(34, 197, 94, 0.6)']
+    }]
+  };
+
+  // Initialize charts
+  const ctx1 = document.getElementById('chart1').getContext('2d');
+  const ctx2 = document.getElementById('chart2').getContext('2d');
+  const ctx3 = document.getElementById('chart3').getContext('2d');
+  const ctx4 = document.getElementById('chart4').getContext('2d');
+
+  const chart1 = new Chart(ctx1, {
+    type: 'line',
+    data: batchStatusData,
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { title: { display: true, text: 'Date' } },
+        y: { title: { display: true, text: 'Number of Batches' }, beginAtZero:true }
+      }
+    }
+  });
+  const chart2 = new Chart(ctx2, {
+    type: 'bar',
+    data: controlFailuresData,
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero:true }
+      }
+    }
+  });
+  const chart3 = new Chart(ctx3, {
+    type: 'pie',
+    data: {
+      labels: ['PASS', 'FAIL', 'BLOCKED'],
+      datasets: [{
+        data: [50, 30, 20],
+        backgroundColor: ['rgba(34,197,94,0.6)', 'rgba(239,68,68,0.6)', 'rgba(251,191,36,0.6)']
+      }]
+    },
+    options: { responsive: true }
+  });
+  const chart4 = new Chart(ctx4, {
+    type: 'bar',
+    data: {
+      labels: ['C01_ROWCOUNT', 'C02_BALANCE_RECON', 'C03_REFERENTIAL'],
+      datasets: [{
+        label: 'Failure Count',
+        data: [7, 3, 6],
+        backgroundColor: ['rgba(239,68,68,0.6)', 'rgba(251,191,36,0.6)', 'rgba(34,197,94,0.6)']
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero:true } } }
+  });
+
+  // Slicer toggle logic
+  document.querySelectorAll('.toggle-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+    });
+  });
+
+  // Apply Filters Button
+  document.getElementById('applyBtn').addEventListener('click', () => {
+    // For demo, update KPIs with random data
+    document.getElementById('kpi1').innerText = Math.floor(Math.random() * 30 + 70) + '%'; // success rate
+    document.getElementById('kpi2').innerText = Math.floor(Math.random() * 20) + ' issues';
+    document.getElementById('kpi3').innerText = Math.floor(Math.random() * 10 + 5);
+    // Update charts with random data (simulate filtering effect)
+    [chart1, chart2, chart3, chart4].forEach(chart => {
+      if(chart.data.datasets){
+        chart.data.datasets.forEach(ds => {
+          ds.data = ds.data.map(() => Math.floor(Math.random() * 20 + 1));
+        });
+        chart.update();
+      }
+    });
+  });
+</script>
+</body>
+</html>

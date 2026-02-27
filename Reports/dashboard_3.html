@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Enterprise Migration Governance Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial;
+    background: #f4f6f9;
+}
+
+/* MAIN LAYOUT */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: 120px 1fr 1fr;
+    height: 100vh;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* LEFT FILTER PANEL */
+.filters {
+    grid-row: 1 / span 3;
+    background: #1f2937;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* KPI BAR */
+.kpis {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* CHART GRID */
+.chart-area {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+}
+
+.chart-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* KPI CARDS */
+.kpi-card {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+}
+
+.kpi-value {
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.kpi-label {
+    font-size: 12px;
+    color: #555;
+}
+
+select, input {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 6px;
+    border-radius: 4px;
+    border: none;
+}
+
+h3 {
+    margin-top: 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+    <!-- LEFT FILTER DIV -->
+    <div class="filters">
+        <h3>Filters</h3>
+
+        <label>Environment</label>
+        <select id="envFilter">
+            <option value="ALL">All</option>
+            <option value="DEV">DEV</option>
+            <option value="UAT">UAT</option>
+            <option value="PROD">PROD</option>
+        </select>
+
+        <label>Status</label>
+        <select id="statusFilter">
+            <option value="ALL">All</option>
+            <option value="PASS">PASS</option>
+            <option value="FAIL">FAIL</option>
+            <option value="BLOCKED">BLOCKED</option>
+            <option value="COMPLETED">COMPLETED</option>
+            <option value="RUNNING">RUNNING</option>
+        </select>
+
+        <label>Start Date</label>
+        <input type="date" id="startDate">
+
+        <label>End Date</label>
+        <input type="date" id="endDate">
+
+        <button onclick="applyFilters()">Apply</button>
+    </div>
+
+    <!-- KPI DIV -->
+    <div class="kpis">
+        <div class="kpi-card">
+            <div class="kpi-value" id="totalBatches">0</div>
+            <div class="kpi-label">Total Batches</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-value" id="passRate">0%</div>
+            <div class="kpi-label">Pass Rate</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-value" id="avgScore">0</div>
+            <div class="kpi-label">Average Score</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-value" id="blockedCount">0</div>
+            <div class="kpi-label">Blocked Releases</div>
+        </div>
+    </div>
+
+    <!-- CHART DIVS -->
+    <div class="chart-area">
+
+        <div class="chart-card">
+            <canvas id="statusChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <canvas id="scoreTrendChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <canvas id="controlFailureChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <canvas id="severityChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* -------- SAMPLE DATA FROM YOUR DATASET -------- */
+
+const batches = [
+    {date:'2026-02-18', status:'PASS', score:100},
+    {date:'2026-02-18', status:'BLOCKED', score:44.44},
+    {date:'2026-02-18', status:'FAIL', score:66.67},
+    {date:'2026-02-17', status:'COMPLETED', score:33.33},
+    {date:'2026-02-18', status:'PASS', score:100},
+    {date:'2026-02-16', status:'RUNNING', score:null}
+];
+
+/* -------- FILTER FUNCTION -------- */
+
+function applyFilters() {
+
+    const start = document.getElementById("startDate").value;
+    const end = document.getElementById("endDate").value;
+    const statusFilter = document.getElementById("statusFilter").value;
+
+    let filtered = batches.filter(b => {
+
+        let valid = true;
+
+        if (start) valid = valid && b.date >= start;
+        if (end) valid = valid && b.date <= end;
+        if (statusFilter !== "ALL") valid = valid && b.status === statusFilter;
+
+        return valid;
+    });
+
+    updateKPIs(filtered);
+    updateCharts(filtered);
+}
+
+/* -------- KPI UPDATE -------- */
+
+function updateKPIs(data) {
+
+    document.getElementById("totalBatches").innerText = data.length;
+
+    let passCount = data.filter(d => d.status === "PASS").length;
+    let passRate = data.length ? ((passCount / data.length) * 100).toFixed(1) : 0;
+
+    document.getElementById("passRate").innerText = passRate + "%";
+
+    let scores = data.filter(d => d.score !== null).map(d => d.score);
+    let avg = scores.length ? (scores.reduce((a,b)=>a+b)/scores.length).toFixed(2) : 0;
+
+    document.getElementById("avgScore").innerText = avg;
+
+    let blocked = data.filter(d => d.status === "BLOCKED").length;
+    document.getElementById("blockedCount").innerText = blocked;
+}
+
+/* -------- CHARTS -------- */
+
+let statusChart = new Chart(document.getElementById('statusChart'), {
+    type: 'bar',
+    data: {
+        labels: ['PASS','FAIL','BLOCKED','COMPLETED','RUNNING'],
+        datasets: [{
+            label: 'Batch Count',
+            data: [2,1,1,1,1]
+        }]
+    }
+});
+
+let scoreTrendChart = new Chart(document.getElementById('scoreTrendChart'), {
+    type: 'line',
+    data: {
+        labels: ['16','17','18'],
+        datasets: [{
+            label: 'Average Score',
+            data: [33,50,90]
+        }]
+    }
+});
+
+let controlFailureChart = new Chart(document.getElementById('controlFailureChart'), {
+    type: 'bar',
+    data: {
+        labels: ['C01','C02','C03'],
+        datasets: [{
+            label: 'Failures',
+            data: [5,3,4]
+        }]
+    }
+});
+
+let severityChart = new Chart(document.getElementById('severityChart'), {
+    type: 'pie',
+    data: {
+        labels: ['LOW','MEDIUM','HIGH','CRITICAL'],
+        datasets: [{
+            data: [4,3,6,2]
+        }]
+    }
+});
+
+applyFilters();
+
+</script>
+
+</body>
+</html>
