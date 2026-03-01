@@ -1,25 +1,23 @@
+from ast import Add
+from unittest import result
 import uuid
 from .db_connector import DBConnector
 from .rule_executor import RuleExecutor
 from .scoring_engine import ScoringEngine
 
-
 class ExecutionEngine:
+
 
     def __init__(self, config):
         self.batch_id = str(uuid.uuid4())
-        self.config = config
+        self.config = config    
 
-        # Mandatory for SaaS
+        # NEW: project awareness (mandatory for SaaS)
         self.project_id = config["project_id"]
 
         self.engine_db = DBConnector(config["engine_db"])
         self.source_db = DBConnector(config["source_db"])
         self.target_db = DBConnector(config["target_db"])
-
-    # ---------------------------------------------------------
-    # PUBLIC ENTRY
-    # ---------------------------------------------------------
 
     def run(self):
         self._create_batch()
@@ -31,9 +29,6 @@ class ExecutionEngine:
 
         self._finalise_batch()
 
-    # ---------------------------------------------------------
-    # BATCH CREATION (PROJECT AWARE)
-    # ---------------------------------------------------------
 
     def _create_batch(self):
         query = """
@@ -43,9 +38,6 @@ class ExecutionEngine:
         """
         self.engine_db.execute(query, (self.batch_id, self.project_id))
 
-    # ---------------------------------------------------------
-    # PROJECT-SCOPED CONTROLS
-    # ---------------------------------------------------------
 
     def _get_enabled_controls(self):
         query = """
@@ -57,26 +49,27 @@ class ExecutionEngine:
         """
         return self.engine_db.execute(query, (self.project_id,))
 
-    # ---------------------------------------------------------
-    # CONTROL EXECUTION
-    # ---------------------------------------------------------
-
     def _execute_control(self, control_id):
         executor = RuleExecutor(
             self.engine_db,
             self.source_db,
             self.target_db,
             self.batch_id,
-            self.project_id,
+            self.project_id,   # NEW
             control_id
         )
         executor.execute_rules()
 
-    # ---------------------------------------------------------
-    # FINALISATION
-    # ---------------------------------------------------------
+    #Add certification write
+    #Add enforcement_mode logic
+    #Properly call release gate
+    #Preserve backward compatibility
 
     def _finalise_batch(self):
+
+        # ------------------------------------------
+        # Aggregate Control-Level Results
+        # ------------------------------------------
 
         query = """
         SELECT overall_status, COUNT(*)
@@ -105,6 +98,11 @@ class ExecutionEngine:
             elif status == "BLOCKED":
                 blocked = count
 
+        # ------------------------------------------
+        # Determine Batch Status
+        # Batch Execution Status Logic:
+        # ------------------------------------------
+
         if blocked > 0:
             overall_status = "BLOCKED"
         elif errors > 0:
@@ -114,10 +112,15 @@ class ExecutionEngine:
         else:
             overall_status = "PASS"
 
+        # ------------------------------------------
+        # Persist Batch Summary
+        # → Control Aggregation
+        # ------------------------------------------
+
         insert_query = """
         INSERT INTO engine.migration_batch_summary
         (batch_id, overall_status, total_controls,
-         passed_controls, failed_controls, error_controls, blocked_controls)
+        passed_controls, failed_controls, error_controls, blocked_controls)
         VALUES (%s,%s,%s,%s,%s,%s,%s)
         """
 
@@ -131,8 +134,17 @@ class ExecutionEngine:
             blocked
         ))
 
+        # ------------------------------------------
+        # Calculate Risk-Weighted Score
+        # → Governance Score
+        # ------------------------------------------
+
         scoring = ScoringEngine(self.engine_db, self.batch_id)
         score = scoring.calculate_overall()
+
+        # ------------------------------------------
+        # Close Batch
+        # ------------------------------------------
 
         update_query = """
         UPDATE engine.migration_validation_batch
@@ -148,25 +160,50 @@ class ExecutionEngine:
             self.batch_id
         ))
 
-        # Governance Intelligence
+
+        # ------------------------------------------
+        #→ run_governance_intelligence(batch_id)
+        # 1. Run governance intelligence first
+        # ------------------------------------------
         result = self.engine_db.execute(
             "SELECT * FROM engine.run_governance_intelligence(%s)",
             (self.batch_id,)
         )
 
-        anomaly_score = result[0][0]
-        auto_blocked = result[0][2]
+        #anomaly_score = result[0][0]
+        #anomaly_flag = result[0][1]
+        #auto_blocked = result[0][2]
 
+        anomaly_score = result[0][0]
+        anomaly_flag = result[0][1]
+        auto_blocked = result[0][2]
+        #-----------------------------------------------
+        #→ Persist intelligence
+        # 2. If intelligence auto-blocks, override status
+        #-----------------------------------------------
         if auto_blocked:
             raise Exception(
                 f"RELEASE BLOCKED: Governance anomaly threshold breached. Score={anomaly_score}"
             )
 
+        #if auto_blocked:
+        #    overall_status = "BLOCKED"
+
+
+        # ------------------------------------------
+        # Enforce Release Gate + Certification
+        # ------------------------------------------
+
         self._enforce_release_gate(overall_status, score)
 
-    # ---------------------------------------------------------
-    # RELEASE GATE
-    # ---------------------------------------------------------
+
+        # ------------------------------------------
+        #This version:
+        #Writes certification record
+        #Supports STRICT and RECORD_ONLY
+        #Defaults approved_by = SYSTEM
+        #Uses config safely
+        # ------------------------------------------
 
     def _enforce_release_gate(self, overall_status, score):
 
@@ -190,6 +227,10 @@ class ExecutionEngine:
             gate_result = "REJECTED"
             decision_reason = f"Score {score} below threshold {min_score}"
 
+        # ------------------------------------------
+        # Persist Certification Record
+        # ------------------------------------------
+
         insert_query = """
         INSERT INTO engine.migration_release_decision
         (batch_id, environment, client_name,
@@ -208,7 +249,14 @@ class ExecutionEngine:
             decision_reason
         ))
 
+
+        
+        # ------------------------------------------
+        # Enforcement Behavior
+        # ------------------------------------------
+
         if gate_result == "REJECTED" and enforcement_mode == "STRICT":
             raise SystemExit(
                 f"RELEASE BLOCKED: Batch {self.batch_id} - {decision_reason}"
             )
+

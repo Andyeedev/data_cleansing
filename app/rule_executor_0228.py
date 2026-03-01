@@ -4,35 +4,38 @@ from app.rule_factory import RuleFactory
 
 class RuleExecutor:
 
+
     def __init__(self, engine_db, source_db, target_db, batch_id, project_id, control_id):
         self.engine_db = engine_db
         self.source_db = source_db
         self.target_db = target_db
         self.batch_id = batch_id
-        self.project_id = project_id
+        self.project_id = project_id   # NEW
         self.control_id = control_id
 
     # ---------------------------------------------------------
-    # PUBLIC ENTRY
+    # PUBLIC ENTRY (v1.2 - WITH SEVERITY MODEL)
     # ---------------------------------------------------------
 
     def execute_rules(self):
 
         rules = self._get_rules()
 
+        # ------------------------------------------
+        # Aggregation Counters
+        # ------------------------------------------
         total_rules = 0
         passed = 0
         failed = 0
         errors = 0
-        blocked = False
+        blocked = False   # NEW
 
         for rule in rules:
 
             rule_id = rule[0]
             rule_type = rule[1]
-            severity_level = rule[2]
+            severity_level = rule[2]  # NEW
 
-            # 🔥 Mapping-driven first, fallback to legacy
             entities = self._get_rule_entities(rule_id)
 
             for entity in entities:
@@ -71,6 +74,7 @@ class RuleExecutor:
 
                 execution_time = round(time.time() - start_time, 4)
 
+                # Log execution WITH severity
                 self._log_rule_execution(
                     rule_id,
                     entity[1],
@@ -86,12 +90,17 @@ class RuleExecutor:
                     if severity_level and severity_level.upper() == "CRITICAL":
                         blocked = True
 
+                # Update counters
                 if execution_status == "PASS":
                     passed += 1
                 elif execution_status == "FAIL":
                     failed += 1
                 else:
                     errors += 1
+
+        # ------------------------------------------
+        # Determine Overall Control Status
+        # ------------------------------------------
 
         if blocked:
             overall_status = "BLOCKED"
@@ -102,6 +111,7 @@ class RuleExecutor:
         else:
             overall_status = "PASS"
 
+        # Persist control summary
         self._log_control_summary(
             overall_status,
             total_rules,
@@ -110,198 +120,9 @@ class RuleExecutor:
             errors
         )
 
-    # ---------------------------------------------------------
-    # RULE FETCH
-    # ---------------------------------------------------------
-
-    def _get_rules(self):
-        query = """
-        SELECT rule_id, rule_type, severity_level
-        FROM engine.rule_registry
-        WHERE control_id = %s
-        AND enabled_flag = TRUE
-        """
-        return self.engine_db.execute(query, (self.control_id,))
 
     # ---------------------------------------------------------
-    # ENTITY RESOLUTION (SINGLE SOURCE OF TRUTH)
-    # ---------------------------------------------------------
-
-    def _get_rule_entities_legacy(self, rule_id):
-
-        # 1️⃣ Try mapping-driven mode
-        mapping_query = """
-        SELECT
-            m.mapping_id,
-            m.source_schema,
-            m.source_table,
-            m.target_schema,
-            m.target_table,
-            m.source_columns
-        FROM core.dataset_mappings m
-        WHERE m.project_id = %s
-        AND m.is_active = TRUE
-        """
-
-    def _get_rule_entities_old_new(self, rule_id):
-
-    # 1️⃣ Try mapping-driven mode
-        mapping_query = """
-        SELECT
-            m.*
-        FROM core.dataset_mappings m
-        JOIN core.rule_dataset_mapping rdm
-        ON m.mapping_id = rdm.mapping_id
-        WHERE rdm.rule_id = %s
-        AND m.project_id = %s
-        AND m.is_active = TRUE
-        AND rdm.is_active = TRUE
-        """
-
-        rows = self.engine_db.execute(mapping_query, (rule_id,self.project_id,))
-
-        if rows:
-            adapted = []
-
-            for row in rows:
-                source_schema = row[1]
-                source_table = row[2]
-                target_schema = row[3]
-                target_table = row[4]
-                source_columns = row[5]
-
-                primary_key_column = source_columns[0] if source_columns else None
-                numeric_column = source_columns[0] if source_columns else None
-
-                adapted.append((
-                    row[0],
-                    f"{source_schema}.{source_table}",
-                    source_schema,
-                    source_table,
-                    target_schema,
-                    target_table,
-                    primary_key_column,
-                    None,
-                    0,
-                    numeric_column
-                ))
-
-            return adapted
-
-        # 2️⃣ Legacy fallback
-        legacy_query = """
-        SELECT id,
-               entity_name,
-               source_schema,
-               source_table,
-               target_schema,
-               target_table,
-               primary_key_column,
-               filter_condition,
-               tolerance_value,
-               numeric_column
-        FROM engine.rule_parameter_metadata
-        WHERE rule_id = %s
-        AND active = TRUE
-        """
-        
-
-        return self.engine_db.execute(mapping_query, (rule_id,self.project_id,))
-
-
-    def _get_rule_entities(self, rule_id):
-
-    # 1️⃣ Mapping-driven mode
-        mapping_query = """
-        SELECT
-            m.mapping_id,
-            m.source_schema,
-            m.source_table,
-            m.target_schema,
-            m.target_table,
-            m.source_columns
-        FROM core.dataset_mappings m
-        JOIN core.rule_dataset_mapping rdm
-            ON m.mapping_id = rdm.mapping_id
-        WHERE rdm.rule_id = %s
-        AND m.project_id = %s
-        AND m.is_active = TRUE
-        AND rdm.is_active = TRUE
-        """
-
-        rows = self.engine_db.execute(
-            mapping_query,
-            (rule_id, self.project_id)
-        )
-
-        if rows:
-            adapted = []
-
-            for row in rows:
-                source_schema = row[1]
-                source_table = row[2]
-                target_schema = row[3]
-                target_table = row[4]
-                source_columns = row[5]
-
-                primary_key_column = source_columns[0] if source_columns else None
-                numeric_column = source_columns[0] if source_columns else None
-
-                adapted.append((
-                    row[0],
-                    f"{source_schema}.{source_table}",
-                    source_schema,
-                    source_table,
-                    target_schema,
-                    target_table,
-                    primary_key_column,
-                    None,
-                    0,
-                    numeric_column
-                ))
-
-            return adapted
-
-        # 2️⃣ Legacy fallback
-        legacy_query = """
-        SELECT id,
-            entity_name,
-            source_schema,
-            source_table,
-            target_schema,
-            target_table,
-            primary_key_column,
-            filter_condition,
-            tolerance_value,
-            numeric_column
-        FROM engine.rule_parameter_metadata
-        WHERE rule_id = %s
-        AND active = TRUE
-        """
-
-        #return self.engine_db.execute(legacy_query, (rule_id,))
-
-
-    # ---------------------------------------------------------
-    # PARAM BUILD
-    # ---------------------------------------------------------
-
-    def _build_parameters(self, entity_row):
-
-        return {
-            "entity_name": entity_row[1],
-            "source_schema": entity_row[2],
-            "source_table": entity_row[3],
-            "target_schema": entity_row[4],
-            "target_table": entity_row[5],
-            "primary_key_column": entity_row[6],
-            "filter_condition": entity_row[7],
-            "tolerance_value": entity_row[8] or 0,
-            "numeric_column": entity_row[9]
-        }
-
-    # ---------------------------------------------------------
-    # LOGGING
+    # CONTROL SUMMARY LOGGER
     # ---------------------------------------------------------
 
     def _log_control_summary(self, overall_status, total, passed, failed, errors):
@@ -323,12 +144,100 @@ class RuleExecutor:
             errors
         ))
 
+    # ---------------------------------------------------------
+    # METADATA FETCH
+    # ---------------------------------------------------------
+
+    def _get_rules(self):
+        query = """
+        SELECT rule_id, rule_type, severity_level
+        FROM engine.rule_registry
+        WHERE control_id = %s
+        AND enabled_flag = TRUE
+        """
+        return self.engine_db.execute(query, (self.control_id,))
+
+    
+    def _get_rule_entities(self, rule_id):
+
+        query = """
+        SELECT
+            m.mapping_id,
+            m.source_schema,
+            m.source_table,
+            m.target_schema,
+            m.target_table,
+            m.source_columns,
+            m.target_columns
+        FROM core.dataset_mappings m
+        WHERE m.project_id = %s
+        AND m.is_active = TRUE
+        """
+
+        rows = self.engine_db.execute(query, (self.project_id,))
+
+        adapted = []
+
+        for row in rows:
+
+            mapping_id = row[0]
+            source_schema = row[1]
+            source_table = row[2]
+            target_schema = row[3]
+            target_table = row[4]
+            source_columns = row[5]
+            target_columns = row[6]
+
+            # Backward compatibility adapter
+            primary_key_column = source_columns[0] if source_columns else None
+            numeric_column = source_columns[0] if source_columns else None
+
+            adapted.append((
+                mapping_id,
+                f"{source_schema}.{source_table}",
+                source_schema,
+                source_table,
+                target_schema,
+                target_table,
+                primary_key_column,
+                None,  # filter_condition
+                0,     # tolerance_value
+                numeric_column
+            ))
+
+        return adapted
+
+
+
+    # ---------------------------------------------------------
+    # PARAM BUILD
+    # ---------------------------------------------------------
+
+    def _build_parameters(self, entity_row):
+
+        return {
+            "entity_name": entity_row[1],
+            "source_schema": entity_row[2],
+            "source_table": entity_row[3],
+            "target_schema": entity_row[4],
+            "target_table": entity_row[5],
+            "primary_key_column": entity_row[6],
+            "filter_condition": entity_row[7],
+            "tolerance_value": entity_row[8] or 0,
+            "numeric_column": entity_row[9]
+        }
+
+    # ---------------------------------------------------------
+    # LOGGING - EXECUTION (NOW WITH SEVERITY)
+    # ---------------------------------------------------------
+
     def _log_rule_execution(self, rule_id, entity_name, status, delta, execution_time, severity):
 
+        
         query = """
         INSERT INTO engine.migration_control_execution
         (batch_id, control_id, rule_id, entity_name,
-         execution_status, delta_value, execution_time_seconds, severity_level)
+        execution_status, delta_value, execution_time_seconds, severity_level)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """
 
@@ -342,6 +251,11 @@ class RuleExecutor:
             execution_time,
             severity
         ))
+
+
+    # ---------------------------------------------------------
+    # LOGGING - EXCEPTIONS (UNCHANGED)
+    # ---------------------------------------------------------
 
     def _log_exception(self, rule_id, entity_name, result):
 
