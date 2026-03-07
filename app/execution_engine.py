@@ -116,13 +116,14 @@ class ExecutionEngine:
 
         insert_query = """
         INSERT INTO engine.migration_batch_summary
-        (batch_id, overall_status, total_controls,
-         passed_controls, failed_controls, error_controls, blocked_controls)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)
+        (batch_id, project_id, overall_status, total_controls,
+        passed_controls, failed_controls, error_controls, blocked_controls)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """
 
         self.engine_db.execute(insert_query, (
             self.batch_id,
+            self.project_id,
             overall_status,
             total_controls,
             passed,

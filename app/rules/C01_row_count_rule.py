@@ -1,7 +1,16 @@
-from .base_rule import BaseRule
+from app.rules.base_rule import BaseRule
 
 
 class RowCountRule(BaseRule):
+
+    RULE_ID = "C01_ROWCOUNT"
+
+    REQUIRED_PARAMETERS = [
+        "source_schema",
+        "source_table",
+        "target_schema",
+        "target_table"
+    ]
 
     def execute(self):
 

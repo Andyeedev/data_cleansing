@@ -1,6 +1,10 @@
+
+
 import time
+import logging
 from app.rule_factory import RuleFactory
 
+logger = logging.getLogger(__name__)
 
 class RuleExecutor:
 
@@ -27,12 +31,11 @@ class RuleExecutor:
         blocked = False
 
         for rule in rules:
-
+            
+            
             rule_id = rule[0]
-            rule_type = rule[1]
             severity_level = rule[2]
 
-            # 🔥 Mapping-driven first, fallback to legacy
             entities = self._get_rule_entities(rule_id)
 
             for entity in entities:
@@ -41,8 +44,21 @@ class RuleExecutor:
 
                 parameters = self._build_parameters(entity)
 
+                            # -----------------------------------------
+                # RULE EXECUTION LOG
+                # -----------------------------------------
+                dataset_name = entity[1]
+                logger.info(f"Running rule {rule_id} for {dataset_name}")
+
                 rule_instance = RuleFactory.create(
-                    rule_type,
+                    rule_id,
+                    self.source_db,
+                    self.target_db,
+                    parameters
+                )
+
+                rule_instance = RuleFactory.create(
+                    rule_id,
                     self.source_db,
                     self.target_db,
                     parameters
@@ -51,29 +67,31 @@ class RuleExecutor:
                 start_time = time.time()
 
                 try:
+
                     result = rule_instance.execute()
-                    execution_status = result["status"]
+
+                    execution_status = result.get("status", "ERROR")
                     delta = result.get("delta", 0)
 
-                except Exception:
+                    if execution_status == "SKIPPED":
+                        continue
+
+                except Exception as e:
+
                     execution_status = "ERROR"
                     delta = 0
 
                     self._log_exception(
                         rule_id,
                         entity[1],
-                        {
-                            "source_value": "N/A",
-                            "target_value": "N/A",
-                            "delta": 0
-                        }
+                        str(e)
                     )
 
                 execution_time = round(time.time() - start_time, 4)
 
                 self._log_rule_execution(
                     rule_id,
-                    entity[1],
+                    entity,
                     execution_status,
                     delta,
                     execution_time,
@@ -81,6 +99,7 @@ class RuleExecutor:
                 )
 
                 if execution_status == "FAIL":
+
                     self._log_exception(rule_id, entity[1], result)
 
                     if severity_level and severity_level.upper() == "CRITICAL":
@@ -115,111 +134,29 @@ class RuleExecutor:
     # ---------------------------------------------------------
 
     def _get_rules(self):
+
         query = """
         SELECT rule_id, rule_type, severity_level
         FROM engine.rule_registry
         WHERE control_id = %s
         AND enabled_flag = TRUE
         """
+
         return self.engine_db.execute(query, (self.control_id,))
 
     # ---------------------------------------------------------
-    # ENTITY RESOLUTION (SINGLE SOURCE OF TRUTH)
+    # ENTITY RESOLUTION
     # ---------------------------------------------------------
-
-    def _get_rule_entities_legacy(self, rule_id):
-
-        # 1️⃣ Try mapping-driven mode
-        mapping_query = """
-        SELECT
-            m.mapping_id,
-            m.source_schema,
-            m.source_table,
-            m.target_schema,
-            m.target_table,
-            m.source_columns
-        FROM core.dataset_mappings m
-        WHERE m.project_id = %s
-        AND m.is_active = TRUE
-        """
-
-    def _get_rule_entities_old_new(self, rule_id):
-
-    # 1️⃣ Try mapping-driven mode
-        mapping_query = """
-        SELECT
-            m.*
-        FROM core.dataset_mappings m
-        JOIN core.rule_dataset_mapping rdm
-        ON m.mapping_id = rdm.mapping_id
-        WHERE rdm.rule_id = %s
-        AND m.project_id = %s
-        AND m.is_active = TRUE
-        AND rdm.is_active = TRUE
-        """
-
-        rows = self.engine_db.execute(mapping_query, (rule_id,self.project_id,))
-
-        if rows:
-            adapted = []
-
-            for row in rows:
-                source_schema = row[1]
-                source_table = row[2]
-                target_schema = row[3]
-                target_table = row[4]
-                source_columns = row[5]
-
-                primary_key_column = source_columns[0] if source_columns else None
-                numeric_column = source_columns[0] if source_columns else None
-
-                adapted.append((
-                    row[0],
-                    f"{source_schema}.{source_table}",
-                    source_schema,
-                    source_table,
-                    target_schema,
-                    target_table,
-                    primary_key_column,
-                    None,
-                    0,
-                    numeric_column
-                ))
-
-            return adapted
-
-        # 2️⃣ Legacy fallback
-        legacy_query = """
-        SELECT id,
-               entity_name,
-               source_schema,
-               source_table,
-               target_schema,
-               target_table,
-               primary_key_column,
-               filter_condition,
-               tolerance_value,
-               numeric_column
-        FROM engine.rule_parameter_metadata
-        WHERE rule_id = %s
-        AND active = TRUE
-        """
-        
-
-        return self.engine_db.execute(mapping_query, (rule_id,self.project_id,))
-
 
     def _get_rule_entities(self, rule_id):
 
-    # 1️⃣ Mapping-driven mode
-        mapping_query = """
+        query = """
         SELECT
             m.mapping_id,
             m.source_schema,
             m.source_table,
             m.target_schema,
-            m.target_table,
-            m.source_columns
+            m.target_table
         FROM core.dataset_mappings m
         JOIN core.rule_dataset_mapping rdm
             ON m.mapping_id = rdm.mapping_id
@@ -229,76 +166,84 @@ class RuleExecutor:
         AND rdm.is_active = TRUE
         """
 
-        rows = self.engine_db.execute(
-            mapping_query,
-            (rule_id, self.project_id)
-        )
+        rows = self.engine_db.execute(query, (rule_id, self.project_id))
 
-        if rows:
-            adapted = []
+        entities = []
 
-            for row in rows:
-                source_schema = row[1]
-                source_table = row[2]
-                target_schema = row[3]
-                target_table = row[4]
-                source_columns = row[5]
+        for row in rows:
 
-                primary_key_column = source_columns[0] if source_columns else None
-                numeric_column = source_columns[0] if source_columns else None
+            mapping_id = row[0]
+            source_schema = row[1]
+            source_table = row[2]
+            target_schema = row[3]
+            target_table = row[4]
 
-                adapted.append((
-                    row[0],
-                    f"{source_schema}.{source_table}",
-                    source_schema,
-                    source_table,
-                    target_schema,
-                    target_table,
-                    primary_key_column,
-                    None,
-                    0,
-                    numeric_column
-                ))
+            entity_name = f"{source_schema}.{source_table}"
 
-            return adapted
+            entities.append((
+                mapping_id,
+                entity_name,
+                source_schema,
+                source_table,
+                target_schema,
+                target_table
+            ))
 
-        # 2️⃣ Legacy fallback
-        legacy_query = """
-        SELECT id,
-            entity_name,
+        return entities
+
+    # ---------------------------------------------------------
+    # PARAMETER BUILDER
+    # ---------------------------------------------------------
+
+    def _build_parameters_legacy_1(self, entity):
+
+        mapping_id = entity[0]
+
+        primary_key = self._infer_primary_key(mapping_id)
+        numeric_column = self._infer_numeric_column(mapping_id)
+
+        return {
+            "mapping_id": mapping_id,
+            "source_schema": entity[2],
+            "source_table": entity[3],
+            "target_schema": entity[4],
+            "target_table": entity[5],
+            "primary_key_column": primary_key,
+            "numeric_column": numeric_column
+        }
+    
+    def _build_parameters(self, entity):
+
+        mapping_id = entity[0]
+
+        query = """
+        SELECT
             source_schema,
             source_table,
             target_schema,
-            target_table,
-            primary_key_column,
-            filter_condition,
-            tolerance_value,
-            numeric_column
-        FROM engine.rule_parameter_metadata
-        WHERE rule_id = %s
-        AND active = TRUE
+            target_table
+        FROM core.dataset_mappings
+        WHERE mapping_id = %s
         """
 
-        #return self.engine_db.execute(legacy_query, (rule_id,))
+        row = self.engine_db.execute(query, (mapping_id,))[0]
 
+        source_schema, source_table, target_schema, target_table = row
 
-    # ---------------------------------------------------------
-    # PARAM BUILD
-    # ---------------------------------------------------------
-
-    def _build_parameters(self, entity_row):
+        primary_key = self._infer_primary_key(mapping_id)
+        numeric_column = self._infer_numeric_column(mapping_id)
 
         return {
-            "entity_name": entity_row[1],
-            "source_schema": entity_row[2],
-            "source_table": entity_row[3],
-            "target_schema": entity_row[4],
-            "target_table": entity_row[5],
-            "primary_key_column": entity_row[6],
-            "filter_condition": entity_row[7],
-            "tolerance_value": entity_row[8] or 0,
-            "numeric_column": entity_row[9]
+            "engine_db": self.engine_db,     # 🔥 REQUIRED
+            "mapping_id": mapping_id,
+            "source_schema": source_schema,
+            "source_table": source_table,
+            "target_schema": target_schema,
+            "target_table": target_table,
+            "primary_key_column": primary_key,
+            "numeric_column": numeric_column
         }
+
 
     # ---------------------------------------------------------
     # LOGGING
@@ -323,27 +268,29 @@ class RuleExecutor:
             errors
         ))
 
-    def _log_rule_execution(self, rule_id, entity_name, status, delta, execution_time, severity):
+    def _log_rule_execution(self, rule_id, entity, status, delta, execution_time, severity):
 
         query = """
         INSERT INTO engine.migration_control_execution
         (batch_id, control_id, rule_id, entity_name,
-         execution_status, delta_value, execution_time_seconds, severity_level)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+         execution_status, delta_value, execution_time_seconds,
+         severity_level, mapping_id)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """
 
         self.engine_db.execute(query, (
             self.batch_id,
             self.control_id,
             rule_id,
-            entity_name,
+            entity[1],
             status,
             delta,
             execution_time,
-            severity
+            severity,
+            entity[0]
         ))
 
-    def _log_exception(self, rule_id, entity_name, result):
+    def _log_exception(self, rule_id, entity_name, error):
 
         query = """
         INSERT INTO engine.migration_control_exceptions
@@ -357,7 +304,39 @@ class RuleExecutor:
             self.control_id,
             rule_id,
             entity_name,
-            str(result.get("source_value")),
-            str(result.get("target_value")),
-            result.get("delta", 0)
+            "N/A",
+            str(error),
+            0
         ))
+
+    # ---------------------------------------------------------
+    # METADATA INFERENCE
+    # ---------------------------------------------------------
+
+    def _infer_primary_key(self, mapping_id):
+
+        query = """
+        SELECT column_name
+        FROM core.dataset_columns
+        WHERE mapping_id = %s
+        AND inferred_role = 'PRIMARY_KEY'
+        LIMIT 1
+        """
+
+        row = self.engine_db.execute(query, (mapping_id,))
+
+        return row[0][0] if row else None
+
+    def _infer_numeric_column(self, mapping_id):
+
+        query = """
+        SELECT column_name
+        FROM core.dataset_columns
+        WHERE mapping_id = %s
+        AND inferred_role = 'NUMERIC_METRIC'
+        LIMIT 1
+        """
+
+        row = self.engine_db.execute(query, (mapping_id,))
+
+        return row[0][0] if row else None
