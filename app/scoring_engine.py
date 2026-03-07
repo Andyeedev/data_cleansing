@@ -5,7 +5,7 @@ class ScoringEngine:
         self.batch_id = batch_id
 
     # ---------------------------------------------------------
-    # RISK-WEIGHTED SCORING (v1.2)
+    # RISK-WEIGHTED SCORING (v1.2)engine.rule_parameter_metadata
     # ---------------------------------------------------------
 
     def calculate_overall(self):
