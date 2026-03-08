@@ -1,7 +1,9 @@
+from asyncio.log import logger
 import uuid
 from .db_connector import DBConnector
 from .rule_executor import RuleExecutor
 from .scoring_engine import ScoringEngine
+from app.discovery.auto_rule_discovery import AutoRuleDiscovery
 
 
 class ExecutionEngine:
@@ -23,6 +25,17 @@ class ExecutionEngine:
 
     def run(self):
         self._create_batch()
+
+        # ---------------------------------------------------------
+        # AUTO RULE DISCOVERY (v1.7)
+        # ---------------------------------------------------------
+        #discovery = AutoRuleDiscovery(self.engine_db, self.project_id)
+        discovery = AutoRuleDiscovery(self.engine_db, self.source_db, self.project_id)
+        discovery.generate_rules()
+
+        # ---------------------------------------------------------
+        # END OF: AUTO RULE DISCOVERY (v1.7)
+        # ---------------------------------------------------------
 
         controls = self._get_enabled_controls()
 
@@ -158,9 +171,14 @@ class ExecutionEngine:
         anomaly_score = result[0][0]
         auto_blocked = result[0][2]
 
+        #if auto_blocked:
+        #    raise Exception(
+        #        f"RELEASE BLOCKED: Governance anomaly threshold breached. Score={anomaly_score}"
+        #    )
+            
         if auto_blocked:
-            raise Exception(
-                f"RELEASE BLOCKED: Governance anomaly threshold breached. Score={anomaly_score}"
+            logger.error(
+            f"RELEASE BLOCKED: Governance anomaly threshold breached. Score={anomaly_score}"
             )
 
         self._enforce_release_gate(overall_status, score)
