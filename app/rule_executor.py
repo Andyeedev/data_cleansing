@@ -299,6 +299,10 @@ class RuleExecutor:
         VALUES (%s,%s,%s,%s,%s,%s,%s)
         """
 
+        
+        #cause = result.get("cause")
+        #scope = result.get("failure_scope")
+
         self.engine_db.execute(query, (
             self.batch_id,
             self.control_id,

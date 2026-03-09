@@ -22,10 +22,10 @@ class C010SchemaDriftRule:
         source_cols = self._get_columns(self.source_db, source_schema, source_table)
         target_cols = self._get_columns(self.target_db, target_schema, target_table)
 
-        if source_cols is None:
+        if not source_cols:
             return self._error("Source table not found", "SOURCE")
 
-        if target_cols is None:
+        if not target_cols:
             return self._error("Target table not found", "TARGET")
 
         source_set = set(source_cols)
@@ -36,46 +36,32 @@ class C010SchemaDriftRule:
 
         drift = len(missing) + len(extra)
 
-        if drift == 0:
-            return {
-                "status": "PASS",
-                "delta": 0
-            }
+        status = "PASS"
 
-        cause_msg = f"Missing columns in target: {list(missing)} | Extra columns in target: {list(extra)}"
+        if drift > 0:
+            status = "FAIL"
 
         return {
-            "status": "FAIL",
+            "status": status,
             "delta": drift,
             "missing_columns": list(missing),
             "extra_columns": list(extra),
-            "cause": cause_msg,
-            "failure_scope": "TARGET"
+            "cause": "Schema drift detected" if drift > 0 else None,
+            "failure_scope": "BOTH"
         }
 
     def _get_columns(self, db, schema, table):
 
-        try:
+        query = """
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = %s
+        AND table_name = %s
+        """
 
-            query = """
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_schema = %s
-            AND table_name = %s
-            """
+        result = db.execute(query, (schema, table))
 
-            result = db.execute(query, (schema, table))
-
-            if result is None:
-                return None
-
-            return [r[0] for r in result]
-
-        except Exception as e:
-
-            logger.warning(f"Schema lookup failed for {schema}.{table}: {e}")
-
-            return None
+        return [r[0] for r in result]
 
     def _error(self, cause, scope):
 

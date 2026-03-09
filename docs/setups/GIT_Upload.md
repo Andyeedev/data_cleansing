@@ -139,6 +139,11 @@ pg_dump -U postgres -d target_db -F c -f target_v1_7.dump
 
 
 
+pg_dump -U postgres -d engine_db -F c -f engine_v1_8.dump
+pg_dump -U postgres -d source_db -F c -f source_v1_8.dump
+pg_dump -U postgres -d target_db -F c -f target_v1_8.dump
+
+
 Final Correct Release Workflow (For Future Versions)
 
 For v1.7, v1.8, etc you will always do:
@@ -155,6 +160,21 @@ git push origin v1.7
 git checkout main
 git pull origin main
 git checkout -b v1.7-development
+
+
+git add .
+git commit -m "Release v1.7"
+git push origin data_cleansing
+
+git tag -a v1.7 -m "Validation Engine v1.7"
+git push origin v1.7
+
+
+
+git checkout main
+git pull origin main
+git checkout -b v1.78-development
+
 
 
 git checkout data_cleansing
@@ -192,3 +212,7 @@ git pull origin data_cleansing
 git checkout -b v1.7-development
 
 That ensures the new branch contains all the v1.6 co
+
+
+
+python -m app.main discover --config config.yaml

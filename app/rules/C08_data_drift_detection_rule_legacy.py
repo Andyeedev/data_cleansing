@@ -21,48 +21,61 @@ class C08DataDriftDetectionRule:
             target_schema = self.params.get("target_schema", source_schema)
             target_table = self.params.get("target_table", source_table)
 
-            numeric_columns = self.params.get("numeric_columns")
+            column = self.params.get("numeric_column")
 
-            if not numeric_columns:
-
+            # If no numeric column provided the rule cannot run
+            if not column:
                 return {
                     "status": "SKIPPED",
                     "delta": 0,
-                    "cause": "No numeric columns detected for drift analysis",
+                    "cause": "No numeric column provided for drift analysis",
                     "failure_scope": "ENGINE"
                 }
 
-            max_drift = 0
-            worst_column = None
+            source_stats = self._get_stats(
+                self.source_db,
+                source_schema,
+                source_table,
+                column
+            )
 
-            for column in numeric_columns:
+            target_stats = self._get_stats(
+                self.target_db,
+                target_schema,
+                target_table,
+                column
+            )
 
-                source_stats = self._get_stats(self.source_db, source_schema, source_table, column)
-                target_stats = self._get_stats(self.target_db, target_schema, target_table, column)
+            if source_stats is None:
+                return self._error(
+                    "Source table or column not found",
+                    "SOURCE"
+                )
 
-                if source_stats is None or target_stats is None:
-                    continue
+            if target_stats is None:
+                return self._error(
+                    "Target table or column not found",
+                    "TARGET"
+                )
 
-                drift = abs(source_stats["avg"] - target_stats["avg"])
+            drift = abs(source_stats["avg"] - target_stats["avg"])
 
-                drift_pct = 0
+            drift_pct = 0
 
-                if source_stats["avg"] != 0:
-                    drift_pct = (drift / source_stats["avg"]) * 100
-
-                if drift_pct > max_drift:
-                    max_drift = drift_pct
-                    worst_column = column
+            if source_stats["avg"] != 0:
+                drift_pct = (drift / source_stats["avg"]) * 100
 
             status = "PASS"
 
-            if max_drift > 10:
+            if drift_pct > 10:
                 status = "FAIL"
 
             return {
                 "status": status,
-                "delta": max_drift,
-                "cause": f"High drift detected on column {worst_column}" if status == "FAIL" else None,
+                "delta": drift_pct,
+                "source_value": source_stats["avg"],
+                "target_value": target_stats["avg"],
+                "cause": "Data drift detected" if status == "FAIL" else None,
                 "failure_scope": "BOTH"
             }
 
@@ -104,6 +117,19 @@ class C08DataDriftDetectionRule:
                 "stddev": row[3] or 0
             }
 
-        except Exception:
+        except Exception as e:
+
+            logger.warning(
+                f"Stats query failed for {schema}.{table}.{column}: {e}"
+            )
 
             return None
+
+    def _error(self, cause, scope):
+
+        return {
+            "status": "ERROR",
+            "delta": 0,
+            "cause": cause,
+            "failure_scope": scope
+        }

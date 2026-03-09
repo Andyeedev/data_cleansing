@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Migration Validation Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family: Arial;
+margin:40px;
+background:#f4f6f9;
+}
+
+h1{
+color:#2c3e50;
+}
+
+.card{
+background:white;
+padding:20px;
+margin-bottom:20px;
+border-radius:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:8px;
+border-bottom:1px solid #ddd;
+text-align:left;
+}
+
+.filter{
+margin-bottom:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Migration Validation Dashboard</h1>
+
+<div class="filter">
+
+Batch ID:
+<input id="batchInput" placeholder="Enter batch id"/>
+
+<button onclick="loadData()">Load</button>
+
+</div>
+
+<div class="card">
+
+<h2>Control Status Distribution</h2>
+
+<canvas id="statusChart"></canvas>
+
+</div>
+
+<div class="card">
+
+<h2>Top Failing Tables</h2>
+
+<table id="failTable">
+
+<thead>
+<tr>
+<th>Entity</th>
+<th>Failures</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+<script>
+
+async function loadData(){
+
+let batch=document.getElementById("batchInput").value;
+
+let response=await fetch("/api/dashboard/"+batch);
+
+let data=await response.json();
+
+drawChart(data.status);
+
+drawFailures(data.failures);
+
+}
+
+function drawChart(status){
+
+let ctx=document.getElementById('statusChart');
+
+new Chart(ctx,{
+type:'pie',
+data:{
+labels:["PASS","FAIL","ERROR"],
+datasets:[{
+data:[
+status.pass,
+status.fail,
+status.error
+]
+}]
+}
+});
+
+}
+
+function drawFailures(rows){
+
+let tbody=document.querySelector("#failTable tbody");
+
+tbody.innerHTML="";
+
+rows.forEach(r=>{
+
+let tr=document.createElement("tr");
+
+tr.innerHTML=`<td>${r.entity}</td><td>${r.failures}</td>`;
+
+tbody.appendChild(tr);
+
+});
+
+}
+
+</script>
+
+</body>
+</html>

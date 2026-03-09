@@ -1,6 +1,7 @@
 from app.rules.base_rule import BaseRule
 
 
+
 class RowCountRule(BaseRule):
 
     RULE_ID = "C01_ROWCOUNT"
