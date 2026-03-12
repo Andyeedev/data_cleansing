@@ -263,11 +263,11 @@ git checkout -b v1.9-development
 
 
 git add .
-git commit -m "Release v1.89"
-git push origin v1.9-development
+git commit -m "Release v1.8"
+git push origin v1.8-development
 
 
-git tag -a v1.9 -m "Release v1.9"
-git push origin v2.0
+git tag -a v1.8 -m "Release v1.9"
+git push origin v1.8
 
 git checkout -b v2.0-development
