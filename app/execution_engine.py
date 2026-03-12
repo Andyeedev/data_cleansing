@@ -1,9 +1,21 @@
-from asyncio.log import logger
+#from asyncio.log import logger
 import uuid
 from .db_connector import DBConnector
 from .rule_executor import RuleExecutor
 from .scoring_engine import ScoringEngine
 from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+from app.utils.logger import get_logger
+
+#logger = get_logger(__name__)
+
+
+
+
+#logger = logging.getLogger(__name__)
+
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class ExecutionEngine:
@@ -15,6 +27,12 @@ class ExecutionEngine:
         # Mandatory for SaaS
         self.project_id = config["project_id"]
 
+        # Load rule enablement configuration
+        self.rule_config = config.get("rules", {})
+
+
+
+
         self.engine_db = DBConnector(config["engine_db"])
         self.source_db = DBConnector(config["source_db"])
         self.target_db = DBConnector(config["target_db"])
@@ -23,7 +41,7 @@ class ExecutionEngine:
     # PUBLIC ENTRY
     # ---------------------------------------------------------
 
-    def run(self):
+    def run_legacy(self):
         self._create_batch()
 
         # ---------------------------------------------------------
@@ -37,12 +55,272 @@ class ExecutionEngine:
         # END OF: AUTO RULE DISCOVERY (v1.7)
         # ---------------------------------------------------------
 
+
+        self._register_batch(len(controls))
+
+        logger.info(f"Registered batch {self.batch_id} with {len(controls)} controls")
+
+
+
+
         controls = self._get_enabled_controls()
 
         for control in controls:
+            self._update_control_progress(False)
+            logger.info(f"Executing {len(controls)} controls")
             self._execute_control(control[0])
 
         self._finalise_batch()
+
+        self._complete_batch("COMPLETED")
+
+        logger.info(f"Batch {self.batch_id} completed")
+
+
+
+    
+
+    def run_legacy_2(self):
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        # -----------------------------------------------------
+        # Auto rule discovery (existing behaviour)
+        # -----------------------------------------------------
+        from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+        discovery = AutoRuleDiscovery(
+            self.engine_db,
+            self.source_db,
+            self.project_id
+        )
+
+        discovery.generate_rules()
+
+        # -----------------------------------------------------
+        # Fetch controls
+        # -----------------------------------------------------
+        controls = self._get_controls()
+
+        logger.info(f"{len(controls)} controls discovered")
+
+        # -----------------------------------------------------
+        # Register batch
+        # -----------------------------------------------------
+        self._register_batch(len(controls))
+
+        logger.info(f"Batch {self.batch_id} registered")
+
+        # -----------------------------------------------------
+        # Execute controls
+        # -----------------------------------------------------
+        for control in controls:
+
+            control_id = control[0]
+
+            logger.info(f"Executing control {control_id}")
+
+            try:
+
+                self._execute_control(control_id)
+
+                self._update_control_progress(True)
+
+            except Exception as e:
+
+                logger.error(f"Control {control_id} failed: {str(e)}")
+
+                self._update_control_progress(False)
+
+        # -----------------------------------------------------
+        # Complete batch
+        # -----------------------------------------------------
+        self._complete_batch("COMPLETED")
+
+        logger.info(f"Batch {self.batch_id} completed")
+
+
+
+
+    def run_legacy_3(self):
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        try:
+
+            # -----------------------------------------------------
+            # Auto rule discovery
+            # -----------------------------------------------------
+            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+            discovery = AutoRuleDiscovery(
+                self.engine_db,
+                self.source_db,
+                self.project_id
+            )
+
+            discovery.generate_rules()
+
+            # -----------------------------------------------------
+            # Fetch controls
+            # -----------------------------------------------------
+            controls = self._get_controls()
+
+            logger.info(f"{len(controls)} controls discovered")
+
+            # -----------------------------------------------------
+            # Register batch
+            # -----------------------------------------------------
+            self._register_batch(len(controls))
+
+            logger.info(f"Batch {self.batch_id} registered")
+
+            # -----------------------------------------------------
+            # Execute controls
+            # -----------------------------------------------------
+            for control in controls:
+
+                control_id = control[0]
+
+                logger.info(f"Executing control {control_id}")
+
+                try:
+
+                    self._execute_control(control_id)
+
+                    self._update_control_progress(True)
+
+                except Exception as e:
+
+                    logger.error(f"Control {control_id} failed: {str(e)}")
+
+                    self._update_control_progress(False)
+
+            # -----------------------------------------------------
+            # Mark batch completed
+            # -----------------------------------------------------
+
+            ## -----------------------------------------------------
+            # Finalise batch (calculate summary and score)
+            self._complete_batch("COMPLETED")
+
+            ## -----------------------------------------------------
+            # Evaluate governance and enforce release gate if configured
+            self._evaluate_governance()
+
+            logger.info(f"Batch {self.batch_id} completed")
+
+        except Exception as e:
+
+            logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+            try:
+                self._complete_batch("FAILED")
+            except Exception:
+                pass
+
+            raise
+
+
+
+
+    def run(self):
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        MAX_WORKERS = 4  # You can later move this to config.yaml
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        try:
+
+            # -----------------------------------------------------
+            # Auto rule discovery
+            # -----------------------------------------------------
+            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+            discovery = AutoRuleDiscovery(
+                self.engine_db,
+                self.source_db,
+                self.project_id
+            )
+
+            discovery.generate_rules()
+
+            # -----------------------------------------------------
+            # Fetch controls
+            # -----------------------------------------------------
+            controls = self._get_controls()
+
+            logger.info(f"{len(controls)} controls discovered")
+
+            # -----------------------------------------------------
+            # Register batch
+            # -----------------------------------------------------
+            self._register_batch(len(controls))
+
+            logger.info(f"Batch {self.batch_id} registered")
+
+            # -----------------------------------------------------
+            # Parallel Control Execution
+            # -----------------------------------------------------
+            logger.info(f"Starting parallel execution with {MAX_WORKERS} workers")
+
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+                futures = {}
+
+                for control in controls:
+
+                    control_id = control[0]
+
+                    logger.info(f"Scheduling control {control_id}")
+
+                    future = executor.submit(self._execute_control, control_id)
+
+                    futures[future] = control_id
+
+                for future in as_completed(futures):
+
+                    control_id = futures[future]
+
+                    try:
+
+                        future.result()
+
+                        logger.info(f"Control {control_id} completed")
+
+                        self._update_control_progress(True)
+
+                    except Exception as e:
+
+                        logger.error(f"Control {control_id} failed: {str(e)}")
+
+                        self._update_control_progress(False)
+
+            # -----------------------------------------------------
+            # Mark batch completed
+            # -----------------------------------------------------
+            self._complete_batch("COMPLETED")
+
+            # -----------------------------------------------------
+            # Evaluate governance
+            # -----------------------------------------------------
+            self._evaluate_governance()
+
+            logger.info(f"Batch {self.batch_id} completed")
+
+        except Exception as e:
+
+            logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+            try:
+                self._complete_batch("FAILED")
+            except Exception:
+                pass
+
+            raise
+
 
     # ---------------------------------------------------------
     # BATCH CREATION (PROJECT AWARE)
@@ -231,3 +509,139 @@ class ExecutionEngine:
             raise SystemExit(
                 f"RELEASE BLOCKED: Batch {self.batch_id} - {decision_reason}"
             )
+        
+
+
+    def _register_batch(self, total_controls):
+
+        query = """
+        INSERT INTO engine.migration_batch_registry
+        (batch_id, project_id, batch_status, total_controls)
+        VALUES (%s,%s,'RUNNING',%s)
+        """
+
+        self.engine_db.execute(query, (
+            self.batch_id,
+            self.project_id,
+            total_controls
+    ))
+        
+
+    def _complete_batch(self, status):
+
+        query = """
+        UPDATE engine.migration_batch_registry
+        SET batch_status = %s,
+            batch_end_time = CURRENT_TIMESTAMP
+        WHERE batch_id = %s
+        """
+
+        self.engine_db.execute(query, (status, self.batch_id))
+
+
+    def _update_control_progress(self, success=True):
+
+        if success:
+
+            query = """
+            UPDATE engine.migration_batch_registry
+            SET completed_controls = completed_controls + 1
+            WHERE batch_id = %s
+            """
+
+        else:
+
+            query = """
+            UPDATE engine.migration_batch_registry
+            SET failed_controls = failed_controls + 1
+            WHERE batch_id = %s
+            """
+
+        self.engine_db.execute(query, (self.batch_id,))
+
+    def _get_controls(self):
+
+        #query = """
+        #SELECT control_id
+        #FROM engine.control_registry
+        #WHERE enabled_flag = TRUE
+        #ORDER BY control_id
+        #"""
+
+        query = """
+        SELECT
+    ---Intelligent Rule Prioritisation	run critical rules first
+        control_id
+        FROM engine.control_registry
+        WHERE enabled_flag = TRUE
+        ORDER BY severity_level DESC, control_id
+        """
+
+
+        rows = self.engine_db.execute(query)
+
+        filtered_controls = []
+
+        for row in rows:
+
+            control_id = row[0]
+
+            rule_status = self.rule_config.get(control_id, "enabled")
+            
+
+            if rule_status.lower() == "disabled":
+               
+                logger.info(f"Skipping control {control_id} (disabled in config.yaml)")
+
+                continue
+
+            filtered_controls.append(row)
+
+
+
+
+        #return rows
+        return filtered_controls
+    
+    
+
+
+
+    def _evaluate_governance(self):
+
+        query = """
+        SELECT
+            COUNT(*) FILTER (WHERE severity_level = 'CRITICAL'
+                            AND execution_status = 'FAIL') AS blocking_rules,
+            COUNT(*) FILTER (WHERE execution_status = 'FAIL') AS failed_rules
+        FROM engine.migration_control_execution
+        WHERE batch_id = %s
+        """
+
+        result = self.engine_db.execute(query, (self.batch_id,))[0]
+
+        blocking_rules = result[0]
+        failed_rules = result[1]
+
+        if blocking_rules > 0:
+            migration_status = "BLOCKED"
+        elif failed_rules > 0:
+            migration_status = "FAIL"
+        else:
+            migration_status = "PASS"
+
+        insert_query = """
+        INSERT INTO engine.migration_governance_status
+        (batch_id, project_id, migration_status, blocking_controls, total_failed_rules)
+        VALUES (%s,%s,%s,%s,%s)
+        """
+
+        self.engine_db.execute(insert_query, (
+            self.batch_id,
+            self.project_id,
+            migration_status,
+            blocking_rules,
+            failed_rules
+        ))
+
+        logger.info(f"Migration governance decision: {migration_status}")

@@ -1,8 +1,14 @@
-import logging
+#import logging
 
 from app import rules
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
+
+from app.utils.logger import get_logger
+
+
+logger = get_logger(__name__)
+
 
 
 class AutoRuleDiscovery:

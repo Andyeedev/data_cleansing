@@ -40,6 +40,19 @@ release_gate:
   minimum_score: 80
   enforcement_mode: "STRICT"   # STRICT | RECORD_ONLY
 
+rules:
+
+  C01: enabled
+  C02: enabled
+  C03: enabled
+  C04: enabled
+  C05: disabled
+  C06: disabled
+  C07: disabled
+  C08: disabled
+  C09: enabled
+  C010: enabled
+
 #release_gate:
 #  enabled: true
 #  block_on_status:

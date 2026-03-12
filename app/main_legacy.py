@@ -1,14 +1,16 @@
 import argparse
 import yaml
+import logging
 
 from .execution_engine import ExecutionEngine
 from .audit_export import AuditExporter
 from .db_connector import DBConnector
 
-from app.utils.logger import get_logger
 
-logger = get_logger(__name__)
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
 
 def load_config(path):
     with open(path, "r") as f:
@@ -20,37 +22,26 @@ def run_engine(config_path):
 
     engine = ExecutionEngine(config)
 
-    logger.info(f"Starting execution batch: {engine.batch_id}")
-
+    print(f"Starting execution batch: {engine.batch_id}")
     engine.run()
-
-    logger.info("Execution completed successfully.")
+    print("Execution completed successfully.")
 
 
 def export_audit(config_path, batch_id):
     config = load_config(config_path)
 
-    engine_db = DBConnector(config["engine_db"])
+    exporter = AuditExporter(config)
 
-    exporter = AuditExporter(engine_db)
+    print(f"Exporting audit pack for batch: {batch_id}")
 
-    logger.info(f"Exporting audit pack for batch: {batch_id}")
-
-    #exporter.export_summary(batch_id)
-    #exporter.export_control_details(batch_id)
-    #exporter.export_exceptions(batch_id)
-
-
-    exporter.export_governance(batch_id)
     exporter.export_summary(batch_id)
     exporter.export_control_details(batch_id)
     exporter.export_exceptions(batch_id)
 
-    logger.info("Audit export completed.")
+    print("Audit export completed.")
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description="FS Migration Validation Engine")
     subparsers = parser.add_subparsers(dest="command")
 
@@ -67,11 +58,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.command == "run":
-
         run_engine(args.config)
 
     elif args.command == "discover":
-
         config = load_config(args.config)
 
         engine_db = DBConnector(config["engine_db"])
@@ -84,13 +73,10 @@ if __name__ == "__main__":
         )
 
         service.discover()
-
-        logger.info("Dataset discovery completed successfully.")
+        print("Dataset discovery completed successfully.")
 
     elif args.command == "export":
-
         export_audit(args.config, args.batch_id)
 
     else:
-
         parser.print_help()

@@ -138,10 +138,20 @@ pg_dump -U postgres -d source_db -F c -f source_v1_7.dump
 pg_dump -U postgres -d target_db -F c -f target_v1_7.dump
 
 
+pg_dump -U postgres -d engine_db -F c -f engine_v1_7.dump
+pg_dump -U postgres -d source_db -F c -f source_v1_7.dump
+pg_dump -U postgres -d target_db -F c -f target_v1_7.dump
+
+
 
 pg_dump -U postgres -d engine_db -F c -f engine_v1_8.dump
 pg_dump -U postgres -d source_db -F c -f source_v1_8.dump
 pg_dump -U postgres -d target_db -F c -f target_v1_8.dump
+
+
+pg_dump -U postgres -d engine_db -F c -f engine_v1_9.dump
+pg_dump -U postgres -d source_db -F c -f source_v1_9.dump
+pg_dump -U postgres -d target_db -F c -f target_v1_9.dump
 
 
 Final Correct Release Workflow (For Future Versions)
@@ -154,6 +164,18 @@ git push origin data_cleansing
 
 git tag -a v1.7 -m "Validation Engine v1.7"
 git push origin v1.7
+
+
+git add .
+git commit -m "Release v1.8"
+git push origin v1.8-development
+
+git tag -a v1.8 -m "v1.8-development"
+git push origin v1.8-development
+
+git checkout main
+git pull origin main
+git checkout -b v1.9-development
 
 
 
@@ -216,3 +238,36 @@ That ensures the new branch contains all the v1.6 co
 
 
 python -m app.main discover --config config.yaml
+
+
+git checkout main
+git pull origin main
+git merge v1.8-development
+git push origin main
+
+
+
+
+
+git add .
+git commit -m "Release v1.8"
+git push origin v1.8-development
+
+
+git tag -a v1.8 -m "Release v1.8"
+git push origin v1.8
+
+git checkout -b v1.9-development
+
+
+
+
+git add .
+git commit -m "Release v1.89"
+git push origin v1.9-development
+
+
+git tag -a v1.9 -m "Release v1.9"
+git push origin v2.0
+
+git checkout -b v2.0-development

@@ -1,10 +1,13 @@
 
 
 import time
-import logging
+#import logging
 from app.rule_factory import RuleFactory
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class RuleExecutor:
 
@@ -44,11 +47,12 @@ class RuleExecutor:
 
                 parameters = self._build_parameters(entity)
 
-                            # -----------------------------------------
+                # -----------------------------------------
                 # RULE EXECUTION LOG
                 # -----------------------------------------
                 dataset_name = entity[1]
-                logger.info(f"Running rule {rule_id} for {dataset_name}")
+                logger.info(f"Starting batch {rule_id} for {dataset_name}")
+               
 
                 rule_instance = RuleFactory.create(
                     rule_id,
@@ -57,14 +61,8 @@ class RuleExecutor:
                     parameters
                 )
 
-                rule_instance = RuleFactory.create(
-                    rule_id,
-                    self.source_db,
-                    self.target_db,
-                    parameters
-                )
-
-                start_time = time.time()
+                #start_time = time.time()
+                start_time_epoch = time.time()
 
                 try:
 
@@ -87,7 +85,26 @@ class RuleExecutor:
                         str(e)
                     )
 
-                execution_time = round(time.time() - start_time, 4)
+                #execution_time = round(time.time() - start_time, 4)
+
+                end_time_epoch = time.time()
+                execution_time = round(end_time_epoch - start_time_epoch, 4)
+
+                from datetime import datetime
+
+                rule_start_time = datetime.fromtimestamp(start_time_epoch)
+                rule_end_time = datetime.fromtimestamp(end_time_epoch)
+
+
+                #self._log_rule_execution(
+                #    rule_id,
+                #    entity,
+                #    execution_status,
+                #    delta,
+                #    execution_time,
+                #    severity_level
+                #)
+
 
                 self._log_rule_execution(
                     rule_id,
@@ -95,8 +112,13 @@ class RuleExecutor:
                     execution_status,
                     delta,
                     execution_time,
-                    severity_level
+                    severity_level,
+                    rule_start_time,
+                    rule_end_time
                 )
+
+                
+
 
                 if execution_status == "FAIL":
 
@@ -129,6 +151,8 @@ class RuleExecutor:
             errors
         )
 
+
+        
     # ---------------------------------------------------------
     # RULE FETCH
     # ---------------------------------------------------------
@@ -268,7 +292,7 @@ class RuleExecutor:
             errors
         ))
 
-    def _log_rule_execution(self, rule_id, entity, status, delta, execution_time, severity):
+    def _log_rule_execution_legacy(self, rule_id, entity, status, delta, execution_time, severity):
 
         query = """
         INSERT INTO engine.migration_control_execution
@@ -288,6 +312,33 @@ class RuleExecutor:
             execution_time,
             severity,
             entity[0]
+        ))
+
+
+    
+    def _log_rule_execution(self, rule_id, entity, status, delta, execution_time, severity, start_time, end_time):
+
+        query = """
+        INSERT INTO engine.migration_control_execution
+        (batch_id, control_id, rule_id, entity_name,
+        execution_status, delta_value, execution_time_seconds,
+        severity_level, mapping_id,
+        rule_start_time, rule_end_time)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """
+
+        self.engine_db.execute(query, (
+            self.batch_id,
+            self.control_id,
+            rule_id,
+            entity[1],
+            status,
+            delta,
+            execution_time,
+            severity,
+            entity[0],
+            start_time,
+            end_time
         ))
 
     def _log_exception(self, rule_id, entity_name, error):
@@ -344,3 +395,6 @@ class RuleExecutor:
         row = self.engine_db.execute(query, (mapping_id,))
 
         return row[0][0] if row else None
+    
+
+
