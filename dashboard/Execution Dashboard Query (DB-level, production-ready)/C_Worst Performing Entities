@@ -1,0 +1,9 @@
+SELECT
+    entity_name,
+    control_id,
+    execution_time_seconds,
+    slow_flag
+FROM engine.migration_control_execution
+WHERE batch_id = '<your_batch_id>'
+ORDER BY execution_time_seconds DESC
+LIMIT 20;

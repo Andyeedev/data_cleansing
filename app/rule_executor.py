@@ -1,5 +1,6 @@
 
 
+from ast import If
 import time
 #import logging
 from app.rule_factory import RuleFactory
@@ -7,17 +8,53 @@ from app.rule_factory import RuleFactory
 #logger = logging.getLogger(__name__)
 from app.utils.logger import get_logger
 
+
+MAX_RETRIES = 2
+
+
 logger = get_logger(__name__)
 
 class RuleExecutor:
 
-    def __init__(self, engine_db, source_db, target_db, batch_id, project_id, control_id):
+    def __init__(self, engine_db, source_db, target_db, batch_id, project_id, control_id,
+    config=None   # ← IMPORTANT ADD
+    ):
         self.engine_db = engine_db
         self.source_db = source_db
         self.target_db = target_db
         self.batch_id = batch_id
         self.project_id = project_id
         self.control_id = control_id
+
+    # -----------------------------------------
+    # FIX: Profiling config (DEFAULT SAFE)
+    # -----------------------------------------
+        config = config or {}
+
+        #self.profiling_enabled = config.get("profiling_enabled", True)
+        #self.slow_threshold = config.get("slow_threshold", 5)
+        #self.very_slow_threshold = config.get("very_slow_threshold", 10)
+
+        self.profiling_enabled = config.get("profiling_enabled", True)
+        self.slow_threshold = config.get("slow_threshold", .5)
+        self.very_slow_threshold = config.get("very_slow_threshold", 2)
+
+
+        #profiling_enabled: true
+        #slow_threshold: 0.5
+        #very_slow_threshold: 2
+
+    def __init__legacy_1(self, engine_db, source_db, target_db, batch_id, project_id, control_id,
+    config=None   # ← IMPORTANT ADD
+    ):
+        self.engine_db = engine_db
+        self.source_db = source_db
+        self.target_db = target_db
+        self.batch_id = batch_id
+        self.project_id = project_id
+        self.control_id = control_id
+
+
 
     # ---------------------------------------------------------
     # PUBLIC ENTRY
@@ -35,7 +72,10 @@ class RuleExecutor:
 
         for rule in rules:
             
-            
+            rules = self._get_rules()
+            logger.info(f"DEBUG: {len(rules)} rules found for control {self.control_id}")
+
+
             rule_id = rule[0]
             severity_level = rule[2]
 
@@ -66,7 +106,8 @@ class RuleExecutor:
 
                 try:
 
-                    result = rule_instance.execute()
+                    # Execute rule with retry protection
+                    result = self.execute_with_retry(rule_instance.execute)
 
                     execution_status = result.get("status", "ERROR")
                     delta = result.get("delta", 0)
@@ -84,7 +125,6 @@ class RuleExecutor:
                         entity[1],
                         str(e)
                     )
-
                 #execution_time = round(time.time() - start_time, 4)
 
                 end_time_epoch = time.time()
@@ -316,7 +356,7 @@ class RuleExecutor:
 
 
     
-    def _log_rule_execution(self, rule_id, entity, status, delta, execution_time, severity, start_time, end_time):
+    def _log_rule_execution_legacy_2(self, rule_id, entity, status, delta, execution_time, severity, start_time, end_time):
 
         query = """
         INSERT INTO engine.migration_control_execution
@@ -340,6 +380,54 @@ class RuleExecutor:
             start_time,
             end_time
         ))
+
+
+    def _log_rule_execution(
+        self, rule_id, entity, status, delta, execution_time, severity, start_time, end_time
+    ):
+
+        # -----------------------------------------
+        # Slow classification
+        # -----------------------------------------
+        if self.profiling_enabled:
+
+            if execution_time >= self.very_slow_threshold:
+                slow_flag = "VERY_SLOW"
+
+            elif execution_time >= self.slow_threshold:
+                slow_flag = "SLOW"
+
+            else:
+                slow_flag = "NORMAL"
+
+        else:
+            slow_flag = None
+
+        query = """
+        INSERT INTO engine.migration_control_execution
+        (batch_id, control_id, rule_id, entity_name,
+        execution_status, delta_value, execution_time_seconds,
+        severity_level, mapping_id,
+        rule_start_time, rule_end_time,
+        slow_flag)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """
+
+        self.engine_db.execute(query, (
+            self.batch_id,
+            self.control_id,
+            rule_id,
+            entity[1],
+            status,
+            delta,
+            execution_time,
+            severity,
+            entity[0],
+            start_time,
+            end_time,
+            slow_flag
+        ))
+
 
     def _log_exception(self, rule_id, entity_name, error):
 
@@ -398,3 +486,25 @@ class RuleExecutor:
     
 
 
+
+
+
+    def execute_with_retry(self, rule_function, *args):
+
+        #Rule Retry Engine
+        #If a rule fails due to transient issues (network, lock, temporary table), retry automatically.
+
+        retries = 0
+
+        while retries <= MAX_RETRIES:
+
+            try:
+                return rule_function(*args)
+
+            except Exception as e:
+
+                if retries == MAX_RETRIES:
+                    raise
+
+                retries += 1
+                time.sleep(1)

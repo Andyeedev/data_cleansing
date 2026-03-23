@@ -53,6 +53,27 @@ rules:
   C09: enabled
   C010: enabled
 
+# phase 7 steps 3
+# # Failure isolation: continue executing other controls
+engine:
+  control_timeout_seconds: 300
+
+
+##Meaning:
+#Define dependency
+#C02 runs only after C01
+#C09 runs only after C03
+#If a control is not listed → no dependencies.
+#Step 5: Control Dependency Graph (DAG)
+control_dependencies:
+
+  C02:
+    - C01
+
+  C09:
+    - C03
+
+
 #release_gate:
 #  enabled: true
 #  block_on_status:

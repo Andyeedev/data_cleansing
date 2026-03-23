@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 
 class ExecutionEngine:
 
-    def __init__(self, config):
+    def __init___legacy_1(self, config):
         self.batch_id = str(uuid.uuid4())
         self.config = config
 
@@ -36,6 +36,40 @@ class ExecutionEngine:
         self.engine_db = DBConnector(config["engine_db"])
         self.source_db = DBConnector(config["source_db"])
         self.target_db = DBConnector(config["target_db"])
+
+
+    def __init__(self, config, batch_id=None):
+
+        # Configuration
+        self.config = config
+
+        # Mandatory for SaaS
+        self.project_id = config["project_id"]
+
+        # Batch ID handling (supports restart)
+        if batch_id:
+            self.batch_id = batch_id
+        else:
+            self.batch_id = str(uuid.uuid4())
+
+        # Load rule enablement configuration
+        self.rule_config = config.get("rules", {})
+
+        # Database connections
+        self.engine_db = DBConnector(config["engine_db"])
+        self.source_db = DBConnector(config["source_db"])
+        self.target_db = DBConnector(config["target_db"])
+
+
+        self.control_timeout_seconds = config.get("engine", {}).get(
+            "control_timeout_seconds",
+            300
+        )
+
+        # ------------------------------------------------------
+        # Load control dependencies configuration (for future use in execution orchestration)
+        #----------------------------------------------------------
+        self.control_dependencies = config.get("control_dependencies", {})
 
     # ---------------------------------------------------------
     # PUBLIC ENTRY
@@ -224,7 +258,7 @@ class ExecutionEngine:
 
 
 
-    def run(self):
+    def run_legacy_3_b(self):
 
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -321,6 +355,1264 @@ class ExecutionEngine:
 
             raise
 
+    
+
+    def run_legacy_4(self):
+
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+
+            MAX_WORKERS = 4  # You can later move this to config.yaml
+
+            logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+            try:
+
+                # -----------------------------------------------------
+                # Auto rule discovery
+                # -----------------------------------------------------
+                from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+                discovery = AutoRuleDiscovery(
+                    self.engine_db,
+                    self.source_db,
+                    self.project_id
+                )
+
+                discovery.generate_rules()
+
+                # -----------------------------------------------------
+                # Fetch controls
+                # -----------------------------------------------------
+                controls = self._get_controls()
+
+                logger.info(f"{len(controls)} controls discovered")
+
+                # -----------------------------------------------------
+                # Register batch
+                # -----------------------------------------------------
+                self._register_batch(len(controls))
+
+                logger.info(f"Batch {self.batch_id} registered")
+
+                # -----------------------------------------------------
+                # Parallel Control Execution
+                # -----------------------------------------------------
+                logger.info(f"Starting parallel execution with {MAX_WORKERS} workers")
+
+                with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+                    futures = {}
+
+                    last_control = self._load_checkpoint()
+
+                    resume = last_control is None
+
+                    for control in controls:
+
+                        control_id = control[0]
+
+                        logger.info(f"Scheduling control {control_id}")
+
+                        future = executor.submit(self._execute_control, control_id)
+
+                        futures[future] = control_id
+
+                    for future in as_completed(futures):
+
+                        control_id = futures[future]
+
+                        try:
+
+                            future.result()
+
+                            logger.info(f"Control {control_id} completed")
+
+                            self._update_control_progress(True)
+
+                        except Exception as e:
+
+                            logger.error(f"Control {control_id} failed: {str(e)}")
+
+                            self._update_control_progress(False)
+
+                # -----------------------------------------------------
+                # Mark batch completed
+                # -----------------------------------------------------
+                self._complete_batch("COMPLETED")
+
+                # -----------------------------------------------------
+                # Evaluate governance
+                # -----------------------------------------------------
+                self._evaluate_governance()
+
+                logger.info(f"Batch {self.batch_id} completed")
+
+            except Exception as e:
+
+                logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+                try:
+                    self._complete_batch("FAILED")
+                except Exception:
+                    pass
+
+                raise
+
+
+
+
+    
+    def run_legacy_5(self):
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        MAX_WORKERS = 4  # Can move to config.yaml later
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        try:
+
+            # -----------------------------------------------------
+            # Auto rule discovery
+            # -----------------------------------------------------
+            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+            discovery = AutoRuleDiscovery(
+                self.engine_db,
+                self.source_db,
+                self.project_id
+            )
+
+            discovery.generate_rules()
+
+            # -----------------------------------------------------
+            # Fetch controls
+            # -----------------------------------------------------
+            controls = self._get_controls()
+
+            logger.info(f"{len(controls)} controls discovered")
+
+            # -----------------------------------------------------
+            # Register batch
+            # -----------------------------------------------------
+            self._register_batch(len(controls))
+
+            logger.info(f"Batch {self.batch_id} registered")
+
+            # -----------------------------------------------------
+            # Load checkpoint (if batch restarting)
+            # -----------------------------------------------------
+            last_control = self._load_checkpoint()
+
+            if last_control:
+                logger.info(f"Resuming batch from checkpoint after control {last_control}")
+            else:
+                logger.info("No checkpoint found — starting batch from beginning")
+
+            resume = last_control is None
+
+            # -----------------------------------------------------
+            # Parallel Control Execution
+            # -----------------------------------------------------
+            logger.info(f"Starting parallel execution with {MAX_WORKERS} workers")
+
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+                futures = {}
+
+                for control in controls:
+
+                    control_id = control[0]
+
+                    # ---------------------------------------------
+                    # Resume Logic
+                    # ---------------------------------------------
+                    if not resume:
+
+                        if control_id == last_control:
+                            resume = True
+                            continue
+                        else:
+                            logger.info(f"Skipping control {control_id} (already completed)")
+                            continue
+
+                    # ---------------------------------------------
+                    # Schedule control execution
+                    # ---------------------------------------------
+                    logger.info(f"Scheduling control {control_id}")
+
+                    future = executor.submit(self._execute_control, control_id)
+
+                    futures[future] = control_id
+
+                # -------------------------------------------------
+                # Process completed tasks
+                # -------------------------------------------------
+                for future in as_completed(futures):
+
+                    control_id = futures[future]
+
+                    try:
+
+                        future.result()
+
+                        logger.info(f"Control {control_id} completed")
+
+                        # Save checkpoint
+                        self._save_checkpoint(control_id)
+
+                        self._update_control_progress(True)
+
+                    except Exception as e:
+
+                        logger.error(f"Control {control_id} failed: {str(e)}")
+
+                        self._update_control_progress(False)
+
+            # -----------------------------------------------------
+            # Mark batch completed
+            # -----------------------------------------------------
+            self._complete_batch("COMPLETED")
+
+            # -----------------------------------------------------
+            # Evaluate governance
+            # -----------------------------------------------------
+            self._evaluate_governance()
+
+            logger.info(f"Batch {self.batch_id} completed")
+
+        except Exception as e:
+
+            logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+            try:
+                self._complete_batch("FAILED")
+            except Exception:
+                pass
+
+            raise
+
+        
+    
+
+
+    def run_legacy_6(self):
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        MAX_WORKERS = 4  # Can move to config.yaml later
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        try:
+
+            # -----------------------------------------------------
+            # Auto rule discovery
+            # -----------------------------------------------------
+            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+            discovery = AutoRuleDiscovery(
+                self.engine_db,
+                self.source_db,
+                self.project_id
+            )
+
+            discovery.generate_rules()
+
+            # -----------------------------------------------------
+            # Fetch controls
+            # -----------------------------------------------------
+            controls = self._get_controls()
+
+            logger.info(f"{len(controls)} controls discovered")
+
+            # -----------------------------------------------------
+            # Register batch
+            # -----------------------------------------------------
+            self._register_batch(len(controls))
+
+            logger.info(f"Batch {self.batch_id} registered")
+
+            # -----------------------------------------------------
+            # Load checkpoint (if batch restarting)
+            # -----------------------------------------------------
+            last_control = self._load_checkpoint()
+
+            if last_control:
+                logger.info(f"Resuming batch from checkpoint after control {last_control}")
+            else:
+                logger.info("No checkpoint found — starting batch from beginning")
+
+            resume = last_control is None
+
+            # -----------------------------------------------------
+            # Parallel Control Execution
+            # -----------------------------------------------------
+            logger.info(f"Starting parallel execution with {MAX_WORKERS} workers")
+
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+                futures = {}
+
+                for control in controls:
+
+                    control_id = control[0]
+
+                    # ---------------------------------------------
+                    # Resume Logic
+                    # ---------------------------------------------
+                    if not resume:
+
+                        if control_id == last_control:
+                            resume = True
+                            continue
+                        else:
+                            logger.info(f"Skipping control {control_id} (already completed)")
+                            continue
+
+                    # ---------------------------------------------
+                    # Schedule control execution
+                    # ---------------------------------------------
+                    logger.info(f"Scheduling control {control_id}")
+
+                    future = executor.submit(self._execute_control, control_id)
+
+                    futures[future] = control_id
+
+                # -------------------------------------------------
+                # Process completed tasks
+                # -------------------------------------------------
+                for future in as_completed(futures):
+
+                    control_id = futures[future]
+
+                    try:
+
+                        future.result()
+
+                        logger.info(f"Control {control_id} completed")
+
+                        # Save checkpoint
+                        self._save_checkpoint(control_id)
+
+                        self._update_control_progress(True)
+
+                    except Exception as e:
+
+                        logger.error(f"Control {control_id} failed: {str(e)}")
+
+                        self._update_control_progress(False)
+
+            # -----------------------------------------------------
+            # Mark batch completed
+            # -----------------------------------------------------
+            self._complete_batch("COMPLETED")
+
+            # -----------------------------------------------------
+            # Evaluate governance
+            # -----------------------------------------------------
+            self._evaluate_governance()
+
+            logger.info(f"Batch {self.batch_id} completed")
+
+        except Exception as e:
+
+            logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+            try:
+                self._complete_batch("FAILED")
+            except Exception:
+                pass
+
+            raise
+
+
+
+
+    def run_legacy_8(self):
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        MAX_WORKERS = 4
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        try:
+
+            # -----------------------------------------------------
+            # Auto rule discovery
+            # -----------------------------------------------------
+            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+            discovery = AutoRuleDiscovery(
+                self.engine_db,
+                self.source_db,
+                self.project_id
+            )
+
+            discovery.generate_rules()
+
+            # -----------------------------------------------------
+            # Fetch controls
+            # -----------------------------------------------------
+            controls = self._get_controls()
+
+            logger.info(f"{len(controls)} controls discovered")
+
+            # -----------------------------------------------------
+            # Register batch
+            # -----------------------------------------------------
+            #self._register_batch(len(controls))
+
+            #logger.info(f"Batch {self.batch_id} registered")
+
+            # -----------------------------------------------------
+            # Checkpoint Logic
+            # It allows us to resume a batch from the last completed control in case of failure or 
+            # #if we want to restart with new rules after discovery without re-running already completed controls
+            #  python -m app.main run --config config.yaml --resume-batch e44b11b0-8132-404c-bc4d-e250c1f14dab
+            # -----------------------------------------------------
+
+            if not self._load_checkpoint():
+
+                self._register_batch(len(controls))
+
+                logger.info(f"Batch {self.batch_id} registered")
+
+            else:
+
+                logger.info(f"Resuming existing batch {self.batch_id} — registration skipped")
+
+
+
+            # -----------------------------------------------------
+            # Load checkpoint
+            # -----------------------------------------------------
+            last_control = self._load_checkpoint()
+
+            if last_control:
+
+                logger.info(f"Checkpoint detected. Last completed control: {last_control}")
+
+                control_ids = [c[0] for c in controls]
+
+                if last_control in control_ids:
+
+                    last_index = control_ids.index(last_control)
+
+                    controls = controls[last_index + 1:]
+
+                    logger.info(
+                        f"Resuming batch after {last_control}. "
+                        f"{len(controls)} controls remaining."
+                    )
+
+                else:
+
+                    logger.warning(
+                        f"Checkpoint control {last_control} not found. "
+                        f"Running full batch."
+                    )
+
+            else:
+
+                logger.info("No checkpoint found — starting batch from beginning")
+
+            # -----------------------------------------------------
+            # If nothing left to run
+            # -----------------------------------------------------
+            if not controls:
+
+                logger.info("All controls already completed according to checkpoint.")
+                self._complete_batch("COMPLETED")
+                self._evaluate_governance()
+                return
+
+            # -----------------------------------------------------
+            # Parallel Execution
+            # -----------------------------------------------------
+            logger.info(f"Starting parallel execution with {MAX_WORKERS} workers")
+
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+                futures = {}
+
+                for control in controls:
+
+                    control_id = control[0]
+
+                    logger.info(f"Scheduling control {control_id}")
+
+                    future = executor.submit(self._execute_control, control_id)
+
+                    futures[future] = control_id
+
+                # -------------------------------------------------
+                # Process completed tasks
+                # -------------------------------------------------
+                for future in as_completed(futures):
+
+                    control_id = futures[future]
+
+                    try:
+
+                        #future.result()
+
+                        #-----------------------------------------------------
+                        # NEW: Add timeout handling for controls
+                        #-----------------------------------------------------
+
+                        future.result(timeout=self.control_timeout_seconds)
+
+                        logger.info(f"Control {control_id} completed")
+
+                        # Update progress
+                        self._update_control_progress(True)
+
+                        # Save checkpoint AFTER success
+                        self._save_checkpoint(control_id)
+
+                    except Exception as e:
+
+                        logger.error(f"Control {control_id} failed: {str(e)}")
+
+                        self._update_control_progress(False)
+
+                        # Failure isolation: continue executing other controls
+                        continue
+
+
+        
+            # -----------------------------------------------------
+            # Mark batch completed
+            # -----------------------------------------------------
+            self._complete_batch("COMPLETED")
+
+            # -----------------------------------------------------
+            # Evaluate governance
+            # -----------------------------------------------------
+            self._evaluate_governance()
+
+            logger.info(f"Batch {self.batch_id} completed")
+
+        except Exception as e:
+
+            logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+            try:
+                self._complete_batch("FAILED")
+            except Exception:
+                pass
+
+            raise
+
+
+
+    
+    def run_legacy_9(self):
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        MAX_WORKERS = 4
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        try:
+
+            # -----------------------------------------------------
+            # Auto rule discovery
+            # -----------------------------------------------------
+            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+            discovery = AutoRuleDiscovery(
+                self.engine_db,
+                self.source_db,
+                self.project_id
+            )
+
+            discovery.generate_rules()
+
+            # -----------------------------------------------------
+            # Fetch controls
+            # -----------------------------------------------------
+            controls = self._get_controls()
+
+            logger.info(f"{len(controls)} controls discovered")
+
+            # -----------------------------------------------------
+            # Register batch
+            # -----------------------------------------------------
+            #self._register_batch(len(controls))
+
+            #logger.info(f"Batch {self.batch_id} registered")
+
+            # -----------------------------------------------------
+            # Checkpoint Logic
+            # It allows us to resume a batch from the last completed control in case of failure or 
+            # #if we want to restart with new rules after discovery without re-running already completed controls
+            #  python -m app.main run --config config.yaml --resume-batch e44b11b0-8132-404c-bc4d-e250c1f14dab
+            # -----------------------------------------------------
+
+            #if not self._load_checkpoint():
+
+            #    self._register_batch(len(controls))
+
+            #    logger.info(f"Batch {self.batch_id} registered")
+
+            #else:
+
+            #    logger.info(f"Resuming existing batch {self.batch_id} — registration skipped")
+
+
+            last_control = self._load_checkpoint()
+
+            if not last_control:
+
+                self._register_batch(len(controls))
+
+                logger.info(f"Batch {self.batch_id} registered")
+
+            else:
+
+                logger.info(f"Resuming existing batch {self.batch_id} — registration skipped")
+
+
+
+            # -----------------------------------------------------
+            # Load checkpoint
+            # -----------------------------------------------------
+            #last_control = self._load_checkpoint()
+
+            if last_control:
+
+                logger.info(f"Checkpoint detected. Last completed control: {last_control}")
+
+                control_ids = [c[0] for c in controls]
+
+                if last_control in control_ids:
+
+                    last_index = control_ids.index(last_control)
+
+                    controls = controls[last_index + 1:]
+
+                    logger.info(
+                        f"Resuming batch after {last_control}. "
+                        f"{len(controls)} controls remaining."
+                    )
+
+                else:
+
+                    logger.warning(
+                        f"Checkpoint control {last_control} not found. "
+                        f"Running full batch."
+                    )
+
+            else:
+
+                logger.info("No checkpoint found — starting batch from beginning")
+
+            # -----------------------------------------------------
+            # If nothing left to run
+            # -----------------------------------------------------
+            if not controls:
+
+                logger.info("All controls already completed according to checkpoint.")
+                self._complete_batch("COMPLETED")
+                self._evaluate_governance()
+                return
+
+
+            # -----------------------------------------------------
+            # Parallel Execution with Dependency DAG
+            # -----------------------------------------------------
+            logger.info(f"Starting parallel execution with {MAX_WORKERS} workers")
+
+            completed_controls = set()
+            remaining_controls = list(controls)
+
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+                while remaining_controls:
+
+                    futures = {}
+                    scheduled_this_round = []
+
+                    # ---------------------------------------------
+                    # Schedule controls whose dependencies are met
+                    # ---------------------------------------------
+                    for control in remaining_controls:
+
+                        control_id = control[0]
+
+                        dependencies = self.control_dependencies.get(control_id, [])
+
+                        if any(dep not in completed_controls for dep in dependencies):
+                            continue
+
+                        logger.info(f"Scheduling control {control_id}")
+
+                        future = executor.submit(self._execute_control, control_id)
+
+                        futures[future] = control_id
+                        scheduled_this_round.append(control)
+
+                    # ---------------------------------------------
+                    # Deadlock detection
+                    # ---------------------------------------------
+                    if not scheduled_this_round:
+                        raise Exception("Dependency deadlock detected in control graph")
+
+                    for c in scheduled_this_round:
+                        remaining_controls.remove(c)
+
+                    # ---------------------------------------------
+                    # Process completed tasks
+                    # ---------------------------------------------
+                    for future in as_completed(futures):
+
+                        control_id = futures[future]
+
+                        try:
+
+                            future.result(timeout=self.control_timeout_seconds)
+
+                            logger.info(f"Control {control_id} completed")
+
+                            completed_controls.add(control_id)
+
+                            self._update_control_progress(True)
+
+                            self._save_checkpoint(control_id)
+
+                        except Exception as e:
+
+                            logger.error(f"Control {control_id} failed: {str(e)}")
+
+                            completed_controls.add(control_id)
+
+                            self._update_control_progress(False)
+
+
+
+
+
+                            self._save_checkpoint(control_id)
+
+                        except Exception as e:
+
+                            logger.error(f"Control {control_id} failed: {str(e)}")
+
+                            completed_controls.add(control_id)
+
+                            self._update_control_progress(False)
+
+                            continue
+
+
+        
+            # -----------------------------------------------------
+            # Mark batch completed
+            # -----------------------------------------------------
+            self._complete_batch("COMPLETED")
+
+            # -----------------------------------------------------
+            # Evaluate governance
+            # -----------------------------------------------------
+            self._evaluate_governance()
+
+            logger.info(f"Batch {self.batch_id} completed")
+
+        except Exception as e:
+
+            logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+            try:
+                self._complete_batch("FAILED")
+            except Exception:
+                pass
+
+            raise
+
+
+
+    
+
+    def run_legacy_10(self):
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        MAX_WORKERS = 4
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        try:
+
+            # -----------------------------------------------------
+            # Auto rule discovery
+            # -----------------------------------------------------
+            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+            discovery = AutoRuleDiscovery(
+                self.engine_db,
+                self.source_db,
+                self.project_id
+            )
+
+            discovery.generate_rules()
+
+            # -----------------------------------------------------
+            # Fetch controls
+            # -----------------------------------------------------
+            controls = self._get_controls()
+
+            logger.info(f"{len(controls)} controls discovered")
+
+            # -----------------------------------------------------
+            # Register batch
+            # -----------------------------------------------------
+            #self._register_batch(len(controls))
+
+            #logger.info(f"Batch {self.batch_id} registered")
+
+            # -----------------------------------------------------
+            # Checkpoint Logic
+            # It allows us to resume a batch from the last completed control in case of failure or 
+            # #if we want to restart with new rules after discovery without re-running already completed controls
+            #  python -m app.main run --config config.yaml --resume-batch e44b11b0-8132-404c-bc4d-e250c1f14dab
+            # -----------------------------------------------------
+
+            #if not self._load_checkpoint():
+
+            #    self._register_batch(len(controls))
+
+            #    logger.info(f"Batch {self.batch_id} registered")
+
+            #else:
+
+            #    logger.info(f"Resuming existing batch {self.batch_id} — registration skipped")
+
+
+            last_control = self._load_checkpoint()
+
+            if not last_control:
+
+                self._register_batch(len(controls))
+
+                logger.info(f"Batch {self.batch_id} registered")
+
+            else:
+
+                logger.info(f"Resuming existing batch {self.batch_id} — registration skipped")
+
+
+
+            # -----------------------------------------------------
+            # Load checkpoint
+            # -----------------------------------------------------
+            #last_control = self._load_checkpoint()
+
+            if last_control:
+
+                logger.info(f"Checkpoint detected. Last completed control: {last_control}")
+
+                control_ids = [c[0] for c in controls]
+
+                if last_control in control_ids:
+
+                    last_index = control_ids.index(last_control)
+
+                    controls = controls[last_index + 1:]
+
+                    logger.info(
+                        f"Resuming batch after {last_control}. "
+                        f"{len(controls)} controls remaining."
+                    )
+
+                else:
+
+                    logger.warning(
+                        f"Checkpoint control {last_control} not found. "
+                        f"Running full batch."
+                    )
+
+            else:
+
+                logger.info("No checkpoint found — starting batch from beginning")
+
+            # -----------------------------------------------------
+            # If nothing left to run
+            # -----------------------------------------------------
+            if not controls:
+
+                logger.info("All controls already completed according to checkpoint.")
+                self._complete_batch("COMPLETED")
+                self._evaluate_governance()
+                return
+
+
+            # -----------------------------------------------------
+            # Parallel Execution with Scalable DAG Scheduler
+            # -----------------------------------------------------
+            logger.info(f"Starting parallel execution with {MAX_WORKERS} workers")
+
+            from collections import defaultdict, deque
+
+            completed_controls = set()
+
+            # Build dependency graph
+            dependents = defaultdict(list)
+            dependency_count = {}
+
+            for control in controls:
+                cid = control[0]
+                deps = self.control_dependencies.get(cid, [])
+
+                dependency_count[cid] = len(deps)
+
+                for d in deps:
+                    dependents[d].append(cid)
+
+            # Controls ready to run
+            ready_queue = deque(
+                [cid for cid, count in dependency_count.items() if count == 0]
+            )
+
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+                futures = {}
+
+                while ready_queue or futures:
+
+                    # -----------------------------------------
+                    # Schedule ready controls
+                    # -----------------------------------------
+                    while ready_queue:
+
+                        cid = ready_queue.popleft()
+
+                        logger.info(f"Scheduling control {cid}")
+
+                        future = executor.submit(self._execute_control, cid)
+
+                        futures[future] = cid
+
+                    # -----------------------------------------
+                    # Process completed tasks
+                    # -----------------------------------------
+                    for future in as_completed(list(futures)):
+
+                        cid = futures.pop(future)
+
+                        try:
+
+                            future.result(timeout=self.control_timeout_seconds)
+
+                            logger.info(f"Control {cid} completed")
+
+                            self._update_control_progress(True)
+
+                            self._save_checkpoint(cid)
+
+                        except Exception as e:
+
+                            logger.error(f"Control {cid} failed: {str(e)}")
+
+                            self._update_control_progress(False)
+
+                        completed_controls.add(cid)
+
+                        # -------------------------------------
+                        # Release dependent controls
+                        # -------------------------------------
+                        for child in dependents[cid]:
+
+                            dependency_count[child] -= 1
+
+                            if dependency_count[child] == 0:
+                                ready_queue.append(child)
+
+                        break
+
+        
+            # -----------------------------------------------------
+            # Mark batch completed
+            # -----------------------------------------------------
+            self._complete_batch("COMPLETED")
+
+            # -----------------------------------------------------
+            # Evaluate governance
+            # -----------------------------------------------------
+            self._evaluate_governance()
+
+            logger.info(f"Batch {self.batch_id} completed")
+
+        except Exception as e:
+
+            logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+            try:
+                self._complete_batch("FAILED")
+            except Exception:
+                pass
+
+            raise
+
+
+
+    def run(self):
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from collections import defaultdict, deque
+
+        MAX_WORKERS = 4
+
+        logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
+
+        try:
+
+            # -----------------------------------------------------
+            # Auto rule discovery
+            # -----------------------------------------------------
+            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+
+            discovery = AutoRuleDiscovery(
+                self.engine_db,
+                self.source_db,
+                self.project_id
+            )
+
+            discovery.generate_rules()
+
+            # -----------------------------------------------------
+            # Fetch controls
+            # -----------------------------------------------------
+            controls = self._get_controls()
+
+            logger.info(f"{len(controls)} controls discovered")
+
+
+
+            # -----------------------------------------------------
+            # ✅ Recovery Mode (FAILED CONTROLS ONLY)
+            # -----------------------------------------------------
+            if getattr(self, "recovery_mode", False):
+
+                failed_controls = self._get_failed_controls()
+
+                if failed_controls:
+
+                    logger.info(
+                        f"Recovery mode ON — {len(failed_controls)} failed controls will be re-run"
+                    )
+
+                    controls = [c for c in controls if c[0] in failed_controls]
+
+                else:
+
+                    logger.info("Recovery mode ON — no failed controls found")
+                    return
+                
+
+
+            # -----------------------------------------------------
+            # Recovery Mode (FAILED CONTROLS ONLY)
+            # -----------------------------------------------------
+            if getattr(self, "recovery_mode", False):
+
+                failed_controls = self._get_failed_controls()
+
+                if failed_controls:
+
+                    logger.info(f"Recovery mode ON — {len(failed_controls)} failed controls will be re-run")
+
+                    controls = [c for c in controls if c[0] in failed_controls]
+
+                else:
+
+                    logger.info("Recovery mode ON — no failed controls found")
+                    return
+    
+
+
+
+            # -----------------------------------------------------
+            # Checkpoint Handling
+            # -----------------------------------------------------
+            last_control = self._load_checkpoint()
+
+            if not last_control:
+
+                self._register_batch(len(controls))
+                logger.info(f"Batch {self.batch_id} registered")
+
+            else:
+
+                logger.info(f"Resuming existing batch {self.batch_id} — registration skipped")
+
+            if last_control:
+
+                logger.info(f"Checkpoint detected. Last completed control: {last_control}")
+
+                control_ids = [c[0] for c in controls]
+
+                if last_control in control_ids:
+
+                    last_index = control_ids.index(last_control)
+                    controls = controls[last_index + 1:]
+
+                    logger.info(
+                        f"Resuming batch after {last_control}. "
+                        f"{len(controls)} controls remaining."
+                    )
+
+                else:
+
+                    logger.warning(
+                        f"Checkpoint control {last_control} not found. Running full batch."
+                    )
+
+            else:
+
+                logger.info("No checkpoint found — starting batch from beginning")
+
+            # -----------------------------------------------------
+            # Nothing to run
+            # -----------------------------------------------------
+            if not controls:
+
+                logger.info("All controls already completed according to checkpoint.")
+
+                self._complete_batch("COMPLETED")
+                self._evaluate_governance()
+
+                return
+
+            # -----------------------------------------------------
+            # Build control lookup
+            # -----------------------------------------------------
+            control_map = {c[0]: c for c in controls}
+            control_ids = set(control_map.keys())
+
+            # -----------------------------------------------------
+            # Build dependency graph
+            # -----------------------------------------------------
+            dependents = defaultdict(list)
+            dependency_count = {}
+
+            for cid in control_ids:
+
+                deps = [
+                    d for d in self.control_dependencies.get(cid, [])
+                    if d in control_ids
+                ]
+
+                dependency_count[cid] = len(deps)
+
+                for d in deps:
+                    dependents[d].append(cid)
+
+            # -----------------------------------------------------
+            # Ready queue
+            # -----------------------------------------------------
+            ready_queue = deque(
+                [cid for cid, count in dependency_count.items() if count == 0]
+            )
+
+            logger.info(f"Starting parallel execution with {MAX_WORKERS} workers")
+
+            completed_controls = set()
+
+            # -----------------------------------------------------
+            # Execute DAG
+            # -----------------------------------------------------
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+
+                futures = {}
+
+                while ready_queue or futures:
+
+                    # Schedule ready controls
+                    while ready_queue:
+
+                        cid = ready_queue.popleft()
+
+                        logger.info(f"Scheduling control {cid}")
+
+                        #future = executor.submit(
+                        #    self._execute_control,
+                        #    control_map[cid]
+                        #)
+
+                        future = executor.submit(
+                            self._execute_control,
+                            cid
+
+                            
+                        )
+                        
+
+                        futures[future] = cid
+
+                    if not futures and ready_queue:
+                        raise Exception("DAG deadlock detected")
+
+                    # Wait for completion
+                    for future in as_completed(futures):
+
+                        cid = futures.pop(future)
+
+                        try:
+
+                            future.result(timeout=self.control_timeout_seconds)
+
+                            logger.info(f"Control {cid} completed")
+
+                            self._update_control_progress(True)
+                            self._save_checkpoint(cid)
+
+                        except Exception as e:
+
+                            logger.error(f"Control {cid} failed: {str(e)}")
+
+                            self._update_control_progress(False)
+
+                        completed_controls.add(cid)
+
+                        # Release dependent controls
+                        for child in dependents[cid]:
+
+                            dependency_count[child] -= 1
+
+                            if dependency_count[child] == 0:
+                                ready_queue.append(child)
+
+                        break
+
+            # -----------------------------------------------------
+            # Mark batch completed
+            # -----------------------------------------------------
+            self._complete_batch("COMPLETED")
+
+            # -----------------------------------------------------
+            # Governance evaluation
+            # -----------------------------------------------------
+            self._evaluate_governance()
+
+            logger.info(f"Batch {self.batch_id} completed")
+
+        except Exception as e:
+
+            logger.error(f"Batch {self.batch_id} failed: {str(e)}")
+
+            try:
+                self._complete_batch("FAILED")
+            except Exception:
+                pass
+
+            raise
+
+
+
 
     # ---------------------------------------------------------
     # BATCH CREATION (PROJECT AWARE)
@@ -359,8 +1651,11 @@ class ExecutionEngine:
             self.target_db,
             self.batch_id,
             self.project_id,
-            control_id
+            control_id,
+            self.config   # <-- PASS CONFIG
         )
+        logger.info(f"DEBUG: Executing control {control_id}")
+        
         executor.execute_rules()
 
     # ---------------------------------------------------------
@@ -645,3 +1940,78 @@ class ExecutionEngine:
         ))
 
         logger.info(f"Migration governance decision: {migration_status}")
+
+
+
+
+
+    def _save_checkpoint(self, control_id):
+
+        query = """
+        INSERT INTO engine.batch_execution_checkpoint
+        (batch_id, last_completed_control)
+        VALUES (%s,%s)
+        ON CONFLICT (batch_id)
+        DO UPDATE SET
+            last_completed_control = EXCLUDED.last_completed_control,
+            updated_at = NOW()
+        """
+
+        self.engine_db.execute(query, (
+            self.batch_id,
+            control_id
+        ))
+
+
+    
+    def _load_checkpoint(self):
+
+        query = """
+        SELECT last_completed_control
+        FROM engine.batch_execution_checkpoint
+        WHERE batch_id = %s
+        """
+
+        rows = self.engine_db.execute(query, (self.batch_id,))
+
+        if rows:
+            return rows[0][0]
+
+        return None
+    
+
+    #------------------------------------------------------
+    #Define dependency
+    #C02 runs only after C01
+    #C09 runs only after C03
+    #If a control is not listed → no dependencies.
+    #Step 5: Control Dependency Graph (DAG)
+    #------------------------------------------------
+    def _dependencies_satisfied(self, control_id, completed_controls):
+
+        deps = self.control_dependencies.get(control_id, [])
+
+        for dep in deps:
+            if dep not in completed_controls:
+                return False
+
+        return True
+    
+
+    # ------------------------------------------------------
+    # Get list of controls that have failed or errored in the current batch execution
+    # This can be used for dynamic dependency handling, e.g. if a control fails, we can choose to block dependent controls or route them to a different execution path
+    # PHASE 7 STEP 6 — BATCH RECOVERY MODE
+    #------------------------------------------------------
+    def _get_failed_controls(self):
+
+        query = """
+        SELECT DISTINCT control_id
+        FROM engine.migration_control_execution
+        WHERE batch_id = %s
+        AND execution_status IN ('FAIL', 'ERROR')
+        """
+
+        rows = self.engine_db.fetch_all(query, (self.batch_id,))
+
+        return set(r[0] for r in rows)
