@@ -1,0 +1,88 @@
+project_id: "ae40b96c-20da-4972-bb29-bff3c2451ae0"
+
+
+database:
+  host: localhost
+  port: 5432
+  dbname: postgres
+  user: postgres
+  password: dev123456
+
+
+engine_db:
+  host: localhost
+  port: 5432
+  database: migration_engine
+  user: postgres
+  password: dev123456
+
+source_db:
+  type: postgres
+  use_adapter: true
+  host: localhost
+  port: 5432
+  database: migration_source
+  user: postgres
+  password: dev123456
+
+target_db:
+  type: snowflake
+  use_adapter: true
+  host: localhost
+  port: 5432
+  database: migration_target
+  user: postgres
+  password: dev123456
+
+execution:
+  environment: DEV
+  client_name: DemoBank
+  control_id: null   # null = run all controls
+
+release_gate:
+  enabled: true
+  block_on_status: ["FAIL", "BLOCKED", "ERROR"]
+  minimum_score: 80
+  enforcement_mode: "STRICT"   # STRICT | RECORD_ONLY
+
+rules:
+
+  C01: enabled
+  C02: enabled
+  C03: enabled
+  C04: enabled
+  C05: disabled
+  C06: disabled
+  C07: disabled
+  C08: disabled
+  C09: enabled
+  C010: enabled
+
+# phase 7 steps 3
+# # Failure isolation: continue executing other controls
+engine:
+  control_timeout_seconds: 300
+
+
+##Meaning:
+#Define dependency
+#C02 runs only after C01
+#C09 runs only after C03
+#If a control is not listed → no dependencies.
+#Step 5: Control Dependency Graph (DAG)
+control_dependencies:
+
+  C02:
+    - C01
+
+  C09:
+    - C03
+
+
+#release_gate:
+#  enabled: true
+#  block_on_status:
+#    - BLOCKED
+#    - FAIL
+#    - ERROR
+#  minimum_score: 80

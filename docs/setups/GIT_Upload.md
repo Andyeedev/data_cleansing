@@ -260,11 +260,18 @@ git push origin v1.8
 git checkout -b v1.9-development
 
 
+First check which versions is committed. is it v1_9 or v2_0. currently we are working on v2_0-development was committed or not. But im happy for us to save this copy as v2_1-development-multi-saas (or name that reflects wg=hat we have done) because we have made massive upgrades and once uploaded on git we create anewname called v2_2-development-multi-saas or similar names, we also need to use tag
+we need to create the following docs
+1) Readme.md
+2) Architecture.md
+3) Release_notes.md
+4) Roadmap.md
+5) create a dump db for dnginedb, sourcedb and targetdb and named them engine_v2_1.dump, source_v2_1.dump, target_v2_1.dump
 
 
 git add .
-git commit -m "Release v1.8"
-git push origin v1.8-development
+git commit -m "Release v2.0"
+git push origin v2.0-development
 
 
 git tag -a v1.8 -m "Release v1.9"

@@ -4,7 +4,7 @@ import logging
 
 from .execution_engine import ExecutionEngine
 from .audit_export import AuditExporter
-from .db_connector import DBConnector
+from .db.db_connector import DBConnector
 
 
 logging.basicConfig(
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
         engine_db = DBConnector(config["engine_db"])
 
-        from .services.dataset_discovery_service import DatasetDiscoveryService
+        from .services.dataset_discovery_service_NOT_IN_USE import DatasetDiscoveryService
 
         service = DatasetDiscoveryService(
             engine_db,

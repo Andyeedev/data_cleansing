@@ -1,5 +1,6 @@
 project_id: "ae40b96c-20da-4972-bb29-bff3c2451ae0"
 
+
 database:
   host: localhost
   port: 5432
@@ -8,26 +9,38 @@ database:
   password: dev123456
 
 
-engine_db:
+source_db:
+  type: postgres
+  use_adapter: true
+  schema: public   ✅ ADD THIS
   host: localhost
   port: 5432
-  database: migration_engine
+  dbname: migration_source
   user: postgres
   password: dev123456
 
-source_db:
-  host: localhost
-  port: 5432
-  database: migration_source
-  user: postgres
-  password: dev123456
 
 target_db:
+  type: postgres
+  use_adapter: true
+  schema: public   ✅ ADD THIS
   host: localhost
   port: 5432
-  database: migration_target
+  dbname: migration_target
   user: postgres
   password: dev123456
+
+engine_db:
+  type: postgres
+  role: engine   ✅ ADD THIS
+  host: localhost
+  port: 5432
+  dbname: migration_engine
+  user: postgres
+  password: dev123456
+
+
+  
 
 execution:
   environment: DEV
@@ -46,13 +59,27 @@ rules:
   C02: enabled
   C03: enabled
   C04: enabled
+  C05: enabled
+  C06: enabled
+  C07: enabled
+  C08: enabled
+  C09: enabled
+  C010: enabled
+
+
+
+rules_legacy:
+
+  C01: enabled
+  C02: enabled
+  C03: enabled
+  C04: enabled
   C05: disabled
   C06: disabled
   C07: disabled
   C08: disabled
   C09: enabled
   C010: enabled
-
 # phase 7 steps 3
 # # Failure isolation: continue executing other controls
 engine:

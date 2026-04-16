@@ -67,6 +67,7 @@ class AutoRuleDiscovery:
         """
 
         return self.engine_db.execute(query, (self.project_id,))
+        
 
     # -----------------------------------------------------
     # FETCH COLUMNS
@@ -75,7 +76,7 @@ class AutoRuleDiscovery:
     def _get_columns(self, mapping_id):
 
         query = """
-        SELECT column_name, inferred_role, data_type
+        SELECT column_name, COALESCE(inferred_role, 'UNKNOWN'), data_type
         FROM core.dataset_columns
         WHERE mapping_id = %s
         """

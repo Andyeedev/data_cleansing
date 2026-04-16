@@ -7,40 +7,18 @@ class ColumnCountRule(BaseRule):
 
     def execute(self):
 
-        source_schema = self.parameters["source_schema"]
-        source_table = self.parameters["source_table"]
-        target_schema = self.parameters["target_schema"]
-        target_table = self.parameters["target_table"]
+        p = self.parameters
 
-        source_query = """
-            SELECT COUNT(*)
-            FROM information_schema.columns
-            WHERE table_schema = %s
-            AND table_name = %s
-        """
+        sc = self.source_db.adapter.get_column_count(
+            p["source_schema"], p["source_table"]
+        )
 
-        target_query = """
-            SELECT COUNT(*)
-            FROM information_schema.columns
-            WHERE table_schema = %s
-            AND table_name = %s
-        """
-
-        source_count = self.source_db.execute(
-            source_query, (source_schema, source_table)
-        )[0][0]
-
-        target_count = self.target_db.execute(
-            target_query, (target_schema, target_table)
-        )[0][0]
-
-        delta = abs(source_count - target_count)
-
-        status = "PASS" if delta == 0 else "FAIL"
+        tc = self.target_db.adapter.get_column_count(
+            p["target_schema"], p["target_table"]
+        )
 
         return {
-            "source_value": source_count,
-            "target_value": target_count,
-            "delta": delta,
-            "status": status
+            "source_value": sc,
+            "target_value": tc,
+            "status": "PASS" if sc == tc else "FAIL"
         }

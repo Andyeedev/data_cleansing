@@ -1,10 +1,29 @@
 #from asyncio.log import logger
 import uuid
-from .db_connector import DBConnector
+from .db.db_connector import DBConnector
 from .rule_executor import RuleExecutor
 from .scoring_engine import ScoringEngine
 from app.discovery.auto_rule_discovery import AutoRuleDiscovery
 from app.utils.logger import get_logger
+from app.discovery.metadata_discovery_NOT_IN_USE import MetadataDiscovery
+from app.db.connection_factory import connection_factory
+
+
+from app.intelligence.profiling.data_profiling_engine import DataProfilingEngine
+from app.intelligence.matching.table_matcher import TableMatcher
+from app.intelligence.inference.fk_inference_engine import FKInferenceEngine
+from app.intelligence.graph.relationship_graph_engine import RelationshipGraphEngine
+from app.scoring.unified_scoring_engine import UnifiedScoringEngine
+from app.intelligence.explainability.explainability_engine import ExplainabilityEngine
+from app.scoring.adaptive_scoring_engine import AdaptiveScoringEngine
+
+
+
+
+
+
+#from app.db.db_connection import DBConnector
+
 
 #logger = get_logger(__name__)
 
@@ -37,7 +56,8 @@ class ExecutionEngine:
         self.source_db = DBConnector(config["source_db"])
         self.target_db = DBConnector(config["target_db"])
 
-
+        
+        
     def __init__(self, config, batch_id=None):
 
         # Configuration
@@ -70,6 +90,8 @@ class ExecutionEngine:
         # Load control dependencies configuration (for future use in execution orchestration)
         #----------------------------------------------------------
         self.control_dependencies = config.get("control_dependencies", {})
+
+
 
     # ---------------------------------------------------------
     # PUBLIC ENTRY
@@ -1368,7 +1390,439 @@ class ExecutionEngine:
 
         logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
 
+
+        logger.info("Starting intelligence pipeline...")
+        #logger.info(f"Intelligence pipeline completed. Score={profile}")
+
+        #logger.info(f"Intelligence pipeline : Profiling Engine starting...")
+
+        #logger.info(f"Intelligence pipeline : Adaptive Scoring Engine completed. Score={weights}")
+
+
+
+
+
+
+        # -----------------------------
+        # INIT ADAPTERS ONCE
+        # -----------------------------
+        source_adapter = self.source_db.adapter
+        target_adapter = self.target_db.adapter
+
+        logger.info("Starting intelligence pipeline...")
+
+        # -------------------------------------------------
+        # 1. PROFILING
+        # -------------------------------------------------
+        logger.info("Profiling Engine starting...")
+        profiling_engine = DataProfilingEngine(
+            source_adapter=source_adapter,
+            target_adapter=target_adapter,
+            engine_db=self.engine_db,
+            batch_id=self.batch_id
+        )
+
+        
+        profile = profiling_engine.run()
+        logger.info(f"Intelligence pipeline : Profiling completed. Score={profile}")
+        
+
+
+        # -------------------------------------------------
+        # 2. MATCHING
+        # -------------------------------------------------
+        logger.info("Table Matching Engine starting...")
+        matcher = TableMatcher(
+            source_adapter=source_adapter,
+            target_adapter=target_adapter,
+            engine_db=self.engine_db,
+            batch_id=self.batch_id
+        )
+        matches = matcher.match_tables()
+        logger.info(f"Intelligence pipeline : Table Matching completed. Score={matches}")
+
+
+
+        # ---------------------------------------------------
+        # ADAPTER CAPABILITY CHECK (CRITICAL)
+        # ---------------------------------------------------
+        if source_adapter.capabilities.get("supports_constraints"):
+            logger.info("Using REAL FK constraints (DB supports constraints)")
+            use_real_fk = True
+        else:
+            logger.info("Using FK INFERENCE (DB does NOT support constraints)")
+            use_real_fk = False
+
+            
+
+
+        # -------------------------------------------------
+        # 3. FK INFERENCE
+        # -------------------------------------------------
+        logger.info("FK Inference Engine starting...")
+
+        fk_engine = FKInferenceEngine(
+            source_adapter=source_adapter,
+            target_adapter=target_adapter
+        )
+
+        inferred_fks = fk_engine.infer(matches)
+
+        fk_engine.persist_with_fallback(
+            self.batch_id,
+            inferred_fks,
+            matches,
+            self.engine_db
+        )
+
+        logger.info(f"FK Inference completed: {inferred_fks}")
+
+
+        # -------------------------------------------------
+        # 3b. LOAD REAL FKs (CAPABILITY-AWARE)
+        # -------------------------------------------------
+        real_fks = set()
+
+        if use_real_fk:
+
+            from app.intelligence.constraints.constraint_loader import ConstraintLoader
+
+            constraint_loader = ConstraintLoader(
+                source_adapter=source_adapter,
+                target_adapter=target_adapter
+            )
+
+            real_fks_raw = constraint_loader.load()
+
+            if isinstance(real_fks_raw, dict):
+                real_fks = set(real_fks_raw.get("source", set())).union(
+                    set(real_fks_raw.get("target", set()))
+                )
+            else:
+                real_fks = set(real_fks_raw)
+
+        else:
+            real_fks = set()
+
+        logger.info(f"Real FK constraints: {real_fks}")
+
+
+        # -------------------------------------------------
+        # 3c. FK VALIDATION
+        # -------------------------------------------------
+        logger.info("FK Constraint Validation starting...")
+
+        normalized_inferred_fks = [
+            (f"{r[0]}.{r[1]}", f"{r[2]}.{r[3]}", r[4])
+            for r in inferred_fks
+        ]
+
+        from app.intelligence.constraints.fk_constraint_validator import FKConstraintValidator
+
+        fk_validator = FKConstraintValidator(
+            source_adapter=source_adapter,
+            engine_db=self.engine_db,
+            batch_id=self.batch_id,
+            inferred_fks=normalized_inferred_fks,
+            real_fks=real_fks
+        )
+
+        fk_validation_result = fk_validator.run()
+
+        logger.info(f"FK Validation completed: {fk_validation_result}")
+
+
+        # -------------------------------------------------
+        # 4. GRAPH
+        # -------------------------------------------------
+        logger.info("Graph Engine starting...")
+        #graph_engine = RelationshipGraphEngine(
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id
+        #)
+        graph_engine = RelationshipGraphEngine(
+            source_adapter=source_adapter,
+            target_adapter=target_adapter,
+            engine_db=self.engine_db,
+            batch_id=self.batch_id
+        )
+        graph_score = graph_engine.run()
+        logger.info(f"Intelligence pipeline : Graph Engine completed. Score={graph_score}")
+
+
+        # -------------------------------------------------
+        # 5. SCORING
+        # -------------------------------------------------
+        logger.info("Scoring Engine starting...")
+        #scoring_engine = UnifiedScoringEngine(
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id
+        #)
+        scoring_engine = UnifiedScoringEngine(
+            source_adapter=source_adapter,
+            target_adapter=target_adapter,
+            engine_db=self.engine_db,
+            batch_id=self.batch_id
+            
+        )
+        final_score = scoring_engine.run()
+        logger.info(f"Intelligence pipeline : Scoring Engine completed. Final Score={final_score}")
+
+        # -------------------------------------------------
+        # 6. EXPLAINABILITY
+        # -------------------------------------------------
+        logger.info("Explainability Engine starting...")
+        #explain_engine = ExplainabilityEngine(
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id
+        #)
+        explain_engine = ExplainabilityEngine(
+            source_adapter=source_adapter,
+            target_adapter=target_adapter,
+            engine_db=self.engine_db,
+            batch_id=self.batch_id
+        )
+        explain_engine.generate()
+        explain_engine.generate()
+        logger.info("Intelligence pipeline : Explainability Engine completed.")
+
+
+
+
+        # 1. Profiling
+        #profiling_engine = DataProfilingEngine(self.source_db, self.batch_id)
+
+        #logger.info(f"Intelligence pipeline : Profiling Engine starting...")
+        #profiling_engine = DataProfilingEngine(
+        #    source_db=self.source_db,
+        #    target_db=self.target_db,
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id
+        #)
+        
+        #profile= profiling_engine.run()
+        #logger.info(f"Intelligence pipeline completed. Score={profile}")
+
+
+        ##logger.info(f"Intelligence pipeline : Matching Engine starting...")
+        ## 2. Table Matching
+        ##matcher = TableMatcher(
+        ##    source_db=self.source_db,
+        ##    target_db=self.target_db,
+        ##    engine_db=self.engine_db,
+        ##    batch_id=self.batch_id
+        ##)
+
+        
+
+        #logger.info(f"Intelligence pipeline : Table Matching Engine starting...")
+
+        #matcher = TableMatcher(
+        #    source_db=self.source_db,
+        #    target_db=self.target_db,
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id
+        #)
+        #matches = matcher.match_tables()
+        #logger.info(f"Intelligence pipeline completed. Score={matches}")
+
+        ## 3. FK Inference
+        ###fk_engine = FKInferenceEngine(self.source_db, self.engine_db, self.batch_id)
+        ##logger.info(f"Intelligence pipeline : FK Inference Engine starting...")
+        ###fk_engine_current_9 = FKInferenceEngine(
+        ###    source_db=self.source_db,
+        ###    target_db=self.target_db,
+        ###    engine_db=self.engine_db,
+        ###    batch_id=self.batch_id
+        ###)
+        ### ✅ ACTUAL CALL
+        ###inferred_fks = fk_engine.infer()
+        ##fk_engine = FKInferenceEngine(self.engine_db)
+        ##inferred_fks = fk_engine.infer(matches)
+
+        ##logger.info(f"FK inference results: {inferred_fks}")
+
+
+        
+        #logger.info(f"Intelligence pipeline : FK Inference Engine starting...")
+
+        ##fk_engine = FKInferenceEngine(
+        ##    source_db=self.source_db,
+        ##    target_db=self.target_db
+        ##)
+
+        #fk_engine = FKInferenceEngine(
+        #    source_adapter=self.source_db.adapter,
+        #    target_adapter=self.target_db.adapter
+        #)
+
+        #inferred_fks = fk_engine.infer(matches)
+
+        #fk_engine.persist_with_fallback(
+        #    self.batch_id,
+        #    inferred_fks,
+        #    matches,
+        #    self.engine_db
+        #)
+        #logger.info(f"FK inference results: {inferred_fks}")
+
+
+
+
+        ##3b. Load real FK constraints from DB
+        #from app.intelligence.constraints.constraint_loader import ConstraintLoader
+        ## Load real FK constraints from DB
+        #constraint_loader = ConstraintLoader(
+        #    source_db=self.source_db,
+        #    target_db=self.target_db
+        #)
+
+        ##real_fks = constraint_loader.load()
+
+        ##logger.info(f"Real FK constraints: {real_fks}")
+
+        #real_fks_raw = constraint_loader.load()
+
+        ## ✅ NORMALISE real FKs → flat set of tuples
+        #real_fks = set()
+
+        #if isinstance(real_fks_raw, dict):
+        #    real_fks = set(real_fks_raw.get("source", set())).union(
+        #        set(real_fks_raw.get("target", set()))
+        #    )
+        #else:
+        #    real_fks = set(real_fks_raw)
+
+        #logger.info(f"Real FK constraints (normalized): {real_fks}")
+
+
+
+        ## 3c. FK Constraint Validation
+        ##fk_validator = FKConstraintValidator(self.source_db, self.target_db, self.engine_db, self.batch_id)
+
+        #logger.info("Intelligence pipeline : FK Constraint Validation starting...")
+        #from app.intelligence.constraints.fk_constraint_validator import FKConstraintValidator
+
+
+
+        ##fk_validator = FKConstraintValidator(
+        ##    source_db=self.source_db,
+        ##    engine_db=self.engine_db,
+        ##    batch_id=self.batch_id,
+        ##    inferred_fks=inferred_fks,   # ✅ REQUIRED
+        ##    real_fks=real_fks            # ✅ REQUIRED
+        ##)
+
+        #normalized_inferred_fks = []
+        #for row in inferred_fks:
+        #    src_table, src_col, tgt_table, tgt_col, score = row
+
+        #    src = f"{src_table}.{src_col}"
+        #    tgt = f"{tgt_table}.{tgt_col}"
+
+        #    normalized_inferred_fks.append((src, tgt, score))
+
+
+        #fk_validator = FKConstraintValidator(
+        #    source_db=self.source_db,
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id,
+        #    inferred_fks=normalized_inferred_fks,   # ✅ FIXED
+        #    real_fks=real_fks
+        #)
+
+        #fk_validation_result = fk_validator.run()
+
+        #logger.info(f"FK Constraint Validation completed: {fk_validation_result}")
+
+
+
+    
+       # # 4. Graph
+        ##graph_engine = RelationshipGraphEngine(self.engine_db, self.batch_id)
+        #logger.info(f"Intelligence pipeline : Graph Engine starting...")
+        #graph_engine = RelationshipGraphEngine(
+        #    source_db=self.source_db,
+        #    target_db=self.target_db,
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id
+        #)
+        #graph_score = graph_engine.run()
+        #logger.info(f"Intelligence pipeline completed. Score={graph_score}")
+        
+
+        ## 5. Unified Score
+        ##scoring_engine = UnifiedScoringEngine(self.engine_db, self.batch_id)
+        #logger.info(f"Intelligence pipeline : Unified Scoring Engine starting...")
+        #scoring_engine = UnifiedScoringEngine(
+        #    source_db=self.source_db,
+        #    target_db=self.target_db,
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id
+        #)
+        #final_score = scoring_engine.run()
+        #logger.info(f"Intelligence pipeline completed. Score={final_score}")
+
+        ## 6. Explainability
+        ##explain_engine = ExplainabilityEngine(self.engine_db, self.batch_id)
+        #logger.info(f"Intelligence pipeline : Explainability Engine starting...")
+        ##explain_engine = ExplainabilityEngine(
+        ##    source_db=self.source_db,
+        ##    target_db=self.target_db,
+        ##    engine_db=self.engine_db,
+        ##    batch_id=self.batch_id
+        ##)
+
+        #explain_engine = ExplainabilityEngine(
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id,
+        #    source_db=self.source_db,
+        #    target_db=self.target_db
+        #)
+        #explain_engine.generate()
+        #logger.info(f"Intelligence pipeline : Explainability Engine completed. Score={explain_engine}")
+
+        ## 7. Adaptive Scoring
+        ##adaptive = AdaptiveScoringEngine(self.engine_db, self.batch_id)
+        #logger.info(f"Intelligence pipeline : Adaptive Scoring Engine starting...")
+        #adaptive = AdaptiveScoringEngine(
+        #    source_db=self.source_db,
+        #    target_db=self.target_db,
+        #    engine_db=self.engine_db,
+        #    batch_id=self.batch_id
+        #)
+        #weights = adaptive.compute_weights()
+        ##adaptive.run()
+        #logger.info(f"Intelligence pipeline : Adaptive Scoring Engine completed. Score={weights}")
+
+
+
+
+        
+
+
+
+
+
+
+        #logger.info(f"Intelligence pipeline completed. Score={final_score}")
+
         try:
+
+
+            # -----------------------------------------------------
+            # Auto Metadata discovery
+            # -----------------------------------------------------
+            from app.discovery.metadata_discovery_NOT_IN_USE import MetadataDiscovery
+
+            discovery = MetadataDiscovery(
+                engine_db=self.engine_db,
+                connection_factory=connection_factory,
+                project_id=self.project_id
+            )
+
+            #discovery.run()
+
 
             # -----------------------------------------------------
             # Auto rule discovery
@@ -1719,7 +2173,13 @@ class ExecutionEngine:
         ))
 
         scoring = ScoringEngine(self.engine_db, self.batch_id)
-        score = scoring.calculate_overall()
+        #score = scoring.calculate_overall()
+
+        rule_score = scoring.calculate_rule_score()
+
+        # Temporary (until all components ready)
+        score = rule_score
+
 
         update_query = """
         UPDATE engine.migration_validation_batch
@@ -2015,3 +2475,80 @@ class ExecutionEngine:
         rows = self.engine_db.fetch_all(query, (self.batch_id,))
 
         return set(r[0] for r in rows)
+    
+
+    #--------------------------------------------------------------
+    # i) Matching Score (Table Matching Engine)
+    # 2026-06-01: This is a placeholder implementation. 
+    # The actual scoring logic should be based on 
+    # the specific outputs of the table matching engine, 
+    # such as match confidence scores, precision/recall 
+    # metrics, or other relevant indicators of matching quality.
+    #---------------------------------------------------------------
+    
+    def _calculate_matching_score(self):
+
+        query = """
+        SELECT match_confidence
+        FROM engine.table_matching_results
+        WHERE batch_id = %s
+        """
+
+        rows = self.engine_db.execute(query, (self.batch_id,))
+
+        if not rows:
+            return 0
+
+        total = sum(r[0] for r in rows)
+        return round(total / len(rows), 2)
+    
+    #--------------------------------------
+    # ii) Relationship Score (FK + Graph Engine)
+    # 2026-06-01: This is a placeholder implementation. 
+    # The actual scoring logic should be based on 
+    # the specific outputs of the foreign key inference engine, 
+    # such as confidence scores, precision/recall metrics, 
+    # or other relevant indicators of relationship quality.
+    #---------------------------------------
+
+    def _calculate_relationship_score(self):
+
+        query = """
+        SELECT confidence
+        FROM engine.fk_inference_results
+        WHERE batch_id = %s
+        """
+
+        rows = self.engine_db.execute(query, (self.batch_id,))
+
+        if not rows:
+            return 0
+
+        total = sum(r[0] for r in rows)
+        return round(total / len(rows), 2)
+    
+    #--------------------------------------------
+    # iii) Profiling Score (Data Quality Profiling)
+    # 2026-06-01: This is a placeholder implementation. 
+    # The actual scoring logic should be based on
+    # the specific outputs of the data profiling engine,
+    # such as data quality scores, completeness metrics,
+    # or other relevant indicators of data quality.
+    #--------------------------------------------
+
+def _calculate_profiling_score(self):
+
+    query = """
+    SELECT quality_score
+    FROM engine.data_profiling_results
+    WHERE batch_id = %s
+    """
+
+    rows = self.engine_db.execute(query, (self.batch_id,))
+
+    if not rows:
+        return 0
+
+    total = sum(r[0] for r in rows)
+    return round(total / len(rows), 2)
+ 

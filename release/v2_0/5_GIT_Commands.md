@@ -33,13 +33,13 @@ git add .
 🔹 Step 3 – Commit
 git commit -m "v2.0-development: Stable baseline before automation layer"
 🔹 Step 4 – Add Remote
-git remote add origin <your-repo-url>
+-- NOT NEEDED git remote add origin <your-repo-url>
 🔹 Step 5 – Push
-git push -u origin main
+-- NOT NEEDED git push -u origin main
 🔹 Step 6 – CREATE TAG (VERY IMPORTANT)
-git tag -a v2.0-development -m "Stable pre-automation release (Phases 1–7 complete)"
+git tag -a v2.0 -m "Stable pre-automation release (Phases 1–7 complete)"
 🔹 Step 7 – Push Tag
-git push origin v2.0-development
+git push origin v2.0
 🔒 BEST PRACTICE (VERY IMPORTANT)
 
 Before continuing:
