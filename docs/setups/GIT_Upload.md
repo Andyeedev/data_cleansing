@@ -271,3 +271,23 @@ git tag -a v1.8 -m "Release v1.9"
 git push origin v1.8
 
 git checkout -b v2.0-development
+
+
+
+HOW TO UPLOAD DOWNLOAD REPOSITORY FROM GIT ONTO VS CODE
+🔹 STEP 1 — Protect v2.0 (CRITICAL)
+
+Before touching anything:
+
+✅ Do this NOW:
+git checkout v2.0-development
+git pull
+git checkout -b v3.0-platform
+
+THIS WILL RESULT TO:
+v2.0 branch + v2.1 code
+
+IF YOU WANT CLEAN WITH V2.0 ONLY THEN:
+git reset --hard origin/v2.0-development
+git clean -fd
+git status
