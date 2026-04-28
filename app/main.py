@@ -1,9 +1,24 @@
+#from dotenv import load_dotenv
+#load_dotenv()
+#import os
+#from pathlib import Path
+# 🔥 FORCE absolute path to project root
+#BASE_DIR = Path(__file__).resolve().parent.parent
+#load_dotenv(dotenv_path=BASE_DIR / ".env")
+
+#print("🔥 FERNET_KEY LOADED IS:", os.getenv("FERNET_KEY"))
+
+
+from app.api.core.config import get_env
+ 
+print("🔥 FERNET_KEY LOADED:", get_env("FERNET_KEY", required=False))
 import argparse
 import yaml
 
 from .execution_engine import ExecutionEngine
 from .audit_export import AuditExporter
 from .db_connector import DBConnector
+from app.db.connection import get_db_connection
 
 from app.utils.logger import get_logger
 
@@ -15,7 +30,10 @@ logger = get_logger(__name__)
 
 
 
+
+
 def load_config(path):
+    
     with open(path, "r") as f:
         return yaml.safe_load(f)
 
@@ -34,7 +52,7 @@ def run_engine_legacy(config_path, resume_batch=None):
     logger.info("Execution completed successfully.")
 
 
-def run_engine(config_path, resume_batch=None, recovery=False):
+def run_engine_legacy_2(config_path, resume_batch=None, recovery=False):
 
     config = load_config(config_path)
 
@@ -50,6 +68,60 @@ def run_engine(config_path, resume_batch=None, recovery=False):
     logger.info("Execution completed successfully.")
 
 
+def run_engine_legacy_3(config_path, resume_batch=None, recovery=False):
+
+    # 🔹 Load raw config (still useful for project_id etc.)
+    raw_config = load_config(config_path)
+
+    # ✅ ALWAYS use real DB connection (NOT config dict)
+    engine_db = get_db_connection()
+
+    # ✅ Build CLEAN runtime config
+    config = {
+        "project_id": raw_config["project_id"],
+        "engine_db": engine_db,
+
+        # Optional pass-through (safe defaults)
+        "rules": raw_config.get("rules", {}),
+        "engine": raw_config.get("engine", {})
+    }
+
+
+def run_engine(config_path, resume_batch=None, recovery=False):
+
+    config = load_config(config_path)
+
+    print("🔥 FULL CONFIG:", config)
+    print("🔥 ENGINE_DB SECTION:", config.get("engine_db"))
+
+    engine = ExecutionEngine(config=config, batch_id=resume_batch)
+
+    engine.recovery_mode = recovery
+
+    logger.info(f"Starting execution batch: {engine.batch_id}")
+
+    # ✅ safe debug
+    print("ENGINE_DB TYPE:", type(engine.engine_db))
+
+    engine.run()
+
+    logger.info("Execution completed successfully.")
+
+
+    # ✅ Init engine
+    engine = ExecutionEngine(config=config, batch_id=resume_batch)
+
+    # ✅ Recovery mode
+    engine.recovery_mode = recovery
+
+    logger.info(f"Starting execution batch: {engine.batch_id}")
+
+    # 🔍 DEBUG (REMOVE LATER)
+    #print("ENGINE_DB TYPE:", type(engine.engine_db))
+
+    engine.run()
+
+    logger.info("Execution completed successfully.")
 
 def export_audit(config_path, batch_id):
 

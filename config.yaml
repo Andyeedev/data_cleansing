@@ -16,6 +16,7 @@ engine_db:
   password: dev123456
 
 source_db:
+  type: postgres   # ✅ ADD THIS
   host: localhost
   port: 5432
   database: migration_source
@@ -88,7 +89,10 @@ control_dependencies:
   C09:
     - C03
 
+encryption_keys:
+  env-key-1: "YOUR_FERNET_BASE64_KEY_HERE"
 
+  
 #release_gate:
 #  enabled: true
 #  block_on_status:

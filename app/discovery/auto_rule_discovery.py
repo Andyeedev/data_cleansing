@@ -271,7 +271,7 @@ class AutoRuleDiscovery:
 
     
 
-    def _detect_foreign_keys(self, schema, table):
+    def _detect_foreign_keys_legacy(self, schema, table):
 
         query = """
         SELECT
@@ -289,4 +289,30 @@ class AutoRuleDiscovery:
         # For FK detection, we need to query the source database, not the engine metadata database
         rows = self.source_db.execute(query, (schema, table))
 
+        return [r[0] for r in rows]
+    
+    def _detect_foreign_keys(self, schema, table):
+
+        if self.source_db.config.get("type") == "sqlserver":
+            query = """
+            SELECT kcu.column_name
+            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+            JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+                ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+            WHERE tc.CONSTRAINT_TYPE = 'FOREIGN KEY'
+            AND tc.TABLE_SCHEMA = ?
+            AND tc.TABLE_NAME = ?
+            """
+        else:
+            query = """
+            SELECT kcu.column_name
+            FROM information_schema.table_constraints tc
+            JOIN information_schema.key_column_usage kcu
+                ON tc.constraint_name = kcu.constraint_name
+            WHERE tc.constraint_type = 'FOREIGN KEY'
+            AND tc.table_schema = %s
+            AND tc.table_name = %s
+            """
+
+        rows = self.source_db.execute(query, (schema, table))
         return [r[0] for r in rows]

@@ -10,7 +10,6 @@ from app.utils.logger import get_logger
 
 
 
-
 #logger = logging.getLogger(__name__)
 
 from app.utils.logger import get_logger
@@ -38,7 +37,7 @@ class ExecutionEngine:
         self.target_db = DBConnector(config["target_db"])
 
 
-    def __init__(self, config, batch_id=None):
+    def __init___legacy_1(self, config, batch_id=None):
 
         # Configuration
         self.config = config
@@ -66,10 +65,169 @@ class ExecutionEngine:
             300
         )
 
+
+    def __init___old(self, config, batch_id=None):
+
+        self.config = config
+        self.project_id = config["project_id"]
+
+        # ✅ FIX: engine_db is already a connection
+        self.engine_db = config["engine_db"]
+
+        # Will be resolved later
+        self.source_db = None
+        self.target_db = None
+
+        if batch_id:
+            self.batch_id = batch_id
+        else:
+            self.batch_id = str(uuid.uuid4())
+
+        self.rule_config = config.get("rules", {})
+        self.control_timeout_seconds = config.get("engine", {}).get(
+            "control_timeout_seconds",
+            300
+        )
+
+    def __init___legacy_1(self, config, batch_id=None):
+
+        self.config = config
+        self.project_id = config["project_id"]
+
+        # ✅ THIS IS ALREADY A CONNECTION OBJECT
+        self.engine_db = config["engine_db"]
+
+        self.source_db = None
+        self.target_db = None
+
+        if batch_id:
+            self.batch_id = batch_id
+        else:
+            self.batch_id = str(uuid.uuid4())
+
+
+    def __init___legacy_2(self, config, batch_id=None):
+        self.config = config
+        self.batch_id = batch_id
+
+        # ✅ FIX: ensure rule_config always exists
+        self.rule_config = config.get("rule_config", {})
+
+        # optional: normalize keys for safety
+        if self.rule_config is None:
+            self.rule_config = {}
+            
         # ------------------------------------------------------
         # Load control dependencies configuration (for future use in execution orchestration)
         #----------------------------------------------------------
         self.control_dependencies = config.get("control_dependencies", {})
+
+
+    def __init___legacy_4(self, config, batch_id=None):
+        self.config = config
+        self.batch_id = batch_id
+
+        # ✅ REQUIRED: engine metadata DB (Postgres)
+        self.engine_db = DBConnector(config["engine_db"])
+
+        # ✅ rule config (from earlier fix)
+        self.rule_config = config.get("rule_config", {}) or {}
+
+
+    def __init___legacy_5(self, config, batch_id=None):
+        self.config = config
+        self.batch_id = batch_id
+     
+        # ✅ ALWAYS treat config as dict → build adapter
+        from app.db.connection_factory import connection_factory
+        self.engine_db = connection_factory(config["engine_db"])
+
+        # optional but safe
+        self.rule_config = config.get("rules", {})
+
+    def __init___legacy_6(self, config, batch_id=None):
+        self.config = config
+        self.batch_id = batch_id
+
+        # ✅ ADD THIS
+        self.project_id = config.get("project_id")
+
+        from app.db.connection_factory import connection_factory
+        self.engine_db = connection_factory(config["engine_db"])
+
+        self.rule_config = config.get("rules", {})
+
+        # optional but important later
+        self.control_dependencies = config.get("control_dependencies", {})
+        self.control_timeout_seconds = config.get("engine", {}).get("control_timeout_seconds", 300)
+
+        print("🔥 ENGINE_DB CONFIG:", config.get("engine_db"))
+
+
+    def __init___legacy_7(self, config, batch_id=None):
+        self.config = config
+        self.batch_id = batch_id
+
+        # ✅ REQUIRED
+        self.project_id = config.get("project_id")
+
+        # ----------------------------------------
+        # ✅ FIX: Ensure engine_db has type
+        # ----------------------------------------
+        engine_db_config = config.get("engine_db", {}).copy()
+
+        if not engine_db_config:
+            raise ValueError("❌ engine_db config is missing")
+
+        # 🔥 FORCE postgres (stabilisation phase)
+        if "type" not in engine_db_config:
+            engine_db_config["type"] = "postgres"
+
+        from app.db.connection_factory import connection_factory
+        self.engine_db = connection_factory(engine_db_config)
+
+        # ----------------------------------------
+        # Config-driven features
+        # ----------------------------------------
+        self.rule_config = config.get("rules", {})
+        self.control_dependencies = config.get("control_dependencies", {})
+        self.control_timeout_seconds = config.get("engine", {}).get(
+            "control_timeout_seconds", 300
+        )
+
+        # ----------------------------------------
+        # DEBUG (safe)
+        # ----------------------------------------
+        print("🔥 ENGINE_DB FINAL CONFIG:", engine_db_config)
+
+    def __init__(self, config, batch_id=None):
+        import uuid
+
+        self.config = config
+
+        # ✅ FIX: auto-generate batch_id if not provided
+        self.batch_id = batch_id or str(uuid.uuid4())
+
+        # ✅ project_id
+        self.project_id = config.get("project_id")
+
+        from app.db.connection_factory import connection_factory
+
+        engine_db_config = config.get("engine_db", {}).copy()
+
+        if not engine_db_config.get("type"):
+            engine_db_config["type"] = "postgres"
+
+        print("🔥 ENGINE_DB FINAL CONFIG:", engine_db_config)
+
+        self.engine_db = connection_factory(engine_db_config)
+
+        # ✅ configs
+        self.rule_config = config.get("rules", {})
+        self.control_dependencies = config.get("control_dependencies", {})
+        self.control_timeout_seconds = config.get("engine", {}).get(
+            "control_timeout_seconds", 300
+        )
 
     # ---------------------------------------------------------
     # PUBLIC ENTRY
@@ -1368,6 +1526,37 @@ class ExecutionEngine:
 
         logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
 
+
+
+
+        from app.db.connection_resolver import ConnectionResolver
+
+        logger.info("Starting connection resolution...")
+
+        resolver = ConnectionResolver(self.engine_db)
+        connections = resolver.get_connections(self.config["project_id"])
+
+        source_adapter = connections.get("SOURCE")
+        target_adapter = connections.get("TARGET")
+
+        if not source_adapter or not target_adapter:
+            raise RuntimeError("Failed to resolve source/target connections")
+
+        # ✅ override BEFORE execution starts
+        self.source_db = source_adapter
+        self.target_db = target_adapter
+
+
+        logger.info(f"SOURCE adapter loaded: {source_adapter is not None}")
+        logger.info(f"TARGET adapter loaded: {target_adapter is not None}")
+
+
+
+
+
+
+
+
         try:
 
             # -----------------------------------------------------
@@ -1881,13 +2070,16 @@ class ExecutionEngine:
 
             control_id = row[0]
 
-            rule_status = self.rule_config.get(control_id, "enabled")
+            #rule_status = self.rule_config.get(control_id, "enabled")
+            #rule_status = getattr(self, "rule_config", {}).get(control_id, "enabled")
             
 
-            if rule_status.lower() == "disabled":
-               
+            #if rule_status.lower() == "disabled":
+            #    logger.info(f"Skipping control {control_id} (disabled in config.yaml)")
+            #    continue
+            
+            if not self._is_rule_enabled(control_id):
                 logger.info(f"Skipping control {control_id} (disabled in config.yaml)")
-
                 continue
 
             filtered_controls.append(row)
@@ -1900,7 +2092,8 @@ class ExecutionEngine:
     
     
 
-
+    def _is_rule_enabled(self, control_id):
+        return getattr(self, "rule_config", {}).get(control_id, "enabled") == "enabled"
 
     def _evaluate_governance(self):
 

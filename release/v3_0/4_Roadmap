@@ -1,0 +1,21 @@
+Roadmap.md
+# Roadmap
+
+## v3.1 — Multi-Connection Expansion
+- Support multiple SOURCE/TARGET systems
+- Connection-level enable/disable flags
+- Health check framework
+
+## v3.2 — Observability
+- Execution dashboards
+- Metrics & logging enhancements
+- Alerting
+
+## v3.3 — Advanced Governance
+- ML-based anomaly detection
+- Risk scoring
+
+## v4.0 — Enterprise SaaS
+- Multi-tenant isolation
+- RBAC
+- API-first orchestration
