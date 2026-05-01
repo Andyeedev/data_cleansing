@@ -1,17 +1,23 @@
 import psycopg2
-import logging
 from app.db.adapters.base_adapter import BaseAdapter
+from app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class PostgresAdapter(BaseAdapter):
 
+    # =========================
+    # 🚀 INIT
+    # =========================
     def __init__(self, config):
         super().__init__(config)
 
+        # ✅ Use BaseAdapter connection lifecycle
+        self.connect()
+
     # =========================
-    # 🔌 CONNECTION
+    # 🔌 CONNECTION IMPLEMENTATION
     # =========================
     def _connect(self):
         logger.info("🔌 Connecting to PostgreSQL...")
@@ -25,17 +31,10 @@ class PostgresAdapter(BaseAdapter):
         )
 
     # =========================
-    # 🔄 EXECUTE
+    # 🧪 VALIDATION QUERY
     # =========================
-    def execute(self, query, params=None):
-        with self.connection.cursor() as cursor:
-            cursor.execute(query, params or ())
-
-            if cursor.description:
-                return cursor.fetchall()
-
-            self.connection.commit()
-            return None
+    def _validation_query(self):
+        return "SELECT 1"
 
     # =========================
     # 📋 TABLES

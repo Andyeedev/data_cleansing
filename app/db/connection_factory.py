@@ -1,3 +1,8 @@
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 def connection_factory(config):
 
     #db_type = config.get("type")
@@ -5,13 +10,19 @@ def connection_factory(config):
     #if not db_type:
     #    raise ValueError("Database type is required")
 
-    db_type = config.get("type") or config.get("database_type")
+    logger.info(f"🔥 connection_factory RAW config: {config}")
 
+    db_type = config.get("type") or config.get("database_type")
+    logger.info(f"🔥 connection_factory received config: {config}")
+    
     if not db_type:
         raise ValueError(f"Database type is required. Received config: {config}")
     
     
     db_type = db_type.lower().strip()
+    logger.info(f"🔥 db_type resolved: {db_type}")
+
+    
 
     if db_type == "postgres":
         from app.db.adapters.postgres_adapter import PostgresAdapter
@@ -25,8 +36,9 @@ def connection_factory(config):
     elif db_type == "sqlserver":
         raise NotImplementedError(
             "SQL Server temporarily disabled for stabilization."
-        )
-    
+            )
+        #from app.db.adapters.sqlserver_adapter import SQLServerAdapter
+        #return SQLServerAdapter(config)
 
     elif db_type == "snowflake":
         from app.db.adapters.snowflake_adapter import SnowflakeAdapter
