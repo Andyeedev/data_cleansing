@@ -4,8 +4,25 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_USER: engine
-      POSTGRES_PASSWORD: engine
-      POSTGRES_DB: migration_engine
+      POSTGRES_USER: ${DB_USER:-engine}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-engine}
+      POSTGRES_DB: ${DB_NAME:-migration_engine}
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  engine:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-engine}:${DB_PASSWORD:-engine}@postgres:5432/${DB_NAME:-migration_engine}
+      - FERNET_KEY=${FERNET_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

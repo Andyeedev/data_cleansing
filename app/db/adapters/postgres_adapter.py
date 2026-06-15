@@ -30,7 +30,7 @@ class PostgresAdapter(BaseAdapter):
             return
 
         try:
-            logger.info("🔌 Initializing PostgreSQL connection pool...")
+            logger.debug("🔌 Initializing PostgreSQL connection pool...")
 
             PostgresAdapter._pool = psycopg2.pool.SimpleConnectionPool(
                 1,
@@ -55,7 +55,7 @@ class PostgresAdapter(BaseAdapter):
             return
 
         try:
-            logger.info(f"🔌 Initializing pool for DB: {db_key}")
+            logger.debug(f"🔌 Initializing pool for DB: {db_key}")
 
             PostgresAdapter._pools[db_key] = psycopg2.pool.SimpleConnectionPool(
                 1,
@@ -208,7 +208,7 @@ class PostgresAdapter(BaseAdapter):
                 duration = round((time.time() - start_time) * 1000, 2)
 
                 # ✅ STRUCTURED LOG
-                logger.info(json.dumps({
+                logger.debug(json.dumps({
                     "event": "db_query",
                     "database": self.config.get("database"),
                     "duration_ms": duration,

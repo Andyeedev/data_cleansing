@@ -15,30 +15,9 @@ class SQLServerAdapter(BaseAdapter):
     # ---------------------------------------------------------
     # INIT
     # ---------------------------------------------------------
-    def __init___legacy(self, config):
-        super().__init__(config)
-        self._init_pool()
-        logger.info(f"🔥 SQLServerAdapter INIT with {config}")
-
-
-    def __init___legacy_2(self, config):
-        super().__init__(config)
-        logger.info(f"🔥🔥 SQLServerAdapter INIT CALLED with config: {config}")
-        self._init_pool()
-
-    
-
     def __init__(self, config):
         super().__init__(config)
         self._init_pool()
-
-    # ---------------------------------------------------------
-    # INIT POOL (ONCE PER PROCESS)
-    # ---------------------------------------------------------
-    def _init_pool(self):
-
-    def _connect(self):
-        logger.info("🔥 SQLServerAdapter _connect() CALLED")
 
     # ---------------------------------------------------------
     # INIT POOL (PER DB)

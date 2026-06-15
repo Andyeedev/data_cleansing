@@ -20,6 +20,11 @@ app.include_router(system_routes.router)
 app.include_router(execution_routes.router)
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "version": "1.9"}
+
+
 
 # =========================
 # FIX SWAGGER AUTH

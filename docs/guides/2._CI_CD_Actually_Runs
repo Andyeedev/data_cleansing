@@ -1,0 +1,139 @@
+2. CI/CD Actually Runs
+
+This is more important than Docker.
+
+Most cloud architects look here first.
+
+What you're proving
+
+That every commit can automatically:
+
+Build
+Test
+Scan
+Validate
+
+without a human doing anything.
+
+Ask Gemini
+
+Prompt:
+
+2. CI/CD Actually Runs (provide evidence)
+Review .github/workflows.
+
+Do not assume anything.
+
+Provide an evidence-based CI/CD audit.
+
+For each workflow:
+
+* filename
+* trigger
+* stages
+* dependencies
+* outputs
+
+Determine whether the following are actually executed:
+
+1. Lint
+2. Unit Tests
+3. Build
+4. Security Scan
+5. Artifact Creation
+6. Deployment
+
+For each stage provide:
+
+* exact command executed
+* pass criteria
+* fail criteria
+
+Create a validation checklist I can execute manually from GitHub.
+
+Do not speculate.
+Only use repository evidence.
+
+
+2. CI/CD Actually Runs
+Evidence:
+
+
+  ✓  ReadFile  .github\workflows\ci.yml
+
+✦ This audit is based strictly on the content of .github/workflows/ci.yml.
+
+  Workflow Overview: CI/CD Pipeline
+   * Filename: .github/workflows/ci.yml
+   * Trigger: 
+       * push to branches main, master.
+       * pull_request to branches main, master.
+   * Stages (Jobs):
+       1. lint-and-test
+       2. docker-build-and-scan
+   * Dependencies: docker-build-and-scan requires lint-and-test to pass (needs: lint-and-test).
+   * Outputs: GitHub Actions run status (Success/Failure) and Trivy Security Scan table in the
+     logs.
+
+  ---
+
+  Execution Audit
+
+  ┌──────────────────┬──────────┬───────────────────────────────────────────────────────┐
+  │ Capability       │ Status   │ Evidence (Line/Command)                               │
+  ├──────────────────┼──────────┼───────────────────────────────────────────────────────┤
+  │ 1. Lint          │ Active   │ flake8 . --count --select=E9,F63,F7,F82 --show-source │
+  │                  │          │ --statistics                                          │
+  │ 2. Unit Tests    │ Active   │ pytest                                                │
+  │ 3. Build         │ Active   │ docker build -t migration-engine:${{ github.sha }} .  │
+  │ 4. Security Scan │ Active   │ uses: aquasecurity/trivy-action@master                │
+  │ 5. Artifact      │ Inactive │ No upload-artifact or docker push steps defined.      │
+  │ Creation         │          │                                                       │
+  │ 6. Deployment    │ Inactive │ No deployment steps (e.g., to Azure/AWS) defined.     │
+  └──────────────────┴──────────┴───────────────────────────────────────────────────────┘
+  ---
+
+  Stage Detail & Criteria
+
+  Stage 1: Linting
+   * Command: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+   * Pass Criteria: Zero syntax errors (E9), logic errors (F63, F7), or undefined names (F82).
+   * Fail Criteria: Any non-zero exit code from flake8.
+
+  Stage 2: Unit Testing
+   * Command: pytest
+   * Pass Criteria: All discovered tests in the tests/ directory return Exit Code 0.
+   * Fail Criteria: Any test failure or collection error (Exit Code > 0).
+
+  Stage 3: Docker Build
+   * Command: docker build -t migration-engine:${{ github.sha }} .
+   * Pass Criteria: Successful creation of a local Docker image.
+   * Fail Criteria: Build error (e.g., missing dependency, broken Dockerfile).
+
+  Stage 4: Security Scan
+   * Command: aquasecurity/trivy-action
+   * Pass Criteria: No vulnerabilities of severity CRITICAL or HIGH found.
+   * Fail Criteria: Any CRITICAL or HIGH vulnerability detected (exit-code: '1').
+
+  ---
+
+  GitHub Manual Validation Checklist
+  Follow these steps in the GitHub UI to verify the CI/CD is operational:
+
+   1. Trigger Test: Push a small change (e.g., update a comment) to the main branch.
+   2. Verify Status: Navigate to the "Actions" tab. You should see a new run titled "CI/CD
+      Pipeline".
+   3. Inspect Lint/Test: Click into the lint-and-test job. Ensure the "Lint with flake8" and "Run
+      tests with pytest" steps have green checkmarks.
+   4. Inspect Build: Verify that the docker-build-and-scan job started after lint-and-test
+      finished.
+   5. Audit Security: Click into "Run Trivy vulnerability scanner". View the log output to confirm
+      the vulnerability table is generated and the scan passed with exit code 0.
+   6. Confirm Dependency: If you intentionally break a test, verify that the docker-build-and-scan
+      job is Skipped.
+  Verdict: The CI/CD pipeline is active and effectively enforces code quality and container
+  security. It provides an automated "Release Gate" that prevents insecure or broken code from
+  being considered "Build Ready."
+
+
+  

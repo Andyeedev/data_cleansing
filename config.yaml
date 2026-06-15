@@ -1,34 +1,34 @@
 project_id: "ae40b96c-20da-4972-bb29-bff3c2451ae0"
 
 database:
-  host: localhost
-  port: 5432
-  dbname: postgres
-  user: postgres
-  password: dev123456
+  host: ${DB_HOST:-localhost}
+  port: ${DB_PORT:-5432}
+  dbname: ${DB_NAME:-postgres}
+  user: ${DB_USER:-postgres}
+  password: ${DB_PASS:-dev123456}
 
 
 engine_db:
-  host: localhost
-  port: 5432
-  database: migration_engine
-  user: postgres
-  password: dev123456
+  host: ${ENGINE_DB_HOST:-localhost}
+  port: ${ENGINE_DB_PORT:-5432}
+  database: ${ENGINE_DB_NAME:-migration_engine}
+  user: ${ENGINE_DB_USER:-postgres}
+  password: ${ENGINE_DB_PASS:-dev123456}
 
 source_db:
   type: postgres   # ✅ ADD THIS
-  host: localhost
-  port: 5432
-  database: migration_source
-  user: postgres
-  password: dev123456
+  host: ${SOURCE_DB_HOST:-localhost}
+  port: ${SOURCE_DB_PORT:-5432}
+  database: ${SOURCE_DB_NAME:-migration_source}
+  user: ${SOURCE_DB_USER:-postgres}
+  password: ${SOURCE_DB_PASS:-dev123456}
 
 target_db:
-  host: localhost
-  port: 5432
-  database: migration_target
-  user: postgres
-  password: dev123456
+  host: ${TARGET_DB_HOST:-localhost}
+  port: ${TARGET_DB_PORT:-5432}
+  database: ${TARGET_DB_NAME:-migration_target}
+  user: ${TARGET_DB_USER:-postgres}
+  password: ${TARGET_DB_PASS:-dev123456}
 
 execution:
   environment: DEV

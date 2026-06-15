@@ -1,7 +1,10 @@
-psycopg2-
+psycopg2-binary
 PyYAML
 python-dotenv
 pytest
 pandas
 reportlab
-
+fastapi
+uvicorn
+python-jose[cryptography]
+python-multipart

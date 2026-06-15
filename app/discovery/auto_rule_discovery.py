@@ -12,11 +12,11 @@ logger = get_logger(__name__)
 
 
 class AutoRuleDiscovery:
-    def __init__(self, engine_db, source_db, project_id):
-    #def __init__(self, engine_db, project_id):
+    def __init__(self, engine_db, source_db, project_id, source_connections=None):
         self.engine_db = engine_db
         self.source_db = source_db
         self.project_id = project_id
+        self.source_connections = source_connections or {}
 
     # -----------------------------------------------------
     # PUBLIC ENTRY
@@ -25,33 +25,41 @@ class AutoRuleDiscovery:
     def generate_rules(self):
 
         mappings = self._get_dataset_mappings()
+        
+        # Group mappings by source_system_id for better logging
+        from collections import defaultdict
+        grouped_mappings = defaultdict(list)
+        for m in mappings:
+            grouped_mappings[m[3]].append(m)
 
-        for mapping in mappings:
-
-            mapping_id = mapping[0]
-            dataset_name = f"{mapping[1]}.{mapping[2]}"
-
-            logger.info(f"Auto discovering rules for {dataset_name}")
-
-            columns = self._get_columns(mapping_id)
-
-            #-----Removed legacy hardcoded rules logic in favor of dynamic inference based on column metadata and FK detection-----
-            #rules = self._infer_rules(columns)
-            #columns = self._get_columns(mapping_id)
+        for source_system_id, source_mappings in grouped_mappings.items():
             
+            source_adapter = self.source_connections.get(source_system_id, self.source_db)
+            s_type = source_adapter.config.get("type", "UNKNOWN").upper()
+            
+            logger.info(f"    System: [ID: {source_system_id}] ({s_type})")
 
-            # New v1.7 logic: Infer rules based on column roles and data types, plus FK detection
-            rules = self._infer_rules(columns)
+            for mapping in source_mappings:
 
-            # Detect foreign keys
-            foreign_keys = self._detect_foreign_keys(mapping[1], mapping[2])
+                mapping_id = mapping[0]
+                dataset_name = f"{mapping[1]}.{mapping[2]}"
 
-            if foreign_keys:
-                rules.append("C03_REFERENTIAL")
+                logger.info(f"        Auto discovering rules for {dataset_name} ... ✅")
 
-            # Register inferred rules
-            for rule_id in rules:
-                self._register_rule(rule_id, mapping_id)
+                columns = self._get_columns(mapping_id)
+
+                # New v1.7 logic: Infer rules based on column roles and data types, plus FK detection
+                rules = self._infer_rules(columns)
+
+                # Detect foreign keys
+                foreign_keys = self._detect_foreign_keys(mapping[1], mapping[2], source_adapter)
+
+                if foreign_keys:
+                    rules.append("C03_REFERENTIAL")
+
+                # Register inferred rules
+                for rule_id in rules:
+                    self._register_rule(rule_id, mapping_id)
 
     # -----------------------------------------------------
     # FETCH DATASETS
@@ -60,7 +68,7 @@ class AutoRuleDiscovery:
     def _get_dataset_mappings(self):
 
         query = """
-        SELECT mapping_id, source_schema, source_table
+        SELECT mapping_id, source_schema, source_table, source_system_id, target_system_id
         FROM core.dataset_mappings
         WHERE project_id = %s
         AND is_active = TRUE
@@ -106,7 +114,8 @@ class AutoRuleDiscovery:
                 rules.add("C02_BALANCE_RECON")
 
             # Date column detection
-            if data_type and "date" in data_type.lower():
+            #if data_type and "date" in data_type.lower():
+            if data_type and isinstance(data_type, str) and "date" in data_type.lower():
                 rules.add("C05_NULL_CHECK")
 
             # Duplicate detection for primary keys
@@ -160,7 +169,8 @@ class AutoRuleDiscovery:
             if inferred_role == "FOREIGN_KEY":
                 rules.add("C09_REFERENTIAL_COVERAGE")
 
-            if data_type and "date" in data_type.lower():
+            #if data_type and "date" in data_type.lower():
+            if data_type and isinstance(data_type, str) and "date" in data_type.lower():
                 rules.add("C05_NULL_CHECK")
 
         # structural checks always run
@@ -193,7 +203,8 @@ class AutoRuleDiscovery:
             if inferred_role == "FOREIGN_KEY":
                 rules.add("C09_REFERENTIAL_COVERAGE")
 
-            if data_type and "date" in data_type.lower():
+            #if data_type and "date" in data_type.lower():
+            if data_type and isinstance(data_type, str) and "date" in data_type.lower():
                 rules.add("C05_NULL_CHECK")
 
         rules.add("C04_COLUMN_COUNT")
@@ -291,9 +302,9 @@ class AutoRuleDiscovery:
 
         return [r[0] for r in rows]
     
-    def _detect_foreign_keys(self, schema, table):
+    def _detect_foreign_keys(self, schema, table, source_db):
 
-        if self.source_db.config.get("type") == "sqlserver":
+        if source_db.config.get("type") == "sqlserver":
             query = """
             SELECT kcu.column_name
             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
@@ -314,5 +325,5 @@ class AutoRuleDiscovery:
             AND tc.table_name = %s
             """
 
-        rows = self.source_db.execute(query, (schema, table))
+        rows = source_db.execute(query, (schema, table))
         return [r[0] for r in rows]

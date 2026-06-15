@@ -1,4 +1,4 @@
-import yaml
+from app.config_loader import load_config
 from pathlib import Path
 
 # =========================
@@ -8,13 +8,4 @@ BASE_DIR = Path(__file__).resolve().parents[3]  # goes to project root
 
 CONFIG_PATH = BASE_DIR / "config.yaml"
 
-
-def load_config():
-    if not CONFIG_PATH.exists():
-        raise FileNotFoundError(f"Config file not found at: {CONFIG_PATH}")
-
-    with open(CONFIG_PATH, "r") as f:
-        return yaml.safe_load(f)
-
-
-CONFIG = load_config()
+CONFIG = load_config(str(CONFIG_PATH))

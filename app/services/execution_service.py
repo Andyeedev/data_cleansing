@@ -57,7 +57,7 @@ class ExecutionService:
             "project_id": project_id
         }
 
-    def run(self, project_id):
+    def run(self, project_id, batch_id=None):
 
         # ✅ REAL DB CONNECTION (NOT dict)
         engine_db = get_db_connection()
@@ -67,10 +67,37 @@ class ExecutionService:
             "engine_db": engine_db
         }
 
-        engine = ExecutionEngine(config=config)
+        # If batch_id is passed, the engine will use it (important for tracking)
+        engine = ExecutionEngine(config=config, batch_id=batch_id)
         engine.run()
 
         return {
-            "status": "completed",
+            "status": "triggered",
+            "batch_id": engine.batch_id,
             "project_id": project_id
+        }
+
+    def get_status(self, batch_id):
+        """
+        Polls the database for the current status of a batch.
+        """
+        db = get_db_connection()
+        query = """
+            SELECT batch_status, total_controls, completed_controls, failed_controls
+            FROM engine.migration_batch_registry
+            WHERE batch_id = %s
+        """
+        rows = db.execute(query, (batch_id,))
+
+        if not rows:
+            return {"status": "NOT_FOUND", "batch_id": batch_id}
+
+        row = rows[0]
+        return {
+            "batch_id": batch_id,
+            "status": row[0],
+            "total_controls": row[1],
+            "completed_controls": row[2],
+            "failed_controls": row[3],
+            "progress": f"{row[2]}/{row[1]}" if row[1] > 0 else "0/0"
         }

@@ -4,8 +4,9 @@ from platform import system
 from app.services.credential_service import CredentialService
 from app.security.crypto import decrypt_password
 from app.api.core.encryption_manager import EncryptionManager
+from app.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ConnectionResolver:
@@ -240,9 +241,9 @@ class ConnectionResolver:
         db_type = db_type.lower().strip()
 
         # ✅ HARD STOP FOR DISABLED TYPES (extra safety)
-        if db_type == "sqlserver":
-            logger.warning(f"⏭️ SQL Server disabled — skipping {system['system_role']}")
-            return None
+        #if db_type == "sqlserver":
+        #    logger.warning(f"⏭️ SQL Server disabled — skipping {system['system_role']}")
+        #    return None
 
         config["type"] = db_type
 
@@ -300,35 +301,48 @@ class ConnectionResolver:
 
         from app.db.connection_factory import connection_factory
 
-        logger.info(f"🔥 Building adapter for {system['system_role']}")
+        role = system['system_role'].title()
+        db_type = (system.get("database_type") or system.get("db_type") or system.get("type") or "database").upper()
+        host = system["connection_config"].get("host", "localhost")
+
+        logger.debug(f"    Resolving {role}: {db_type} ({host}) ...")
 
         config = system["connection_config"].copy()
 
-        db_type = system.get("database_type") or system.get("db_type") or system.get("type")
+        db_type_resolved = system.get("database_type") or system.get("db_type") or system.get("type")
 
-        if not db_type:
+        if not db_type_resolved:
             raise RuntimeError(f"❌ Missing database_type for system: {system}")
 
-        db_type = db_type.lower().strip()
+        db_type_resolved = db_type_resolved.lower().strip()
+        config["type"] = db_type_resolved
 
-        # ✅ DO NOT BLOCK SQLSERVER ANYMORE
-        config["type"] = db_type
+        try:
+            creds = self._get_credentials(system["credential_id"])
+            config["user"] = creds["username"]
+            config["password"] = creds["password"]
 
-        creds = self._get_credentials(system["credential_id"])
-        config["user"] = creds["username"]
-        config["password"] = creds["password"]
+            logger.debug(f"DB TYPE: {config.get('type')}")
+            logger.debug(f"HOST: {config.get('host')}")
+            logger.debug(f"DATABASE: {config.get('database')}")
 
-        logger.info(f"🔥 DB TYPE: {config.get('type')}")
-        logger.info(f"🔥 HOST: {config.get('host')}")
-        logger.info(f"🔥 DATABASE: {config.get('database')}")
+            adapter = connection_factory(config)
 
-        adapter = connection_factory(config)
+            logger.info(f"    Resolving {role}: {db_type} ({host}) [ID: {system['system_id']}] ... ✅")
 
-        logger.info(
-            f"✅ Adapter created | ROLE={system['system_role']} | TYPE={config['type']}"
-        )
+            from app.utils.logger import get_audit_logger
+            audit_logger = get_audit_logger()
+            audit_logger.audit(f"CONNECTION_RESOLVED | Role: {role.upper()} | System: {db_type} ({host}) | ID: {system['system_id']} | Outcome: SUCCESS")
 
-        return adapter
+            return adapter
+        except Exception as e:
+            logger.info(f"    Resolving {role}: {db_type} ({host}) [ID: {system['system_id']}] ... ❌")
+            
+            from app.utils.logger import get_audit_logger
+            audit_logger = get_audit_logger()
+            audit_logger.audit(f"CONNECTION_RESOLVED | Role: {role.upper()} | System: {db_type} ({host}) | ID: {system['system_id']} | Outcome: FAILED | Error: {str(e)}")
+            
+            raise
 
     def _get_credentials(self, credential_id):
         query = f"""
@@ -344,16 +358,13 @@ class ConnectionResolver:
 
         username, encrypted_password, key_id = rows[0]
 
-        print("\n🔐 [connection_resolver.py::_get_credentials]")
-        print(f"USERNAME: {username}")
-        print(f"KEY ID: {key_id}")
-        print(f"RAW TYPE: {type(encrypted_password)}")
+        logger.debug("🔐 [connection_resolver.py::_get_credentials]")
+        logger.debug(f"KEY ID: {key_id}")
+        logger.debug(f"RAW TYPE: {type(encrypted_password)}")
 
         # 🔐 Decrypt password
         encryption_manager = EncryptionManager()
         decrypted_password = encryption_manager.decrypt(encrypted_password)
-
-        print(f"🔓 DECRYPTED PASSWORD: {decrypted_password}")
 
         return {
             "username": username,
@@ -363,8 +374,6 @@ class ConnectionResolver:
 
     def _get_encryption_key(self, key_id):
         import os
-
-        print("🔍 DEBUG ENV FERNET_KEY:", os.getenv("FERNET_KEY"))
 
         key = os.getenv("FERNET_KEY")
 

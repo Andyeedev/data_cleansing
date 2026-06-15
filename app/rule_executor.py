@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 class RuleExecutor:
 
     def __init__(self, engine_db, source_db, target_db, batch_id, project_id, control_id,
-    config=None   # ← IMPORTANT ADD
+    config=None, source_connections=None, target_connections=None
     ):
         self.engine_db = engine_db
         self.source_db = source_db
@@ -25,6 +25,8 @@ class RuleExecutor:
         self.batch_id = batch_id
         self.project_id = project_id
         self.control_id = control_id
+        self.source_connections = source_connections or {}
+        self.target_connections = target_connections or {}
 
     # -----------------------------------------
     # FIX: Profiling config (DEFAULT SAFE)
@@ -70,34 +72,57 @@ class RuleExecutor:
         errors = 0
         blocked = False
 
+        # Track which systems we've already printed a header for in this control
+        logged_systems = set()
+
         for rule in rules:
             
-            rules = self._get_rules()
-            logger.info(f"DEBUG: {len(rules)} rules found for control {self.control_id}")
-
-
             rule_id = rule[0]
             severity_level = rule[2]
 
             entities = self._get_rule_entities(rule_id)
+            
+            # Group entities by source_system_id for grouped logging
+            from collections import defaultdict
+            grouped_entities = defaultdict(list)
+            for e in entities:
+                grouped_entities[e[6]].append(e)
 
-            for entity in entities:
+            for source_system_id, source_entities in grouped_entities.items():
+                
+                source_adapter = self.source_connections.get(source_system_id, self.source_db)
+                s_type = source_adapter.config.get("type", "UNKNOWN").upper()
+                
+                if source_system_id not in logged_systems:
+                    logger.info(f"        System: [ID: {source_system_id}] ({s_type})")
+                    logged_systems.add(source_system_id)
 
-                total_rules += 1
+                for entity in source_entities:
 
-                parameters = self._build_parameters(entity)
+                    total_rules += 1
 
-                # -----------------------------------------
-                # RULE EXECUTION LOG
-                # -----------------------------------------
-                dataset_name = entity[1]
-                logger.info(f"Starting batch {rule_id} for {dataset_name}")
-               
+                    parameters = self._build_parameters(entity)
+
+                    # Look up correct source/target connection adapters
+                    target_system_id = entity[7]
+                    target_adapter = self.target_connections.get(target_system_id, self.target_db)
+
+                    # -----------------------------------------
+                    # RULE EXECUTION LOG
+                    # -----------------------------------------
+                    dataset_name = entity[1]
+                    logger.info(f"            Running {rule_id} for {dataset_name} ... ✅")
+                
+                #logger.info(f"Starting batch {rule_id} for {dataset_name} [Source: {s_type} ({s_host}) -> Target: {t_type} ({t_host})]")
+                #logger.info(
+                #    f"    Control {self.control_id} running {rule_id} for {dataset_name} "
+                #    f"[{s_type} ({s_host}) -> {t_type} ({t_host})]"
+                #)
 
                 rule_instance = RuleFactory.create(
                     rule_id,
-                    self.source_db,
-                    self.target_db,
+                    source_adapter,
+                    target_adapter,
                     parameters
                 )
 
@@ -220,7 +245,9 @@ class RuleExecutor:
             m.source_schema,
             m.source_table,
             m.target_schema,
-            m.target_table
+            m.target_table,
+            m.source_system_id,
+            m.target_system_id
         FROM core.dataset_mappings m
         JOIN core.rule_dataset_mapping rdm
             ON m.mapping_id = rdm.mapping_id
@@ -241,6 +268,8 @@ class RuleExecutor:
             source_table = row[2]
             target_schema = row[3]
             target_table = row[4]
+            source_system_id = row[5]
+            target_system_id = row[6]
 
             entity_name = f"{source_schema}.{source_table}"
 
@@ -250,7 +279,9 @@ class RuleExecutor:
                 source_schema,
                 source_table,
                 target_schema,
-                target_table
+                target_table,
+                source_system_id,
+                target_system_id
             ))
 
         return entities

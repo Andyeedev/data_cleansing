@@ -25,7 +25,7 @@ v3.1-saas-multi-connection
 
 ```bash
 git add .
-git commit -m "v3.1 stable baseline: SaaS multi-connection support, Postgres fully functional, SQL Server connection enabled (execution pending), rule discovery and scoring engine stabilized"
+git commit -m "v3.1 stable baseline: SaaS multi-connection support, Postgres fully functional, SQL Server connection enabled (execution pending), rule discovery and scoring engine stabilised"
 ```
 
 ---
