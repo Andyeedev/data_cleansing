@@ -1,5 +1,6 @@
 from google.cloud import bigquery
 import logging
+import psycopg2
 from app.db.adapters.base_adapter import BaseAdapter
 
 logger = logging.getLogger(__name__)
