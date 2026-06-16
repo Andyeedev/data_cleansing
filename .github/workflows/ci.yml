@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master , release/v4-cloud-ready]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master , release/v4-cloud-ready]
 
 jobs:
   lint-and-test:
