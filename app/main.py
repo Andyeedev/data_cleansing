@@ -1,11 +1,17 @@
 import argparse
+from dotenv import load_dotenv
+load_dotenv()
+
 from app.config_loader import load_config
+from .api.main import app  # noqa: F401
 from .execution_engine import ExecutionEngine
 from .audit_export import AuditExporter
 from .db_connector import DBConnector
+from .services.dataset_discovery_service import DatasetDiscoveryService
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
 
 def run_engine(config_path, resume_batch=None, recovery=False):
     config = load_config(config_path)
@@ -14,6 +20,7 @@ def run_engine(config_path, resume_batch=None, recovery=False):
     logger.info(f"Starting execution batch: {engine.batch_id}")
     engine.run()
     logger.info("Execution completed successfully.")
+
 
 def export_audit(config_path, batch_id):
     config = load_config(config_path)
@@ -26,6 +33,7 @@ def export_audit(config_path, batch_id):
     exporter.export_exceptions(batch_id)
     logger.info("Audit export completed.")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="FS Migration Validation Engine")
     subparsers = parser.add_subparsers(dest="command")
@@ -34,7 +42,8 @@ if __name__ == "__main__":
     run_parser = subparsers.add_parser("run")
     run_parser.add_argument("--config", required=True)
     run_parser.add_argument("--resume-batch", required=False)
-    run_parser.add_argument("--recovery", action="store_true", help="Run only failed controls from previous batch")
+    run_parser.add_argument("--recovery", action="store_true",
+                            help="Run only failed controls from previous batch")
 
     # DISCOVER COMMAND
     discover_parser = subparsers.add_parser("discover")
@@ -52,9 +61,7 @@ if __name__ == "__main__":
 
     elif args.command == "discover":
         config = load_config(args.config)
-        from .db_connector import DBConnector
         engine_db = DBConnector(config["engine_db"])
-        from .services.dataset_discovery_service import DatasetDiscoveryService
         service = DatasetDiscoveryService(engine_db, config["project_id"])
         service.discover()
         logger.info("Dataset discovery completed successfully.")

@@ -1,5 +1,5 @@
 import psycopg2
-from psycopg2 import pool
+from psycopg2 import pool  # noqa: F401
 import time
 import json
 
@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 class PostgresAdapter(BaseAdapter):
 
-    #_pool = None
+    # _pool = None
     _pools = {}
 
     # ---------------------------------------------------------
@@ -49,7 +49,10 @@ class PostgresAdapter(BaseAdapter):
 
     def _init_pool(self):
 
-        db_key = f"{self.config.get('host')}:{self.config.get('port')}:{self.config.get('database')}"
+        db_key = (
+            f"{self.config.get('host')}:{self.config.get('port')}:"
+            f"{self.config.get('database')}"
+        )
 
         if db_key in PostgresAdapter._pools:
             return
@@ -135,12 +138,15 @@ class PostgresAdapter(BaseAdapter):
             conn = None
 
             try:
-                #conn = PostgresAdapter._pool.getconn()
+                # conn = PostgresAdapter._pool.getconn()
 
-                db_key = f"{self.config.get('host')}:{self.config.get('port')}:{self.config.get('database')}"
-                pool = PostgresAdapter._pools[db_key]
+                db_key = (
+                    f"{self.config.get('host')}:{self.config.get('port')}:"
+                    f"{self.config.get('database')}"
+                )
+                db_pool = PostgresAdapter._pools[db_key]
 
-                conn = pool.getconn()
+                conn = db_pool.getconn()
 
                 cursor = conn.cursor()
 
@@ -175,14 +181,16 @@ class PostgresAdapter(BaseAdapter):
 
             finally:
                 if conn:
-                    #PostgresAdapter._pool.putconn(conn)
-                    pool.putconn(conn)
-
+                    # PostgresAdapter._pool.putconn(conn)
+                    db_pool.putconn(conn)
 
     def execute(self, query, params=None, retries=3):
 
-        db_key = f"{self.config.get('host')}:{self.config.get('port')}:{self.config.get('database')}"
-        pool = PostgresAdapter._pools[db_key]
+        db_key = (
+            f"{self.config.get('host')}:{self.config.get('port')}:"
+            f"{self.config.get('database')}"
+        )
+        db_pool = PostgresAdapter._pools[db_key]
 
         attempt = 0
 
@@ -192,7 +200,7 @@ class PostgresAdapter(BaseAdapter):
             start_time = time.time()
 
             try:
-                conn = pool.getconn()
+                conn = db_pool.getconn()
                 cursor = conn.cursor()
 
                 cursor.execute(query, params or ())
@@ -238,7 +246,7 @@ class PostgresAdapter(BaseAdapter):
 
             finally:
                 if conn:
-                    pool.putconn(conn)
+                    db_pool.putconn(conn)
 
     # ---------------------------------------------------------
     # KEEP THESE (DO NOT REMOVE)

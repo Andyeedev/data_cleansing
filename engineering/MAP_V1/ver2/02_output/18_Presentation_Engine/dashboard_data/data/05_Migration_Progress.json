@@ -1,0 +1,90 @@
+{
+  "dashboard": "Migration Progress",
+  "version": "1.0",
+  "generated": "2026-07-05T08:36:12.697239+00:00",
+  "batch_id": "e155acaf-652e-41de-8369-7a5b06af08ce",
+  "timeline": {
+    "duration": "0s",
+    "phases_completed": 7,
+    "total_phases": 10
+  },
+  "phases": [
+    {
+      "name": "Discovery",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Profiling",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Validation",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Migration Controls",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Quality Rules",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Governance",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Reporting",
+      "progress": 100,
+      "status": "completed"
+    },
+    {
+      "name": "Resolution",
+      "progress": 0,
+      "status": "not_started"
+    },
+    {
+      "name": "Pilot Migration",
+      "progress": 0,
+      "status": "not_started"
+    },
+    {
+      "name": "Full Migration",
+      "progress": 0,
+      "status": "not_started"
+    }
+  ],
+  "kpi_cards": [
+    {
+      "label": "Execution Duration",
+      "value": "0s",
+      "status": "info"
+    },
+    {
+      "label": "Phases Completed",
+      "value": "7/10",
+      "status": "warning"
+    },
+    {
+      "label": "Controls Executed",
+      "value": "9",
+      "status": "info"
+    },
+    {
+      "label": "Rules Executed",
+      "value": "19",
+      "status": "info"
+    },
+    {
+      "label": "Migration Status",
+      "value": "BLOCKED",
+      "status": "error"
+    }
+  ]
+}

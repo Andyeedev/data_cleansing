@@ -76,6 +76,6 @@ class BaseAdapter:
 
     def list_tables(self):
         raise NotImplementedError
-    
+
     def fetch_all(self, query, params=None):
         return self.execute(query, params)

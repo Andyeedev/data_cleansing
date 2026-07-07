@@ -10,6 +10,7 @@ class ColumnNullCompareRule(BaseRule):
         "source_table",
         "target_table"
     ]
+
     def execute(self):
 
         source_schema = self.parameters["source_schema"]

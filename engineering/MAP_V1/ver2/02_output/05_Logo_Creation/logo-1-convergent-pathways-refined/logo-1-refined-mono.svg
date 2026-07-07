@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" width="320" height="100">
+  <rect width="320" height="100" fill="white"/>
+  <!-- Monochrome pathways -->
+  <line x1="12" y1="12" x2="44" y2="56" stroke="#374151" stroke-width="8" stroke-linecap="round"/>
+  <line x1="44" y1="4" x2="44" y2="56" stroke="#4B5563" stroke-width="8" stroke-linecap="round"/>
+  <line x1="76" y1="12" x2="44" y2="56" stroke="#374151" stroke-width="8" stroke-linecap="round"/>
+  <!-- Convergence node -->
+  <circle cx="44" cy="70" r="12" fill="#6B7280"/>
+  <circle cx="44" cy="70" r="5" fill="white" opacity="0.3"/>
+  <!-- Wordmark -->
+  <text x="100" y="50" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="600" fill="#1F2937" letter-spacing="1">MAP</text>
+  <text x="100" y="72" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="400" fill="#6B7280" letter-spacing="2">MIGRATION ASSURANCE PLATFORM</text>
+</svg>

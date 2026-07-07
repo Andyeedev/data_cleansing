@@ -25,6 +25,7 @@ def run_execution(
         "status_url": f"/execution/status/{batch_id}"
     }
 
+
 @router.get("/status/{batch_id}")
 def get_execution_status(
     batch_id: str,

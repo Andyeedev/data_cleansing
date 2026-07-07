@@ -1,0 +1,171 @@
+{
+  "dashboard": "Governance Centre",
+  "version": "1.0",
+  "generated": "2026-07-05T08:36:12.697239+00:00",
+  "batch_id": "e155acaf-652e-41de-8369-7a5b06af08ce",
+  "summary": {
+    "total_controls": 9,
+    "passed": 2,
+    "failed": 1,
+    "error": 5,
+    "blocked": 1,
+    "blocking_controls": 3,
+    "total_failed_rules": 6
+  },
+  "kpi_cards": [
+    {
+      "label": "Total Controls",
+      "value": "9",
+      "status": "info"
+    },
+    {
+      "label": "Passed",
+      "value": "2",
+      "status": "success"
+    },
+    {
+      "label": "Failed",
+      "value": "1",
+      "status": "warning"
+    },
+    {
+      "label": "Error",
+      "value": "5",
+      "status": "error"
+    },
+    {
+      "label": "Blocked",
+      "value": "1",
+      "status": "error"
+    },
+    {
+      "label": "Blocking Controls",
+      "value": "3",
+      "status": "error"
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-001",
+      "type": "Schema Drift",
+      "description": "Schema drift detected in accounts_source, balances_source, customer_accounts_source",
+      "severity": "critical",
+      "control": "C010",
+      "owner": "Data Engineering",
+      "status": "open",
+      "resolution": "Review and align schema definitions"
+    },
+    {
+      "id": "FND-002",
+      "type": "Financial Integrity",
+      "description": "Financial value reconciliation failed for balances_source",
+      "severity": "critical",
+      "control": "C02",
+      "owner": "Finance Team",
+      "status": "open",
+      "resolution": "Investigate financial aggregate discrepancies"
+    },
+    {
+      "id": "FND-003",
+      "type": "Referential Integrity",
+      "description": "Foreign key validation failed for all entities",
+      "severity": "critical",
+      "control": "C03",
+      "owner": "Data Engineering",
+      "status": "open",
+      "resolution": "Validate FK constraints"
+    },
+    {
+      "id": "FND-004",
+      "type": "Column Count Mismatch",
+      "description": "Column count mismatch in balances_source, customer_accounts_source, accounts_source",
+      "severity": "high",
+      "control": "C04",
+      "owner": "Data Engineering",
+      "status": "open",
+      "resolution": "Align column counts"
+    },
+    {
+      "id": "FND-005",
+      "type": "Data Type Mismatch",
+      "description": "Source/target column type alignment failed for all entities",
+      "severity": "high",
+      "control": "C07",
+      "owner": "Data Engineering",
+      "status": "open",
+      "resolution": "Standardise data types"
+    },
+    {
+      "id": "FND-006",
+      "type": "Record Count Mismatch",
+      "description": "Record completeness validation failed for all entities",
+      "severity": "high",
+      "control": "C01",
+      "owner": "Data Engineering",
+      "status": "open",
+      "resolution": "Investigate record count discrepancies"
+    }
+  ],
+  "charts": {
+    "findings_by_type": {
+      "type": "bar",
+      "data": [
+        {
+          "label": "Schema Drift",
+          "value": 1,
+          "color": "#D13438"
+        },
+        {
+          "label": "Financial Integrity",
+          "value": 1,
+          "color": "#D13438"
+        },
+        {
+          "label": "Referential Integrity",
+          "value": 1,
+          "color": "#D13438"
+        },
+        {
+          "label": "Column Count",
+          "value": 1,
+          "color": "#FFB900"
+        },
+        {
+          "label": "Data Type",
+          "value": 1,
+          "color": "#FFB900"
+        },
+        {
+          "label": "Record Count",
+          "value": 1,
+          "color": "#FFB900"
+        }
+      ]
+    },
+    "severity_distribution": {
+      "type": "donut",
+      "data": [
+        {
+          "label": "Critical",
+          "value": 3,
+          "color": "#D13438"
+        },
+        {
+          "label": "High",
+          "value": 3,
+          "color": "#FFB900"
+        },
+        {
+          "label": "Medium",
+          "value": 0,
+          "color": "#FFB900"
+        },
+        {
+          "label": "Low",
+          "value": 0,
+          "color": "#107C10"
+        }
+      ]
+    }
+  }
+}

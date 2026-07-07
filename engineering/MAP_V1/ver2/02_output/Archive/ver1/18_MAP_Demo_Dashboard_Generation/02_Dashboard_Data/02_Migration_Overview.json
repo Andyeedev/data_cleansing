@@ -1,0 +1,31 @@
+{
+  "dashboard": "Migration Overview",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "theme": "MAP Nexus",
+  "data_source": "MAP Validation Engine — Live Execution",
+  "scenario": "Scenario 3 — MIXTURE",
+  "systems": {
+    "source": { "name": "Source Platform", "type": "Enterprise Data Platform", "host": "Production Environment", "database": "migration_source", "tables": 3, "entities": ["accounts_source", "balances_source", "customer_accounts_source"] },
+    "target": { "name": "Target Platform", "type": "Cloud Platform", "host": "Production Environment", "database": "migration_target", "tables": 3, "entities": ["accounts_target", "balances_target", "customer_accounts_target"] }
+  },
+  "migration_scope": {
+    "source_systems": 1, "target_systems": 1, "entities": 3, "tables": 3, "files": 0,
+    "validation_rules_executed": 10, "execution_duration_seconds": 26.3,
+    "pipeline_status": "BLOCKED", "completion_pct": 100
+  },
+  "entity_details": [
+    { "source": "accounts_source", "target": "accounts_target", "source_rows": 4, "target_rows": 3, "row_match": false, "status": "Attention Required" },
+    { "source": "balances_source", "target": "balances_target", "source_rows": 3, "target_rows": 3, "row_match": true, "source_sum": 6000.00, "target_sum": 6500.00, "sum_match": false, "status": "Attention Required" },
+    { "source": "customer_accounts_source", "target": "customer_accounts_target", "source_rows": 4, "target_rows": 4, "row_match": true, "status": "Passed" }
+  ],
+  "kpi_cards": [
+    { "label": "Source Systems", "value": "1", "status": "info", "icon": "server" },
+    { "label": "Target Systems", "value": "1", "status": "info", "icon": "server" },
+    { "label": "Entities Validated", "value": "3", "status": "info", "icon": "layers" },
+    { "label": "Rules Executed", "value": "10", "status": "info", "icon": "check-square" },
+    { "label": "Execution Time", "value": "26.3s", "status": "info", "icon": "clock" },
+    { "label": "Migration Status", "value": "Blocked", "status": "error", "icon": "shield" }
+  ]
+}

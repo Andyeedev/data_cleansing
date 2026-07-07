@@ -1,0 +1,30 @@
+{
+  "dashboard": "Migration Progress",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "theme": "MAP Nexus",
+  "data_source": "MAP Validation Engine — Live Execution",
+  "scenario": "Scenario 3 — MIXTURE",
+  "phases": [
+    { "phase": "Planning", "status": "COMPLETED", "completion_pct": 100, "date": "2026-01-15" },
+    { "phase": "Discovery", "status": "COMPLETED", "completion_pct": 100, "date": "2026-02-01" },
+    { "phase": "Profiling", "status": "COMPLETED", "completion_pct": 100, "date": "2026-02-15" },
+    { "phase": "Mapping", "status": "COMPLETED", "completion_pct": 100, "date": "2026-03-01" },
+    { "phase": "Validation", "status": "IN_PROGRESS", "completion_pct": 62, "date": "2026-07-03" },
+    { "phase": "Testing", "status": "NOT_STARTED", "completion_pct": 0, "date": null },
+    { "phase": "Pilot", "status": "NOT_STARTED", "completion_pct": 0, "date": null },
+    { "phase": "Production", "status": "NOT_STARTED", "completion_pct": 0, "date": null }
+  ],
+  "timeline": {
+    "start_date": "2026-01-15", "current_date": "2026-07-03", "estimated_completion": "2026-12-31",
+    "elapsed_days": 169, "remaining_days": 181, "overall_completion_pct": 50
+  },
+  "kpi_cards": [
+    { "label": "Current Phase", "value": "Validation", "status": "warning", "icon": "check-square" },
+    { "label": "Phase Completion", "value": "62%", "status": "warning", "icon": "pie-chart" },
+    { "label": "Overall Progress", "value": "50%", "status": "info", "icon": "trending-up" },
+    { "label": "Days Elapsed", "value": "169", "status": "info", "icon": "calendar" },
+    { "label": "Days Remaining", "value": "181", "status": "info", "icon": "clock" }
+  ]
+}

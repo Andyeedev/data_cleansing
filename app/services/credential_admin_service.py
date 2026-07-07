@@ -14,7 +14,7 @@ class CredentialAdminService:
 
         # 🔍 check user exists
         check_query = """
-        SELECT credential_id 
+        SELECT credential_id
         FROM core.system_credentials
         WHERE username = %s
         """

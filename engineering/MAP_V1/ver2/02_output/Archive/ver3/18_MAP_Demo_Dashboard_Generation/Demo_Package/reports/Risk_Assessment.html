@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Risk Assessment — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body style="padding:32px; max-width:960px; margin:0 auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <div><h1 style="font-size:24px; color:#0B2447;">MAP Nexus™</h1><p style="font-size:12px; color:#6B7280;">Risk Assessment Report</p></div>
+    <a href="../dashboard/index.html" style="font-size:12px; color:#0078D4; text-decoration:none;">← Back to Dashboard</a>
+  </div>
+  <div class="card" style="margin-bottom:24px; background:#FDECEA; border:2px solid #D13438;">
+    <h2 style="font-size:24px; color:#D13438; text-align:center; margin-bottom:8px;">NO-GO</h2>
+    <p style="font-size:14px; color:#616161; text-align:center;">Migration is BLOCKED. 3 controls are blocking progression with 6 failed rules.</p>
+  </div>
+  <div class="card" style="margin-bottom:24px;">
+    <h2 style="font-size:18px; color:#0B2447; margin-bottom:16px;">Risk Score</h2>
+    <table class="data-table"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+      <tr><td>Overall Risk</td><td><span class="badge badge-error">High</span></td></tr>
+      <tr><td>Risk Score</td><td>58.3/100</td></tr>
+      <tr><td>Blocking Controls</td><td>3</td></tr>
+      <tr><td>Failed Rules</td><td>6</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <h2 style="font-size:18px; color:#0B2447; margin-bottom:16px;">Top Risks</h2>
+    <table class="data-table"><thead><tr><th>#</th><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead><tbody>
+      <tr><td>R001</td><td>Schema drift in all entities</td><td><span class="badge badge-error">Critical</span></td><td>Review schema mapping</td></tr>
+      <tr><td>R002</td><td>Financial reconciliation failure</td><td><span class="badge badge-error">Critical</span></td><td>Investigate aggregates</td></tr>
+      <tr><td>R003</td><td>Referential integrity failure</td><td><span class="badge badge-error">Critical</span></td><td>Validate FK constraints</td></tr>
+      <tr><td>R004</td><td>Column count mismatch</td><td><span class="badge badge-warning">High</span></td><td>Align column counts</td></tr>
+      <tr><td>R005</td><td>Data type mismatch</td><td><span class="badge badge-warning">High</span></td><td>Standardise data types</td></tr>
+      <tr><td>R006</td><td>Duplicate detection failed</td><td><span class="badge badge-warning">Medium</span></td><td>Review detection rules</td></tr>
+    </tbody></table>
+  </div>
+</body>
+</html>

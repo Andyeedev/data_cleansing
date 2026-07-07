@@ -1,0 +1,47 @@
+{
+  "dashboard": "Governance Centre",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "summary": {
+    "total_findings": 5,
+    "critical": 2,
+    "high": 1,
+    "medium": 2,
+    "low": 0,
+    "resolution_rate_pct": 0
+  },
+  "kpi_cards": [
+    { "label": "Total Findings", "value": "5", "status": "info", "icon": "list" },
+    { "label": "Critical", "value": "2", "status": "error", "icon": "alert-triangle" },
+    { "label": "High", "value": "1", "status": "warning", "icon": "alert-circle" },
+    { "label": "Medium", "value": "2", "status": "warning", "icon": "info" },
+    { "label": "Resolution Rate", "value": "0%", "status": "error", "icon": "bar-chart" }
+  ],
+  "findings": [
+    { "id": "FND-001", "type": "Schema Drift", "description": "Column type mismatch: ACCOUNT_BALANCE.AMOUNT is DECIMAL(18,2) in source but DECIMAL(15,2) in target", "severity": "critical", "control": "C02", "owner": "Data Engineering", "status": "open", "resolution": "Align column types before migration" },
+    { "id": "FND-002", "type": "Schema Drift", "description": "Column type mismatch: ACCOUNTS.STATUS is VARCHAR(2) in source but CHAR(1) in target", "severity": "high", "control": "C02", "owner": "Data Engineering", "status": "open", "status": "open", "resolution": "Implement data transformation rule" },
+    { "id": "FND-003", "type": "Balance Mismatch", "description": "342 records have precision differences in balance amounts between source and target", "severity": "critical", "control": "C04", "owner": "Finance Team", "status": "open", "resolution": "Investigate and reconcile precision differences" },
+    { "id": "FND-004", "type": "Duplicate Records", "description": "12 potential duplicate records detected in target CUSTOMER table", "severity": "medium", "control": "C06", "owner": "Data Quality", "status": "open", "resolution": "Implement deduplication logic" },
+    { "id": "FND-005", "type": "Orphaned Records", "description": "892 orphaned records in ACCOUNT_BALANCE with no matching ACCOUNTS record in target", "severity": "medium", "control": "C08", "owner": "Data Engineering", "status": "open", "resolution": "Cleanse orphaned records before migration" }
+  ],
+  "charts": {
+    "findings_by_type": {
+      "type": "bar",
+      "data": [
+        { "label": "Schema Drift", "value": 2, "color": "#D13438" },
+        { "label": "Balance Mismatch", "value": 1, "color": "#D13438" },
+        { "label": "Duplicate Records", "value": 1, "color": "#FFB900" },
+        { "label": "Orphaned Records", "value": 1, "color": "#FFB900" }
+      ]
+    },
+    "severity_distribution": {
+      "type": "donut",
+      "data": [
+        { "label": "Critical", "value": 2, "color": "#D13438" },
+        { "label": "High", "value": 1, "color": "#FFB900" },
+        { "label": "Medium", "value": 2, "color": "#FFB900" },
+        { "label": "Low", "value": 0, "color": "#107C10" }
+      ]
+    }
+  }
+}

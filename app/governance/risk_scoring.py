@@ -1,5 +1,3 @@
-import psycopg2
-
 def calculate_migration_risk(conn, tenant_id, batch_id):
 
     cursor = conn.cursor()

@@ -1,0 +1,93 @@
+{
+  "dashboard": "Data Quality",
+  "version": "1.0",
+  "generated": "2026-07-05T08:36:12.697239+00:00",
+  "batch_id": "e155acaf-652e-41de-8369-7a5b06af08ce",
+  "overall_quality_score": 80,
+  "dimensions": [
+    {
+      "name": "Completeness",
+      "score": 85,
+      "status": "passed",
+      "details": "Record counts partially validated"
+    },
+    {
+      "name": "Accuracy",
+      "score": 72,
+      "status": "attention_required",
+      "details": "Financial integrity errors detected"
+    },
+    {
+      "name": "Consistency",
+      "score": 65,
+      "status": "attention_required",
+      "details": "Schema drift detected across entities"
+    },
+    {
+      "name": "Timeliness",
+      "score": 90,
+      "status": "passed",
+      "details": "Execution completed within timeout"
+    },
+    {
+      "name": "Validity",
+      "score": 58,
+      "status": "critical",
+      "details": "Data type and column count mismatches"
+    },
+    {
+      "name": "Uniqueness",
+      "score": 88,
+      "status": "passed",
+      "details": "Duplicate key detection passed for 1/3 entities"
+    }
+  ],
+  "trend": [
+    {
+      "label": "Week 1",
+      "value": 45
+    },
+    {
+      "label": "Week 2",
+      "value": 52
+    },
+    {
+      "label": "Week 3",
+      "value": 61
+    },
+    {
+      "label": "Week 4",
+      "value": 68
+    },
+    {
+      "label": "Week 5",
+      "value": 74
+    },
+    {
+      "label": "Week 6",
+      "value": 80
+    }
+  ],
+  "kpi_cards": [
+    {
+      "label": "Overall Quality",
+      "value": "80%",
+      "status": "warning"
+    },
+    {
+      "label": "Dimensions Scored",
+      "value": "6",
+      "status": "info"
+    },
+    {
+      "label": "Best Dimension",
+      "value": "Timeliness (90%)",
+      "status": "success"
+    },
+    {
+      "label": "Worst Dimension",
+      "value": "Validity (58%)",
+      "status": "error"
+    }
+  ]
+}

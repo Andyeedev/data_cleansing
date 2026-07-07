@@ -1,0 +1,29 @@
+{
+  "dashboard": "Validation Centre",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "controls": [
+    { "id": "C01", "name": "Record Completeness", "status": "ERROR", "severity": "HIGH", "total_rules": 3, "passed": 0, "failed": 0, "errors": 3, "details": "Source-to-target record count validation failed" },
+    { "id": "C02", "name": "Financial Integrity", "status": "ERROR", "severity": "CRITICAL", "total_rules": 1, "passed": 0, "failed": 0, "errors": 1, "details": "Financial value reconciliation failed" },
+    { "id": "C03", "name": "Referential Integrity", "status": "ERROR", "severity": "LOW", "total_rules": 3, "passed": 0, "failed": 0, "errors": 3, "details": "Foreign key validation failed" },
+    { "id": "C04", "name": "Column Count Validation", "status": "FAIL", "severity": "HIGH", "total_rules": 3, "passed": 0, "failed": 3, "errors": 0, "details": "Column count mismatch detected" },
+    { "id": "C05", "name": "Null Drift Detection", "status": "PASS", "severity": "HIGH", "total_rules": 0, "passed": 0, "failed": 0, "errors": 0, "details": "No unexpected null increases" },
+    { "id": "C06", "name": "Duplicate Key Detection", "status": "ERROR", "severity": "CRITICAL", "total_rules": 3, "passed": 1, "failed": 0, "errors": 2, "details": "Duplicate key detection partially failed" },
+    { "id": "C07", "name": "Data Type Validation", "status": "ERROR", "severity": "HIGH", "total_rules": 3, "passed": 0, "failed": 0, "errors": 3, "details": "Source/target column type alignment failed" },
+    { "id": "C09", "name": "Referential Coverage", "status": "PASS", "severity": "HIGH", "total_rules": 0, "passed": 0, "failed": 0, "errors": 0, "details": "FK constraint coverage validated" },
+    { "id": "C10", "name": "Schema Drift Detection", "status": "BLOCKED", "severity": "CRITICAL", "total_rules": 3, "passed": 0, "failed": 3, "errors": 0, "details": "Schema drift detected in all entities" }
+  ],
+  "summary": { "total": 9, "passed": 2, "failed": 1, "error": 5, "blocked": 1 },
+  "charts": {
+    "validation_distribution": {
+      "type": "donut",
+      "data": [
+        { "label": "Passed", "value": 2, "color": "#107C10" },
+        { "label": "Failed", "value": 1, "color": "#FFB900" },
+        { "label": "Error", "value": 5, "color": "#D13438" },
+        { "label": "Blocked", "value": 1, "color": "#D13438" }
+      ]
+    }
+  }
+}

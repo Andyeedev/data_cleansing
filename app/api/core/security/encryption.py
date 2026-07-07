@@ -1,6 +1,7 @@
 import os
 from cryptography.fernet import Fernet
 
+
 class EncryptionManager:
     def __init__(self):
         key = os.getenv("FERNET_KEY")
@@ -10,11 +11,8 @@ class EncryptionManager:
 
     def encrypt(self, plaintext: str) -> bytes:
         return self.cipher.encrypt(plaintext.encode())
-    
 
-
-
-    #def decrypt(self, ciphertext: bytes) -> str:
+    # def decrypt(self, ciphertext: bytes) -> str:
     #    return self.cipher.decrypt(ciphertext).decode()
 
     def decrypt(self, ciphertext):
@@ -23,4 +21,4 @@ class EncryptionManager:
         elif isinstance(ciphertext, str):
             ciphertext = ciphertext.encode()
 
-        return self.cipher.decrypt(ciphertext).decode() 
+        return self.cipher.decrypt(ciphertext).decode()

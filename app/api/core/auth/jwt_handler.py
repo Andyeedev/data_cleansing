@@ -1,8 +1,6 @@
 import jwt
 import datetime
-
-SECRET_KEY = "my_super_secret_key_1234567890_very_secure"
-ALGORITHM = "HS256"
+from .jwt_config import SECRET_KEY, ALGORITHM
 
 
 def create_token(data: dict, expires_minutes: int = 60):

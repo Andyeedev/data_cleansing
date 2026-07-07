@@ -7,6 +7,3 @@ def get_db_connection():
     Returns SYSTEM DB connection using config.yaml
     """
     return DBConnector(CONFIG["engine_db"])
-
-
-

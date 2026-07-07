@@ -1,4 +1,4 @@
-#Example:
+# Example:
 
 def record_decision(conn,
                     tenant_id,

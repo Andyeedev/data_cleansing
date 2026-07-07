@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=210mm, initial-scale=1.0">
+<title>MAP Nexus™ — Investor Executive Summary</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  :root {
+    --map-blue: #0078D4;
+    --map-blue-dark: #003B75;
+    --map-green: #107C10;
+    --map-yellow: #FFB900;
+    --map-red: #D13438;
+    --map-purple: #5C2D91;
+    --map-white: #FFFFFF;
+    --map-light: #F3F2F1;
+    --map-gray: #605E5C;
+    --map-gray-dark: #323130;
+    --map-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--map-font); color: var(--map-gray-dark); background: #E8E8E8; }
+  .doc { max-width: 210mm; margin: 0 auto; }
+  .page {
+    width: 210mm; min-height: 297mm;
+    background: var(--map-white);
+    page-break-after: always;
+    padding: 20mm 25mm;
+    position: relative;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  .page-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10mm;
+    padding-bottom: 5mm;
+    border-bottom: 3px solid var(--map-blue);
+  }
+  .page-header h1 { font-size: 22px; font-weight: 700; color: var(--map-blue-dark); }
+  .page-header .date { font-size: 11px; color: var(--map-gray); }
+
+  .section-title { font-size: 16px; font-weight: 700; color: var(--map-blue-dark); margin: 6mm 0 3mm; }
+  .section-subtitle { font-size: 13px; font-weight: 600; color: var(--map-gray-dark); margin: 4mm 0 2mm; }
+  p { font-size: 12px; color: var(--map-gray); line-height: 1.6; margin-bottom: 3mm; }
+
+  .stat-row { display: flex; gap: 4mm; margin: 4mm 0; }
+  .stat-box {
+    flex: 1; background: var(--map-light); border-radius: 6px;
+    padding: 4mm; text-align: center;
+  }
+  .stat-box h3 { font-size: 20px; font-weight: 700; color: var(--map-blue); margin-bottom: 1mm; }
+  .stat-box p { font-size: 10px; color: var(--map-gray); margin: 0; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .card {
+    background: var(--map-light); border-radius: 6px;
+    padding: 4mm; margin-bottom: 3mm;
+  }
+  .card h4 { font-size: 12px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 1mm; }
+  .card p { font-size: 11px; color: var(--map-gray); margin: 0; }
+
+  .highlight-box {
+    background: var(--map-blue-dark); color: var(--map-white);
+    border-radius: 6px; padding: 5mm; margin: 4mm 0;
+  }
+  .highlight-box h3 { color: var(--map-white); font-size: 14px; margin-bottom: 2mm; }
+  .highlight-box p { color: rgba(255,255,255,0.85); font-size: 11px; margin: 0; }
+
+  .benefit-item {
+    display: flex; align-items: flex-start; gap: 3mm;
+    padding: 2mm 0; border-bottom: 1px solid #E1DFDD;
+  }
+  .benefit-item:last-child { border-bottom: none; }
+  .benefit-item .num { font-size: 18px; font-weight: 700; color: var(--map-blue); min-width: 10mm; }
+  .benefit-item h4 { font-size: 12px; font-weight: 600; color: var(--map-gray-dark); }
+  .benefit-item p { font-size: 10px; color: var(--map-gray); margin: 0; }
+
+  .footer {
+    position: absolute; bottom: 10mm; left: 25mm; right: 25mm;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 9px; color: var(--map-gray);
+    border-top: 1px solid #E1DFDD; padding-top: 3mm;
+  }
+  .footer .logo { font-weight: 700; color: var(--map-blue); }
+
+  @media print { body { background: white; } .doc { max-width: none; } }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ============================== PAGE 1 ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <h1>MAP Nexus&trade; — Investor Executive Summary</h1>
+      <div class="date">Version 2.0 &bull; July 2026</div>
+    </div>
+
+    <div class="section-title">Company Overview</div>
+    <p>MAP is a Microsoft Azure-native company specialising in migration validation and governance. As a Microsoft Founders Hub participant, MAP builds on the Azure platform to deliver enterprise-grade data assurance solutions for organisations navigating complex data migrations.</p>
+
+    <div class="highlight-box">
+      <h3>Mission</h3>
+      <p>Provide enterprise-grade migration validation and governance that eliminates data risk, ensures regulatory compliance, and gives leadership absolute confidence in migrated data.</p>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box">
+        <h3>$45B+</h3>
+        <p>Cloud Migration Market</p>
+      </div>
+      <div class="stat-box">
+        <h3>$12B+</h3>
+        <p>Data Governance Market</p>
+      </div>
+      <div class="stat-box">
+        <h3>$8B+</h3>
+        <p>Data Quality Market</p>
+      </div>
+      <div class="stat-box">
+        <h3>0%</h3>
+        <p>Existing Assurance Solutions</p>
+      </div>
+    </div>
+
+    <div class="section-title">The Problem</div>
+    <p>Enterprise migrations fail silently. Without governance and validation, organisations migrate data that is incomplete, inconsistent, or non-compliant. The result: regulatory penalties, customer harm, and wasted investment. Migration tools move data. Nothing validates that it arrived correctly.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Migration Risk</h4>
+        <p>Data loss, corruption, and schema drift silently destroy business value during migration.</p>
+      </div>
+      <div class="card">
+        <h4>Governance Gaps</h4>
+        <p>No visibility into what migrated, what failed, or what needs remediation.</p>
+      </div>
+      <div class="card">
+        <h4>Compliance Exposure</h4>
+        <p>Regulatory frameworks demand evidence of data integrity. Gaps create audit failures.</p>
+      </div>
+      <div class="card">
+        <h4>Executive Uncertainty</h4>
+        <p>Leadership cannot manage what they cannot see. Without dashboards, risk is invisible.</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span class="logo">MAP Nexus&trade;</span>
+      <span>1 / 2</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 2 ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <h1>MAP Nexus&trade; — Investor Executive Summary</h1>
+      <div class="date">Version 2.0 &bull; July 2026</div>
+    </div>
+
+    <div class="section-title">The Solution</div>
+    <p>MAP Nexus&trade; is an enterprise migration governance and validation platform that gives organisations absolute confidence in their migrated data.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Automated Validation</h4>
+        <p>Discover, execute, and validate migration controls across source and target systems.</p>
+      </div>
+      <div class="card">
+        <h4>Executive Dashboards</h4>
+        <p>Real-time visibility from C-suite to project team.</p>
+      </div>
+      <div class="card">
+        <h4>Governance Framework</h4>
+        <p>Built-in controls, approval workflows, and audit trails.</p>
+      </div>
+      <div class="card">
+        <h4>Azure-Native</h4>
+        <p>Built on Azure from day one for enterprise security and scale.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Competitive Position</div>
+    <p>MAP is complementary to migration tools, not competitive. Every migration tool deployment creates a natural upsell opportunity for migration assurance. No enterprise-grade migration assurance platform exists today.</p>
+
+    <div class="section-title">Business Model</div>
+    <div class="grid-2">
+      <div class="card">
+        <h4>SaaS Subscription</h4>
+        <p>Annual recurring revenue per customer. Tiered pricing.</p>
+      </div>
+      <div class="card">
+        <h4>Professional Services</h4>
+        <p>Implementation and custom validation services.</p>
+      </div>
+      <div class="card">
+        <h4>Azure Marketplace</h4>
+        <p>Enterprise procurement and distribution.</p>
+      </div>
+      <div class="card">
+        <h4>AI Features</h4>
+        <p>Future AI-powered capabilities on roadmap.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Investment Opportunity</div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <h3>Seed</h3>
+        <p>Current Stage</p>
+      </div>
+      <div class="stat-box">
+        <h3>Pilot-Ready</h3>
+        <p>Product Status</p>
+      </div>
+      <div class="stat-box">
+        <h3>Founders Hub</h3>
+        <p>Microsoft Backing</p>
+      </div>
+    </div>
+    <p><strong>Funding Objectives:</strong> Product development (Q2/Q3 features), Go-to-market (enterprise sales, Azure Marketplace), Microsoft partnership expansion.</p>
+
+    <div class="highlight-box">
+      <h3>Vision</h3>
+      <p>Every enterprise migration in the world will eventually need validation and governance. MAP Nexus&trade; will be the platform they trust. Enterprise SaaS. Azure ecosystem. AI-enabled future.</p>
+    </div>
+
+    <div class="footer">
+      <span class="logo">MAP Nexus&trade;</span>
+      <span>2 / 2</span>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

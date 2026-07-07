@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" fill="white"/>
+  <!-- Connections -->
+  <line x1="5" y1="5" x2="27" y2="5" stroke="#667EEA" stroke-width="1" opacity="0.5"/>
+  <line x1="5" y1="27" x2="27" y2="27" stroke="#667EEA" stroke-width="1" opacity="0.5"/>
+  <line x1="5" y1="5" x2="5" y2="27" stroke="#667EEA" stroke-width="1" opacity="0.5"/>
+  <line x1="27" y1="5" x2="27" y2="27" stroke="#667EEA" stroke-width="1" opacity="0.5"/>
+  <line x1="5" y1="5" x2="27" y2="27" stroke="#764BA2" stroke-width="1" opacity="0.4"/>
+  <line x1="27" y1="5" x2="5" y2="27" stroke="#764BA2" stroke-width="1" opacity="0.4"/>
+  <!-- Nodes -->
+  <circle cx="5" cy="5" r="4" fill="#667EEA"/>
+  <circle cx="27" cy="5" r="4" fill="#764BA2"/>
+  <circle cx="5" cy="27" r="4" fill="#3B82F6"/>
+  <circle cx="27" cy="27" r="3" fill="#667EEA" opacity="0.6"/>
+</svg>

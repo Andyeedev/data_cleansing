@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Risk Assessment Render</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; }
+    .sidebar { width: 260px; background: linear-gradient(180deg, #0B2447 0%, #003B75 100%); color: #C2C8D0; padding: 24px 0; }
+    .sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand h1 { color: #fff; font-size: 22px; font-weight: 700; }
+    .sidebar-brand h1 span { font-weight: 300; }
+    .sidebar-brand .sub { font-size: 12px; opacity: 0.7; }
+    .sidebar-nav { padding: 16px 0; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: #C2C8D0; text-decoration: none; font-size: 14px; border-left: 3px solid transparent; }
+    .nav-item.active { background: rgba(255,255,255,0.08); border-left-color: #0078D4; color: #fff; }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E5E7EB; }
+    .topbar h2 { font-size: 18px; font-weight: 600; }
+    .badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-demo { background: #E8F0FE; color: #003B75; }
+    .badge-error { background: #FDECEA; color: #D13438; }
+    .content { flex: 1; padding: 28px 32px; overflow: hidden; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi { background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #E5E7EB; border-left: 4px solid #0078D4; }
+    .kpi.error { border-left-color: #D13438; }
+    .kpi.warning { border-left-color: #FFB900; }
+    .kpi-label { font-size: 12px; color: #6B7280; margin-bottom: 6px; }
+    .kpi-value { font-size: 28px; font-weight: 700; }
+    .nogo { background: #FDECEA; border: 2px solid #D13438; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; }
+    .nogo h3 { color: #D13438; font-size: 24px; margin-bottom: 8px; }
+    .nogo p { color: #424242; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #F3F4F6; padding: 10px 12px; text-align: left; font-weight: 600; color: #424242; border-bottom: 2px solid #E5E7EB; }
+    td { padding: 10px 12px; border-bottom: 1px solid #F3F4F6; }
+    .badge-s { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-crit { background: #FDECEA; color: #D13438; }
+    .badge-high { background: #FFF4CE; color: #8B6914; }
+    .badge-med { background: #E8F0FE; color: #003B75; }
+    .badge-open { background: #FFF4CE; color: #8B6914; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-brand"><h1>MAP <span>Nexus™</span></h1><div class="sub">Migration Assurance Platform</div></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 6v6l4 2"/></svg>Executive Dashboard</a>
+      <a class="nav-item active" href="#"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Risk Assessment</a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Data Quality</a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Governance Centre</a>
+    </nav>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2>Risk Assessment</h2>
+      <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
+        <span class="badge badge-demo">Demo Environment</span>
+        <span class="badge badge-error">Migration Blocked</span>
+        <span style="font-size:12px;color:#6B7280;">5 Jul 2026 14:30</span>
+      </div>
+    </div>
+    <div class="content">
+      <div class="kpi-grid">
+        <div class="kpi error"><div class="kpi-label">Total Risks</div><div class="kpi-value">5</div></div>
+        <div class="kpi error"><div class="kpi-label">Critical</div><div class="kpi-value">1</div></div>
+        <div class="kpi warning"><div class="kpi-label">High</div><div class="kpi-value">2</div></div>
+        <div class="kpi"><div class="kpi-label">Medium</div><div class="kpi-value">2</div></div>
+        <div class="kpi error"><div class="kpi-label">Open</div><div class="kpi-value">5</div></div>
+      </div>
+      <div class="nogo">
+        <h3>NO-GO</h3>
+        <p>Migration cannot proceed. Critical validation issues and high-severity risks prevent safe production cutover.</p>
+      </div>
+      <div class="chart-card" style="background:#fff;border-radius:12px;padding:24px;border:1px solid #E5E7EB;">
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:16px;color:#0B2447;">Top Risks</h3>
+        <table>
+          <thead><tr><th>#</th><th>Risk</th><th>Severity</th><th>Impact</th><th>Mitigation</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>R-001</td><td>Data loss during migration</td><td><span class="badge-s badge-crit">CRITICAL</span></td><td>Permanent data loss</td><td>Implement incremental backup</td><td><span class="badge-s badge-open">OPEN</span></td></tr>
+            <tr><td>R-002</td><td>Schema incompatibility</td><td><span class="badge-s badge-high">HIGH</span></td><td>Migration failure</td><td>Schema validation pre-check</td><td><span class="badge-s badge-open">OPEN</span></td></tr>
+            <tr><td>R-003</td><td>Performance degradation</td><td><span class="badge-s badge-high">HIGH</span></td><td>System slowdown</td><td>Load testing and optimization</td><td><span class="badge-s badge-open">OPEN</span></td></tr>
+            <tr><td>R-004</td><td>Security vulnerability</td><td><span class="badge-s badge-med">MEDIUM</span></td><td>Data exposure</td><td>Encryption and access controls</td><td><span class="badge-s badge-open">OPEN</span></td></tr>
+            <tr><td>R-005</td><td>Rollback complexity</td><td><span class="badge-s badge-med">MEDIUM</span></td><td>Extended downtime</td><td>Automated rollback procedures</td><td><span class="badge-s badge-open">OPEN</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

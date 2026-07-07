@@ -1,7 +1,7 @@
 from fastapi import Header, HTTPException
 from jose import jwt, JWTError
 
-#from app.api.core.jwt_config import SECRET_KEY, ALGORITHM
+# from app.api.core.jwt_config import SECRET_KEY, ALGORITHM
 from app.api.core.auth.jwt_config import SECRET_KEY, ALGORITHM
 
 

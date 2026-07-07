@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About MAP - Migration Assurance Platform | Sopra Steria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-from: #667eea;
+            --primary-to: #764ba2;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+        }
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        @keyframes countUp {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .stat-animate {
+            animation: countUp 0.8s ease forwards;
+        }
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-xl">M</span>
+                        </div>
+                        <span class="ml-3 text-xl font-bold gradient-text">MAP Platform</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Home</a>
+                    <a href="platform.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Platform</a>
+                    <a href="solutions.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Solutions</a>
+                    <a href="industries.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Industries</a>
+                    <a href="security.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Security</a>
+                    <a href="roadmap.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Roadmap</a>
+                    <a href="about.html" class="text-purple-600 font-medium border-b-2 border-purple-600 pb-1">About</a>
+                    <a href="contact.html" class="gradient-bg text-white px-6 py-2 rounded-full font-medium hover:opacity-90 transition">Contact</a>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-700 hover:text-purple-600">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-4 py-3 space-y-2">
+                <a href="index.html" class="block py-2 text-gray-700 hover:text-purple-600">Home</a>
+                <a href="platform.html" class="block py-2 text-gray-700 hover:text-purple-600">Platform</a>
+                <a href="solutions.html" class="block py-2 text-gray-700 hover:text-purple-600">Solutions</a>
+                <a href="industries.html" class="block py-2 text-gray-700 hover:text-purple-600">Industries</a>
+                <a href="security.html" class="block py-2 text-gray-700 hover:text-purple-600">Security</a>
+                <a href="roadmap.html" class="block py-2 text-gray-700 hover:text-purple-600">Roadmap</a>
+                <a href="about.html" class="block py-2 text-purple-600 font-medium">About</a>
+                <a href="contact.html" class="block py-2 text-gray-700 hover:text-purple-600">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header with Breadcrumb -->
+    <section class="gradient-bg pt-24 pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="mb-6">
+                <ol class="flex items-center space-x-2 text-white/80 text-sm">
+                    <li><a href="index.html" class="hover:text-white transition">Home</a></li>
+                    <li><i class="fas fa-chevron-right text-xs"></i></li>
+                    <li class="text-white font-medium">About</li>
+                </ol>
+            </nav>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">About MAP</h1>
+            <p class="text-xl text-white/90 max-w-3xl">Transforming how financial services organisations manage complex migrations with confidence, control, and compliance.</p>
+        </div>
+    </section>
+
+    <!-- Mission Statement -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
+                    <p class="text-xl text-gray-600 mb-6">To empower financial services organisations with the assurance, visibility, and governance they need to execute complex migrations with certainty and confidence.</p>
+                    <p class="text-gray-600 mb-8">We believe that every migration programme deserves rigorous validation, transparent governance, and comprehensive evidence—not just hope. MAP delivers the enterprise-grade platform that transforms migration from a high-risk gamble into a managed, measurable, and auditable process.</p>
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-1 gradient-bg rounded-full"></div>
+                        <span class="text-sm font-semibold text-purple-600 uppercase tracking-wider">Founded 2024</span>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-2xl p-8">
+                        <div class="bg-white rounded-xl shadow-lg p-8">
+                            <div class="flex items-center mb-6">
+                                <i class="fas fa-bullseye text-4xl text-purple-600 mr-4"></i>
+                                <h3 class="text-2xl font-bold gradient-text">Purpose-Driven</h3>
+                            </div>
+                            <p class="text-gray-600">MAP was born from the frontline experience of watching billion-pound migration programmes struggle with the same preventable failures year after year.</p>
+                            <div class="mt-6 grid grid-cols-3 gap-4">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold gradient-text">200+</div>
+                                    <div class="text-xs text-gray-500">Migrations Observed</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold gradient-text">£50B+</div>
+                                    <div class="text-xs text-gray-500">Programme Value</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold gradient-text">15+</div>
+                                    <div class="text-xs text-gray-500">Years of Expertise</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vision Statement -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Vision</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">The future we are building towards</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="gradient-bg p-8">
+                    <div class="max-w-3xl mx-auto text-center">
+                        <i class="fas fa-eye text-white/80 text-4xl mb-4"></i>
+                        <p class="text-2xl md:text-3xl font-bold text-white leading-relaxed">"A world where every financial services migration is executed with guaranteed assurance, complete traceability, and zero regulatory risk."</p>
+                    </div>
+                </div>
+                <div class="p-8">
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="text-center">
+                            <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-shield-alt text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">Zero Surprises</h3>
+                            <p class="text-gray-600 text-sm">Every migration outcome is predictable, validated, and evidence-backed before go-live.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-balance-scale text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">Full Compliance</h3>
+                            <p class="text-gray-600 text-sm">Regulatory requirements are embedded into every step, not bolted on at the end.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-chart-line text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">Measurable Value</h3>
+                            <p class="text-gray-600 text-sm">Every migration decision is backed by data, not gut feeling or wishful thinking.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Founder Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Founder</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">The vision and expertise behind MAP</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="flex justify-center">
+                    <div class="relative">
+                        <div class="w-64 h-64 rounded-2xl gradient-bg flex items-center justify-center shadow-xl">
+                            <div class="text-center text-white">
+                                <i class="fas fa-user-tie text-6xl mb-4 opacity-80"></i>
+                                <p class="text-sm font-medium opacity-80">Founder & CEO</p>
+                            </div>
+                        </div>
+                        <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold gradient-text">15+</div>
+                                <div class="text-xs text-gray-500">Years</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">[Founder Name]</h3>
+                    <p class="text-purple-600 font-semibold mb-6">Founder & Chief Executive Officer</p>
+                    <p class="text-gray-600 mb-4">With over 15 years of experience leading large-scale data and system migrations for tier-1 financial institutions, [Founder Name] has witnessed firsthand the systemic failures that plague the industry.</p>
+                    <p class="text-gray-600 mb-6">Having led migration programmes valued at over £50 billion across banking, insurance, and asset management, they identified a critical gap: the absence of a purpose-built platform that combines technical validation with regulatory compliance and executive governance.</p>
+                    <p class="text-gray-600 mb-6">MAP was created to solve this problem—providing the rigour, transparency, and assurance that complex migrations demand.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-purple-600 hover:text-white transition">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-purple-600 hover:text-white transition">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-purple-600 hover:text-white transition">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why MAP Exists -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Why MAP Exists</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">The industry challenges that drive our purpose</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8 mb-12">
+                <div class="stat-card bg-white rounded-2xl shadow-lg p-8 text-center card-hover">
+                    <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-chart-line text-red-500 text-3xl"></i>
+                    </div>
+                    <div class="text-5xl font-bold text-red-500 mb-2 stat-animate">70%</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Exceed Budget</h3>
+                    <p class="text-gray-600">of migration programmes significantly exceed their original budget allocations, with cost overruns averaging 30-50%.</p>
+                </div>
+                <div class="stat-card bg-white rounded-2xl shadow-lg p-8 text-center card-hover">
+                    <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-database text-yellow-500 text-3xl"></i>
+                    </div>
+                    <div class="text-5xl font-bold text-yellow-500 mb-2 stat-animate">60%</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Data Quality Issues</h3>
+                    <p class="text-gray-600">experience critical data quality issues that are discovered only during validation, causing costly rework and delays.</p>
+                </div>
+                <div class="stat-card bg-white rounded-2xl shadow-lg p-8 text-center card-hover">
+                    <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-exclamation-triangle text-orange-500 text-3xl"></i>
+                    </div>
+                    <div class="text-5xl font-bold text-orange-500 mb-2 stat-animate">45%</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Compliance Failures</h3>
+                    <p class="text-gray-600">face compliance failures or regulatory findings related to migration governance gaps and inadequate evidence trails.</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">The Human Cost</h3>
+                        <p class="text-gray-600 mb-4">Behind every statistic is a programme team working weekends, executives losing sleep, and customers experiencing service disruptions. These failures are not inevitable—they are preventable.</p>
+                        <p class="text-gray-600">MAP was built to break this cycle by providing the assurance infrastructure that financial services migrations have always needed but never had.</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-xl p-6">
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                    <i class="fas fa-times text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-900">Without MAP</h4>
+                                    <p class="text-sm text-gray-600">Manual tracking, scattered evidence, reactive firefighting, regulatory surprises, and blame culture.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                    <i class="fas fa-check text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-900">With MAP</h4>
+                                    <p class="text-sm text-gray-600">Automated validation, immutable evidence, proactive governance, regulatory confidence, and shared accountability.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Values</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">The principles that guide everything we build and deliver</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Trust -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 card-hover border-t-4 border-purple-500">
+                    <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-handshake text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Trust</h3>
+                    <p class="text-gray-600 mb-4">We build trust through transparency. Every action in MAP is logged, every decision is traceable, and every outcome is evidence-backed.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-purple-500 mt-1 mr-2"></i>
+                            Immutable audit trails
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-purple-500 mt-1 mr-2"></i>
+                            Cryptographic evidence
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-purple-500 mt-1 mr-2"></i>
+                            Zero-trust architecture
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Assurance -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 card-hover border-t-4 border-blue-500">
+                    <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-shield-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Assurance</h3>
+                    <p class="text-gray-600 mb-4">We deliver assurance, not just promises. Our platform provides the proof that migrations meet their intended outcomes.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-blue-500 mt-1 mr-2"></i>
+                            99.97% validation accuracy
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-blue-500 mt-1 mr-2"></i>
+                            Automated test execution
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-blue-500 mt-1 mr-2"></i>
+                            Real-time reconciliation
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Intelligence -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 card-hover border-t-4 border-green-500">
+                    <div class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-brain text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Intelligence</h3>
+                    <p class="text-gray-600 mb-4">We embed intelligence into every process. AI-assisted mapping, predictive analytics, and smart scanning reduce manual effort.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            AI-powered recommendations
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            Predictive risk assessment
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            Smart dependency detection
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Compliance -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 card-hover border-t-4 border-orange-500">
+                    <div class="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-clipboard-check text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Compliance</h3>
+                    <p class="text-gray-600 mb-4">We make compliance effortless. Regulatory requirements are embedded into workflows, not treated as an afterthought.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-orange-500 mt-1 mr-2"></i>
+                            Regulatory evidence collection
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-orange-500 mt-1 mr-2"></i>
+                            FCA & PRA aligned controls
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check text-orange-500 mt-1 mr-2"></i>
+                            Automated compliance reporting
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 gradient-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Join Us in Transforming Migration Assurance</h2>
+            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">Whether you're migrating a core banking platform or modernising your data estate, MAP provides the assurance you need to succeed.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="openModal('demo')" class="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition shadow-lg">
+                    <i class="fas fa-play-circle mr-2"></i>Request Demo
+                </button>
+                <button onclick="openModal('contact')" class="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white/10 transition">
+                    <i class="fas fa-calendar mr-2"></i>Book Consultation
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-12">
+                <div>
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-xl">M</span>
+                        </div>
+                        <span class="ml-3 text-xl font-bold">MAP Platform</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">Enterprise-grade migration assurance for complex financial services transformations.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-github text-xl"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Platform</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="platform.html" class="hover:text-white transition">Overview</a></li>
+                        <li><a href="platform.html#capabilities" class="hover:text-white transition">Capabilities</a></li>
+                        <li><a href="platform.html#architecture" class="hover:text-white transition">Architecture</a></li>
+                        <li><a href="platform.html#engines" class="hover:text-white transition">Engines</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Solutions</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="solutions.html" class="hover:text-white transition">Core Banking</a></li>
+                        <li><a href="solutions.html" class="hover:text-white transition">Data Migration</a></li>
+                        <li><a href="solutions.html" class="hover:text-white transition">Cloud Migration</a></li>
+                        <li><a href="security.html" class="hover:text-white transition">Security</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
+                        <li><a href="roadmap.html" class="hover:text-white transition">Roadmap</a></li>
+                        <li><a href="contact.html" class="hover:text-white transition">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition">Careers</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2026 Sopra Steria. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Demo Modal -->
+    <div id="demo-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div class="gradient-bg p-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Request a Demo</h3>
+                    <button onclick="closeModal('demo')" class="text-white/80 hover:text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <form class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Work Email</label>
+                    <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option>Select your role</option>
+                        <option>CxO / Executive</option>
+                        <option>Programme Director</option>
+                        <option>Technical Lead</option>
+                        <option>Data Architect</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full gradient-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                    Submit Request
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div class="bg-purple-600 p-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Book a Consultation</h3>
+                    <button onclick="closeModal('contact')" class="text-white/80 hover:text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <form class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Date</label>
+                    <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                    <textarea rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
+                    Schedule Consultation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Modal functions
+        function openModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        });
+
+        // Animate on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card-hover, .stat-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Governance Summary — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/reports.css">
+</head>
+<body>
+  <header class="report-header">
+    <div class="report-header-inner">
+      <div class="report-brand">MAP Nexus™ — Migration Assurance Platform</div>
+      <h1 class="report-title">Governance Summary</h1>
+      <div class="report-subtitle">Findings, Severity, and Ownership</div>
+    </div>
+  </header>
+  <nav class="report-nav">
+    <div class="report-nav-inner">
+      <a href="../Landing.html">Home</a>
+      <span class="sep">/</span>
+      <a href="executive_summary.html">Executive Summary</a>
+      <span class="sep">/</span>
+      <a href="migration_summary.html">Migration</a>
+      <span class="sep">/</span>
+      <a href="validation_summary.html">Validation</a>
+      <span class="sep">/</span>
+      <a href="governance_summary.html" style="font-weight:600;">Governance</a>
+      <span class="sep">/</span>
+      <a href="risk_summary.html">Risk</a>
+      <span class="sep">/</span>
+      <a href="data_quality_summary.html">Quality</a>
+      <span class="sep">/</span>
+      <a href="readiness_report.html">Readiness</a>
+      <span class="sep">/</span>
+      <a href="issue_register.html">Issues</a>
+    </div>
+  </nav>
+  <main class="report-content">
+    <div class="report-section">
+      <h2>Governance Overview</h2>
+      <div class="kpi-row">
+        <div class="kpi-box info"><div class="label">Total Findings</div><div class="value">7</div></div>
+        <div class="kpi-box error"><div class="label">Open</div><div class="value">7</div></div>
+        <div class="kpi-box error"><div class="label">Critical</div><div class="value">2</div></div>
+        <div class="kpi-box warning"><div class="label">High</div><div class="value">3</div></div>
+        <div class="kpi-box info"><div class="label">Medium</div><div class="value">2</div></div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h2>All Findings</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>ID</th><th>Type</th><th>Description</th><th>Severity</th><th>Control</th><th>Owner</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>GOV-001</td><td>Data Quality</td><td>Source record count mismatch</td><td><span class="badge badge-error">CRITICAL</span></td><td>C01</td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>GOV-002</td><td>Schema</td><td>Target schema deviation detected</td><td><span class="badge badge-error">CRITICAL</span></td><td>C02</td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>GOV-003</td><td>Validation</td><td>Referential integrity violation</td><td><span class="badge badge-warning">HIGH</span></td><td>C07</td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>GOV-004</td><td>Execution</td><td>Control execution timeout</td><td><span class="badge badge-warning">HIGH</span></td><td>C03</td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>GOV-005</td><td>Execution</td><td>Connection pool exhausted</td><td><span class="badge badge-warning">HIGH</span></td><td>C04</td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>GOV-006</td><td>Data Quality</td><td>Null values in required fields</td><td><span class="badge badge-info">MEDIUM</span></td><td>C06</td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>GOV-007</td><td>Performance</td><td>Query execution slow</td><td><span class="badge badge-info">MEDIUM</span></td><td>C08</td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="report-section">
+      <h2>Ownership Distribution</h2>
+      <table class="data-table">
+        <thead><tr><th>Owner</th><th>Findings</th><th>Critical</th><th>High</th><th>Medium</th></tr></thead>
+        <tbody>
+          <tr><td>Data Team</td><td>3</td><td>1</td><td>1</td><td>1</td></tr>
+          <tr><td>Platform Team</td><td>4</td><td>1</td><td>2</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <footer class="report-footer">
+    MAP Nexus™ — Migration Assurance Platform &middot; Presentation Engine v2.0 &middot; <a href="../Landing.html">Home</a>
+  </footer>
+</body>
+</html>

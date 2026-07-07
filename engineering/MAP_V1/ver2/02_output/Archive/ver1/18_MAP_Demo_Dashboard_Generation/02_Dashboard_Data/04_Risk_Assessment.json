@@ -1,0 +1,41 @@
+{
+  "dashboard": "Risk Assessment",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "theme": "MAP Nexus",
+  "data_source": "MAP Validation Engine — Live Execution",
+  "scenario": "Scenario 3 — MIXTURE",
+  "overall_risk": {
+    "level": "HIGH", "score": 58.3,
+    "factors": ["Schema drift detected across all entities", "Permission errors preventing full validation", "Balance reconciliation mismatch"]
+  },
+  "risk_matrix": {
+    "type": "risk-matrix",
+    "data": [
+      { "category": "Data Integrity", "risk": "HIGH", "score": 7, "color": "#F9A825" },
+      { "category": "Schema Compliance", "risk": "CRITICAL", "score": 9, "color": "#C62828" },
+      { "category": "Referential Integrity", "risk": "MEDIUM", "score": 5, "color": "#F9A825" },
+      { "category": "Financial Accuracy", "risk": "CRITICAL", "score": 9, "color": "#C62828" },
+      { "category": "Operational Readiness", "risk": "HIGH", "score": 7, "color": "#F9A825" }
+    ]
+  },
+  "top_risks": [
+    { "rank": 1, "risk": "Schema Drift — 2 column differences detected between source and target", "severity": "CRITICAL", "impact": "Data loss or transformation errors during migration", "mitigation": "Review schema mapping and update transformation rules", "status": "Open" },
+    { "rank": 2, "risk": "Balance Reconciliation — Variance between source and target balances", "severity": "CRITICAL", "impact": "Financial reporting inaccuracies", "mitigation": "Investigate balance transformation logic and correct discrepancies", "status": "Open" },
+    { "rank": 3, "risk": "Row Count Mismatch — Source and target record counts differ", "severity": "HIGH", "impact": "Incomplete data migration", "mitigation": "Review extraction query and ensure all records are captured", "status": "Open" },
+    { "rank": 4, "risk": "Permission Errors — Engine unable to execute full validation suite", "severity": "MEDIUM", "impact": "Incomplete validation coverage", "mitigation": "Grant necessary database permissions to engine service account", "status": "Open" }
+  ],
+  "go_no_go": {
+    "decision": "NO-GO",
+    "reason": "Critical issues detected — schema drift and balance reconciliation failures must be resolved before pilot",
+    "minimum_requirements": ["Resolve schema drift (C010)", "Resolve balance reconciliation (C02)", "Resolve row count mismatch (C01)", "Grant engine permissions for full validation"]
+  },
+  "kpi_cards": [
+    { "label": "Overall Risk", "value": "High", "status": "error", "icon": "alert-triangle" },
+    { "label": "Risk Score", "value": "58.3/100", "status": "error", "icon": "gauge" },
+    { "label": "Critical Risks", "value": "2", "status": "error", "icon": "alert-octagon" },
+    { "label": "High Risks", "value": "2", "status": "warning", "icon": "alert-circle" },
+    { "label": "Go/No-Go", "value": "No-Go", "status": "error", "icon": "shield-off" }
+  ]
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Risk Assessment Hero</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; }
+    .left { width: 50%; background: linear-gradient(135deg, #D13438 0%, #8B1A1A 100%); display: flex; flex-direction: column; justify-content: center; padding: 80px; color: #fff; }
+    .left h2 { font-size: 48px; font-weight: 700; margin-bottom: 16px; }
+    .left h2 span { font-weight: 300; }
+    .left p { font-size: 18px; opacity: 0.85; line-height: 1.6; margin-bottom: 32px; }
+    .nogo-box { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 24px 32px; }
+    .nogo-box h3 { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+    .nogo-box p { font-size: 14px; opacity: 0.8; }
+    .right { width: 50%; padding: 60px; display: flex; flex-direction: column; justify-content: center; }
+    .risk-list { display: flex; flex-direction: column; gap: 16px; }
+    .risk { background: #fff; border-radius: 10px; padding: 20px 24px; border: 1px solid #E5E7EB; border-left: 4px solid; }
+    .risk.crit { border-left-color: #D13438; }
+    .risk.high { border-left-color: #FFB900; }
+    .risk.med { border-left-color: #5C2D91; }
+    .risk h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .risk p { font-size: 12px; color: #6B7280; }
+  </style>
+</head>
+<body>
+  <div class="left">
+    <h2>Risk <span>Assessment</span></h2>
+    <p>Comprehensive risk evaluation with automated severity classification and mitigation tracking.</p>
+    <div class="nogo-box">
+      <h3>NO-GO</h3>
+      <p>Migration cannot proceed. Critical validation issues and high-severity risks prevent safe production cutover.</p>
+    </div>
+  </div>
+  <div class="right">
+    <div class="risk-list">
+      <div class="risk crit"><h4>R-001: Data loss during migration</h4><p>CRITICAL · Permanent data loss · Incremental backup required</p></div>
+      <div class="risk high"><h4>R-002: Schema incompatibility</h4><p>HIGH · Migration failure · Schema validation pre-check</p></div>
+      <div class="risk high"><h4>R-003: Performance degradation</h4><p>HIGH · System slowdown · Load testing required</p></div>
+      <div class="risk med"><h4>R-004: Security vulnerability</h4><p>MEDIUM · Data exposure · Encryption required</p></div>
+      <div class="risk med"><h4>R-005: Rollback complexity</h4><p>MEDIUM · Extended downtime · Automated rollback</p></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -6,18 +6,15 @@ logger = get_logger(__name__)
 def connection_factory(config):
 
     db_type = config.get("type") or config.get("database_type")
-    
+
     if not db_type:
         raise ValueError("Database type is required.")
-    
-    db_type = db_type.lower().strip()
 
-    
+    db_type = db_type.lower().strip()
 
     if db_type == "postgres":
         from app.db.adapters.postgres_adapter import PostgresAdapter
         return PostgresAdapter(config)
-    
 
     elif db_type == "mysql":
         from app.db.adapters.mysql_adapter import MySQLAdapter

@@ -1,5 +1,6 @@
 import csv
 
+
 class AuditPackService:
 
     def generate(self, engine_db, batch_id):
@@ -10,9 +11,9 @@ class AuditPackService:
         WHERE batch_id = %s
         """
 
-        rows = engine_db.execute(query,(batch_id,))
+        rows = engine_db.execute(query, (batch_id,))
 
-        with open(f"audit_pack_{batch_id}.csv","w",newline="") as f:
+        with open(f"audit_pack_{batch_id}.csv", "w", newline="") as f:
 
             writer = csv.writer(f)
 

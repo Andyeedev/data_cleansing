@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=2480">
+  <title>MAP Nexus™ — Half Page Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 2480px; height: 1754px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #fff; padding: 120px; }
+    .page { width: 100%; height: 100%; display: flex; gap: 60px; }
+    .left { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .left h2 { font-size: 56px; font-weight: 700; color: #0B2447; margin-bottom: 16px; }
+    .left h2 span { color: #0078D4; font-weight: 300; }
+    .left p { font-size: 22px; color: #424242; line-height: 1.6; margin-bottom: 32px; }
+    .kpi-row { display: flex; gap: 16px; }
+    .kpi { background: #F3F4F6; border-radius: 12px; padding: 20px 24px; }
+    .kpi .val { font-size: 32px; font-weight: 700; color: #0078D4; }
+    .kpi .lbl { font-size: 14px; color: #6B7280; }
+    .right { width: 900px; background: #F8F9FB; border-radius: 20px; padding: 40px; display: flex; flex-direction: column; gap: 20px; }
+    .chart-placeholder { flex: 1; background: #fff; border-radius: 12px; border: 1px solid #E5E7EB; }
+    .footer { position: absolute; bottom: 120px; left: 120px; right: 120px; text-align: center; color: #9CA3AF; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="left">
+      <h2>MAP <span>Nexus™</span></h2>
+      <p>Automated validation, governance, and risk assessment for enterprise data migrations. Azure-native design for Microsoft ecosystem.</p>
+      <div class="kpi-row">
+        <div class="kpi"><div class="val">9</div><div class="lbl">Controls</div></div>
+        <div class="kpi"><div class="val">27</div><div class="lbl">Rules</div></div>
+        <div class="kpi"><div class="val">6</div><div class="lbl">Dimensions</div></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="chart-placeholder"></div>
+    </div>
+  </div>
+  <div class="footer">MAP Nexus™ — Migration Assurance Platform</div>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAP Nexus™ V3 — Brand Identity Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --primary: #667EEA; --secondary: #764BA2; --accent: #3B82F6; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #F8FAFC; color: #1F2937; padding: 40px 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6B7280; font-size: 16px; margin-bottom: 12px; }
+    .version-badge { display: inline-block; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 40px; }
+    .section-title { font-size: 22px; font-weight: 600; margin-bottom: 24px; margin-top: 56px; padding-top: 24px; border-top: 2px solid #E5E7EB; }
+    .logo-family { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 48px; }
+    .logo-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .logo-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin-bottom: 16px; }
+    .logo-preview { display: flex; align-items: center; justify-content: center; min-height: 120px; padding: 24px; border-radius: 8px; }
+    .preview-light { background: #FFFFFF; border: 1px solid #E5E7EB; }
+    .preview-dark { background: #111827; }
+    .preview-mono { background: #F3F4F6; }
+    .preview-black { background: #000000; }
+    .preview-charcoal { background: #1F2937; }
+    .logo-preview object { max-width: 100%; height: auto; }
+    .color-palette { display: flex; gap: 16px; margin-bottom: 48px; flex-wrap: wrap; }
+    .color-swatch { text-align: center; }
+    .color-swatch .swatch { width: 72px; height: 72px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .color-swatch .label { font-size: 12px; font-weight: 500; color: #6B7280; }
+    .color-swatch .hex { font-size: 14px; font-weight: 600; }
+    .mockups { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 48px; }
+    .mockup-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .mockup-header { background: #F3F4F6; padding: 12px 16px; font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; }
+    .mockup-content { padding: 24px; min-height: 160px; display: flex; align-items: center; justify-content: center; }
+    .mockup-content object { max-width: 100%; height: auto; }
+    .size-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 48px; }
+    .size-card { background: white; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .size-label { font-size: 11px; color: #6B7280; margin-top: 8px; }
+    @media (max-width: 768px) {
+      .logo-family { grid-template-columns: 1fr; }
+      .mockups { grid-template-columns: 1fr; }
+      .size-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MAP Nexus™</h1>
+    <p class="subtitle">Migration Assurance Platform — Enterprise Brand Identity v3</p>
+    <span class="version-badge">v3.0 Production Ready</span>
+
+    <!-- Colour Palette -->
+    <h2 class="section-title">Brand Colours</h2>
+    <div class="color-palette">
+      <div class="color-swatch">
+        <div class="swatch" style="background: #667EEA;"></div>
+        <div class="label">Primary Blue</div>
+        <div class="hex">#667EEA</div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch" style="background: #764BA2;"></div>
+        <div class="label">Primary Violet</div>
+        <div class="hex">#764BA2</div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch" style="background: #3B82F6;"></div>
+        <div class="label">Accent Blue</div>
+        <div class="hex">#3B82F6</div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch" style="background: #1F2937;"></div>
+        <div class="label">Text Dark</div>
+        <div class="hex">#1F2937</div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch" style="background: #111827;"></div>
+        <div class="label">Dark BG</div>
+        <div class="hex">#111827</div>
+      </div>
+    </div>
+
+    <!-- Logo Family -->
+    <h2 class="section-title">Logo Family — 12 Variations</h2>
+    <div class="logo-family">
+      <!-- Primary -->
+      <div class="logo-card">
+        <div class="logo-label">1. MAP Nexus Primary</div>
+        <div class="logo-preview preview-light">
+          <object data="map-nexus-v3/map-nexus-primary.svg" type="image/svg+xml" width="360" height="100"></object>
+        </div>
+      </div>
+      <!-- Vertical -->
+      <div class="logo-card">
+        <div class="logo-label">2. MAP Nexus Vertical</div>
+        <div class="logo-preview preview-light">
+          <object data="map-nexus-v3/map-nexus-vertical.svg" type="image/svg+xml" width="140" height="200"></object>
+        </div>
+      </div>
+      <!-- Icon -->
+      <div class="logo-card">
+        <div class="logo-label">3. MAP Nexus Icon</div>
+        <div class="logo-preview preview-light">
+          <object data="map-nexus-v3/map-nexus-icon.svg" type="image/svg+xml" width="100" height="100"></object>
+        </div>
+      </div>
+      <!-- Compact -->
+      <div class="logo-card">
+        <div class="logo-label">4. MAP Nexus Compact</div>
+        <div class="logo-preview preview-light">
+          <object data="map-nexus-v3/map-nexus-compact.svg" type="image/svg+xml" width="200" height="60"></object>
+        </div>
+      </div>
+      <!-- Dark -->
+      <div class="logo-card">
+        <div class="logo-label">5. MAP Nexus Dark</div>
+        <div class="logo-preview preview-dark">
+          <object data="map-nexus-v3/map-nexus-dark.svg" type="image/svg+xml" width="360" height="100"></object>
+        </div>
+      </div>
+      <!-- Monochrome -->
+      <div class="logo-card">
+        <div class="logo-label">6. MAP Nexus Monochrome</div>
+        <div class="logo-preview preview-mono">
+          <object data="map-nexus-v3/map-nexus-mono.svg" type="image/svg+xml" width="360" height="100"></object>
+        </div>
+      </div>
+      <!-- Inverted -->
+      <div class="logo-card">
+        <div class="logo-label">7. MAP Nexus Inverted</div>
+        <div class="logo-preview preview-black">
+          <object data="map-nexus-v3/map-nexus-inverted.svg" type="image/svg+xml" width="360" height="100"></object>
+        </div>
+      </div>
+      <!-- Single Black -->
+      <div class="logo-card">
+        <div class="logo-label">8. Single Colour — Black</div>
+        <div class="logo-preview preview-light">
+          <object data="map-nexus-v3/map-nexus-single-black.svg" type="image/svg+xml" width="360" height="100"></object>
+        </div>
+      </div>
+      <!-- Single White -->
+      <div class="logo-card">
+        <div class="logo-label">9. Single Colour — White</div>
+        <div class="logo-preview preview-charcoal">
+          <object data="map-nexus-v3/map-nexus-single-white.svg" type="image/svg+xml" width="360" height="100"></object>
+        </div>
+      </div>
+      <!-- Single Azure -->
+      <div class="logo-card">
+        <div class="logo-label">10. Single Colour — Azure</div>
+        <div class="logo-preview preview-light">
+          <object data="map-nexus-v3/map-nexus-single-azure.svg" type="image/svg+xml" width="360" height="100"></object>
+        </div>
+      </div>
+      <!-- Favicon -->
+      <div class="logo-card">
+        <div class="logo-label">11. MAP Nexus Favicon</div>
+        <div class="logo-preview preview-light">
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <object data="map-nexus-v3/map-nexus-favicon.svg" type="image/svg+xml" width="32" height="32"></object>
+            <span style="color: #6B7280; font-size: 13px;">32×32</span>
+          </div>
+        </div>
+      </div>
+      <!-- App Icon -->
+      <div class="logo-card">
+        <div class="logo-label">12. MAP Nexus App Icon</div>
+        <div class="logo-preview preview-light">
+          <object data="map-nexus-v3/map-nexus-app-icon.svg" type="image/svg+xml" width="100" height="100"></object>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scalability -->
+    <h2 class="section-title">Responsive Logo Rules</h2>
+    <div class="size-grid">
+      <div class="size-card">
+        <object data="map-nexus-v3/map-nexus-favicon.svg" type="image/svg+xml" width="16" height="16"></object>
+        <div class="size-label">16px</div>
+      </div>
+      <div class="size-card">
+        <object data="map-nexus-v3/map-nexus-favicon.svg" type="image/svg+xml" width="24" height="24"></object>
+        <div class="size-label">24px</div>
+      </div>
+      <div class="size-card">
+        <object data="map-nexus-v3/map-nexus-favicon.svg" type="image/svg+xml" width="32" height="32"></object>
+        <div class="size-label">32px</div>
+      </div>
+      <div class="size-card">
+        <object data="map-nexus-v3/map-nexus-icon.svg" type="image/svg+xml" width="48" height="48"></object>
+        <div class="size-label">48px</div>
+      </div>
+      <div class="size-card">
+        <object data="map-nexus-v3/map-nexus-icon.svg" type="image/svg+xml" width="64" height="64"></object>
+        <div class="size-label">64px</div>
+      </div>
+      <div class="size-card">
+        <object data="map-nexus-v3/map-nexus-icon.svg" type="image/svg+xml" width="128" height="128"></object>
+        <div class="size-label">128px</div>
+      </div>
+    </div>
+
+    <!-- Real-World Mockups -->
+    <h2 class="section-title">Brand Preview — Real-World Applications</h2>
+    <div class="mockups">
+      <!-- Website Header -->
+      <div class="mockup-card">
+        <div class="mockup-header">Website Header</div>
+        <div class="mockup-content" style="background: white; flex-direction: column; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 32px; width: 100%; padding: 12px 0; border-bottom: 1px solid #E5E7EB;">
+            <object data="map-nexus-v3/map-nexus-compact.svg" type="image/svg+xml" width="120" height="36"></object>
+            <div style="display: flex; gap: 24px; font-size: 14px; color: #374151;">
+              <span>Platform</span><span>Solutions</span><span>Pricing</span><span>About</span>
+            </div>
+            <div style="margin-left: auto; background: linear-gradient(135deg, #667EEA, #764BA2); color: white; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500;">Contact Sales</div>
+          </div>
+        </div>
+      </div>
+      <!-- Business Card -->
+      <div class="mockup-card">
+        <div class="mockup-header">Business Card</div>
+        <div class="mockup-content" style="background: #F8FAFC;">
+          <div style="background: white; border-radius: 8px; padding: 24px; width: 280px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            <object data="map-nexus-v3/map-nexus-compact.svg" type="image/svg+xml" width="100" height="30"></object>
+            <div style="margin-top: 20px; font-size: 13px; color: #374151; line-height: 1.6;">
+              <div style="font-weight: 600;">Sarah Mitchell</div>
+              <div style="color: #6B7280;">VP of Enterprise Sales</div>
+              <div style="color: #6B7280; margin-top: 8px;">sarah.mitchell@mapnexus.com</div>
+              <div style="color: #6B7280;">+44 20 7946 0958</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- PowerPoint Slide -->
+      <div class="mockup-card">
+        <div class="mockup-header">PowerPoint Title Slide</div>
+        <div class="mockup-content" style="background: linear-gradient(135deg, #111827, #1F2937);">
+          <div style="text-align: center;">
+            <object data="map-nexus-v3/map-nexus-icon.svg" type="image/svg+xml" width="80" height="80"></object>
+            <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 16px; letter-spacing: 2px;">MAP NEXUS</div>
+            <div style="color: #9CA3AF; font-size: 12px; margin-top: 8px; letter-spacing: 3px;">MIGRATION ASSURANCE PLATFORM</div>
+          </div>
+        </div>
+      </div>
+      <!-- LinkedIn -->
+      <div class="mockup-card">
+        <div class="mockup-header">LinkedIn Company Profile</div>
+        <div class="mockup-content" style="background: #F3F4F6; flex-direction: column; gap: 12px;">
+          <div style="background: linear-gradient(135deg, #667EEA, #764BA2); height: 80px; width: 100%; border-radius: 8px 8px 0 0;"></div>
+          <div style="background: white; border-radius: 8px; padding: 16px; width: 100%; display: flex; align-items: center; gap: 16px;">
+            <object data="map-nexus-v3/map-nexus-app-icon.svg" type="image/svg+xml" width="48" height="48"></object>
+            <div>
+              <div style="font-weight: 600; font-size: 14px;">MAP Nexus</div>
+              <div style="color: #6B7280; font-size: 12px;">Migration Assurance Platform</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- GitHub -->
+      <div class="mockup-card">
+        <div class="mockup-header">GitHub Repository</div>
+        <div class="mockup-content" style="background: #0D1117;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <object data="map-nexus-v3/map-nexus-app-icon.svg" type="image/svg+xml" width="32" height="32"></object>
+            <div>
+              <div style="color: #F0F6FC; font-size: 16px; font-weight: 600;">map-nexus / platform</div>
+              <div style="color: #8B949E; font-size: 12px;">Enterprise migration assurance toolkit</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Azure Marketplace -->
+      <div class="mockup-card">
+        <div class="mockup-header">Azure Marketplace Listing</div>
+        <div class="mockup-content" style="background: #F3F4F6;">
+          <div style="background: white; border-radius: 8px; padding: 20px; width: 100%; display: flex; align-items: center; gap: 16px; border: 1px solid #E5E7EB;">
+            <object data="map-nexus-v3/map-nexus-app-icon.svg" type="image/svg+xml" width="56" height="56"></object>
+            <div>
+              <div style="font-weight: 600;">MAP Nexus™</div>
+              <div style="color: #6B7280; font-size: 12px;">by MAP Nexus Ltd</div>
+              <div style="color: #0078D4; font-size: 12px; margin-top: 4px;">★★★★★ (128 reviews)</div>
+            </div>
+            <div style="margin-left: auto; background: #0078D4; color: white; padding: 8px 16px; border-radius: 4px; font-size: 12px; font-weight: 500;">Get It Now</div>
+          </div>
+        </div>
+      </div>
+      <!-- Product Dashboard -->
+      <div class="mockup-card">
+        <div class="mockup-header">Product Dashboard</div>
+        <div class="mockup-content" style="background: #F8FAFC; flex-direction: column;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <object data="map-nexus-v3/map-nexus-app-icon.svg" type="image/svg+xml" width="24" height="24"></object>
+            <span style="font-weight: 600; font-size: 14px;">MAP Nexus</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%;">
+            <div style="background: white; border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="font-size: 20px; font-weight: 700; color: #667EEA;">1,247</div>
+              <div style="font-size: 10px; color: #6B7280;">Migrations</div>
+            </div>
+            <div style="background: white; border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="font-size: 20px; font-weight: 700; color: #10B981;">98.2%</div>
+              <div style="font-size: 10px; color: #6B7280;">Success Rate</div>
+            </div>
+            <div style="background: white; border-radius: 6px; padding: 12px; text-align: center;">
+              <div style="font-size: 20px; font-weight: 700; color: #3B82F6;">24</div>
+              <div style="font-size: 10px; color: #6B7280;">Active</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Email Signature -->
+      <div class="mockup-card">
+        <div class="mockup-header">Email Signature</div>
+        <div class="mockup-content" style="background: white;">
+          <div style="border-top: 2px solid #E5E7EB; padding-top: 16px; width: 100%;">
+            <div style="font-weight: 600;">Sarah Mitchell</div>
+            <div style="color: #6B7280; font-size: 12px;">VP of Enterprise Sales</div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+              <object data="map-nexus-v3/map-nexus-compact.svg" type="image/svg+xml" width="80" height="24"></object>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Dark Mode UI -->
+      <div class="mockup-card">
+        <div class="mockup-header">Dark Mode UI</div>
+        <div class="mockup-content" style="background: #111827;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <object data="map-nexus-v3/map-nexus-app-icon.svg" type="image/svg+xml" width="32" height="32"></object>
+            <span style="color: #F9FAFB; font-weight: 600;">MAP Nexus</span>
+          </div>
+        </div>
+      </div>
+      <!-- Favicon Tab -->
+      <div class="mockup-card">
+        <div class="mockup-header">Browser Tab Favicon</div>
+        <div class="mockup-content" style="background: white;">
+          <div style="display: flex; align-items: center; gap: 8px; background: #F3F4F6; padding: 8px 16px; border-radius: 8px;">
+            <object data="map-nexus-v3/map-nexus-favicon.svg" type="image/svg+xml" width="16" height="16"></object>
+            <span style="font-size: 13px; color: #374151;">MAP Nexus — Dashboard</span>
+          </div>
+        </div>
+      </div>
+      <!-- App Launcher -->
+      <div class="mockup-card">
+        <div class="mockup-header">App Launcher Icon</div>
+        <div class="mockup-content" style="background: #F3F4F6;">
+          <object data="map-nexus-v3/map-nexus-app-icon.svg" type="image/svg+xml" width="80" height="80"></object>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

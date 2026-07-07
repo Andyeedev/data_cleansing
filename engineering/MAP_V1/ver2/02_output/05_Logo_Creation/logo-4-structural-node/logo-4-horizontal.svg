@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 60" width="320" height="60">
+  <rect width="320" height="60" fill="white"/>
+  <!-- Connections -->
+  <line x1="10" y1="10" x2="40" y2="10" stroke="#667EEA" stroke-width="1.5" opacity="0.5"/>
+  <line x1="10" y1="40" x2="40" y2="40" stroke="#667EEA" stroke-width="1.5" opacity="0.5"/>
+  <line x1="10" y1="10" x2="10" y2="40" stroke="#667EEA" stroke-width="1.5" opacity="0.5"/>
+  <line x1="40" y1="10" x2="40" y2="40" stroke="#667EEA" stroke-width="1.5" opacity="0.5"/>
+  <line x1="10" y1="10" x2="40" y2="40" stroke="#764BA2" stroke-width="1.5" opacity="0.4"/>
+  <line x1="40" y1="10" x2="10" y2="40" stroke="#764BA2" stroke-width="1.5" opacity="0.4"/>
+  <!-- Nodes -->
+  <circle cx="10" cy="10" r="7" fill="#667EEA"/>
+  <circle cx="40" cy="10" r="7" fill="#764BA2"/>
+  <circle cx="10" cy="40" r="7" fill="#3B82F6"/>
+  <circle cx="40" cy="40" r="5" fill="#667EEA" opacity="0.6"/>
+  <!-- Wordmark -->
+  <text x="65" y="32" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="700" fill="#1F2937" letter-spacing="-0.5">MAP</text>
+  <text x="112" y="32" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="400" fill="#6B7280">Migration Assurance Platform</text>
+</svg>

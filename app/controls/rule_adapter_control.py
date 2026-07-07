@@ -9,7 +9,7 @@ class RuleAdapterControl(BaseControl):
     """
 
     def execute(self):
-        
+
         # Instantiate the mature RuleExecutor with the current context
         executor = RuleExecutor(
             engine_db=self.context.engine_db,

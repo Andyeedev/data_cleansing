@@ -1,0 +1,49 @@
+{
+  "dashboard": "Executive Overview",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "scenario": "Scenario 3 — MIXTURE",
+  "migration": {
+    "name": "Customer Core Banking Migration",
+    "status": "BLOCKED",
+    "readiness_pct": 62,
+    "validation_score": 58.3,
+    "data_quality_score": 80,
+    "blocking_controls": 3,
+    "total_failed_rules": 6,
+    "recommendation": "Resolve critical and high priority findings before proceeding to pilot"
+  },
+  "issues": { "critical": 6, "high": 10, "medium": 4, "low": 3, "total": 23 },
+  "records": { "source_total": 11, "target_total": 13, "source_accounts": 4, "source_balances": 3, "source_customers": 4, "target_accounts": 3, "target_balances": 3, "target_customers": 4 },
+  "controls_summary": { "total": 9, "passed": 2, "failed": 1, "error": 5, "blocked": 1 },
+  "kpi_cards": [
+    { "label": "Overall Readiness", "value": "62%", "status": "warning" },
+    { "label": "Validation Score", "value": "58.3%", "status": "error" },
+    { "label": "Migration Status", "value": "BLOCKED", "status": "error" },
+    { "label": "Blocking Controls", "value": "3", "status": "error" },
+    { "label": "Failed Rules", "value": "6", "status": "error" },
+    { "label": "Source Records", "value": "11", "status": "info" },
+    { "label": "Target Records", "value": "13", "status": "info" }
+  ],
+  "charts": {
+    "issue_distribution": {
+      "type": "donut",
+      "data": [
+        { "label": "Critical", "value": 6, "color": "#D13438" },
+        { "label": "High", "value": 10, "color": "#FFB900" },
+        { "label": "Medium", "value": 4, "color": "#FFB900" },
+        { "label": "Low", "value": 3, "color": "#107C10" }
+      ]
+    },
+    "control_status": {
+      "type": "bar",
+      "data": [
+        { "label": "Passed", "value": 2, "color": "#107C10" },
+        { "label": "Failed", "value": 1, "color": "#FFB900" },
+        { "label": "Error", "value": 5, "color": "#D13438" },
+        { "label": "Blocked", "value": 1, "color": "#D13438" }
+      ]
+    }
+  }
+}

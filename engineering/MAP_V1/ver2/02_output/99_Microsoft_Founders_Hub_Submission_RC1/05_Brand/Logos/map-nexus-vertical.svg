@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 200" width="180" height="200">
+  <rect width="180" height="200" fill="white"/>
+  <!-- MAP Nexus V3 Vertical Lockup -->
+  <!-- Pathways -->
+  <line x1="36" y1="16" x2="90" y2="90" stroke="#667EEA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="90" y1="4" x2="90" y2="90" stroke="#764BA2" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="144" y1="16" x2="90" y2="90" stroke="#667EEA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Validation Node -->
+  <circle cx="90" cy="112" r="14" fill="#3B82F6"/>
+  <circle cx="90" cy="112" r="8" fill="white" opacity="0.25"/>
+  <circle cx="90" cy="112" r="3" fill="white" opacity="0.4"/>
+  <!-- Wordmark -->
+  <text x="90" y="158" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="700" fill="#1F2937" letter-spacing="1.5" text-anchor="middle">MAP</text>
+  <text x="90" y="180" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="300" fill="#6B7280" letter-spacing="4" text-anchor="middle">NEXUS</text>
+</svg>

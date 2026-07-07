@@ -1,0 +1,62 @@
+{
+  "module": "06_Investor_Pack",
+  "version": "2.0",
+  "title": "MAP Nexus™ Investor Pack",
+  "status": "Complete",
+  "date": "2026-07-05",
+  "slides": 15,
+  "formats": ["HTML", "Print-to-PDF"],
+  "delivery": [
+    {
+      "name": "MAP_Investor_Deck.html",
+      "description": "Interactive 15-slide investor presentation with speaker notes",
+      "size": "16:9 (1280x720)"
+    },
+    {
+      "name": "Investor_Executive_Summary.html",
+      "description": "2-page executive summary for investors",
+      "size": "A4 Portrait"
+    },
+    {
+      "name": "Investor_One_Pager.html",
+      "description": "1-page investor overview for email introductions",
+      "size": "A4 Portrait"
+    }
+  ],
+  "slides_list": [
+    "Cover",
+    "The Problem",
+    "Market Opportunity",
+    "The Solution",
+    "Platform Overview",
+    "Product Demonstration",
+    "Competitive Position",
+    "Business Model",
+    "Go-To-Market Strategy",
+    "Technology",
+    "Product Roadmap",
+    "About the Founder",
+    "Investment Opportunity",
+    "Vision",
+    "Thank You"
+  ],
+  "speaker_notes": {
+    "count": 15,
+    "timing": "60–90 seconds per slide",
+    "total_estimated": "15–22 minutes"
+  },
+  "assets_reused": [
+    "Module 04 Hero images (referenced)",
+    "Module 04 Dashboard templates (referenced)",
+    "Module 04 Logos (SVG)",
+    "Module 00 Brand colours"
+  ],
+  "dependencies": {
+    "module_00": "Master Configuration",
+    "module_01": "Demonstration Execution Engine",
+    "module_02": "UI Refinement",
+    "module_03": "MAP Demo Package",
+    "module_04": "Product Rendering & Media Pack",
+    "module_05": "Product Brochure"
+  }
+}

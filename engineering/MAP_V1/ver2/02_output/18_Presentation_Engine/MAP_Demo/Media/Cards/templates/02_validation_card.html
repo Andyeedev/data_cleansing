@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=800">
+  <title>MAP Nexus — Validation Card</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 800px; height: 400px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; align-items: center; justify-content: center; }
+    .card { background: #fff; border-radius: 16px; padding: 32px; border: 1px solid #E5E7EB; width: 500px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .card-header h3 { font-size: 18px; font-weight: 600; }
+    .badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge.pass { background: #E6F4E6; color: #107C10; }
+    .badge.fail { background: #FFF4CE; color: #8B6914; }
+    .badge.err { background: #FDECEA; color: #D13438; }
+    .kpi-row { display: flex; gap: 12px; }
+    .kpi { flex: 1; background: #F3F4F6; border-radius: 8px; padding: 12px; text-align: center; }
+    .kpi .val { font-size: 24px; font-weight: 700; }
+    .kpi .lbl { font-size: 11px; color: #6B7280; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header"><h3>C05: Business Rule Validation</h3><span class="badge pass">PASS</span></div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">1</div><div class="lbl">Rules</div></div>
+      <div class="kpi"><div class="val" style="color:#107C10;">1</div><div class="lbl">Passed</div></div>
+      <div class="kpi"><div class="val">0</div><div class="lbl">Failed</div></div>
+      <div class="kpi"><div class="val">0</div><div class="lbl">Errors</div></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,141 @@
+{
+  "dashboard": "Validation Centre",
+  "version": "1.0",
+  "generated": "2026-07-05T08:36:12.697239+00:00",
+  "batch_id": "e155acaf-652e-41de-8369-7a5b06af08ce",
+  "controls": [
+    {
+      "id": "C01",
+      "name": "Record Completeness",
+      "status": "ERROR",
+      "severity": "HIGH",
+      "total_rules": 3,
+      "passed": 0,
+      "failed": 0,
+      "errors": 3,
+      "details": "Control C01 — Record Completeness execution completed"
+    },
+    {
+      "id": "C02",
+      "name": "Financial Integrity",
+      "status": "ERROR",
+      "severity": "CRITICAL",
+      "total_rules": 1,
+      "passed": 0,
+      "failed": 0,
+      "errors": 1,
+      "details": "Control C02 — Financial Integrity execution completed"
+    },
+    {
+      "id": "C03",
+      "name": "Referential Integrity",
+      "status": "ERROR",
+      "severity": "LOW",
+      "total_rules": 3,
+      "passed": 0,
+      "failed": 0,
+      "errors": 3,
+      "details": "Control C03 — Referential Integrity execution completed"
+    },
+    {
+      "id": "C04",
+      "name": "Column Count Validation",
+      "status": "FAIL",
+      "severity": "HIGH",
+      "total_rules": 3,
+      "passed": 0,
+      "failed": 3,
+      "errors": 0,
+      "details": "Control C04 — Column Count Validation execution completed"
+    },
+    {
+      "id": "C05",
+      "name": "Null Drift Detection",
+      "status": "PASS",
+      "severity": "HIGH",
+      "total_rules": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 0,
+      "details": "Control C05 — Null Drift Detection execution completed"
+    },
+    {
+      "id": "C06",
+      "name": "Duplicate Key Detection",
+      "status": "ERROR",
+      "severity": "CRITICAL",
+      "total_rules": 3,
+      "passed": 1,
+      "failed": 0,
+      "errors": 2,
+      "details": "Control C06 — Duplicate Key Detection execution completed"
+    },
+    {
+      "id": "C07",
+      "name": "Data Type Validation",
+      "status": "ERROR",
+      "severity": "HIGH",
+      "total_rules": 3,
+      "passed": 0,
+      "failed": 0,
+      "errors": 3,
+      "details": "Control C07 — Data Type Validation execution completed"
+    },
+    {
+      "id": "C09",
+      "name": "Referential Coverage",
+      "status": "PASS",
+      "severity": "HIGH",
+      "total_rules": 0,
+      "passed": 0,
+      "failed": 0,
+      "errors": 0,
+      "details": "Control C09 — Referential Coverage execution completed"
+    },
+    {
+      "id": "C010",
+      "name": "Schema Drift Detection",
+      "status": "BLOCKED",
+      "severity": "CRITICAL",
+      "total_rules": 3,
+      "passed": 0,
+      "failed": 3,
+      "errors": 0,
+      "details": "Control C010 — Schema Drift Detection execution completed"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 2,
+    "failed": 1,
+    "error": 5,
+    "blocked": 1
+  },
+  "charts": {
+    "validation_distribution": {
+      "type": "donut",
+      "data": [
+        {
+          "label": "Passed",
+          "value": 2,
+          "color": "#107C10"
+        },
+        {
+          "label": "Failed",
+          "value": 1,
+          "color": "#FFB900"
+        },
+        {
+          "label": "Error",
+          "value": 5,
+          "color": "#D13438"
+        },
+        {
+          "label": "Blocked",
+          "value": 1,
+          "color": "#D13438"
+        }
+      ]
+    }
+  }
+}

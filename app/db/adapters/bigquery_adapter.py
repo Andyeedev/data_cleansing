@@ -12,7 +12,6 @@ class BigQueryAdapter(BaseAdapter):
         super().__init__(config)
         self.connect()  # uses retry logic
 
-
     def connect_current_1(self):
         logger.info("Connecting to BigQuery...")
 
@@ -31,7 +30,6 @@ class BigQueryAdapter(BaseAdapter):
         query_job = self.connection.query(query)
         results = query_job.result()
         return [tuple(row.values()) for row in results]
-
 
     def _validation_query(self):
         return "SELECT 1"

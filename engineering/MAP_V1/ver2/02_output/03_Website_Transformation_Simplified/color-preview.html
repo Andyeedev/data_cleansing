@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAP - Colour Scheme Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .scheme-card { transition: all 0.3s ease; cursor: pointer; }
+        .scheme-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-12">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Two-Colour Gradient Options</h1>
+            <p class="text-xl text-gray-600">Each scheme blends two distinct colours for a richer gradient</p>
+        </div>
+
+        <!-- Row 1: Purple-based -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Purple Family</h2>
+        <div class="grid md:grid-cols-4 gap-6 mb-12">
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">1. Indigo + Purple</h3>
+                    <p class="text-gray-500 text-xs mb-3">Current — Creative, premium</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #667eea;">#667eea</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #764ba2;">#764ba2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #a78bfa 0%, #6d28d9 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">2. Violet + Deep Purple</h3>
+                    <p class="text-gray-500 text-xs mb-3">Bold, futuristic</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #a78bfa;">#a78bfa</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #6d28d9;">#6d28d9</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-3">3. Lavender + Violet</h3>
+                    <p class="text-gray-500 text-xs mb-3">Soft, elegant</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #c084fc;">#c084fc</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #9333ea;">#9333ea</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #818cf8 0%, #6d28d9 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">4. Indigo + Violet</h3>
+                    <p class="text-gray-500 text-xs mb-3">Technical, sophisticated</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #818cf8;">#818cf8</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #6d28d9;">#6d28d9</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Blue-based -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Blue Family</h2>
+        <div class="grid md:grid-cols-4 gap-6 mb-12">
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">5. Blue + Royal Blue</h3>
+                    <p class="text-gray-500 text-xs mb-3">Corporate, trusted</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #3b82f6;">#3b82f6</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #1d4ed8;">#1d4ed8</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #60a5fa 0%, #7c3aed 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">6. Light Blue + Purple</h3>
+                    <p class="text-gray-500 text-xs mb-3">Modern, vibrant</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #60a5fa;">#60a5fa</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #7c3aed;">#7c3aed</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">7. Sky + Indigo</h3>
+                    <p class="text-gray-500 text-xs mb-3">Fresh, tech-forward</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #38bdf8;">#38bdf8</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #6366f1;">#6366f1</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #0ea5e9 0%, #4f46e5 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">8. Cyan + Indigo</h3>
+                    <p class="text-gray-500 text-xs mb-3">Cool, enterprise</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #0ea5e9;">#0ea5e9</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #4f46e5;">#4f46e5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Teal/Green-based -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Teal & Green Family</h2>
+        <div class="grid md:grid-cols-4 gap-6 mb-12">
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">9. Cyan + Teal</h3>
+                    <p class="text-gray-500 text-xs mb-3">Clean, refreshing</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #06b6d4;">#06b6d4</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #0891b2;">#0891b2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">10. Teal + Emerald</h3>
+                    <p class="text-gray-500 text-xs mb-3">Growth, balance</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #2dd4bf;">#2dd4bf</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #0d9488;">#0d9488</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #34d399 0%, #059669 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">11. Emerald + Green</h3>
+                    <p class="text-gray-500 text-xs mb-3">Nature, prosperity</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #34d399;">#34d399</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #059669;">#059669</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #22d3ee 0%, #059669 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">12. Cyan + Emerald</h3>
+                    <p class="text-gray-500 text-xs mb-3">Innovative, energetic</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #22d3ee;">#22d3ee</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #059669;">#059669</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 4: Warm-based -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Warm & Bold Family</h2>
+        <div class="grid md:grid-cols-4 gap-6 mb-12">
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #f472b6 0%, #9333ea 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">13. Pink + Purple</h3>
+                    <p class="text-gray-500 text-xs mb-3">Playful, creative</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #f472b6;">#f472b6</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #9333ea;">#9333ea</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #fb923c 0%, #e11d48 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">14. Orange + Rose</h3>
+                    <p class="text-gray-500 text-xs mb-3">Energetic, bold</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #fb923c;">#fb923c</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #e11d48;">#e11d48</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #f43f5e 0%, #9333ea 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">15. Rose + Purple</h3>
+                    <p class="text-gray-500 text-xs mb-3">Passionate, premium</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #f43f5e;">#f43f5e</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #9333ea;">#9333ea</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scheme-card bg-white rounded-2xl overflow-hidden shadow-lg">
+                <div class="h-32" style="background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);"></div>
+                <div class="p-5">
+                    <h3 class="font-bold text-gray-900 mb-1">16. Amber + Orange</h3>
+                    <p class="text-gray-500 text-xs mb-3">Warm, optimistic</p>
+                    <div class="flex gap-1">
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #fbbf24;">#fbbf24</span>
+                        <span class="px-2 py-0.5 rounded text-white text-xs" style="background: #f97316;">#f97316</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-8">
+            <p class="text-gray-600 mb-4">Tell me the number of the scheme you like and I'll apply it to all 8 pages.</p>
+            <a href="index.html" target="_blank" class="px-6 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition">View Current Site →</a>
+        </div>
+    </div>
+</body>
+</html>

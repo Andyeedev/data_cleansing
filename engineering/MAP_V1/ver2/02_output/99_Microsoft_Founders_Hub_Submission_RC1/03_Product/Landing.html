@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MAP Nexus — Migration Assurance Platform Home">
+  <title>MAP Nexus™ — Home</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #F8F9FB; color: #0B2447; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    .landing-header { background: linear-gradient(135deg, #0078D4 0%, #003B75 100%); padding: 32px 48px; color: #fff; }
+    .landing-header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .landing-brand { display: flex; align-items: center; gap: 16px; }
+    .landing-brand h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    .landing-brand h1 span { font-weight: 300; }
+    .landing-brand-sub { font-size: 14px; opacity: 0.85; }
+    .landing-nav { display: flex; gap: 8px; }
+    .landing-nav a { color: #fff; text-decoration: none; font-size: 13px; padding: 8px 16px; border-radius: 6px; transition: background 0.2s; }
+    .landing-nav a:hover { background: rgba(255,255,255,0.15); }
+    .landing-hero { background: linear-gradient(135deg, #0078D4 0%, #003B75 100%); padding: 0 48px 48px; color: #fff; }
+    .landing-hero-inner { max-width: 1200px; margin: 0 auto; }
+    .hero-title { font-size: 36px; font-weight: 700; margin-bottom: 4px; }
+    .hero-title span { font-weight: 300; }
+    .hero-subtitle { font-size: 16px; opacity: 0.85; margin-bottom: 8px; }
+    .hero-badge { display: inline-block; background: rgba(255,255,255,0.2); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 24px; }
+    .hero-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+    .hero-stat { background: rgba(255,255,255,0.12); border-radius: 10px; padding: 16px 24px; min-width: 140px; }
+    .hero-stat-value { font-size: 28px; font-weight: 700; }
+    .hero-stat-label { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+    .hero-stat.success .hero-stat-value { color: #86EFAC; }
+    .hero-stat.warning .hero-stat-value { color: #FCD34D; }
+    .hero-stat.error .hero-stat-value { color: #FCA5A5; }
+    .landing-content { max-width: 1200px; margin: 0 auto; padding: 40px 48px; }
+    .section-label { font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+    .tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-bottom: 40px; }
+    .tile { background: #fff; border-radius: 12px; padding: 28px 24px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid #E5E7EB; text-decoration: none; color: inherit; display: block; }
+    .tile:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .tile-icon { width: 44px; height: 44px; background: #E8F0FE; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+    .tile-icon svg { width: 22px; height: 22px; stroke: #0078D4; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .tile h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #0B2447; }
+    .tile p { font-size: 13px; color: #6B7280; line-height: 1.5; }
+    .tile.status-tile { border-left: 4px solid #0078D4; }
+    .tile.status-tile.go { border-left-color: #107C10; }
+    .tile.status-tile.nogo { border-left-color: #D13438; }
+    .executive-summary { background: #fff; border-radius: 12px; padding: 32px; border: 1px solid #E5E7EB; margin-bottom: 40px; }
+    .executive-summary h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #0B2447; }
+    .executive-summary p { font-size: 14px; color: #424242; line-height: 1.7; }
+    .landing-footer { text-align: center; padding: 32px 48px; color: #9CA3AF; font-size: 12px; border-top: 1px solid #E5E7EB; }
+    .landing-footer a { color: #0078D4; text-decoration: none; }
+    .landing-footer a:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .landing-header, .landing-hero, .landing-content, .landing-footer { padding-left: 24px; padding-right: 24px; }
+      .landing-header-inner { flex-direction: column; gap: 16px; align-items: flex-start; }
+      .hero-title { font-size: 28px; }
+      .hero-stats { flex-direction: column; }
+      .tile-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="landing-header">
+    <div class="landing-header-inner">
+      <div class="landing-brand">
+        <div>
+          <h1>MAP <span>Nexus™</span></h1>
+          <div class="landing-brand-sub">Migration Assurance Platform</div>
+        </div>
+      </div>
+      <nav class="landing-nav" aria-label="Utility navigation">
+        <a href="Launch_MAP.html">Launch</a>
+        <a href="dashboard/index.html">Dashboards</a>
+        <a href="reports/executive_summary.html">Reports</a>
+        <a href="About_MAP.html">About</a>
+        <a href="README.html">README</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="landing-hero">
+    <div class="landing-hero-inner">
+      <div class="hero-badge">Enterprise Demonstration</div>
+      <h1 class="hero-title">MAP <span>Nexus™</span></h1>
+      <div class="hero-subtitle">Migration Assurance Platform — Scenario 3: Financial Services Mixed Quality Migration</div>
+      <div class="hero-stats" role="list" aria-label="Key metrics">
+        <div class="hero-stat success" role="listitem">
+          <div class="hero-stat-value" id="stat-readiness">62%</div>
+          <div class="hero-stat-label">Migration Readiness</div>
+        </div>
+        <div class="hero-stat warning" role="listitem">
+          <div class="hero-stat-value" id="stat-score">58.3%</div>
+          <div class="hero-stat-label">Overall Validation Score</div>
+        </div>
+        <div class="hero-stat error" role="listitem">
+          <div class="hero-stat-value" id="stat-failed">6</div>
+          <div class="hero-stat-label">Validation Findings</div>
+        </div>
+        <div class="hero-stat error" role="listitem">
+          <div class="hero-stat-value" id="stat-blocking">3</div>
+          <div class="hero-stat-label">Critical Validation Issues</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="landing-content">
+    <div class="section-label">Dashboards</div>
+    <div class="tile-grid" role="list" aria-label="Dashboard navigation">
+      <a class="tile" href="dashboard/index.html#executive" role="listitem">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <h3>Executive Dashboard</h3>
+        <p>High-level migration status, KPIs, and executive recommendation</p>
+      </a>
+      <a class="tile" href="dashboard/index.html#migration" role="listitem">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <h3>Migration Overview</h3>
+        <p>Source and target platform configuration and entity mapping</p>
+      </a>
+      <a class="tile" href="dashboard/index.html#validation" role="listitem">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3>Validation Centre</h3>
+        <p>Control execution results and validation distribution</p>
+      </a>
+      <a class="tile" href="dashboard/index.html#governance" role="listitem">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3>Governance Centre</h3>
+        <p>Findings, severity distribution, and ownership tracking</p>
+      </a>
+      <a class="tile" href="dashboard/index.html#quality" role="listitem">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        </div>
+        <h3>Data Quality</h3>
+        <p>Quality dimensions, radar analysis, and trend data</p>
+      </a>
+      <a class="tile" href="dashboard/index.html#risk" role="listitem">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3>Risk Assessment</h3>
+        <p>Risk register, severity matrix, and go/no-go decision</p>
+      </a>
+      <a class="tile" href="dashboard/index.html#progress" role="listitem">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <h3>Migration Progress</h3>
+        <p>Phase completion and execution timeline</p>
+      </a>
+      <a class="tile status-tile go" href="reports/executive_summary.html" role="listitem">
+        <div class="tile-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3>Executive Reports</h3>
+        <p>Summary reports for executive review and governance</p>
+      </a>
+    </div>
+
+    <div class="section-label">Executive Summary</div>
+    <div class="executive-summary">
+      <h3>Migration Readiness Assessment</h3>
+      <p id="executive-text">Loading executive summary...</p>
+    </div>
+  </main>
+
+  <footer class="landing-footer">
+    MAP Nexus™ &middot; Migration Assurance Platform &middot; Presentation Engine v2.0 &middot;
+    <a href="About_MAP.html">About</a> &middot;
+    <a href="README.html">Documentation</a>
+  </footer>
+
+  <script>
+    (function() {
+      'use strict';
+      // Load data and populate
+      var script = document.createElement('script');
+      script.src = 'js/data.js';
+      script.onload = function() {
+        var D = window.MAP_DATA;
+        if (!D || !D.landing) return;
+        var ld = D.landing;
+        if (ld.validationScore) document.getElementById('stat-score').textContent = ld.validationScore;
+        if (ld.failedRules) document.getElementById('stat-failed').textContent = ld.failedRules;
+        if (ld.blockingControls) document.getElementById('stat-blocking').textContent = ld.blockingControls;
+        if (ld.readiness) document.getElementById('stat-readiness').textContent = ld.readiness;
+        // Executive summary
+        var execText = document.getElementById('executive-text');
+        if (D.executive && D.executive.migration) {
+          execText.textContent = D.executive.migration.recommendation || 'No recommendation available.';
+        } else if (ld.recommendation) {
+          execText.textContent = ld.recommendation;
+        }
+      };
+      document.head.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "components": [
+    { "name": "KPICard", "props": { "label": "string", "value": "string", "status": "'success' | 'error' | 'warning' | 'info'" } },
+    { "name": "DataTable", "props": { "columns": "Column[]", "data": "Row[]" } },
+    { "name": "StatusBadge", "props": { "status": "string", "variant": "'success' | 'error' | 'warning' | 'info'" } },
+    { "name": "ChartContainer", "props": { "type": "'doughnut' | 'bar' | 'radar' | 'line'", "data": "ChartData" } },
+    { "name": "ProgressBar", "props": { "label": "string", "value": "number", "status": "'completed' | 'in_progress' | 'not_started'" } }
+  ]
+}

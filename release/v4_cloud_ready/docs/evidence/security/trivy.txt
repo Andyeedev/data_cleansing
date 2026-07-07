@@ -1,0 +1,25 @@
+trivy fs .
+2026-06-18T00:10:43+01:00       INFO    [vuln] Vulnerability scanning is enabled
+2026-06-18T00:10:43+01:00       INFO    [secret] Secret scanning is enabled
+2026-06-18T00:10:43+01:00       INFO    [secret] If your scanning is slow, please try '--scannersvuln' to disable secret scanning
+2026-06-18T00:10:43+01:00       INFO    [secret] Please see https://trivy.dev/docs/v0.71/guide/scanner/secret#recommendation for faster secret detection
+2026-06-18T00:12:23+01:00       WARN    [secret] The size of the scanned file is too large. It isrecommended to use `--skip-files` for this file to avoid high memory consumption.       file_path="docs/reports/bandit-report_20260517.json" size (MB)=20
+2026-06-18T00:12:23+01:00       WARN    [secret] The size of the scanned file is too large. It isrecommended to use `--skip-files` for this file to avoid high memory consumption.       file_path="docs/reports/bandit-report_20260517.txt" size (MB)=13
+2026-06-18T00:12:23+01:00       WARN    [secret] The size of the scanned file is too large. It isrecommended to use `--skip-files` for this file to avoid high memory consumption.       file_path="docs/reports/bandit-report_20260517_v2_after_fixes_v2.txt" size (MB)=13
+2026-06-18T00:12:23+01:00       WARN    [secret] The size of the scanned file is too large. It isrecommended to use `--skip-files` for this file to avoid high memory consumption.       file_path="docs/reports/old/bandit-report_20260517.json" size (MB)=20
+2026-06-18T00:12:23+01:00       WARN    [secret] The size of the scanned file is too large. It isrecommended to use `--skip-files` for this file to avoid high memory consumption.       file_path="docs/reports/old/bandit-report_20260517.txt" size (MB)=13
+2026-06-18T00:12:27+01:00       WARN    [pip] Unable to find python `site-packages` directory. License detection is skipped.      err="site-packages directory not found"
+2026-06-18T00:12:27+01:00       INFO    Number of language-specific files       num=0
+2026-06-18T00:12:27+01:00       WARN    [report] Supported files for scanner(s) not found.      scanners=[vuln]
+2026-06-18T00:12:27+01:00       INFO    [report] No issues detected with scanner(s).    scanners=[secret]
+
+Report Summary
+
+┌────────┬──────┬─────────────────┬─────────┐
+│ Target │ Type │ Vulnerabilities │ Secrets │
+├────────┼──────┼─────────────────┼─────────┤
+│   -    │  -   │        -        │    -    │
+└────────┴──────┴─────────────────┴─────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)

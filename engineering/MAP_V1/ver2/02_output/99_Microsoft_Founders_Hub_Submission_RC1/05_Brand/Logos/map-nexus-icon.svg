@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <rect width="120" height="120" fill="white"/>
+  <!-- MAP Nexus V3 Icon -->
+  <!-- Pathways -->
+  <line x1="20" y1="18" x2="60" y2="72" stroke="#667EEA" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="60" y1="6" x2="60" y2="72" stroke="#764BA2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="100" y1="18" x2="60" y2="72" stroke="#667EEA" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Validation Node - Hero -->
+  <circle cx="60" cy="92" r="16" fill="#3B82F6"/>
+  <circle cx="60" cy="92" r="9" fill="white" opacity="0.25"/>
+  <circle cx="60" cy="92" r="3.5" fill="white" opacity="0.4"/>
+</svg>

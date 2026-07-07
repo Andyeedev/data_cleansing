@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Executive Summary — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/reports.css">
+</head>
+<body>
+  <header class="report-header">
+    <div class="report-header-inner">
+      <div class="report-brand">MAP Nexus™ — Migration Assurance Platform</div>
+      <h1 class="report-title">Executive Summary</h1>
+      <div class="report-subtitle">Scenario 3 — Financial Services Mixed Quality Migration</div>
+    </div>
+  </header>
+  <nav class="report-nav">
+    <div class="report-nav-inner">
+      <a href="../Landing.html">Home</a>
+      <span class="sep">/</span>
+      <a href="executive_summary.html" style="font-weight:600;">Executive Summary</a>
+      <span class="sep">/</span>
+      <a href="migration_summary.html">Migration</a>
+      <span class="sep">/</span>
+      <a href="validation_summary.html">Validation</a>
+      <span class="sep">/</span>
+      <a href="governance_summary.html">Governance</a>
+      <span class="sep">/</span>
+      <a href="risk_summary.html">Risk</a>
+      <span class="sep">/</span>
+      <a href="data_quality_summary.html">Quality</a>
+      <span class="sep">/</span>
+      <a href="readiness_report.html">Readiness</a>
+      <span class="sep">/</span>
+      <a href="issue_register.html">Issues</a>
+    </div>
+  </nav>
+  <main class="report-content">
+    <div class="report-section">
+      <h2>Key Performance Indicators</h2>
+      <div class="kpi-row">
+        <div class="kpi-box info"><div class="label">Total Controls</div><div class="value">9</div></div>
+        <div class="kpi-box success"><div class="label">Passed</div><div class="value">2</div></div>
+        <div class="kpi-box warning"><div class="label">Failed</div><div class="value">1</div></div>
+        <div class="kpi-box error"><div class="label">Errors</div><div class="value">5</div></div>
+        <div class="kpi-box error"><div class="label">Blocked</div><div class="value">1</div></div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h2>Migration Readiness</h2>
+      <div class="kpi-row">
+        <div class="kpi-box warning"><div class="label">Readiness Score</div><div class="value">62%</div></div>
+        <div class="kpi-box warning"><div class="label">Validation Score</div><div class="value">58.3%</div></div>
+        <div class="kpi-box error"><div class="label">Validation Findings</div><div class="value">6</div></div>
+        <div class="kpi-box error"><div class="label">Critical Validation Issues</div><div class="value">3</div></div>
+      </div>
+      <p><strong>Recommendation:</strong> DO NOT PROCEED with migration. Critical validation issues must be resolved before production cutover. Three blocking controls prevent safe migration execution.</p>
+    </div>
+    <div class="report-section">
+      <h2>Executive Recommendation</h2>
+      <p>The migration assessment reveals significant data quality and validation concerns. The overall readiness score of 62% falls below the 80% threshold required for production migration. Key findings include:</p>
+      <ul style="margin-left:20px;margin-bottom:12px;">
+        <li>5 controls encountered execution errors requiring investigation</li>
+        <li>1 control failed validation indicating data integrity issues</li>
+        <li>1 control is blocked pending resolution of upstream dependencies</li>
+        <li>Data quality score of 58.3% indicates substantial remediation needed</li>
+      </ul>
+      <p><strong>Next Steps:</strong> Address error conditions, resolve data quality issues, and re-execute validation controls before reassessing migration readiness.</p>
+    </div>
+    <div class="report-section">
+      <h2>Scenario Details</h2>
+      <table class="data-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Scenario</td><td>Scenario 3 — MIXTURE</td></tr>
+          <tr><td>Industry</td><td>Financial Services</td></tr>
+          <tr><td>Source Platform</td><td>Source</td></tr>
+          <tr><td>Target Platform</td><td>Target</td></tr>
+          <tr><td>Source Records</td><td>11</td></tr>
+          <tr><td>Target Records</td><td>13</td></tr>
+          <tr><td>Entities Mapped</td><td>3</td></tr>
+          <tr><td>Execution Duration</td><td>27 seconds</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <footer class="report-footer">
+    MAP Nexus™ — Migration Assurance Platform &middot; Presentation Engine v2.0 &middot; <a href="../Landing.html">Home</a>
+  </footer>
+</body>
+</html>

@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
+from dotenv import load_dotenv
+load_dotenv()
 
 from app.api.routes import (
     credential_routes,
@@ -23,7 +25,6 @@ app.include_router(execution_routes.router)
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "version": "1.9"}
-
 
 
 # =========================

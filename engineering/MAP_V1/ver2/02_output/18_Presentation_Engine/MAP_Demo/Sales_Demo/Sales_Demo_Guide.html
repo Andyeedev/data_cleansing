@@ -1,0 +1,353 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAP Nexus - Sales Demonstration Guide</title>
+<style>
+  :root {
+    --map-blue: #0078D4;
+    --map-blue-dark: #003B75;
+    --map-green: #107C10;
+    --map-yellow: #FFB900;
+    --map-red: #D13438;
+    --map-purple: #5C2D91;
+    --map-white: #FFFFFF;
+    --map-light: #F3F2F1;
+    --map-gray: #605E5C;
+    --map-gray-dark: #323130;
+    --map-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--map-font); color: var(--map-gray-dark); background: var(--map-light); line-height: 1.6; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .header { background: linear-gradient(135deg, var(--map-blue-dark), var(--map-blue)); color: var(--map-white); padding: 40px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+  .header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .header .subtitle { font-size: 16px; opacity: 0.85; }
+  .header .version { font-size: 12px; opacity: 0.6; margin-top: 12px; }
+  .section { background: var(--map-white); border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .section h2 { font-size: 24px; font-weight: 700; color: var(--map-blue-dark); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid var(--map-blue); }
+  .section h3 { font-size: 18px; font-weight: 600; color: var(--map-blue-dark); margin: 20px 0 10px; }
+  .section h4 { font-size: 15px; font-weight: 600; color: var(--map-gray-dark); margin: 16px 0 8px; }
+  .section p { font-size: 14px; color: var(--map-gray); margin-bottom: 12px; }
+  .step { border-left: 4px solid var(--map-blue); padding: 16px 20px; margin: 16px 0; background: var(--map-light); border-radius: 0 8px 8px 0; }
+  .step.orange { border-left-color: var(--map-yellow); }
+  .step.green { border-left-color: var(--map-green); }
+  .step.purple { border-left-color: var(--map-purple); }
+  .step.red { border-left-color: var(--map-red); }
+  .step h4 { margin-top: 0; }
+  .step .timing { font-size: 12px; font-weight: 600; color: var(--map-blue); margin-bottom: 6px; }
+  .presenter-note { background: rgba(0,120,212,0.05); border: 1px solid rgba(0,120,212,0.15); border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .presenter-note .label { font-size: 11px; font-weight: 700; color: var(--map-blue); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+  .presenter-note p, .presenter-note li { font-size: 13px; color: var(--map-gray-dark); margin-bottom: 6px; }
+  .presenter-note ul { padding-left: 20px; margin-bottom: 6px; }
+  .duration-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 16px 0; }
+  .duration-card { background: var(--map-light); border-radius: 8px; padding: 12px; text-align: center; }
+  .duration-card .time { font-size: 24px; font-weight: 700; color: var(--map-blue); }
+  .duration-card .label { font-size: 11px; color: var(--map-gray); margin-top: 4px; }
+  .checklist { background: var(--map-light); border-radius: 8px; padding: 20px; margin: 16px 0; }
+  .checklist ul { padding-left: 20px; }
+  .checklist li { font-size: 13px; margin-bottom: 6px; }
+  .audience-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin: 16px 0; }
+  .audience-card { background: var(--map-light); border-radius: 8px; padding: 16px; border-left: 4px solid var(--map-blue); }
+  .audience-card h4 { margin-top: 0; font-size: 14px; }
+  .audience-card p { font-size: 12px; margin-bottom: 0; }
+  @media print { body { background: white; } .section { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>MAP Nexus</h1>
+    <div class="subtitle">Sales Demonstration Guide</div>
+    <div class="version">Version 2.0 - July 2026 - Official MAP Demo Package</div>
+  </div>
+
+  <!-- SECTION: OVERVIEW -->
+  <div class="section" id="overview">
+    <h2>1. Overview</h2>
+    <p>This is the official MAP Nexus Sales Demonstration Guide. It enables consistent, professional demonstrations of MAP across customers, Microsoft meetings, partner engagements, conferences, and sales opportunities.</p>
+    <h3>Demo Durations</h3>
+    <div class="duration-grid">
+      <div class="duration-card"><div class="time">5</div><div class="label">Minute Quick Demo</div></div>
+      <div class="duration-card"><div class="time">15</div><div class="label">Minute Standard Demo</div></div>
+      <div class="duration-card"><div class="time">30</div><div class="label">Minute Full Demo</div></div>
+      <div class="duration-card"><div class="time">45</div><div class="label">Minute Workshop</div></div>
+      <div class="duration-card"><div class="time">60</div><div class="label">Minute Technical</div></div>
+    </div>
+    <h3>Audience Types</h3>
+    <div class="audience-grid">
+      <div class="audience-card"><h4>Executive Audience</h4><p>Focus on business outcomes, risk reduction, and executive visibility. Avoid technical details.</p></div>
+      <div class="audience-card"><h4>Business Audience</h4><p>Focus on governance, compliance, and operational benefits. Emphasise workflow improvements.</p></div>
+      <div class="audience-card"><h4>Technical Audience</h4><p>Focus on architecture, integration, and platform capabilities. Deeper technical discussions.</p></div>
+      <div class="audience-card"><h4>Microsoft Audience</h4><p>Focus on Azure alignment, Founders Hub, Marketplace, and ecosystem opportunities.</p></div>
+      <div class="audience-card"><h4>Partner Audience</h4><p>Focus on integration, co-selling, and mutual value. Complementary positioning.</p></div>
+      <div class="audience-card"><h4>Investor Audience</h4><p>Focus on market opportunity, business model, traction, and growth vision.</p></div>
+    </div>
+  </div>
+
+  <!-- SECTION: DEMO FLOW -->
+  <div class="section" id="demo-flow">
+    <h2>2. Demonstration Flow (30-Minute Standard)</h2>
+
+    <div class="step">
+      <div class="timing">2 minutes - Opening</div>
+      <h4>Welcome and Problem Statement</h4>
+      <p>Introduce MAP Nexus, explain the migration challenge, and establish customer pain. Focus on business risk, not technical issues.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Establish relevance and urgency.</p>
+        <p><strong>Narration:</strong> "Every enterprise migration carries risk. Data loss, governance gaps, and compliance failures can silently destroy business value. MAP Nexus exists to eliminate that risk."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Migration failure is invisible until it causes business harm</li>
+          <li>Existing tools move data but do not validate outcomes</li>
+          <li>Executives need visibility, not just reports</li>
+        </ul>
+        <p><strong>Questions to Ask:</strong> "Have you experienced data issues after a migration? How did you discover them?"</p>
+      </div>
+    </div>
+
+    <div class="step orange">
+      <div class="timing">2 minutes - Product Introduction</div>
+      <h4>MAP Nexus Overview</h4>
+      <p>Introduce MAP Nexus purpose, business value, and where it fits in the migration lifecycle. Never explain implementation details.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Position MAP as the solution.</p>
+        <p><strong>Narration:</strong> "MAP Nexus is an enterprise migration governance and validation platform. It validates that your migrated data is accurate, complete, and compliant."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Complementary to migration tools, not competitive</li>
+          <li>Zero silent data loss, 100% validation coverage</li>
+          <li>Built on Azure for enterprise security</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step green">
+      <div class="timing">2 minutes - Landing Page</div>
+      <h4>Platform Entry Point</h4>
+      <p>Open the Landing Page. Explain migration scenario, execution status, readiness score, and navigation.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Show the platform entry point.</p>
+        <p><strong>Narration:</strong> "This is your migration command centre. At a glance, you can see your execution status, readiness score, and navigation to every module."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Central navigation hub for all migration governance</li>
+          <li>Key performance indicators visible immediately</li>
+          <li>Easy access to all platform modules</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="timing">5 minutes - Executive Dashboard</div>
+      <h4>Executive Visibility</h4>
+      <p>Show overall migration readiness, programme health, executive KPIs, and business decision support.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Demonstrate executive value.</p>
+        <p><strong>Narration:</strong> "This dashboard gives your C-suite real-time visibility into migration health. Validation status, risk posture, and business outcomes are visible at a glance."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>No surprises for leadership</li>
+          <li>Data-driven decision support</li>
+          <li>Business outcomes, not technical metrics</li>
+        </ul>
+        <p><strong>Questions to Ask:</strong> "How do your executives currently track migration progress?"</p>
+      </div>
+    </div>
+
+    <div class="step orange">
+      <div class="timing">3 minutes - Migration Overview</div>
+      <h4>Migration Progress</h4>
+      <p>Show batch-level migration status, programme visibility, and delivery confidence.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Show operational visibility.</p>
+        <p><strong>Narration:</strong> "Here you can see exactly what has migrated, what is in progress, and what needs attention. Batch-level tracking with exception highlighting."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Complete visibility into migration progress</li>
+          <li>Exception highlighting for rapid remediation</li>
+          <li>Delivery confidence for programme directors</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step green">
+      <div class="timing">5 minutes - Validation Centre</div>
+      <h4>Validation Execution</h4>
+      <p>Show validation execution, business assurance, readiness scoring, and executive confidence.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Demonstrate core validation capability.</p>
+        <p><strong>Narration:</strong> "This is the heart of MAP. Every validation control is executed, tracked, and reported. Executive-friendly status labels - PASS, FAIL, ERROR, BLOCKED - no technical jargon."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Automated validation eliminates manual checks</li>
+          <li>Executive-friendly language for all outcomes</li>
+          <li>Every validation is auditable and traceable</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step purple">
+      <div class="timing">4 minutes - Governance Centre</div>
+      <h4>Governance and Compliance</h4>
+      <p>Show approval workflows, audit trails, compliance status, and decision support.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Demonstrate governance capability.</p>
+        <p><strong>Narration:</strong> "MAP provides built-in governance. Approval workflows, audit trails, and compliance evidence are generated automatically. No manual documentation required."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Governance is built-in, not bolted on</li>
+          <li>Audit-ready evidence for regulators</li>
+          <li>Decision support for programme directors</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="timing">3 minutes - Data Quality</div>
+      <h4>Data Quality Profiling</h4>
+      <p>Show completeness, accuracy, consistency, and business confidence metrics.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Show data quality visibility.</p>
+        <p><strong>Narration:</strong> "MAP profiles your data quality across four dimensions: completeness, accuracy, consistency, and timeliness. You can see exactly where data quality issues exist."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Proactive data quality identification</li>
+          <li>Business-friendly quality metrics</li>
+          <li>Remediation guidance for every issue</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step red">
+      <div class="timing">4 minutes - Risk Assessment</div>
+      <h4>Risk Identification</h4>
+      <p>Show critical issues, high risk, medium risk, business impact, and mitigation guidance.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Demonstrate risk management.</p>
+        <p><strong>Narration:</strong> "Every exception is categorised by severity and business impact. Critical issues are highlighted immediately. Mitigation guidance is provided for every risk."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Automated risk classification</li>
+          <li>Business impact assessment</li>
+          <li>Actionable mitigation guidance</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step purple">
+      <div class="timing">3 minutes - Reports</div>
+      <h4>Executive Reporting</h4>
+      <p>Show executive reporting, governance evidence, audit support, and PDF export capability.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Show reporting capability.</p>
+        <p><strong>Narration:</strong> "MAP generates eight executive-ready HTML reports. Every report is audit-ready, governance-ready, and suitable for board meetings or regulatory submissions."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Eight comprehensive reports generated automatically</li>
+          <li>Audit-ready for regulators</li>
+          <li>PDF export for distribution</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step green">
+      <div class="timing">2 minutes - Closing</div>
+      <h4>Summary and Next Steps</h4>
+      <p>Summarise business outcomes, customer benefits, and agree next steps.</p>
+      <div class="presenter-note">
+        <div class="label">Presenter Notes</div>
+        <p><strong>Purpose:</strong> Close with value and call to action.</p>
+        <p><strong>Narration:</strong> "MAP Nexus eliminates migration risk, gives executives confidence, and provides audit-ready governance. The next step is a proof of value with your data."</p>
+        <p><strong>Key Messages:</strong></p>
+        <ul>
+          <li>Zero silent data loss</li>
+          <li>Executive confidence from day one</li>
+          <li>Ready for proof of value</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: DEMO CHECKLIST -->
+  <div class="section" id="checklist">
+    <h2>3. Demonstration Checklist</h2>
+
+    <div class="checklist">
+      <h4>Before Demo</h4>
+      <ul>
+        <li>Confirm audience type and duration</li>
+        <li>Open demo launcher in browser</li>
+        <li>Verify offline mode is available</li>
+        <li>Set browser to full screen (F11)</li>
+        <li>Resolution: 1920x1080 or 1280x720</li>
+        <li>Backup PDF screenshots available</li>
+        <li>FAQ and objection responses prepared</li>
+        <li>Customer-specific talking points ready</li>
+      </ul>
+    </div>
+
+    <div class="checklist">
+      <h4>During Demo</h4>
+      <ul>
+        <li>Start with problem statement, not features</li>
+        <li>Ask questions to engage audience</li>
+        <li>Adapt narration to audience type</li>
+        <li>Highlight business outcomes, not technical details</li>
+        <li>Watch for signs of disengagement</li>
+        <li>Be prepared to skip sections for time</li>
+      </ul>
+    </div>
+
+    <div class="checklist">
+      <h4>After Demo</h4>
+      <ul>
+        <li>Summarise key business outcomes</li>
+        <li>Agree specific next steps</li>
+        <li>Send follow-up materials within 24 hours</li>
+        <li>Record demo outcomes in CRM</li>
+        <li>Debrief with team on lessons learned</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION: TIMING GUIDE -->
+  <div class="section" id="timing">
+    <h2>4. Timing Guide</h2>
+    <p>Adapt the demo flow based on available time. Always prioritise the sections most relevant to your audience.</p>
+
+    <h3>5-Minute Quick Demo</h3>
+    <p>Opening (30s) - Product Intro (30s) - Landing (1min) - Executive Dashboard (1min) - Validation Centre (1min) - Closing (30s)</p>
+
+    <h3>15-Minute Standard Demo</h3>
+    <p>Opening (1min) - Product Intro (1min) - Landing (1min) - Executive Dashboard (2min) - Validation Centre (2min) - Governance (2min) - Risk (2min) - Closing (1min)</p>
+
+    <h3>30-Minute Full Demo</h3>
+    <p>Full demo flow as described in Section 2 above. All 10 sections covered.</p>
+
+    <h3>45-Minute Workshop</h3>
+    <p>Full demo flow plus: Q&A after each section, hands-on exploration time, scenario-specific examples, objection handling throughout.</p>
+
+    <h3>60-Minute Technical Walkthrough</h3>
+    <p>Full demo flow plus: Technical architecture discussion, integration points, data model review, deployment options, security deep-dive, Q&A throughout.</p>
+  </div>
+
+  <!-- SECTION: FOOTER -->
+  <div class="section" style="text-align: center; padding: 20px;">
+    <p style="font-size: 13px; color: var(--map-gray);">MAP Nexus - Sales Demonstration Guide - Version 2.0 - July 2026</p>
+    <p style="font-size: 12px; color: var(--map-gray);">This document is confidential and intended for MAP sales teams and partners.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "dashboard": "Migration Overview",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "scenario": "Scenario 3 — MIXTURE",
+  "platforms": {
+    "source": {
+      "name": "T24 Transact",
+      "type": "Core Banking",
+      "records": 55011,
+      "tables": ["ACCOUNTS", "ACCOUNT_BALANCE", "ACCOUNT_CURRENCY", "CUSTOMER"],
+      "health": { "cpu": 45, "memory": 62, "disk": 78, "status": "healthy" }
+    },
+    "target": {
+      "name": "Finacle",
+      "type": "Core Banking",
+      "records": 39205,
+      "tables": ["ACCOUNTS", "ACCOUNTS_ARCH", "ACCOUNT_BALANCE", "CUSTOMER"],
+      "health": { "cpu": 38, "memory": 55, "disk": 65, "status": "healthy" }
+    }
+  },
+  "datasets": [
+    { "name": "accounts", "source": "ACCOUNTS", "target": "ACCOUNTS", "source_rows": 20023, "target_rows": 20023, "status": "passed" },
+    { "name": "balances", "source": "ACCOUNT_BALANCE", "target": "ACCOUNT_BALANCE", "source_rows": 14965, "target_rows": 14965, "status": "attention_required" },
+    { "name": "customer_accounts", "source": "CUSTOMER", "target": "CUSTOMER", "source_rows": 20023, "target_rows": 20023, "status": "passed" }
+  ],
+  "entity_mapping": [
+    { "source": "ACCOUNTS", "target": "ACCOUNTS", "source_rows": 20023, "target_rows": 20023, "record_match_pct": 100, "status": "passed" },
+    { "source": "ACCOUNT_BALANCE", "target": "ACCOUNT_BALANCE", "source_rows": 14965, "target_rows": 14965, "record_match_pct": 97.7, "status": "attention_required" },
+    { "source": "CUSTOMER", "target": "CUSTOMER", "source_rows": 20023, "target_rows": 20023, "record_match_pct": 100, "status": "passed" },
+    { "source": "ACCOUNT_CURRENCY", "target": "ACCOUNTS.CCY", "source_rows": 14965, "target_rows": 0, "record_match_pct": 0, "status": "failed" },
+    { "source": "ACCOUNTS_ARCH", "target": "ACCOUNTS_ARCH", "source_rows": 0, "target_rows": 4217, "record_match_pct": 0, "status": "attention_required" }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "components": [
+    {
+      "name": "KPICard",
+      "description": "Key Performance Indicator card displaying a single metric",
+      "props": {
+        "label": "string — KPI label text",
+        "value": "string — KPI value (e.g. '62%')",
+        "status": "'success' | 'error' | 'warning' | 'info'",
+        "icon": "string — optional icon name"
+      },
+      "styles": {
+        "background": "#ffffff",
+        "border": "1px solid #E5E7EB",
+        "borderLeft": "4px solid (varies by status)",
+        "borderRadius": "10px",
+        "padding": "16px"
+      },
+      "statusColours": {
+        "success": "#107C10",
+        "error": "#D13438",
+        "warning": "#FFB900",
+        "info": "#5C2D91"
+      }
+    },
+    {
+      "name": "DataTable",
+      "description": "Tabular data display with sortable columns",
+      "props": {
+        "columns": "Column[] — column definitions",
+        "data": "Row[] — row data",
+        "onRowClick": "(row: Row) => void — optional row click handler"
+      },
+      "styles": {
+        "headerBackground": "#F8F9FB",
+        "headerColour": "#6B7280",
+        "headerFontSize": "11px",
+        "rowPadding": "10px 12px",
+        "rowBorder": "1px solid #F3F4F6",
+        "rowHoverBackground": "#F8F9FB"
+      }
+    },
+    {
+      "name": "StatusBadge",
+      "description": "Coloured status indicator badge",
+      "props": {
+        "status": "string — status text",
+        "variant": "'success' | 'error' | 'warning' | 'info'"
+      },
+      "styles": {
+        "padding": "3px 8px",
+        "borderRadius": "4px",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "variants": {
+          "success": { "background": "#E6F4E6", "colour": "#107C10" },
+          "error": { "background": "#FDECEA", "colour": "#D13438" },
+          "warning": { "background": "#FFF4CE", "colour": "#8B6914" },
+          "info": { "background": "#E8E0F0", "colour": "#5C2D91" }
+        }
+      }
+    },
+    {
+      "name": "ChartContainer",
+      "description": "Wrapper for Chart.js chart instances",
+      "props": {
+        "type": "'doughnut' | 'bar' | 'radar' | 'line'",
+        "data": "ChartData — Chart.js data object",
+        "options": "ChartOptions — optional Chart.js options"
+      },
+      "styles": {
+        "width": "100%",
+        "height": "280px",
+        "position": "relative"
+      }
+    },
+    {
+      "name": "ProgressBar",
+      "description": "Horizontal progress indicator",
+      "props": {
+        "label": "string — phase name",
+        "value": "number — progress percentage (0-100)",
+        "status": "'completed' | 'in_progress' | 'not_started'"
+      },
+      "styles": {
+        "height": "10px",
+        "background": "#E5E7EB",
+        "borderRadius": "5px",
+        "fillColours": {
+          "completed": "#107C10",
+          "in_progress": "#0078D4",
+          "not_started": "#D1D5DB"
+        }
+      }
+    },
+    {
+      "name": "Sidebar",
+      "description": "Main navigation sidebar",
+      "props": {
+        "brand": "string — brand name",
+        "subtitle": "string — subtitle text",
+        "navItems": "NavItem[] — navigation items",
+        "activeView": "string — current active view"
+      },
+      "styles": {
+        "width": "240px",
+        "background": "#0B2447",
+        "colour": "#C2C8D0",
+        "activeBackground": "rgba(0,120,212,0.15)",
+        "activeBorderLeft": "3px solid #0078D4"
+      }
+    },
+    {
+      "name": "TopBar",
+      "description": "Top navigation bar with title and status badges",
+      "props": {
+        "title": "string — page title",
+        "badges": "Badge[] — status badges"
+      },
+      "styles": {
+        "height": "64px",
+        "background": "#ffffff",
+        "borderBottom": "1px solid #E5E7EB",
+        "padding": "16px 32px"
+      }
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "dashboard": "Validation Centre",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "controls": [
+    {
+      "id": "C01",
+      "name": "Record Count Reconciliation",
+      "status": "PASSED",
+      "severity": "info",
+      "details": "Source and target record counts match within 5% threshold",
+      "findings_count": 0,
+      "datasets": ["accounts", "balances", "customer_accounts"]
+    },
+    {
+      "id": "C02",
+      "name": "Schema Compliance Check",
+      "status": "ATTENTION_REQUIRED",
+      "severity": "warning",
+      "details": "Column type mismatches detected in 3 tables",
+      "findings_count": 2,
+      "findings": [
+        { "field": "ACCOUNT_BALANCE.AMOUNT", "source_type": "DECIMAL(18,2)", "target_type": "DECIMAL(15,2)", "severity": "high" },
+        { "field": "ACCOUNTS.STATUS", "source_type": "VARCHAR(2)", "target_type": "CHAR(1)", "severity": "medium" }
+      ]
+    },
+    {
+      "id": "C03",
+      "name": "Primary Key Integrity",
+      "status": "PASSED",
+      "severity": "info",
+      "details": "All primary keys unique and non-null in source and target",
+      "findings_count": 0
+    },
+    {
+      "id": "C04",
+      "name": "Balance Reconciliation",
+      "status": "CRITICAL_ISSUE",
+      "severity": "critical",
+      "details": "Balance mismatch: source £2,847,193,862.16 vs target £2,847,193,862.16 — variance 0.00% but 342 records have precision differences",
+      "findings_count": 342
+    },
+    {
+      "id": "C05",
+      "name": "Null Value Check",
+      "status": "PASSED",
+      "severity": "info",
+      "details": "No unexpected null values in required fields",
+      "findings_count": 0
+    },
+    {
+      "id": "C06",
+      "name": "Duplicate Detection",
+      "status": "ATTENTION_REQUIRED",
+      "severity": "warning",
+      "details": "12 potential duplicate records detected in target CUSTOMER table",
+      "findings_count": 12
+    },
+    {
+      "id": "C07",
+      "name": "Format Validation",
+      "status": "CRITICAL_ISSUE",
+      "severity": "critical",
+      "details": "Date format mismatch: source DD/MM/YYYY vs target YYYY-MM-DD",
+      "findings_count": 45
+    },
+    {
+      "id": "C08",
+      "name": "Reference Integrity",
+      "status": "CRITICAL_ISSUE",
+      "severity": "critical",
+      "details": "892 orphaned records in ACCOUNT_BALANCE with no matching ACCOUNTS record",
+      "findings_count": 892
+    },
+    {
+      "id": "C09",
+      "name": "Data Completeness",
+      "status": "PASSED",
+      "severity": "info",
+      "details": "All required fields populated across all datasets",
+      "findings_count": 0
+    },
+    {
+      "id": "C10",
+      "name": "Permission Requirements",
+      "status": "CRITICAL_ISSUE",
+      "severity": "critical",
+      "details": "Read/write permissions required for target Finacle database — not yet provisioned",
+      "findings_count": 1
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 3,
+    "attention_required": 2,
+    "critical_issue": 4,
+    "disabled": 1
+  },
+  "charts": {
+    "validation_distribution": {
+      "type": "donut",
+      "data": [
+        { "label": "Passed", "value": 3, "color": "#107C10" },
+        { "label": "Attention Required", "value": 2, "color": "#FFB900" },
+        { "label": "Critical Issue", "value": 4, "color": "#D13438" },
+        { "label": "Disabled", "value": 1, "color": "#9E9E9E" }
+      ]
+    }
+  }
+}

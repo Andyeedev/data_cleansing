@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Migration Overview Hero</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; flex-direction: column; }
+    .header { background: linear-gradient(135deg, #0078D4 0%, #003B75 100%); padding: 40px 80px; color: #fff; }
+    .header h2 { font-size: 42px; font-weight: 700; }
+    .header h2 span { font-weight: 300; }
+    .content { flex: 1; padding: 40px 80px; display: flex; gap: 40px; align-items: center; }
+    .flow { display: flex; align-items: center; gap: 24px; flex: 1; }
+    .flow-box { background: #fff; border: 2px solid #0078D4; border-radius: 16px; padding: 32px; text-align: center; flex: 1; }
+    .flow-box.source { border-color: #0078D4; }
+    .flow-box.map { border-color: #FFB900; background: #FFFBEB; }
+    .flow-box.target { border-color: #D13438; }
+    .flow-box h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    .flow-box p { font-size: 14px; color: #6B7280; }
+    .flow-arrow { font-size: 48px; color: #0078D4; }
+    .side { width: 360px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #E5E7EB; margin-bottom: 16px; }
+    .stat-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .stat-card .val { font-size: 32px; font-weight: 700; color: #0078D4; }
+  </style>
+</head>
+<body>
+  <div class="header"><h2>Migration <span>Overview</span></h2></div>
+  <div class="content">
+    <div class="flow">
+      <div class="flow-box source"><h3>Source Platform</h3><p>11 records · 3 entities</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box map"><h3>MAP Validation</h3><p>9 controls · 27 rules</p></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box target"><h3>Target Platform</h3><p>13 records · 3 entities</p></div>
+    </div>
+    <div class="side">
+      <div class="stat-card"><h4>Entity Match Rate</h4><div class="val">83.3%</div></div>
+      <div class="stat-card"><h4>Data Quality Score</h4><div class="val">58.3%</div></div>
+      <div class="stat-card"><h4>Migration Status</h4><div class="val" style="color:#D13438;">BLOCKED</div></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -42,7 +42,10 @@ class C010SchemaDriftRule:
                 "delta": 0
             }
 
-        cause_msg = f"Missing columns in target: {list(missing)} | Extra columns in target: {list(extra)}"
+        cause_msg = (
+            f"Missing columns in target: {list(missing)} | "
+            f"Extra columns in target: {list(extra)}"
+        )
 
         return {
             "status": "FAIL",

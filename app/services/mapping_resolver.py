@@ -21,7 +21,6 @@ class MappingResolver:
                     skipped.append((s_id, t_id))
 
         return resolved, skipped
-    
 
     def resolve_legacy_20260504(self, source_ids, target_ids):
 
@@ -47,7 +46,6 @@ class MappingResolver:
                     skipped.append((s_id, t_id))
 
         return resolved, skipped
-    
 
     def resolve(self, source_ids, target_ids):
 
@@ -79,9 +77,8 @@ class MappingResolver:
         """
 
         return self.db.execute(query, (self.project_id, s_id, t_id))
-    
-    def _build_mapping_contract(self, raw_rows):
 
+    def _build_mapping_contract(self, raw_rows):
         """
         Normalize DB rows into a structured mapping contract
 
@@ -124,5 +121,3 @@ class MappingResolver:
             "datasets": datasets,
             "control_ids": list(control_ids)  # empty = applies to all
         }
-    
-    

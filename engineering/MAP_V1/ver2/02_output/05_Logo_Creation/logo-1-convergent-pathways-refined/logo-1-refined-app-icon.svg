@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="app-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667EEA"/>
+      <stop offset="100%" stop-color="#764BA2"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="120" height="120" rx="24" fill="url(#app-bg)"/>
+  <!-- Converging pathways - white on gradient -->
+  <line x1="24" y1="24" x2="60" y2="68" stroke="white" stroke-width="9" stroke-linecap="round"/>
+  <line x1="60" y1="14" x2="60" y2="68" stroke="white" stroke-width="9" stroke-linecap="round" opacity="0.8"/>
+  <line x1="96" y1="24" x2="60" y2="68" stroke="white" stroke-width="9" stroke-linecap="round"/>
+  <!-- Convergence node -->
+  <circle cx="60" cy="85" r="10" fill="white"/>
+</svg>

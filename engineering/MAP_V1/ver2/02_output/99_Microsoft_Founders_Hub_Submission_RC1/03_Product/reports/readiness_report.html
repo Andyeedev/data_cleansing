@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Readiness Report — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/reports.css">
+</head>
+<body>
+  <header class="report-header">
+    <div class="report-header-inner">
+      <div class="report-brand">MAP Nexus™ — Migration Assurance Platform</div>
+      <h1 class="report-title">Readiness Report</h1>
+      <div class="report-subtitle">Migration Readiness Assessment</div>
+    </div>
+  </header>
+  <nav class="report-nav">
+    <div class="report-nav-inner">
+      <a href="../Landing.html">Home</a>
+      <span class="sep">/</span>
+      <a href="executive_summary.html">Executive Summary</a>
+      <span class="sep">/</span>
+      <a href="migration_summary.html">Migration</a>
+      <span class="sep">/</span>
+      <a href="validation_summary.html">Validation</a>
+      <span class="sep">/</span>
+      <a href="governance_summary.html">Governance</a>
+      <span class="sep">/</span>
+      <a href="risk_summary.html">Risk</a>
+      <span class="sep">/</span>
+      <a href="data_quality_summary.html">Quality</a>
+      <span class="sep">/</span>
+      <a href="readiness_report.html" style="font-weight:600;">Readiness</a>
+      <span class="sep">/</span>
+      <a href="issue_register.html">Issues</a>
+    </div>
+  </nav>
+  <main class="report-content">
+    <div class="report-section">
+      <h2>Readiness Score</h2>
+      <div class="kpi-row">
+        <div class="kpi-box warning"><div class="label">Overall Readiness</div><div class="value">62%</div></div>
+        <div class="kpi-box error"><div class="label">Threshold Required</div><div class="value">80%</div></div>
+        <div class="kpi-box error"><div class="label">Gap to Target</div><div class="value">-18%</div></div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h2>Readiness Assessment</h2>
+      <table class="data-table">
+        <thead><tr><th>Category</th><th>Score</th><th>Weight</th><th>Weighted Score</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Data Quality</td><td>58.3%</td><td>30%</td><td>17.5%</td><td><span class="badge badge-error">BELOW</span></td></tr>
+          <tr><td>Validation Controls</td><td>22.2%</td><td>25%</td><td>5.6%</td><td><span class="badge badge-error">BELOW</span></td></tr>
+          <tr><td>Risk Assessment</td><td>40.0%</td><td>20%</td><td>8.0%</td><td><span class="badge badge-error">BELOW</span></td></tr>
+          <tr><td>Governance</td><td>0.0%</td><td>15%</td><td>0.0%</td><td><span class="badge badge-error">BELOW</span></td></tr>
+          <tr><td>Migration Completeness</td><td>100.0%</td><td>10%</td><td>10.0%</td><td><span class="badge badge-success">MET</span></td></tr>
+          <tr><td style="font-weight:600;">Total</td><td></td><td></td><td style="font-weight:600;">41.1%</td><td><span class="badge badge-error">NOT READY</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="report-section">
+      <h2>Recommendation</h2>
+      <div style="background:#FDECEA;border:2px solid #D13438;border-radius:12px;padding:24px 32px;margin-bottom:16px;">
+        <h3 style="color:#D13438;font-size:18px;margin-bottom:8px;">MIGRATION NOT READY</h3>
+        <p style="color:#424242;">The overall readiness score of 62% does not meet the 80% threshold required for production migration. Multiple categories fall below acceptable levels.</p>
+      </div>
+      <h3>Required Actions</h3>
+      <ul style="margin-left:20px;">
+        <li>Resolve all ERROR status controls (5 controls)</li>
+        <li>Address FAILED validation control (1 control)</li>
+        <li>Improve data quality score from 58.3% to above 80%</li>
+        <li>Resolve 2 CRITICAL governance findings</li>
+        <li>Mitigate 1 CRITICAL risk item</li>
+      </ul>
+    </div>
+  </main>
+  <footer class="report-footer">
+    MAP Nexus™ — Migration Assurance Platform &middot; Presentation Engine v2.0 &middot; <a href="../Landing.html">Home</a>
+  </footer>
+</body>
+</html>

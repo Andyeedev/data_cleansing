@@ -1,0 +1,26 @@
+/* MAP Nexus™ — Media Render Base Styles */
+/* Azure-Inspired Enterprise Design Language */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #F8F9FB; color: #0B2447; -webkit-font-smoothing: antialiased; }
+:root {
+  --primary: #0078D4;
+  --primary-dark: #003B75;
+  --primary-hover: #005A9E;
+  --success: #107C10;
+  --success-bg: #E6F4E6;
+  --warning: #FFB900;
+  --warning-bg: #FFF4CE;
+  --warning-text: #8B6914;
+  --critical: #D13438;
+  --critical-bg: #FDECEA;
+  --info: #5C2D91;
+  --info-bg: #E8E0F0;
+  --bg: #F8F9FB;
+  --card: #FFFFFF;
+  --border: #E5E7EB;
+  --text: #0B2447;
+  --text-secondary: #424242;
+  --text-muted: #6B7280;
+  --sidebar-bg: #0B2447;
+  --sidebar-text: #C2C8D0;
+}

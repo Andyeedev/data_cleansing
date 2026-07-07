@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Executive Reports Render</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; }
+    .sidebar { width: 260px; background: linear-gradient(180deg, #0B2447 0%, #003B75 100%); color: #C2C8D0; padding: 24px 0; }
+    .sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand h1 { color: #fff; font-size: 22px; font-weight: 700; }
+    .sidebar-brand h1 span { font-weight: 300; }
+    .sidebar-brand .sub { font-size: 12px; opacity: 0.7; }
+    .sidebar-nav { padding: 16px 0; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: #C2C8D0; text-decoration: none; font-size: 14px; border-left: 3px solid transparent; }
+    .nav-item.active { background: rgba(255,255,255,0.08); border-left-color: #0078D4; color: #fff; }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E5E7EB; }
+    .topbar h2 { font-size: 18px; font-weight: 600; }
+    .badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-demo { background: #E8F0FE; color: #003B75; }
+    .badge-error { background: #FDECEA; color: #D13438; }
+    .content { flex: 1; padding: 28px 32px; overflow: hidden; }
+    .reports-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .report-card { background: #fff; border-radius: 12px; padding: 28px 24px; border: 1px solid #E5E7EB; border-left: 4px solid #0078D4; }
+    .report-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #0B2447; }
+    .report-card p { font-size: 13px; color: #6B7280; line-height: 1.5; margin-bottom: 16px; }
+    .report-card .meta { font-size: 11px; color: #9CA3AF; }
+    .report-card.exec { border-left-color: #0078D4; }
+    .report-card.mig { border-left-color: #5C2D91; }
+    .report-card.val { border-left-color: #107C10; }
+    .report-card.gov { border-left-color: #FFB900; }
+    .report-card.risk { border-left-color: #D13438; }
+    .report-card.quality { border-left-color: #0078D4; }
+    .report-card.readiness { border-left-color: #107C10; }
+    .report-card.issues { border-left-color: #D13438; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-brand"><h1>MAP <span>Nexus™</span></h1><div class="sub">Migration Assurance Platform</div></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 6v6l4 2"/></svg>Executive Dashboard</a>
+      <a class="nav-item active" href="#"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Executive Reports</a>
+    </nav>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2>Executive Reports</h2>
+      <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
+        <span class="badge badge-demo">Demo Environment</span>
+        <span class="badge badge-error">Migration Blocked</span>
+        <span style="font-size:12px;color:#6B7280;">5 Jul 2026 14:30</span>
+      </div>
+    </div>
+    <div class="content">
+      <div class="reports-grid">
+        <div class="report-card exec"><h3>Executive Summary</h3><p>High-level migration status, KPIs, and executive recommendation for stakeholders.</p><div class="meta">Scenario 3 — MIXTURE · 5 Jul 2026</div></div>
+        <div class="report-card mig"><h3>Migration Summary</h3><p>Source and target platform configuration, entity mapping, and record counts.</p><div class="meta">3 entities · 24 records · 5 Jul 2026</div></div>
+        <div class="report-card val"><h3>Validation Summary</h3><p>Control execution results, validation distribution, and findings analysis.</p><div class="meta">9 controls · 27 rules · 5 Jul 2026</div></div>
+        <div class="report-card gov"><h3>Governance Summary</h3><p>Findings, severity distribution, ownership tracking, and compliance status.</p><div class="meta">7 findings · 2 critical · 5 Jul 2026</div></div>
+        <div class="report-card risk"><h3>Risk Summary</h3><p>Risk register, severity matrix, go/no-go decision, and mitigation plan.</p><div class="meta">5 risks · 1 critical · NO-GO</div></div>
+        <div class="report-card quality"><h3>Data Quality Summary</h3><p>Quality dimensions, radar analysis, trend data, and remediation priorities.</p><div class="meta">6 dimensions · 58.3% overall</div></div>
+        <div class="report-card readiness"><h3>Readiness Report</h3><p>Migration readiness assessment, weighted scoring, and gap analysis.</p><div class="meta">62% readiness · 80% threshold</div></div>
+        <div class="report-card issues"><h3>Issue Register</h3><p>Complete issue tracking, ownership assignment, and resolution status.</p><div class="meta">12 issues · 3 critical · 5 Jul 2026</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

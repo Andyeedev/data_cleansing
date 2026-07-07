@@ -1,0 +1,49 @@
+{
+  "dashboard": "Executive Overview",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "theme": "MAP Nexus",
+  "data_source": "MAP Validation Engine — Live Execution",
+  "scenario": "Scenario 3 — MIXTURE",
+  "migration": {
+    "name": "Customer Core Banking Migration",
+    "status": "BLOCKED",
+    "readiness_pct": 62,
+    "validation_score": 58.3,
+    "data_quality_score": 71.5,
+    "recommendation": "Resolve critical and high priority findings before proceeding to pilot"
+  },
+  "issues": { "critical": 6, "high": 10, "medium": 4, "low": 3, "total": 23 },
+  "records": { "total_processed": 11, "passed": 5, "failed": 6, "error": 8 },
+  "controls_summary": { "total": 10, "passed": 1, "failed": 6, "error": 12, "blocked": 0 },
+  "kpi_cards": [
+    { "label": "Overall Readiness", "value": "62%", "status": "warning", "icon": "gauge" },
+    { "label": "Validation Score", "value": "58.3%", "status": "error", "icon": "check-circle" },
+    { "label": "Critical Findings", "value": "6", "status": "error", "icon": "alert-triangle" },
+    { "label": "High Findings", "value": "10", "status": "warning", "icon": "alert-circle" },
+    { "label": "Records Processed", "value": "11", "status": "info", "icon": "database" },
+    { "label": "Records Passed", "value": "5", "status": "success", "icon": "check" },
+    { "label": "Records Requiring Attention", "value": "6", "status": "error", "icon": "x-circle" }
+  ],
+  "charts": {
+    "issue_distribution": {
+      "type": "donut",
+      "data": [
+        { "label": "Critical", "value": 6, "color": "#C62828" },
+        { "label": "High", "value": 10, "color": "#F9A825" },
+        { "label": "Medium", "value": 4, "color": "#F9A825" },
+        { "label": "Low", "value": 3, "color": "#2E7D32" }
+      ]
+    },
+    "control_status": {
+      "type": "bar",
+      "data": [
+        { "label": "Passed", "value": 1, "color": "#2E7D32" },
+        { "label": "Attention Required", "value": 6, "color": "#C62828" },
+        { "label": "Critical Issue", "value": 12, "color": "#F9A825" },
+        { "label": "Not Executed", "value": 0, "color": "#757575" }
+      ]
+    }
+  }
+}

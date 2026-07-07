@@ -1,8 +1,3 @@
-import logging
-from logging import config
-from platform import system
-from app.services.credential_service import CredentialService
-from app.security.crypto import decrypt_password
 from app.api.core.encryption_manager import EncryptionManager
 from app.utils.logger import get_logger
 
@@ -17,7 +12,6 @@ class ConnectionResolver:
     def __init__(self, engine_db, schema="core"):
         self.engine_db = engine_db
         self.schema = schema   # ✅ THIS IS THE FIX
-
 
     def get_connections_legacy(self, project_id: str):
         """
@@ -42,7 +36,6 @@ class ConnectionResolver:
             connections[role] = adapter
 
         return connections
-
 
     def get_connections_legacy_2(self, project_id: str):
         """
@@ -77,7 +70,6 @@ class ConnectionResolver:
                 continue
 
         return connections
-
 
     def get_connections(self, project_id: str):
 
@@ -114,7 +106,7 @@ class ConnectionResolver:
 
     def _load_systems_curent_1(self, project_id):
         query = """
-        SELECT 
+        SELECT
             system_id,
             system_role,
             database_type,
@@ -137,15 +129,16 @@ class ConnectionResolver:
             })
 
         return systems
-    
-    def _load_systems_legacy(self, project_id):
-        #query = """
+
+    def _load_systems_legacy_1(self, project_id):
+        # query = """
         #    SELECT system_id, system_role, database_type, connection_config, credential_id
         #    FROM engine.system_registry
         #    WHERE project_id = %s
-        #"""
+        # """
         query = f"""
-            SELECT system_id, system_role, database_type, connection_config, credential_id, is_active
+            SELECT system_id, system_role, database_type,
+                   connection_config, credential_id, is_active
             FROM {self.schema}.system_registry
             WHERE project_id = %s
         """
@@ -166,7 +159,7 @@ class ConnectionResolver:
     def _load_systems_legacy(self, project_id):
 
         query = f"""
-            SELECT 
+            SELECT
                 system_id,
                 system_role,
                 database_type,
@@ -192,11 +185,11 @@ class ConnectionResolver:
             })
 
         return systems
-    
+
     def _load_systems(self, project_id):
 
         query = f"""
-            SELECT 
+            SELECT
                 system_id,
                 system_role,
                 database_type,
@@ -225,7 +218,6 @@ class ConnectionResolver:
 
         return systems
 
-
     def _build_adapter_legacy(self, system):
         from app.db.connection_factory import connection_factory
 
@@ -241,7 +233,7 @@ class ConnectionResolver:
         db_type = db_type.lower().strip()
 
         # ✅ HARD STOP FOR DISABLED TYPES (extra safety)
-        #if db_type == "sqlserver":
+        # if db_type == "sqlserver":
         #    logger.warning(f"⏭️ SQL Server disabled — skipping {system['system_role']}")
         #    return None
 
@@ -256,7 +248,6 @@ class ConnectionResolver:
         logger.info(f"DATABASE: {config.get('database')}")
 
         return connection_factory(config)
-
 
     def _build_adapter_legacy_2(self, system):
 
@@ -302,14 +293,16 @@ class ConnectionResolver:
         from app.db.connection_factory import connection_factory
 
         role = system['system_role'].title()
-        db_type = (system.get("database_type") or system.get("db_type") or system.get("type") or "database").upper()
+        db_type = (system.get("database_type") or system.get(
+            "db_type") or system.get("type") or "database").upper()
         host = system["connection_config"].get("host", "localhost")
 
         logger.debug(f"    Resolving {role}: {db_type} ({host}) ...")
 
         config = system["connection_config"].copy()
 
-        db_type_resolved = system.get("database_type") or system.get("db_type") or system.get("type")
+        db_type_resolved = system.get("database_type") or system.get(
+            "db_type") or system.get("type")
 
         if not db_type_resolved:
             raise RuntimeError(f"❌ Missing database_type for system: {system}")
@@ -328,20 +321,31 @@ class ConnectionResolver:
 
             adapter = connection_factory(config)
 
-            logger.info(f"    Resolving {role}: {db_type} ({host}) [ID: {system['system_id']}] ... ✅")
+            logger.info(
+                f"    Resolving {role}: {db_type} ({host}) [ID: {system['system_id']}] ... ✅")
 
             from app.utils.logger import get_audit_logger
             audit_logger = get_audit_logger()
-            audit_logger.audit(f"CONNECTION_RESOLVED | Role: {role.upper()} | System: {db_type} ({host}) | ID: {system['system_id']} | Outcome: SUCCESS")
+            audit_message = (
+                f"CONNECTION_RESOLVED | Role: {role.upper()} | "
+                f"System: {db_type} ({host}) | ID: {system['system_id']} | Outcome: SUCCESS"
+            )
+            audit_logger.audit(audit_message)
 
             return adapter
         except Exception as e:
-            logger.info(f"    Resolving {role}: {db_type} ({host}) [ID: {system['system_id']}] ... ❌")
-            
+            logger.info(
+                f"    Resolving {role}: {db_type} ({host}) [ID: {system['system_id']}] ... ❌")
+
             from app.utils.logger import get_audit_logger
             audit_logger = get_audit_logger()
-            audit_logger.audit(f"CONNECTION_RESOLVED | Role: {role.upper()} | System: {db_type} ({host}) | ID: {system['system_id']} | Outcome: FAILED | Error: {str(e)}")
-            
+            audit_message = (
+                f"CONNECTION_RESOLVED | Role: {role.upper()} | "
+                f"System: {db_type} ({host}) | ID: {system['system_id']} | Outcome: FAILED | "
+                f"Error: {str(e)}"
+            )
+            audit_logger.audit(audit_message)
+
             raise
 
     def _get_credentials(self, credential_id):
@@ -371,7 +375,6 @@ class ConnectionResolver:
             "password": decrypted_password
         }
 
-
     def _get_encryption_key(self, key_id):
         import os
 
@@ -381,8 +384,3 @@ class ConnectionResolver:
             raise RuntimeError("❌ FERNET_KEY not set in environment")
 
         return key
-
-
-    
-
-    

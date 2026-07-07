@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Governance Hero</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: linear-gradient(135deg, #003B75 0%, #0B2447 100%); display: flex; align-items: center; color: #fff; }
+    .left { width: 50%; padding: 80px; }
+    .left h2 { font-size: 48px; font-weight: 700; margin-bottom: 16px; }
+    .left h2 span { font-weight: 300; opacity: 0.8; }
+    .left p { font-size: 18px; opacity: 0.8; line-height: 1.6; margin-bottom: 32px; }
+    .kpi-row { display: flex; gap: 16px; }
+    .kpi { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 16px 24px; }
+    .kpi-val { font-size: 28px; font-weight: 700; }
+    .kpi-lbl { font-size: 12px; opacity: 0.7; }
+    .right { width: 50%; padding: 60px; display: flex; flex-direction: column; gap: 20px; }
+    .finding { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 20px 24px; border-left: 4px solid; }
+    .finding.crit { border-left-color: #D13438; }
+    .finding.high { border-left-color: #FFB900; }
+    .finding.med { border-left-color: #5C2D91; }
+    .finding h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .finding p { font-size: 12px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <div class="left">
+    <h2>Governance <span>Centre</span></h2>
+    <p>Complete audit trail of all validation activities. Automated severity classification with ownership tracking and compliance reporting.</p>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val">7</div><div class="kpi-lbl">Findings</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:#FCA5A5;">2</div><div class="kpi-lbl">Critical</div></div>
+      <div class="kpi"><div class="kpi-val" style="color:#FCD34D;">3</div><div class="kpi-lbl">High</div></div>
+      <div class="kpi"><div class="kpi-val">2</div><div class="kpi-lbl">Medium</div></div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="finding crit"><h4>GOV-001: Source record count mismatch</h4><p>Data Team · C01 · CRITICAL</p></div>
+    <div class="finding crit"><h4>GOV-002: Target schema deviation detected</h4><p>Platform Team · C02 · CRITICAL</p></div>
+    <div class="finding high"><h4>GOV-003: Referential integrity violation</h4><p>Data Team · C07 · HIGH</p></div>
+    <div class="finding high"><h4>GOV-004: Control execution timeout</h4><p>Platform Team · C03 · HIGH</p></div>
+    <div class="finding med"><h4>GOV-006: Null values in required fields</h4><p>Data Team · C06 · MEDIUM</p></div>
+  </div>
+</body>
+</html>

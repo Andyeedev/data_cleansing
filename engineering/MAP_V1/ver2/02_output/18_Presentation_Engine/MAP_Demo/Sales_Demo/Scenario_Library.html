@@ -1,0 +1,176 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAP Nexus - Scenario Library</title>
+<style>
+  :root {
+    --map-blue: #0078D4;
+    --map-blue-dark: #003B75;
+    --map-green: #107C10;
+    --map-yellow: #FFB900;
+    --map-red: #D13438;
+    --map-purple: #5C2D91;
+    --map-white: #FFFFFF;
+    --map-light: #F3F2F1;
+    --map-gray: #605E5C;
+    --map-gray-dark: #323130;
+    --map-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--map-font); color: var(--map-gray-dark); background: var(--map-light); line-height: 1.6; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .header { background: linear-gradient(135deg, var(--map-blue-dark), var(--map-blue)); color: var(--map-white); padding: 40px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+  .header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .header .subtitle { font-size: 16px; opacity: 0.85; }
+  .section { background: var(--map-white); border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .section h2 { font-size: 24px; font-weight: 700; color: var(--map-blue-dark); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid var(--map-blue); }
+  .scenario { background: var(--map-light); border-radius: 12px; padding: 24px; margin-bottom: 20px; border-left: 4px solid var(--map-blue); }
+  .scenario h3 { font-size: 18px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 12px; }
+  .scenario h4 { font-size: 13px; font-weight: 600; color: var(--map-gray-dark); margin: 10px 0 4px; }
+  .scenario p { font-size: 13px; color: var(--map-gray); margin-bottom: 8px; }
+  .scenario ul { font-size: 13px; color: var(--map-gray); padding-left: 20px; margin-bottom: 8px; }
+  .scenario li { margin-bottom: 4px; }
+  .scenario .narration { background: rgba(0,120,212,0.05); border: 1px solid rgba(0,120,212,0.15); border-radius: 8px; padding: 12px; margin-top: 10px; }
+  .scenario .narration h4 { margin-top: 0; color: var(--map-blue); }
+  @media print { body { background: white; } .section { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>MAP Nexus</h1>
+    <div class="subtitle">Scenario Library</div>
+  </div>
+
+  <div class="section">
+    <h2>7 Industry Scenarios</h2>
+    <p>Each scenario reuses the same dashboards with different narration and business context. Adapt the demo to your audience's industry.</p>
+
+    <div class="scenario">
+      <h3>1. Financial Services</h3>
+      <h4>Business Context</h4>
+      <p>Banks and financial institutions migrate core banking systems, customer data, and transaction records. Regulatory requirements demand absolute data integrity.</p>
+      <h4>Key Pain Points</h4>
+      <ul>
+        <li>Regulatory compliance (FCA, PRA, Basel III)</li>
+        <li>Customer data integrity during core banking migration</li>
+        <li>Transaction record validation</li>
+        <li>Audit trail requirements</li>
+      </ul>
+      <div class="narration">
+        <h4>Suggested Narration</h4>
+        <p>"For financial services, data integrity is non-negotiable. MAP Nexus validates every record, every balance, and every relationship during migration. Regulatory evidence is generated automatically."</p>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>2. Insurance</h3>
+      <h4>Business Context</h4>
+      <p>Insurance companies migrate policy data, claims records, and customer information. Data accuracy directly impacts claims processing and regulatory compliance.</p>
+      <h4>Key Pain Points</h4>
+      <ul>
+        <li>Policy data accuracy during platform migration</li>
+        <li>Claims record integrity</li>
+        <li>Customer data protection</li>
+        <li>Regulatory reporting accuracy</li>
+      </ul>
+      <div class="narration">
+        <h4>Suggested Narration</h4>
+        <p>"Insurance organisations rely on accurate policy and claims data. MAP Nexus validates that every policy record, every claims record, and every customer record migrated correctly."</p>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>3. Government</h3>
+      <h4>Business Context</h4>
+      <p>Government agencies migrate citizen data, case records, and service information. Public accountability demands transparency and data integrity.</p>
+      <h4>Key Pain Points</h4>
+      <ul>
+        <li>Citizen data protection</li>
+        <li>Case record integrity</li>
+        <li>Public accountability and transparency</li>
+        <li>Multi-department data consolidation</li>
+      </ul>
+      <div class="narration">
+        <h4>Suggested Narration</h4>
+        <p>"Government agencies serve citizens with data they can trust. MAP Nexus ensures that citizen records, case data, and service information migrate with absolute integrity."</p>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>4. Healthcare</h3>
+      <h4>Business Context</h4>
+      <p>Healthcare organisations migrate patient records, clinical data, and operational information. Patient safety depends on data accuracy.</p>
+      <h4>Key Pain Points</h4>
+      <ul>
+        <li>Patient record integrity</li>
+        <li>Clinical data accuracy</li>
+        <li>HIPAA and regulatory compliance</li>
+        <li>System integration during migration</li>
+      </ul>
+      <div class="narration">
+        <h4>Suggested Narration</h4>
+        <p>"In healthcare, data accuracy is patient safety. MAP Nexus validates that patient records, clinical data, and operational information migrate with complete integrity."</p>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>5. Utilities</h3>
+      <h4>Business Context</h4>
+      <p>Utility companies migrate customer accounts, metering data, and operational systems. Data accuracy impacts billing and service delivery.</p>
+      <h4>Key Pain Points</h4>
+      <ul>
+        <li>Customer account accuracy</li>
+        <li>Metering data integrity</li>
+        <li>Billing system migration</li>
+        <li>Operational continuity</li>
+      </ul>
+      <div class="narration">
+        <h4>Suggested Narration</h4>
+        <p>"Utilities depend on accurate customer and metering data. MAP Nexus validates that every customer account, every meter reading, and every billing record migrates correctly."</p>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>6. Housing</h3>
+      <h4>Business Context</h4>
+      <p>Housing associations migrate tenant records, property data, and maintenance information. Data accuracy impacts tenant services and regulatory compliance.</p>
+      <h4>Key Pain Points</h4>
+      <ul>
+        <li>Tenant record accuracy</li>
+        <li>Property data integrity</li>
+        <li>Maintenance record continuity</li>
+        <li>Regulatory compliance (housing standards)</li>
+      </ul>
+      <div class="narration">
+        <h4>Suggested Narration</h4>
+        <p>"Housing organisations serve tenants with accurate, up-to-date information. MAP Nexus ensures tenant records, property data, and maintenance information migrate with integrity."</p>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <h3>7. Telecommunications</h3>
+      <h4>Business Context</h4>
+      <p>Telecommunications providers migrate customer data, network records, and service information. Data accuracy impacts service delivery and customer experience.</p>
+      <h4>Key Pain Points</h4>
+      <ul>
+        <li>Customer account migration</li>
+        <li>Network record integrity</li>
+        <li>Service continuity during migration</li>
+        <li>Billing accuracy</li>
+      </ul>
+      <div class="narration">
+        <h4>Suggested Narration</h4>
+        <p>"Telecommunications providers manage millions of customer records. MAP Nexus validates that customer data, network records, and service information migrate with complete accuracy."</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="text-align: center; padding: 20px;">
+    <p style="font-size: 13px; color: var(--map-gray);">MAP Nexus - Scenario Library - Version 2.0 - July 2026</p>
+  </div>
+</div>
+</body>
+</html>

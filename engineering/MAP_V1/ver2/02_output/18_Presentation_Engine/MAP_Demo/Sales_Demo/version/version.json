@@ -1,0 +1,77 @@
+{
+  "module": "07_Sales_Demo",
+  "version": "2.0",
+  "title": "MAP Nexus™ Sales Demo Package",
+  "status": "Complete",
+  "date": "2026-07-05",
+  "delivery": [
+    {
+      "name": "Sales_Demo_Guide.html",
+      "description": "Comprehensive sales demonstration guide with presenter notes",
+      "size": "18.3 KB"
+    },
+    {
+      "name": "Interactive_Demo/index.html",
+      "description": "Interactive HTML demo launcher with 6 audience types",
+      "size": "5.6 KB"
+    },
+    {
+      "name": "FAQ.html",
+      "description": "20 common customer questions with answers",
+      "size": "8.1 KB"
+    },
+    {
+      "name": "Objection_Handling.html",
+      "description": "8 objection responses with key points",
+      "size": "6.7 KB"
+    },
+    {
+      "name": "Scenario_Library.html",
+      "description": "7 industry-specific demo scenarios",
+      "size": "8.1 KB"
+    }
+  ],
+  "demo_types": [
+    "Executive Demo",
+    "Business Demo",
+    "Technical Demo",
+    "Microsoft Demo",
+    "Partner Demo",
+    "Investor Demo"
+  ],
+  "demo_durations": ["5 min", "15 min", "30 min", "45 min", "60 min"],
+  "demo_flow_sections": [
+    "Opening",
+    "Product Introduction",
+    "Landing Page",
+    "Executive Dashboard",
+    "Migration Overview",
+    "Validation Centre",
+    "Governance Centre",
+    "Data Quality",
+    "Risk Assessment",
+    "Reports",
+    "Closing"
+  ],
+  "faq_count": 20,
+  "objection_count": 8,
+  "scenario_count": 7,
+  "scenarios": [
+    "Financial Services",
+    "Insurance",
+    "Government",
+    "Healthcare",
+    "Utilities",
+    "Housing",
+    "Telecommunications"
+  ],
+  "dependencies": {
+    "module_00": "Master Configuration",
+    "module_01": "Demonstration Execution Engine",
+    "module_02": "UI Refinement",
+    "module_03": "MAP Demo Package",
+    "module_04": "Product Rendering & Media Pack",
+    "module_05": "Product Brochure",
+    "module_06": "Investor Pack"
+  }
+}

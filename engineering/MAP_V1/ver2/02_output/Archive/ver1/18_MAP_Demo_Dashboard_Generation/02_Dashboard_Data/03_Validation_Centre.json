@@ -1,0 +1,41 @@
+{
+  "dashboard": "Validation Centre",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "theme": "MAP Nexus",
+  "data_source": "MAP Validation Engine — Live Execution",
+  "scenario": "Scenario 3 — MIXTURE",
+  "validation_summary": [
+    { "validation": "Row Count Match (C01)", "status": "Critical Issue", "severity": "HIGH", "details": "Unable to execute row count comparison — permissions required" },
+    { "validation": "Balance Reconciliation (C02)", "status": "Critical Issue", "severity": "CRITICAL", "details": "Unable to execute balance reconciliation — permissions required" },
+    { "validation": "Referential Integrity (C03)", "status": "Critical Issue", "severity": "LOW", "details": "Unable to execute referential check — permissions required" },
+    { "validation": "Column Count (C04)", "status": "Attention Required", "severity": "HIGH", "delta": 2, "details": "Source and target column counts differ by 2 across all entities" },
+    { "validation": "Null Drift (C05)", "status": "Passed", "severity": "HIGH", "details": "No null drift detected" },
+    { "validation": "Data Type Match (C06)", "status": "Mixed", "severity": "CRITICAL", "details": "1 passed, 2 require attention across entities" },
+    { "validation": "Duplicate Detection (C07)", "status": "Critical Issue", "severity": "HIGH", "details": "Unable to execute duplicate check — permissions required" },
+    { "validation": "Data Drift (C08)", "status": "Disabled", "severity": "CRITICAL", "details": "Control disabled in configuration" },
+    { "validation": "Referential Coverage (C09)", "status": "Passed", "severity": "HIGH", "details": "Referential coverage validated" },
+    { "validation": "Schema Drift (C010)", "status": "Attention Required", "severity": "CRITICAL", "delta": 2, "details": "Schema drift detected — 2 column differences across entities" }
+  ],
+  "validation_distribution": {
+    "type": "donut",
+    "data": [
+      { "label": "Passed", "value": 3, "color": "#2E7D32" },
+      { "label": "Attention Required", "value": 2, "color": "#C62828" },
+      { "label": "Critical Issue", "value": 4, "color": "#F9A825" },
+      { "label": "Disabled", "value": 1, "color": "#757575" }
+    ]
+  },
+  "control_details": [
+    { "control_id": "C01", "name": "Row Count Match", "status": "Critical Issue", "severity": "HIGH", "entity_results": [{ "entity": "accounts_source", "status": "Critical Issue" }, { "entity": "balances_source", "status": "Critical Issue" }, { "entity": "customer_accounts_source", "status": "Critical Issue" }] },
+    { "control_id": "C02", "name": "Balance Reconciliation", "status": "Critical Issue", "severity": "CRITICAL", "entity_results": [{ "entity": "balances_source", "status": "Critical Issue" }] },
+    { "control_id": "C03", "name": "Referential Integrity", "status": "Critical Issue", "severity": "LOW", "entity_results": [{ "entity": "accounts_source", "status": "Critical Issue" }, { "entity": "balances_source", "status": "Critical Issue" }, { "entity": "customer_accounts_source", "status": "Critical Issue" }] },
+    { "control_id": "C04", "name": "Column Count", "status": "Attention Required", "severity": "HIGH", "entity_results": [{ "entity": "accounts_source", "status": "Attention Required", "delta": 2 }, { "entity": "balances_source", "status": "Attention Required", "delta": 2 }, { "entity": "customer_accounts_source", "status": "Attention Required", "delta": 2 }] },
+    { "control_id": "C05", "name": "Null Drift", "status": "Passed", "severity": "HIGH", "entity_results": [] },
+    { "control_id": "C06", "name": "Data Type Match", "status": "Mixed", "severity": "CRITICAL", "entity_results": [{ "entity": "accounts_source", "status": "Critical Issue" }, { "entity": "balances_source", "status": "Critical Issue" }, { "entity": "customer_accounts_source", "status": "Passed" }] },
+    { "control_id": "C07", "name": "Duplicate Detection", "status": "Critical Issue", "severity": "HIGH", "entity_results": [{ "entity": "accounts_source", "status": "Critical Issue" }, { "entity": "balances_source", "status": "Critical Issue" }, { "entity": "customer_accounts_source", "status": "Critical Issue" }] },
+    { "control_id": "C09", "name": "Referential Coverage", "status": "Passed", "severity": "HIGH", "entity_results": [] },
+    { "control_id": "C010", "name": "Schema Drift", "status": "Attention Required", "severity": "CRITICAL", "entity_results": [{ "entity": "accounts_source", "status": "Attention Required", "delta": 2 }, { "entity": "balances_source", "status": "Attention Required", "delta": 2 }, { "entity": "customer_accounts_source", "status": "Attention Required", "delta": 2 }] }
+  ]
+}

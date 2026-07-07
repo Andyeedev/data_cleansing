@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=800">
+  <title>MAP Nexus™ — Dashboard Feature</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 800px; height: 600px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; padding: 32px; }
+    .card { background: #fff; border-radius: 16px; border: 1px solid #E5E7EB; overflow: hidden; height: 100%; display: flex; flex-direction: column; }
+    .card-header { background: linear-gradient(135deg, #0078D4 0%, #003B75 100%); padding: 20px 24px; color: #fff; }
+    .card-header h3 { font-size: 18px; font-weight: 600; }
+    .card-header p { font-size: 12px; opacity: 0.8; }
+    .card-body { flex: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .kpi-row { display: flex; gap: 12px; }
+    .kpi { flex: 1; background: #F3F4F6; border-radius: 8px; padding: 12px; text-align: center; }
+    .kpi .val { font-size: 24px; font-weight: 700; color: #0078D4; }
+    .kpi .lbl { font-size: 11px; color: #6B7280; }
+    .chart { flex: 1; background: #F3F4F6; border-radius: 8px; display: flex; align-items: flex-end; padding: 16px; gap: 8px; }
+    .bar { flex: 1; border-radius: 4px 4px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header">
+      <h3>Executive Dashboard</h3>
+      <p>Real-time migration status and KPIs</p>
+    </div>
+    <div class="card-body">
+      <div class="kpi-row">
+        <div class="kpi"><div class="val">9</div><div class="lbl">Controls</div></div>
+        <div class="kpi"><div class="val" style="color:#107C10;">2</div><div class="lbl">Passed</div></div>
+        <div class="kpi"><div class="val" style="color:#D13438;">5</div><div class="lbl">Errors</div></div>
+        <div class="kpi"><div class="val" style="color:#D13438;">1</div><div class="lbl">Blocked</div></div>
+      </div>
+      <div class="chart">
+        <div class="bar" style="height:60%;background:#107C10;"></div>
+        <div class="bar" style="height:60%;background:#107C10;"></div>
+        <div class="bar" style="height:40%;background:#FFB900;"></div>
+        <div class="bar" style="height:80%;background:#D13438;"></div>
+        <div class="bar" style="height:80%;background:#D13438;"></div>
+        <div class="bar" style="height:80%;background:#D13438;"></div>
+        <div class="bar" style="height:80%;background:#D13438;"></div>
+        <div class="bar" style="height:80%;background:#D13438;"></div>
+        <div class="bar" style="height:30%;background:#9CA3AF;"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

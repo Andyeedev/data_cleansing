@@ -1,0 +1,40 @@
+{
+  "dashboard": "Platform Health",
+  "version": "1.0",
+  "generated": "2026-07-05T08:36:12.697239+00:00",
+  "batch_id": "e155acaf-652e-41de-8369-7a5b06af08ce",
+  "platform": {
+    "name": "MAP Nexus™",
+    "version": "1.4",
+    "environment": "Demo",
+    "status": "Operational"
+  },
+  "metrics": {
+    "execution_engine": "Operational",
+    "database_connection": "Healthy",
+    "rule_engine": "Operational",
+    "governance_engine": "Operational"
+  },
+  "kpi_cards": [
+    {
+      "label": "Platform Status",
+      "value": "Operational",
+      "status": "success"
+    },
+    {
+      "label": "Engine Version",
+      "value": "1.4",
+      "status": "info"
+    },
+    {
+      "label": "Environment",
+      "value": "Demo",
+      "status": "info"
+    },
+    {
+      "label": "Database",
+      "value": "Healthy",
+      "status": "success"
+    }
+  ]
+}

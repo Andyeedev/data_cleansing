@@ -8,9 +8,11 @@ from .sanitizer import LogSanitizer
 AUDIT_LEVEL = 25
 logging.addLevelName(AUDIT_LEVEL, "AUDIT")
 
+
 def audit(self, message, *args, **kws):
     if self.isEnabledFor(AUDIT_LEVEL):
         self._log(AUDIT_LEVEL, message, args, **kws)
+
 
 logging.Logger.audit = audit
 
@@ -45,6 +47,7 @@ class IndentContext:
     @classmethod
     def decrement(cls):
         cls._local.indent = max(0, getattr(cls._local, "indent", 0) - 1)
+
 
 class ConsoleProgressFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
@@ -125,7 +128,8 @@ def get_logger(name: str = "app"):
     # Console Handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(PhasedFormatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s"))
+    console_handler.setFormatter(PhasedFormatter(
+        "%(asctime)s | %(levelname)s | %(name)s | %(message)s"))
     console_handler.addFilter(ConsoleProgressFilter())
     logger.addHandler(console_handler)
 
@@ -134,7 +138,8 @@ def get_logger(name: str = "app"):
         os.makedirs("exports", exist_ok=True)
         exec_handler = logging.FileHandler("exports/execution.log", encoding="utf-8")
         exec_handler.setLevel(logging.DEBUG)
-        exec_handler.setFormatter(PhasedFormatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s"))
+        exec_handler.setFormatter(PhasedFormatter(
+            "%(asctime)s | %(levelname)s | %(name)s | %(message)s"))
         logger.addHandler(exec_handler)
     except Exception:
         pass
@@ -151,6 +156,7 @@ def get_logger(name: str = "app"):
         pass
 
     return logger
+
 
 def get_audit_logger():
     return get_logger("audit")

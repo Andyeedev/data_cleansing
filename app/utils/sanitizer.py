@@ -1,9 +1,10 @@
 import re
 import json
 
+
 class LogSanitizer:
     SENSITIVE_KEYS = {
-        'password', 'pass', 'pwd', 'secret', 'key', 'token', 
+        'password', 'pass', 'pwd', 'secret', 'key', 'token',
         'credential', 'fernet', 'authorization', 'api_key', 'api-key'
     }
 

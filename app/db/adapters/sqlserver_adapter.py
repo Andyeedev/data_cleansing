@@ -59,7 +59,10 @@ class SQLServerAdapter(BaseAdapter):
                 logger.info(f"🔥 Creating SQL Server connection {i+1}")
                 SQLServerAdapter._pools[db_key].append(self._create_connection())
 
-            logger.info(f"✅ SQL Server pool initialized with {len(SQLServerAdapter._pools[db_key])} connections")
+            logger.info(
+                f"✅ SQL Server pool initialized with "
+                f"{len(SQLServerAdapter._pools[db_key])} connections"
+            )
 
         except Exception as e:
             logger.error(f"❌ Failed to initialize SQL Server pool: {str(e)}")
@@ -95,7 +98,6 @@ class SQLServerAdapter(BaseAdapter):
         )
 
         return pyodbc.connect(conn_str)
-
 
     def _create_connection(self):
 
@@ -168,7 +170,7 @@ class SQLServerAdapter(BaseAdapter):
                 conn = self._get_connection(pool)
                 cursor = conn.cursor()
 
-                #cursor.execute(query, params or ())
+                # cursor.execute(query, params or ())
 
                 query = self._transform_query(query)
 
@@ -229,7 +231,6 @@ class SQLServerAdapter(BaseAdapter):
         """
         rows = self.execute(query)
         return [r[0] for r in rows] if rows else []
-
 
     def _transform_query(self, query):
 
