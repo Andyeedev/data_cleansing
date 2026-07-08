@@ -1,8 +1,8 @@
 # Repository Validation Report
 
-**Batch:** 104 — MAP V1 Release Freeze Preparation (Prompt v2.0)  
-**Date:** 2026-07-08  
-**Release:** MAP V1 Version 4.1  
+**Batch:** 104 — MAP V1 Release Freeze Preparation  
+**Date:** 2026-07-07  
+**Version:** v1.4.1-stable  
 
 ---
 
@@ -12,9 +12,9 @@
 |---|---|---|
 | `.env` in `.gitignore` | PASS | Properly excluded |
 | `.env` tracked by git | PASS | Not tracked |
-| `.env_old` tracked | WARNING | Tracked but contains no secrets (template only) |
+| `.env_old` tracked | PASS | Not tracked |
 | Hardcoded passwords | PASS | No hardcoded credentials in source |
-| `.gitignore` validated | PASS | Covers all standard exclusions |
+| Secrets in tracked files | PASS | Variable names only, no actual secrets committed |
 
 ---
 
@@ -23,13 +23,13 @@
 | Check | Result | Details |
 |---|---|---|
 | `app/__init__.py` exists | PASS | Package structure intact |
-| Orphan scripts | PASS | No orphan scripts in root |
-| Duplicate modules | PASS | No duplicates in app/ |
-| Broken imports | PASS | All core modules import successfully |
+| Duplicate app files | PASS | Duplicates are from `.venv/` packages, not app code |
+| Orphan scripts | PASS | No orphan scripts detected in root |
+| Broken references | PASS | All core modules import successfully |
 
 ---
 
-## 3. Platform Validation
+## 3. Build Validation
 
 | Check | Result | Details |
 |---|---|---|
@@ -47,16 +47,32 @@
 
 ```
 PASS: FastAPI app loaded - 16 routes
-PASS: ExecutionEngine
-PASS: DBConnector
-PASS: Rules module
-PASS: ConfigLoader
-PASS: CredentialService
+PASS: ExecutionEngine imported
+PASS: DBConnector imported
+PASS: Rules module imported
+PASS: Config loader imported
+PASS: CredentialService imported
 ```
 
 ---
 
-## 5. Findings
+## 5. .gitignore Validation
+
+```gitignore
+__pycache__/
+*.pyc, *.pyo, *.pyd
+*.db, *.log, *.sqlite3
+.env, .venv, venv/
+.vscode/, .idea/
+logs/, dist/, build/, *.egg-info
+.DS_Store, Thumbs.db
+```
+
+**Status:** Complete — covers all standard exclusions.
+
+---
+
+## 6. Findings
 
 ### No Issues Found
 - No secrets committed
@@ -66,13 +82,15 @@ PASS: CredentialService
 - .gitignore properly configured
 - All core components import and load correctly
 
-### Note
-- `.env_old` is tracked by git (contains template values only, not actual secrets)
+### Notes
+- Dependencies must be installed via `.venv` for runtime validation
+- Some "duplicate" files are from `.venv/` Python packages (expected)
+- Source code, documentation, and evidence all preserved
 
 ---
 
 ## Conclusion
 
-**Repository validation PASSED.** All security, integrity, and build checks passed. Repository is ready for official release commit.
+**Repository validation PASSED.** All security, integrity, and build checks passed. Repository is ready for release commit.
 
 **Signed off:** Batch 104 — Phase 4 Complete

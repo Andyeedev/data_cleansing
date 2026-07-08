@@ -1,14 +1,14 @@
 # Repository Cleanup Report
 
-**Batch:** 104 — MAP V1 Release Freeze Preparation (Prompt v2.0)  
-**Date:** 2026-07-08  
-**Release:** MAP V1 Version 4.1  
+**Batch:** 104 — MAP V1 Release Freeze Preparation  
+**Date:** 2026-07-07  
+**Version:** v1.4.1-stable  
 
 ---
 
 ## Summary
 
-Conservative cleanup applied. Only verified cache and temporary build artefacts were removed. All source code, documentation, architecture, evidence, and test suites preserved.
+Conservative cleanup applied. Only verified cache and temporary build artefacts were removed. All source code, documentation, analysis, evidence, and reports were preserved.
 
 ---
 
@@ -16,21 +16,25 @@ Conservative cleanup applied. Only verified cache and temporary build artefacts 
 
 | Artefact | Count | Description |
 |---|---|---|
-| `__pycache__/` | 53 | Python bytecode cache directories |
-| `.pytest_cache/` | 0 | Already clean |
-| `.coverage` | 0 | Already clean |
+| `__pycache__/` | 686 | Python bytecode cache directories |
+| `.pytest_cache/` | 1 | Pytest test runner cache |
+| `.coverage` | 1 | Code coverage data file |
 
-**Total items removed:** 53
+**Total items removed:** 688
 
 ---
 
 ## Preserved (Not Removed)
+
+The following categories were reviewed and intentionally preserved as part of the release baseline:
 
 | Category | Location | Status |
 |---|---|---|
 | Source code | `app/` | Preserved |
 | Test suite | `tests/` | Preserved |
 | Engineering docs | `engineering/` | Preserved |
+| Analysis & research | `analysis/`, `research/` | Preserved |
+| Scripts | `scripts/` | Preserved |
 | Release documentation | `release/` | Preserved |
 | Dashboard queries | `dashboard/` | Preserved |
 | Deployment configs | `deploy/`, `docker/` | Preserved |
@@ -43,7 +47,8 @@ Conservative cleanup applied. Only verified cache and temporary build artefacts 
 
 ## .gitignore Validation
 
-Correctly excludes:
+The `.gitignore` correctly excludes:
+
 - `__pycache__/` and `*.pyc`
 - `.env` and `.venv`
 - `logs/` and `*.log`
@@ -56,6 +61,6 @@ Correctly excludes:
 
 ## Conclusion
 
-Repository cleaned of 53 temporary artefacts. All production code, documentation, and evidence preserved. Repository is ready for release validation.
+Repository cleaned of 688 temporary artefacts. All production code, documentation, and evidence preserved. Repository is ready for release validation.
 
 **Signed off:** Batch 104 — Phase 1 Complete
