@@ -1,7 +1,6 @@
 class ParameterInjector:
 
     @staticmethod
-
     def inject_parameters(sql_template: str, parameters: dict) -> str:
         """
         Replace {{param}} placeholders in SQL template.

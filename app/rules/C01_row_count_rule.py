@@ -1,7 +1,6 @@
 from app.rules.base_rule import BaseRule
 
 
-
 class RowCountRule(BaseRule):
 
     RULE_ID = "C01_ROWCOUNT"
@@ -16,12 +15,12 @@ class RowCountRule(BaseRule):
     def execute(self):
 
         source_query = f"""
-        SELECT COUNT(*) 
+        SELECT COUNT(*)
         FROM {self.parameters['source_schema']}.{self.parameters['source_table']}
         """
 
         target_query = f"""
-        SELECT COUNT(*) 
+        SELECT COUNT(*)
         FROM {self.parameters['target_schema']}.{self.parameters['target_table']}
         """
 

@@ -1,0 +1,12 @@
+ flake8 .
+.\app\api\core\auth\jwt_config.py:9:1: E302 expected 2 blank lines, found 1
+.\app\api\core\auth\jwt_config.py:15:1: E305 expected 2 blank lines after class or function definition, found 1
+.\app\api\main.py:6:1: E402 module level import not at top of file
+.\app\main.py:5:1: E402 module level import not at top of file
+.\app\main.py:6:1: E402 module level import not at top of file
+.\app\main.py:7:1: E402 module level import not at top of file
+.\app\main.py:8:1: E402 module level import not at top of file
+.\app\main.py:9:1: E402 module level import not at top of file
+.\app\main.py:10:1: E402 module level import not at top of file
+.\app\main.py:11:1: E402 module level import not at top of file
+.\app\services\auth_service.py:16:101: E501 line too long (128 > 100 characters)

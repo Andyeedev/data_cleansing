@@ -6,8 +6,6 @@ logger = logging.getLogger(__name__)
 
 
 class MySQLAdapter(BaseAdapter):
-
-    
     def __init__(self, config):
         super().__init__(config)
         self.connect()
@@ -22,7 +20,7 @@ class MySQLAdapter(BaseAdapter):
             user=self.config.get("user"),
             password=self.config.get("password")
         )
-    
+
     def _connect(self):
         self.connection = mysql.connector.connect(
             host=self.config.get("host"),
@@ -37,7 +35,7 @@ class MySQLAdapter(BaseAdapter):
         cur.execute(query, params)
         try:
             return cur.fetchall()
-        except:
+        except Exception:
             return []
 
     def _validation_query(self):

@@ -48,7 +48,7 @@ class ScoringEngine:
         score = (achieved_weight * 100.0) / total_weight
 
         return round(score, 2)
-    
+
     def calculate_overall(self):
 
         # Severity weight mapping
@@ -61,8 +61,8 @@ class ScoringEngine:
 
         # Fetch rule execution data
         query = """
-        SELECT 
-            execution_status, 
+        SELECT
+            execution_status,
             COALESCE(severity_level, 'LOW'),
             control_id
         FROM engine.migration_control_execution

@@ -46,7 +46,10 @@ class ControlExecutor:
 
             from app.utils.logger import get_audit_logger
             audit_logger = get_audit_logger()
-            audit_logger.audit(f"CONTROL_EXECUTED | Control ID: {control_id} | Status: {result.status} | Outcome: COMPLETED")
+            audit_logger.audit(
+                f"CONTROL_EXECUTED | Control ID: {control_id} | "
+                f"Status: {result.status} | Outcome: COMPLETED"
+            )
 
             return result
 

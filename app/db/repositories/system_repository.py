@@ -30,7 +30,9 @@ class SystemRepository:
 
         self.conn.commit()
 
-    def insert_legacy_2(self, system_id, project_id, system_name, system_role, database_type, connection_config):
+    def insert_legacy_2(
+        self, system_id, project_id, system_name, system_role, database_type, connection_config
+    ):
 
         query = """
         INSERT INTO core.system_registry (
@@ -89,10 +91,10 @@ class SystemRepository:
 
         self.conn.commit()
 
-
     # =========================
     # UPDATE
     # =========================
+
     def update(self, system_id, system_name, system_role, database_type, connection_config):
 
         query = """
@@ -135,7 +137,7 @@ class SystemRepository:
     def get_by_id(self, system_id):
 
         query = """
-        SELECT 
+        SELECT
             system_id,
             system_name,
             system_role,

@@ -24,5 +24,5 @@ class SnowflakeAdapter(BaseAdapter):
         cur.execute(query)
         try:
             return cur.fetchall()
-        except:
+        except Exception:
             return []

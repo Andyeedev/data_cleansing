@@ -1,0 +1,9 @@
+.venv
+venv
+__pycache__
+*.pyc
+.git
+.github
+.vscode
+.idea
+.envdocker build --no-cache -t migration-engine:latest .

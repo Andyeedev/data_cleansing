@@ -1,23 +1,21 @@
-#from asyncio.log import logger
-import uuid
-from .db_connector import DBConnector
-from .rule_executor import RuleExecutor
-from .scoring_engine import ScoringEngine
-from app.discovery.auto_rule_discovery import AutoRuleDiscovery
-from app.utils.logger import get_logger
 import time
+import uuid
+from collections import defaultdict, deque
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from app.utils.logger import get_logger, get_audit_logger, IndentContext
 from app.orchestration.retry.rule_retry_manager import RuleRetryManager
+from app.db.connection_factory import connection_factory
+from app.db.connection_resolver import ConnectionResolver
+from app.services.mapping_resolver import MappingResolver
+from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+from app.orchestration.execution.rule_isolation import RuleIsolationExecutor
+from app.rule_executor import RuleExecutor as RuleExecutorNew
+from app.execution.control_executor import ControlExecutor
+from app.execution.execution_context import ExecutionContext
+from app.rule_executor import RuleExecutor
+from .scoring_engine import ScoringEngine
 
-
-start = time.time()
-
-#logger = get_logger(__name__)
-
-
-
-#logger = logging.getLogger(__name__)
-
-from app.utils.logger import get_logger, get_audit_logger
 
 logger = get_logger(__name__)
 audit_logger = get_audit_logger()
@@ -26,7 +24,6 @@ audit_logger = get_audit_logger()
 class ExecutionEngine:
 
     def __init___legacy(self, config, batch_id=None):
-        import uuid
 
         self.config = config
 
@@ -36,14 +33,10 @@ class ExecutionEngine:
         # ✅ project_id
         self.project_id = config.get("project_id")
 
-        from app.db.connection_factory import connection_factory
-
         engine_db_config = config.get("engine_db", {}).copy()
 
         if not engine_db_config.get("type"):
             engine_db_config["type"] = "postgres"
-
-        # print("🔥 ENGINE_DB FINAL CONFIG:", engine_db_config)
 
         self.engine_db = connection_factory(engine_db_config)
 
@@ -51,13 +44,10 @@ class ExecutionEngine:
         self.rule_config = config.get("rules", {})
         self.control_dependencies = config.get("control_dependencies", {})
         self.control_timeout_seconds = config.get("engine", {}).get(
-            "control_timeout_seconds", 300 
+            "control_timeout_seconds", 300
         )
-    
-
 
     def __init__(self, config, batch_id=None):
-        import uuid
 
         self.config = config
 
@@ -67,14 +57,10 @@ class ExecutionEngine:
         # ✅ project_id
         self.project_id = config.get("project_id")
 
-        from app.db.connection_factory import connection_factory
-
         engine_db_config = config.get("engine_db", {}).copy()
 
         if not engine_db_config.get("type"):
             engine_db_config["type"] = "postgres"
-
-        # print("🔥 ENGINE_DB FINAL CONFIG:", engine_db_config)
 
         self.engine_db = connection_factory(engine_db_config)
 
@@ -91,7 +77,6 @@ class ExecutionEngine:
         self.execution_trace = []
         self.control_trace_map = {}
 
-
         # -----------------------------------------------------
         # RETRY CONFIG (v3.2)
         # -----------------------------------------------------
@@ -104,17 +89,15 @@ class ExecutionEngine:
     # PUBLIC ENTRY
     # ---------------------------------------------------------
 
-    
     def run(self):
-
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-        from collections import defaultdict, deque
-        from app.utils.logger import IndentContext
 
         MAX_WORKERS = 4
 
         logger.info(f"Starting batch {self.batch_id} for project {self.project_id}")
-        audit_logger.audit(f"BATCH_STARTED | Batch ID: {self.batch_id} | Project ID: {self.project_id} | Status: IN_PROGRESS")
+        audit_logger.audit(
+            f"BATCH_STARTED | Batch ID: {self.batch_id} | "
+            f"Project ID: {self.project_id} | Status: IN_PROGRESS"
+        )
 
         # -----------------------------------------------------
         # [STEP 01/06] CONNECTION RESOLUTION
@@ -122,8 +105,6 @@ class ExecutionEngine:
         start_step1 = time.time()
         logger.info("[STEP 01/06] CONNECTION RESOLUTION STARTED")
         IndentContext.set_indent(1)
-
-        from app.db.connection_resolver import ConnectionResolver
 
         resolver = ConnectionResolver(self.engine_db)
         connections = resolver.get_connections(self.config["project_id"])
@@ -159,8 +140,6 @@ class ExecutionEngine:
         logger.info("[STEP 02/06] DATASET MAPPING STARTED")
         IndentContext.set_indent(1)
 
-        from app.services.mapping_resolver import MappingResolver
-
         resolver = MappingResolver(self.engine_db, self.project_id, logger)
 
         valid_pairs, skipped_pairs = resolver.resolve(
@@ -171,25 +150,41 @@ class ExecutionEngine:
         for s_id in self.source_connections.keys():
             s_adapter = self.source_connections[s_id]
             s_type = s_adapter.config.get("type", "UNKNOWN").upper()
-            
+
             # Check if this source has ANY mapping to ANY target
             has_any_mapping = any(src == s_id for src, tgt, m in valid_pairs)
-            
+
             if has_any_mapping:
                 for t_id in self.target_connections.keys():
                     t_adapter = self.target_connections[t_id]
                     t_type = t_adapter.config.get("type", "UNKNOWN").upper()
-                    
-                    mappings = next((m for src, tgt, m in valid_pairs if src == s_id and tgt == t_id), None)
+
+                    mappings = next((m for src, tgt, m in valid_pairs if src ==
+                                    s_id and tgt == t_id), None)
                     if mappings:
-                        logger.info(f"    Connection: [ID: {s_id}] ({s_type}) -> [ID: {t_id}] ({t_type}) ... ✅ (Mapping resolved)")
-                        audit_logger.audit(f"MAPPING_RESOLVED | Source ID: {s_id} | Target ID: {t_id} | Outcome: SUCCESS")
+                        logger.info(
+                            f"    Connection: [ID: {s_id}] ({s_type}) -> "
+                            f"[ID: {t_id}] ({t_type}) ... ✅ (Mapping resolved)"
+                        )
+                        audit_logger.audit(
+                            f"MAPPING_RESOLVED | Source ID: {s_id} | "
+                            f"Target ID: {t_id} | Outcome: SUCCESS"
+                        )
             else:
-                logger.info(f"    Connection: [ID: {s_id}] ({s_type}) ... ❌ (Skipped: No mapping defined)")
-                audit_logger.audit(f"MAPPING_RESOLVED | Source ID: {s_id} | Target ID: N/A | Outcome: SKIPPED | Reason: No mapping defined")
+                logger.info(
+                    f"    Connection: [ID: {s_id}] ({s_type}) ... "
+                    f"❌ (Skipped: No mapping defined)"
+                )
+                audit_logger.audit(
+                    f"MAPPING_RESOLVED | Source ID: {s_id} | Target ID: N/A | "
+                    f"Outcome: SKIPPED | Reason: No mapping defined"
+                )
 
         if skipped_pairs and valid_pairs:
-            logger.warning(f"    Notice: {len(skipped_pairs)} connection pair(s) skipped due to missing mappings.")
+            logger.warning(
+                f"    Notice: {len(skipped_pairs)} connection pair(s) "
+                f"skipped due to missing mappings."
+            )
 
         if not valid_pairs:
             logger.warning(
@@ -219,9 +214,8 @@ class ExecutionEngine:
             start_step3 = time.time()
             logger.info("[STEP 03/06] RULE DISCOVERY STARTED")
             IndentContext.set_indent(1)
-            logger.info(f"    Active Systems: {', '.join(f'[ID: {i}]' for i in self.active_source_ids)}")
-
-            from app.discovery.auto_rule_discovery import AutoRuleDiscovery
+            logger.info(
+                f"    Active Systems: {', '.join(f'[ID: {i}]' for i in self.active_source_ids)}")
 
             discovery = AutoRuleDiscovery(
                 self.engine_db,
@@ -243,13 +237,12 @@ class ExecutionEngine:
             start_step4 = time.time()
             logger.info("[STEP 04/06] CONTROL DISCOVERY STARTED")
             IndentContext.set_indent(1)
-            logger.info(f"    Active Systems: {', '.join(f'[ID: {i}]' for i in self.active_source_ids)}")
+            logger.info(
+                f"    Active Systems: {', '.join(f'[ID: {i}]' for i in self.active_source_ids)}")
 
             controls = self._get_controls()
 
             logger.debug(f"{len(controls)} controls discovered")
-
-
 
             # -----------------------------------------------------
             # ✅ Recovery Mode (FAILED CONTROLS ONLY)
@@ -270,10 +263,6 @@ class ExecutionEngine:
 
                     logger.debug("Recovery mode ON — no failed controls found")
                     return
-            
-
-            
-
 
             # -----------------------------------------------------
             # Checkpoint Handling
@@ -281,9 +270,6 @@ class ExecutionEngine:
             last_control = self._load_checkpoint()
 
             if not last_control:
-
-                #self._register_batch(len(controls))
-                #logger.info(f"Batch {self.batch_id} registered")
 
                 # -----------------------------------------------------
                 # Batch Registration (IDEMPOTENCY GUARD FIRST)
@@ -296,7 +282,6 @@ class ExecutionEngine:
 
                 logger.debug(f"Batch {self.batch_id} registered or resumed")
 
-
             else:
 
                 logger.debug(f"Resuming existing batch {self.batch_id} — registration skipped")
@@ -305,11 +290,11 @@ class ExecutionEngine:
 
                 logger.debug(f"Checkpoint detected. Last completed control: {last_control}")
 
-                control_ids = [c[0] for c in controls]
+                control_ids_list = [c[0] for c in controls]
 
-                if last_control in control_ids:
+                if last_control in control_ids_list:
 
-                    last_index = control_ids.index(last_control)
+                    last_index = control_ids_list.index(last_control)
                     controls = controls[last_index + 1:]
 
                     logger.debug(
@@ -342,8 +327,7 @@ class ExecutionEngine:
             # -----------------------------------------------------
             # Build control lookup
             # -----------------------------------------------------
-            control_map = {c[0]: c for c in controls}
-            control_ids = set(control_map.keys())
+            control_ids = set(c[0] for c in controls)
 
             # -----------------------------------------------------
             # DAG VALIDATION (v3.2 HARDENING)
@@ -395,7 +379,8 @@ class ExecutionEngine:
             start_step5 = time.time()
             logger.info("[STEP 05/06] CONTROL EXECUTION STARTED")
             IndentContext.set_indent(1)
-            logger.info(f"    Active Systems: {', '.join(f'[ID: {i}]' for i in self.active_source_ids)}")
+            logger.info(
+                f"    Active Systems: {', '.join(f'[ID: {i}]' for i in self.active_source_ids)}")
 
             logger.debug(f"Starting parallel execution with {MAX_WORKERS} workers")
 
@@ -404,7 +389,7 @@ class ExecutionEngine:
             # -----------------------------------------------------
             # Execute DAG
             # -----------------------------------------------------
-            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor_pool:
 
                 futures = {}
 
@@ -418,15 +403,16 @@ class ExecutionEngine:
                         logger.debug(f"Scheduling control {cid}")
 
                         self._trace_dag_event("CONTROL_SCHEDULED", {"control_id": cid})
-                        
-                        future = executor.submit(
+
+                        future = executor_pool.submit(
                             self._execute_control_with_retry,
                             cid
                         )
 
                         futures[future] = cid
 
-                    if not futures and not ready_queue and len(completed_controls) < len(control_ids):
+                    if (not futures and not ready_queue and
+                            len(completed_controls) < len(control_ids)):
 
                         remaining = control_ids - completed_controls
 
@@ -499,7 +485,8 @@ class ExecutionEngine:
             start_step6 = time.time()
             logger.info("[STEP 06/06] GOVERNANCE DECISION STARTED")
             IndentContext.set_indent(1)
-            logger.info(f"    Active Systems: {', '.join(f'[ID: {i}]' for i in self.active_source_ids)}")
+            logger.info(
+                f"    Active Systems: {', '.join(f'[ID: {i}]' for i in self.active_source_ids)}")
 
             # -----------------------------------------------------
             # Governance evaluation
@@ -523,9 +510,6 @@ class ExecutionEngine:
                 pass
 
             raise
-
-
-
 
     # ---------------------------------------------------------
     # BATCH CREATION (PROJECT AWARE)
@@ -568,14 +552,13 @@ class ExecutionEngine:
             self.config   # <-- PASS CONFIG
         )
         logger.info(f"DEBUG: Executing control {control_id}")
-        
+
         executor.execute_rules()
-
-
 
     def _execute_control_legacy_20260501(self, control_id):
 
-        start = time.time()
+        # start_time = time.time()
+        time.time()
 
         for source_id, target_id, mappings in self.valid_pairs:
 
@@ -599,18 +582,16 @@ class ExecutionEngine:
 
             executor.execute_rules()
 
-        duration = round((time.time() - start), 2)
+        # duration = round((time.time() - start_time), 2)
 
-        logger.info(
-            f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
-        )
-
-
-
+        # logger.info(
+        #    f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
+        # )
 
     def _execute_control_legacy_20260501_1(self, control_id):
 
-        #start = time.time()
+        # start_time = time.time()
+        time.time()
 
         self._trace_control_start(control_id)
 
@@ -668,31 +649,21 @@ class ExecutionEngine:
 
             executor.execute_rules()
 
-        #duration = round((time.time() - start), 2)
+        # duration = round((time.time() - start_time), 2)
 
-        #logger.info(
+        # self._trace_control_end(
+        #    control_id,
+        #    status="SUCCESS",
+        #    duration=duration
+        # )
+
+        # logger.info(
         #    f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
-        #)
-
-
-        duration = round((time.time() - start), 2)
-
-        self._trace_control_end(
-            control_id,
-            status="SUCCESS",
-            duration=duration
-        )
-
-        logger.info(
-            f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
-        )
-
+        # )
 
     def _execute_control_legacy_20260501_2(self, control_id):
 
-        import time
-
-        start = time.time()
+        start_time = time.time()
 
         self._trace_control_start(control_id)
 
@@ -705,12 +676,6 @@ class ExecutionEngine:
 
         for pair in self.valid_pairs:
 
-            # -------------------------------------------------
-            # CONTRACT HARDENING
-            # Supports:
-            # (source, target)
-            # (source, target, mappings)
-            # -------------------------------------------------
             if len(pair) == 3:
                 source_id, target_id, mappings = pair
             elif len(pair) == 2:
@@ -783,7 +748,7 @@ class ExecutionEngine:
         # -----------------------------------------------------
         # TRACE + COMPLETE
         # -----------------------------------------------------
-        duration = round((time.time() - start), 2)
+        duration = round((time.time() - start_time), 2)
 
         self._trace_control_end(
             control_id,
@@ -795,13 +760,7 @@ class ExecutionEngine:
             f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
         )
 
-
-
     def _execute_control_legacy_20260504_1(self, control_id):
-
-        import time
-
-        start = time.time()
 
         self._trace_control_start(control_id)
 
@@ -814,12 +773,6 @@ class ExecutionEngine:
 
         for pair in self.valid_pairs:
 
-            # -------------------------------------------------
-            # CONTRACT HARDENING
-            # Supports:
-            # (source, target)
-            # (source, target, mappings)
-            # -------------------------------------------------
             if len(pair) == 3:
                 source_id, target_id, mappings = pair
             elif len(pair) == 2:
@@ -829,47 +782,27 @@ class ExecutionEngine:
                 logger.error(f"Invalid mapping pair format: {pair}")
                 continue
 
-            # -------------------------------------------------
-            # SAFE CONTROL FILTERING
-            # mappings may be dict OR list OR empty
-            # -------------------------------------------------
-            #if isinstance(mappings, dict):
-            #    control_ids = mappings.get("control_ids", [control_id])
-            #else:
-            #    control_ids = [control_id]
+            control_ids = []
 
-            #if control_id in control_ids:
-            #    relevant_pairs.append((source_id, target_id, mappings))
+            if isinstance(mappings, dict):
+                control_ids = mappings.get("control_ids", [control_id])
 
+            elif isinstance(mappings, list):
+                # Extract control_ids from DB rows if present
+                for m in mappings:
+                    if isinstance(m, dict) and m.get("control_id"):
+                        control_ids.append(m["control_id"])
 
+                # Fallback → allow execution if no explicit control binding
+                if not control_ids:
+                    control_ids = [control_id]
 
-        # -------------------------------------------------
-        # SAFE CONTROL FILTERING (HARDENED)
-        # mappings may be dict OR list OR empty
-        # -------------------------------------------------
-        control_ids = []
-
-        if isinstance(mappings, dict):
-            control_ids = mappings.get("control_ids", [control_id])
-
-        elif isinstance(mappings, list):
-            # Extract control_ids from DB rows if present
-            for m in mappings:
-                if isinstance(m, dict) and m.get("control_id"):
-                    control_ids.append(m["control_id"])
-
-            # Fallback → allow execution if no explicit control binding
-            if not control_ids:
+            else:
                 control_ids = [control_id]
 
-        else:
-            control_ids = [control_id]
-
-        # FINAL FILTER CHECK
-        if control_id in control_ids:
-            relevant_pairs.append((source_id, target_id, mappings))
-
-
+            # FINAL FILTER CHECK
+            if control_id in control_ids:
+                relevant_pairs.append((source_id, target_id, mappings))
 
         # -----------------------------------------------------
         # NO VALID PAIRS → SKIP
@@ -886,12 +819,9 @@ class ExecutionEngine:
             )
             return
 
+        # (Note: Execution loop missing in this legacy version, intentionally left as is)
 
-    def _execute_control_legacy_20260504_1(self, control_id):
-
-        import time
-
-        start = time.time()
+    def _execute_control_legacy_20260504_1_v2(self, control_id):
 
         self._trace_control_start(control_id)
 
@@ -900,19 +830,10 @@ class ExecutionEngine:
         # CONTRACT HARDENING (v3.2)
         # -----------------------------------------------------
 
-
-
-
         relevant_pairs = []
 
         for pair in self.valid_pairs:
 
-            # -------------------------------------------------
-            # CONTRACT HARDENING
-            # Supports:
-            # (source, target)
-            # (source, target, mappings)
-            # -------------------------------------------------
             if len(pair) == 3:
                 source_id, target_id, mappings = pair
             elif len(pair) == 2:
@@ -936,8 +857,6 @@ class ExecutionEngine:
 
             elif isinstance(mappings, list):
                 for m in mappings:
-                    # your DB returns tuples, NOT dicts
-                    # so this condition will FAIL → fallback needed
                     if isinstance(m, dict) and m.get("control_id"):
                         control_ids.append(m["control_id"])
 
@@ -952,8 +871,6 @@ class ExecutionEngine:
             # -------------------------------------------------
             if control_id in control_ids:
                 relevant_pairs.append((source_id, target_id, mappings))
-
-
 
         # -----------------------------------------------------
         # NO VALID PAIRS → SKIP
@@ -970,33 +887,16 @@ class ExecutionEngine:
             )
             return
 
-        
-
-
-
     def _execute_control_legacy_20260504_1_TO_BE_REMOV(self, control_id):
 
-        import time
-
-        start = time.time()
+        start_time = time.time()
 
         self._trace_control_start(control_id)
-
-        # -----------------------------------------------------
-        # SAFE FILTER: only mappings relevant to this control
-        # CONTRACT HARDENING (v3.2)
-        # -----------------------------------------------------
 
         relevant_pairs = []
 
         for pair in self.valid_pairs:
 
-            # -------------------------------------------------
-            # CONTRACT HARDENING
-            # Supports:
-            # (source, target)
-            # (source, target, mappings)
-            # -------------------------------------------------
             if len(pair) == 3:
                 source_id, target_id, mappings = pair
             elif len(pair) == 2:
@@ -1005,10 +905,6 @@ class ExecutionEngine:
             else:
                 logger.error(f"Invalid mapping pair format: {pair}")
                 continue
-
-            # -------------------------------------------------
-            # 🔥 FIX: HANDLE REAL DB MAPPINGS (LIST OF TUPLES)
-            # -------------------------------------------------
 
             # CASE 1: mappings from DB (list of tuples)
             if isinstance(mappings, list):
@@ -1067,11 +963,9 @@ class ExecutionEngine:
             # -------------------------------------------------
             # RULE ISOLATION EXECUTION
             # -------------------------------------------------
-            from app.orchestration.execution.rule_isolation import RuleIsolationExecutor
-            from app.execution.rule_executor import RuleExecutor
 
             def executor_factory(**kwargs):
-                return RuleExecutor(**kwargs)
+                return RuleExecutorNew(**kwargs)
 
             isolated_executor = RuleIsolationExecutor(executor_factory)
 
@@ -1094,7 +988,7 @@ class ExecutionEngine:
         # -----------------------------------------------------
         # CONTROL COMPLETE
         # -----------------------------------------------------
-        duration = round((time.time() - start), 2)
+        duration = round((time.time() - start_time), 2)
 
         self._trace_control_end(
             control_id,
@@ -1106,14 +1000,9 @@ class ExecutionEngine:
             f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
         )
 
-        
-
-    
-
     def _execute_control_legacy_20260504_3(self, control_id):
 
-        import time
-        start = time.time()
+        start_time = time.time()
 
         self._trace_control_start(control_id)
 
@@ -1126,12 +1015,6 @@ class ExecutionEngine:
 
         for pair in self.valid_pairs:
 
-            # -------------------------------------------------
-            # CONTRACT HARDENING
-            # Supports:
-            # (source, target)
-            # (source, target, mappings)
-            # -------------------------------------------------
             if len(pair) == 3:
                 source_id, target_id, mappings = pair
             elif len(pair) == 2:
@@ -1208,9 +1091,8 @@ class ExecutionEngine:
             # -------------------------------------------------
             # RULE EXECUTOR (PRIMARY FIX)
             # -------------------------------------------------
-            from app.execution.rule_executor import RuleExecutor
 
-            executor = RuleExecutor(
+            executor = RuleExecutorNew(
                 engine_db=self.engine_db,
                 source_db=source_adapter,
                 target_db=target_adapter,
@@ -1232,7 +1114,7 @@ class ExecutionEngine:
         # -----------------------------------------------------
         # CONTROL COMPLETE
         # -----------------------------------------------------
-        duration = round((time.time() - start), 2)
+        duration = round((time.time() - start_time), 2)
 
         self._trace_control_end(
             control_id,
@@ -1244,12 +1126,9 @@ class ExecutionEngine:
             f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
         )
 
-
-
     def _execute_control_legacy_20260505_4(self, control_id):
 
-        import time
-        start = time.time()
+        start_time = time.time()
 
         self._trace_control_start(control_id)
 
@@ -1331,9 +1210,6 @@ class ExecutionEngine:
                 f"Executing CONTROL={control_id} | SOURCE={source_id} → TARGET={target_id}"
             )
 
-            #from app.execution.rule_executor import RuleExecutor
-            from app.rule_executor import RuleExecutor
-
             executor = RuleExecutor(
                 engine_db=self.engine_db,
                 source_db=source_adapter,
@@ -1356,7 +1232,7 @@ class ExecutionEngine:
         # -----------------------------------------------------
         # COMPLETE
         # -----------------------------------------------------
-        duration = round((time.time() - start), 2)
+        duration = round((time.time() - start_time), 2)
 
         self._trace_control_end(
             control_id,
@@ -1368,16 +1244,12 @@ class ExecutionEngine:
             f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
         )
 
-        
-
         # -----------------------------------------------------
         # RULE-LEVEL ISOLATION (v3.2)
         # -----------------------------------------------------
-        from app.orchestration.execution.rule_isolation import RuleIsolationExecutor
-        from app.execution.rule_executor import RuleExecutor
 
         def executor_factory(**kwargs):
-            return RuleExecutor(**kwargs)
+            return RuleExecutorNew(**kwargs)
 
         isolated_executor = RuleIsolationExecutor(executor_factory)
 
@@ -1402,26 +1274,6 @@ class ExecutionEngine:
             )
 
             try:
-                #results = isolated_executor.execute(
-                #    source_adapter=source_adapter,
-                #    target_adapter=target_adapter,
-                #    engine_db=self.engine_db,
-                #    batch_id=self.batch_id,
-                #    project_id=self.project_id,
-                #    control_id=control_id,
-                #    config=self.config,
-                #    mappings=mappings if isinstance(mappings, dict) else {}
-                #)
-
-
-                
-                #logger.info(
-                #    f"[RULE_ISOLATION_COMPLETE] control={control_id} "
-                #    f"source={source_id} target={target_id} "
-                #    f"total_rules={len(results)}"
-                #)
-
-
                 context = {
                     "source_adapter": source_adapter,
                     "target_adapter": target_adapter,
@@ -1444,7 +1296,7 @@ class ExecutionEngine:
                     isolated_executor=isolated_executor,
                     context=context,
                     results=results
-                )     
+                )
 
                 logger.info(
                     f"[RETRY_COMPLETE] control={control_id} "
@@ -1460,7 +1312,7 @@ class ExecutionEngine:
         # -----------------------------------------------------
         # TRACE COMPLETE
         # -----------------------------------------------------
-        duration = round((time.time() - start), 2)
+        duration = round((time.time() - start_time), 2)
 
         self._trace_control_end(
             control_id,
@@ -1472,13 +1324,9 @@ class ExecutionEngine:
             f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
         )
 
-    
     def _execute_control(self, control_id):
 
-        import time
-        from app.rule_executor import RuleExecutor  # ✅ move import to top of method
-
-        start = time.time()
+        start_time = time.time()
         self._trace_control_start(control_id)
 
         relevant_pairs = []
@@ -1568,7 +1416,7 @@ class ExecutionEngine:
         # -----------------------------------------------------
         # FINAL STATUS
         # -----------------------------------------------------
-        duration = round((time.time() - start), 2)
+        duration = round((time.time() - start_time), 2)
 
         final_status = "FAILED" if control_failed else "SUCCESS"
 
@@ -1582,9 +1430,7 @@ class ExecutionEngine:
             f"⏱ CONTROL COMPLETE | {control_id} | status={final_status} | duration={duration}s"
         )
 
-
     def _execute_control_legacy_202600_(self, control_id):
-        from app.rule_executor import RuleExecutor  # ✅ move import to top of method
         executor = RuleExecutor(
             engine_db=self.engine_db,
             source_db=self.source_connections,
@@ -1596,7 +1442,6 @@ class ExecutionEngine:
         )
 
         executor.execute_rules()
-
 
     # ---------------------------------------------------------
     # FINALISATION
@@ -1611,7 +1456,7 @@ class ExecutionEngine:
         GROUP BY overall_status
         """
 
-        results = self.engine_db.execute(query, (self.batch_id,))
+        results_db = self.engine_db.execute(query, (self.batch_id,))
 
         total_controls = 0
         passed = 0
@@ -1619,7 +1464,7 @@ class ExecutionEngine:
         errors = 0
         blocked = 0
 
-        for status, count in results:
+        for status, count in results_db:
             total_controls += count
 
             if status == "PASS":
@@ -1676,22 +1521,17 @@ class ExecutionEngine:
         ))
 
         # Governance Intelligence
-        result = self.engine_db.execute(
+        result_gov = self.engine_db.execute(
             "SELECT * FROM engine.run_governance_intelligence(%s)",
             (self.batch_id,)
         )
 
-        anomaly_score = result[0][0]
-        auto_blocked = result[0][2]
+        anomaly_score = result_gov[0][0]
+        auto_blocked = result_gov[0][2]
 
-        #if auto_blocked:
-        #    raise Exception(
-        #        f"RELEASE BLOCKED: Governance anomaly threshold breached. Score={anomaly_score}"
-        #    )
-            
         if auto_blocked:
             logger.error(
-            f"RELEASE BLOCKED: Governance anomaly threshold breached. Score={anomaly_score}"
+                f"RELEASE BLOCKED: Governance anomaly threshold breached. Score={anomaly_score}"
             )
 
         self._enforce_release_gate(overall_status, score)
@@ -1744,8 +1584,6 @@ class ExecutionEngine:
             raise SystemExit(
                 f"RELEASE BLOCKED: Batch {self.batch_id} - {decision_reason}"
             )
-        
-
 
     def _register_batch_legacy_20260605_1(self, total_controls):
 
@@ -1759,8 +1597,7 @@ class ExecutionEngine:
             self.batch_id,
             self.project_id,
             total_controls
-    ))
-        
+        ))
 
     def _complete_batch(self, status):
 
@@ -1772,7 +1609,6 @@ class ExecutionEngine:
         """
 
         self.engine_db.execute(query, (status, self.batch_id))
-
 
     def _update_control_progress(self, success=True):
 
@@ -1796,22 +1632,13 @@ class ExecutionEngine:
 
     def _get_controls(self):
 
-        #query = """
-        #SELECT control_id
-        #FROM engine.control_registry
-        #WHERE enabled_flag = TRUE
-        #ORDER BY control_id
-        #"""
-
         query = """
         SELECT
-    ---Intelligent Rule Prioritisation	run critical rules first
         control_id
         FROM engine.control_registry
         WHERE enabled_flag = TRUE
         ORDER BY severity_level DESC, control_id
         """
-
 
         rows = self.engine_db.execute(query)
 
@@ -1821,27 +1648,13 @@ class ExecutionEngine:
 
             control_id = row[0]
 
-            #rule_status = self.rule_config.get(control_id, "enabled")
-            #rule_status = getattr(self, "rule_config", {}).get(control_id, "enabled")
-            
-
-            #if rule_status.lower() == "disabled":
-            #    logger.info(f"Skipping control {control_id} (disabled in config.yaml)")
-            #    continue
-            
             if not self._is_rule_enabled(control_id):
                 logger.info(f"Skipping control {control_id} (disabled in config.yaml)")
                 continue
 
             filtered_controls.append(row)
 
-
-
-
-        #return rows
         return filtered_controls
-    
-    
 
     def _is_rule_enabled(self, control_id):
         return getattr(self, "rule_config", {}).get(control_id, "enabled") == "enabled"
@@ -1857,10 +1670,10 @@ class ExecutionEngine:
         WHERE batch_id = %s
         """
 
-        result = self.engine_db.execute(query, (self.batch_id,))[0]
+        result_gov = self.engine_db.execute(query, (self.batch_id,))[0]
 
-        blocking_rules = result[0]
-        failed_rules = result[1]
+        blocking_rules = result_gov[0]
+        failed_rules = result_gov[1]
 
         if blocking_rules > 0:
             migration_status = "BLOCKED"
@@ -1884,11 +1697,10 @@ class ExecutionEngine:
         ))
 
         logger.info(f"Migration governance decision: {migration_status}")
-        audit_logger.audit(f"GOVERNANCE_DECISION | Batch ID: {self.batch_id} | Decision: {migration_status} | Outcome: FINALIZED")
-
-
-
-
+        audit_logger.audit(
+            f"GOVERNANCE_DECISION | Batch ID: {self.batch_id} | "
+            f"Decision: {migration_status} | Outcome: FINALIZED"
+        )
 
     def _save_checkpoint(self, control_id):
 
@@ -1907,8 +1719,6 @@ class ExecutionEngine:
             control_id
         ))
 
-
-    
     def _load_checkpoint(self):
 
         query = """
@@ -1923,15 +1733,7 @@ class ExecutionEngine:
             return rows[0][0]
 
         return None
-    
 
-    #------------------------------------------------------
-    #Define dependency
-    #C02 runs only after C01
-    #C09 runs only after C03
-    #If a control is not listed → no dependencies.
-    #Step 5: Control Dependency Graph (DAG)
-    #------------------------------------------------
     def _dependencies_satisfied(self, control_id, completed_controls):
 
         deps = self.control_dependencies.get(control_id, [])
@@ -1941,13 +1743,7 @@ class ExecutionEngine:
                 return False
 
         return True
-    
 
-    # ------------------------------------------------------
-    # Get list of controls that have failed or errored in the current batch execution
-    # This can be used for dynamic dependency handling, e.g. if a control fails, we can choose to block dependent controls or route them to a different execution path
-    # PHASE 7 STEP 6 — BATCH RECOVERY MODE
-    #------------------------------------------------------
     def _get_failed_controls(self):
 
         query = """
@@ -1957,11 +1753,10 @@ class ExecutionEngine:
         AND execution_status IN ('FAIL', 'ERROR')
         """
 
-        rows = self.engine_db.fetch_all(query, (self.batch_id,))
+        rows_failed = self.engine_db.fetch_all(query, (self.batch_id,))
 
-        return set(r[0] for r in rows)
+        return set(r[0] for r in rows_failed)
 
-    
     def _trace(self, event_type, payload):
         """
         Central execution trace logger (in-memory + structured logs)
@@ -1980,7 +1775,6 @@ class ExecutionEngine:
         # structured logging (safe for production observability tools)
         logger.info(f"[TRACE] {event_type} | {payload}")
 
-
     def _trace_control_start(self, control_id):
         self.control_trace_map[control_id] = {
             "start_time": time.time(),
@@ -1990,7 +1784,6 @@ class ExecutionEngine:
         self._trace("CONTROL_START", {
             "control_id": control_id
         })
-
 
     def _trace_control_end(self, control_id, status, duration):
         if control_id in self.control_trace_map:
@@ -2017,12 +1810,6 @@ class ExecutionEngine:
             "control_map": self.control_trace_map
         }
 
-    #-------------------------------------------------------
-    # 🔥 METHOD 1 — VALIDATE DEPENDENCIES
-    # Control execution with dependency checks
-    # Validate control dependencies before execution starts 
-    # This is a safety check to ensure that the control dependency graph is well-formed and there are no missing references that could cause execution errors
-    # This can be called after loading controls and before starting execution
     def _validate_dependencies(self, control_ids):
 
         invalid_refs = []
@@ -2039,15 +1826,7 @@ class ExecutionEngine:
                 logger.error(f"Invalid dependency: {cid} depends on missing {dep}")
 
             raise ValueError("Invalid control dependencies detected")
-        
 
-    #-------------------------------------------------------------------------------------------
-    # 🔥 METHOD 2 — CYCLE DETECTION
-    # Implement cycle detection in the control dependency graph
-    # This is critical to prevent infinite loops and ensure that the execution flow is acyclic,
-    # which is a fundamental requirement for a DAG-based execution engine. This can be implemented 
-    # using depth-first search (DFS) or Kahn's algorithm to detect cycles before execution begins.
-    #----------------------------------------------------------------------------------------------
     def _detect_cycles(self, control_ids):
 
         visited = set()
@@ -2075,14 +1854,6 @@ class ExecutionEngine:
             if cid not in visited:
                 if dfs(cid):
                     raise ValueError(f"DAG cycle detected involving control {cid}")
-                
-
-    #------------------------------------------------------------------------------------
-    # 🔥 METHOD 3 — DAG TRACE (OPTIONAL BUT IMPORTANT)
-    # Implement detailed DAG execution tracing for debugging and observability
-    # This can log the execution order of controls, timing, and any issues with dependencies in
-    # real-time, which is crucial for diagnosing issues in complex DAGs and ensuring that the execution flow is as expected.
-    #-------------------------------------------------------------------------------------
 
     def _trace_dag_event(self, message, payload=None):
 
@@ -2092,7 +1863,6 @@ class ExecutionEngine:
             log_msg += f" | {payload}"
 
         logger.debug(log_msg)
-
 
     def _execute_control_with_retry(self, control_id):
 
@@ -2106,12 +1876,6 @@ class ExecutionEngine:
                         f"[RETRY] Control {control_id} attempt {attempt}/{self.max_retries}"
                     )
 
-                #self._execute_control(control_id)
-
-
-                from app.execution.control_executor import ControlExecutor
-                from app.execution.execution_context import ExecutionContext
-
                 context = ExecutionContext(
                     batch_id=self.batch_id,
                     project_id=self.project_id,
@@ -2123,12 +1887,9 @@ class ExecutionEngine:
                     target_connections=self.target_connections
                 )
 
-                executor = ControlExecutor(context)
+                executor_ctrl = ControlExecutor(context)
 
-                result = executor.execute(control_id)
-
-
-
+                executor_ctrl.execute(control_id)
 
                 return True  # SUCCESS
 
@@ -2148,9 +1909,7 @@ class ExecutionEngine:
                     return False
 
                 if self.retry_delay_seconds > 0:
-                    import time
                     time.sleep(self.retry_delay_seconds)
-                
 
     def _register_batch(self, total_controls):
 
@@ -2184,4 +1943,4 @@ class ExecutionEngine:
             VALUES (%s, %s, NOW(), 'RUNNING', %s, 0, 0)
         """, (self.batch_id, self.project_id, total_controls))
 
-        return True    
+        return True

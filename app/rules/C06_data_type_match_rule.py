@@ -25,13 +25,13 @@ class DataTypeMatchRule(BaseRule):
         # -----------------------------------------
 
         column_query = """
-        SELECT 
+        SELECT
             src.column_name AS source_column,
             tgt.column_name AS target_column
         FROM core.column_mappings cm
-        JOIN core.dataset_columns src 
+        JOIN core.dataset_columns src
             ON cm.source_column_id = src.column_id
-        JOIN core.dataset_columns tgt 
+        JOIN core.dataset_columns tgt
             ON cm.target_column_id = tgt.column_id
         WHERE cm.mapping_id = %s
         """

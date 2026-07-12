@@ -1,5 +1,6 @@
 import psycopg2
 
+
 class DBConnector:
     def __init__(self, db_config):
         self.conn = psycopg2.connect(
@@ -16,7 +17,7 @@ class DBConnector:
             cur.execute(query, params)
             try:
                 return cur.fetchall()
-            except:
+            except Exception:
                 return None
 
     def close(self):

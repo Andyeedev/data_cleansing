@@ -1,11 +1,7 @@
-
-
-from ast import If
 import time
-#import logging
+from collections import defaultdict
+from datetime import datetime
 from app.rule_factory import RuleFactory
-
-#logger = logging.getLogger(__name__)
 from app.utils.logger import get_logger
 
 
@@ -14,11 +10,11 @@ MAX_RETRIES = 2
 
 logger = get_logger(__name__)
 
+
 class RuleExecutor:
 
     def __init__(self, engine_db, source_db, target_db, batch_id, project_id, control_id,
-    config=None, source_connections=None, target_connections=None
-    ):
+                 config=None, source_connections=None, target_connections=None):
         self.engine_db = engine_db
         self.source_db = source_db
         self.target_db = target_db
@@ -28,35 +24,20 @@ class RuleExecutor:
         self.source_connections = source_connections or {}
         self.target_connections = target_connections or {}
 
-    # -----------------------------------------
-    # FIX: Profiling config (DEFAULT SAFE)
-    # -----------------------------------------
         config = config or {}
-
-        #self.profiling_enabled = config.get("profiling_enabled", True)
-        #self.slow_threshold = config.get("slow_threshold", 5)
-        #self.very_slow_threshold = config.get("very_slow_threshold", 10)
 
         self.profiling_enabled = config.get("profiling_enabled", True)
         self.slow_threshold = config.get("slow_threshold", .5)
         self.very_slow_threshold = config.get("very_slow_threshold", 2)
 
-
-        #profiling_enabled: true
-        #slow_threshold: 0.5
-        #very_slow_threshold: 2
-
     def __init__legacy_1(self, engine_db, source_db, target_db, batch_id, project_id, control_id,
-    config=None   # ← IMPORTANT ADD
-    ):
+                         config=None):
         self.engine_db = engine_db
         self.source_db = source_db
         self.target_db = target_db
         self.batch_id = batch_id
         self.project_id = project_id
         self.control_id = control_id
-
-
 
     # ---------------------------------------------------------
     # PUBLIC ENTRY
@@ -76,23 +57,22 @@ class RuleExecutor:
         logged_systems = set()
 
         for rule in rules:
-            
+
             rule_id = rule[0]
             severity_level = rule[2]
 
             entities = self._get_rule_entities(rule_id)
-            
+
             # Group entities by source_system_id for grouped logging
-            from collections import defaultdict
             grouped_entities = defaultdict(list)
             for e in entities:
                 grouped_entities[e[6]].append(e)
 
             for source_system_id, source_entities in grouped_entities.items():
-                
+
                 source_adapter = self.source_connections.get(source_system_id, self.source_db)
                 s_type = source_adapter.config.get("type", "UNKNOWN").upper()
-                
+
                 if source_system_id not in logged_systems:
                     logger.info(f"        System: [ID: {source_system_id}] ({s_type})")
                     logged_systems.add(source_system_id)
@@ -112,92 +92,66 @@ class RuleExecutor:
                     # -----------------------------------------
                     dataset_name = entity[1]
                     logger.info(f"            Running {rule_id} for {dataset_name} ... ✅")
-                
-                #logger.info(f"Starting batch {rule_id} for {dataset_name} [Source: {s_type} ({s_host}) -> Target: {t_type} ({t_host})]")
-                #logger.info(
-                #    f"    Control {self.control_id} running {rule_id} for {dataset_name} "
-                #    f"[{s_type} ({s_host}) -> {t_type} ({t_host})]"
-                #)
 
-                rule_instance = RuleFactory.create(
-                    rule_id,
-                    source_adapter,
-                    target_adapter,
-                    parameters
-                )
-
-                #start_time = time.time()
-                start_time_epoch = time.time()
-
-                try:
-
-                    # Execute rule with retry protection
-                    result = self.execute_with_retry(rule_instance.execute)
-
-                    execution_status = result.get("status", "ERROR")
-                    delta = result.get("delta", 0)
-
-                    if execution_status == "SKIPPED":
-                        continue
-
-                except Exception as e:
-
-                    execution_status = "ERROR"
-                    delta = 0
-
-                    self._log_exception(
+                    rule_instance = RuleFactory.create(
                         rule_id,
-                        entity[1],
-                        str(e)
+                        source_adapter,
+                        target_adapter,
+                        parameters
                     )
-                #execution_time = round(time.time() - start_time, 4)
 
-                end_time_epoch = time.time()
-                execution_time = round(end_time_epoch - start_time_epoch, 4)
+                    start_time_epoch = time.time()
 
-                from datetime import datetime
+                    try:
+                        # Execute rule with retry protection
+                        result = self.execute_with_retry(rule_instance.execute)
 
-                rule_start_time = datetime.fromtimestamp(start_time_epoch)
-                rule_end_time = datetime.fromtimestamp(end_time_epoch)
+                        execution_status = result.get("status", "ERROR")
+                        delta = result.get("delta", 0)
 
+                        if execution_status == "SKIPPED":
+                            continue
 
-                #self._log_rule_execution(
-                #    rule_id,
-                #    entity,
-                #    execution_status,
-                #    delta,
-                #    execution_time,
-                #    severity_level
-                #)
+                    except Exception as _e:
+                        execution_status = "ERROR"
+                        delta = 0
+                        result = {"status": "ERROR", "error": str(_e)}
 
+                        self._log_exception(
+                            rule_id,
+                            entity[1],
+                            str(_e)
+                        )
 
-                self._log_rule_execution(
-                    rule_id,
-                    entity,
-                    execution_status,
-                    delta,
-                    execution_time,
-                    severity_level,
-                    rule_start_time,
-                    rule_end_time
-                )
+                    end_time_epoch = time.time()
+                    execution_time = round(end_time_epoch - start_time_epoch, 4)
 
-                
+                    rule_start_time = datetime.fromtimestamp(start_time_epoch)
+                    rule_end_time = datetime.fromtimestamp(end_time_epoch)
 
+                    self._log_rule_execution(
+                        rule_id,
+                        entity,
+                        execution_status,
+                        delta,
+                        execution_time,
+                        severity_level,
+                        rule_start_time,
+                        rule_end_time
+                    )
 
-                if execution_status == "FAIL":
+                    if execution_status == "FAIL":
+                        self._log_exception(rule_id, entity[1], result)
 
-                    self._log_exception(rule_id, entity[1], result)
+                        if severity_level and severity_level.upper() == "CRITICAL":
+                            blocked = True
 
-                    if severity_level and severity_level.upper() == "CRITICAL":
-                        blocked = True
-
-                if execution_status == "PASS":
-                    passed += 1
-                elif execution_status == "FAIL":
-                    failed += 1
-                else:
-                    errors += 1
+                    if execution_status == "PASS":
+                        passed += 1
+                    elif execution_status == "FAIL":
+                        failed += 1
+                    else:
+                        errors += 1
 
         if blocked:
             overall_status = "BLOCKED"
@@ -216,8 +170,6 @@ class RuleExecutor:
             errors
         )
 
-
-        
     # ---------------------------------------------------------
     # RULE FETCH
     # ---------------------------------------------------------
@@ -306,7 +258,7 @@ class RuleExecutor:
             "primary_key_column": primary_key,
             "numeric_column": numeric_column
         }
-    
+
     def _build_parameters(self, entity):
 
         mapping_id = entity[0]
@@ -338,7 +290,6 @@ class RuleExecutor:
             "primary_key_column": primary_key,
             "numeric_column": numeric_column
         }
-
 
     # ---------------------------------------------------------
     # LOGGING
@@ -385,9 +336,8 @@ class RuleExecutor:
             entity[0]
         ))
 
-
-    
-    def _log_rule_execution_legacy_2(self, rule_id, entity, status, delta, execution_time, severity, start_time, end_time):
+    def _log_rule_execution_legacy_2(self, rule_id, entity, status, delta, execution_time,
+                                     severity, start_time, end_time):
 
         query = """
         INSERT INTO engine.migration_control_execution
@@ -412,10 +362,8 @@ class RuleExecutor:
             end_time
         ))
 
-
-    def _log_rule_execution(
-        self, rule_id, entity, status, delta, execution_time, severity, start_time, end_time
-    ):
+    def _log_rule_execution(self, rule_id, entity, status, delta, execution_time,
+                            severity, start_time, end_time):
 
         # -----------------------------------------
         # Slow classification
@@ -459,7 +407,6 @@ class RuleExecutor:
             slow_flag
         ))
 
-
     def _log_exception(self, rule_id, entity_name, error):
 
         query = """
@@ -468,10 +415,6 @@ class RuleExecutor:
          source_value, target_value, delta_value)
         VALUES (%s,%s,%s,%s,%s,%s,%s)
         """
-
-        
-        #cause = result.get("cause")
-        #scope = result.get("failure_scope")
 
         self.engine_db.execute(query, (
             self.batch_id,
@@ -514,16 +457,12 @@ class RuleExecutor:
         row = self.engine_db.execute(query, (mapping_id,))
 
         return row[0][0] if row else None
-    
-
-
-
-
 
     def execute_with_retry(self, rule_function, *args):
 
-        #Rule Retry Engine
-        #If a rule fails due to transient issues (network, lock, temporary table), retry automatically.
+        # Rule Retry Engine
+        # If a rule fails due to transient issues (network, lock, temporary table),
+        # retry automatically.
 
         retries = 0
 
@@ -532,7 +471,7 @@ class RuleExecutor:
             try:
                 return rule_function(*args)
 
-            except Exception as e:
+            except Exception:
 
                 if retries == MAX_RETRIES:
                     raise

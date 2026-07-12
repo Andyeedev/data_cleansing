@@ -1,5 +1,3 @@
-import pandas as pd
-
 class AuditExporter:
 
     def __init__(self, engine_db):
@@ -14,14 +12,11 @@ class AuditExporter:
         df = self.engine_db.fetch_dataframe(query, (batch_id,))
         df.to_csv(output_path, index=False)
 
-
-  # -----------------------------------------------------
+    # -----------------------------------------------------
     # GOVERNANCE DECISION
     # -----------------------------------------------------
 
-
     def export_governance(self, batch_id):
-
 
         query = """
         SELECT
@@ -47,10 +42,7 @@ class AuditExporter:
             print(f"Total Failed Rules: {row[4]}")
             print(f"Decision Time: {row[5]}")
 
-
-
-
-     # -----------------------------------------------------
+    # -----------------------------------------------------
     # BATCH SUMMARY
     # -----------------------------------------------------
 
@@ -83,7 +75,6 @@ class AuditExporter:
             print(f"Failed Controls: {row[5]}")
             print(f"Batch Status: {row[6]}")
 
-
     # -----------------------------------------------------
     # CONTROL EXECUTION DETAILS
     # -----------------------------------------------------
@@ -112,7 +103,6 @@ class AuditExporter:
                 f"{row[0]} | {row[1]} | Status={row[2]} | "
                 f"Delta={row[3]} | Time={row[4]}s"
             )
-
 
     # -----------------------------------------------------
     # EXCEPTION REPORT

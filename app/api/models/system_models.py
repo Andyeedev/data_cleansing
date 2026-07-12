@@ -11,7 +11,7 @@ class SystemCreateRequest(BaseModel):
     project_id: str
     system_name: str
     system_role: str   # SOURCE / TARGET
-    database_type: str # POSTGRES / SQLSERVER
+    database_type: str  # POSTGRES / SQLSERVER
     connection_config: ConnectionConfig
 
 

@@ -62,7 +62,10 @@ class C08DataDriftDetectionRule:
             return {
                 "status": status,
                 "delta": max_drift,
-                "cause": f"High drift detected on column {worst_column}" if status == "FAIL" else None,
+                "cause": (
+                    f"High drift detected on column {worst_column}"
+                    if status == "FAIL" else None
+                ),
                 "failure_scope": "BOTH"
             }
 

@@ -1,14 +1,7 @@
-#import logging
-
-from app import rules
-
-#logger = logging.getLogger(__name__)
-
+from collections import defaultdict
 from app.utils.logger import get_logger
 
-
 logger = get_logger(__name__)
-
 
 
 class AutoRuleDiscovery:
@@ -25,18 +18,17 @@ class AutoRuleDiscovery:
     def generate_rules(self):
 
         mappings = self._get_dataset_mappings()
-        
+
         # Group mappings by source_system_id for better logging
-        from collections import defaultdict
         grouped_mappings = defaultdict(list)
         for m in mappings:
             grouped_mappings[m[3]].append(m)
 
         for source_system_id, source_mappings in grouped_mappings.items():
-            
+
             source_adapter = self.source_connections.get(source_system_id, self.source_db)
             s_type = source_adapter.config.get("type", "UNKNOWN").upper()
-            
+
             logger.info(f"    System: [ID: {source_system_id}] ({s_type})")
 
             for mapping in source_mappings:
@@ -48,7 +40,8 @@ class AutoRuleDiscovery:
 
                 columns = self._get_columns(mapping_id)
 
-                # New v1.7 logic: Infer rules based on column roles and data types, plus FK detection
+                # New v1.7 logic: Infer rules based on column roles and data types,
+                # plus FK detection
                 rules = self._infer_rules(columns)
 
                 # Detect foreign keys
@@ -100,7 +93,7 @@ class AutoRuleDiscovery:
 
         for column in columns:
 
-            column_name = column[0]
+            # _column_name = column[0]
             inferred_role = column[1]
             data_type = column[2]
 
@@ -114,7 +107,7 @@ class AutoRuleDiscovery:
                 rules.add("C02_BALANCE_RECON")
 
             # Date column detection
-            #if data_type and "date" in data_type.lower():
+            # if data_type and "date" in data_type.lower():
             if data_type and isinstance(data_type, str) and "date" in data_type.lower():
                 rules.add("C05_NULL_CHECK")
 
@@ -122,30 +115,23 @@ class AutoRuleDiscovery:
             if inferred_role == "PRIMARY_KEY":
                 rules.add("C07_DUPLICATE_DETECTION")
 
-            #if inferred_role == "AUDIT_COLUMN":
+            # if inferred_role == "AUDIT_COLUMN":
             #    rules.add("C08_DATA_DRIFT_DETECTION")
 
             if inferred_role == "FOREIGN_KEY":
                 rules.add("C08_DATA_DRIFT")
-            
+
             if inferred_role == "FOREIGN_KEY":
                 rules.add("C09_REFERENTIAL_COVERAGE")
 
             if inferred_role == "TABLE":
                 rules.add("C010_SCHEMA_DRIFT")
-            
-            
-            
-
-
-    
 
         # Always run structural checks
         rules.add("C04_COLUMN_COUNT")
         rules.add("C06_DATA_TYPE_MATCH")
 
         return list(rules)
-    
 
     def _infer_rules_legacy_2(self, columns):
 
@@ -153,7 +139,7 @@ class AutoRuleDiscovery:
 
         for column in columns:
 
-            column_name = column[0]
+            # _column_name = column[0]
             inferred_role = column[1]
             data_type = column[2]
 
@@ -169,7 +155,7 @@ class AutoRuleDiscovery:
             if inferred_role == "FOREIGN_KEY":
                 rules.add("C09_REFERENTIAL_COVERAGE")
 
-            #if data_type and "date" in data_type.lower():
+            # if data_type and "date" in data_type.lower():
             if data_type and isinstance(data_type, str) and "date" in data_type.lower():
                 rules.add("C05_NULL_CHECK")
 
@@ -180,14 +166,13 @@ class AutoRuleDiscovery:
 
         return list(rules)
 
-
     def _infer_rules(self, columns):
 
         rules = set()
 
         for column in columns:
 
-            column_name = column[0]
+            # _column_name = column[0]
             inferred_role = column[1]
             data_type = column[2]
 
@@ -203,7 +188,7 @@ class AutoRuleDiscovery:
             if inferred_role == "FOREIGN_KEY":
                 rules.add("C09_REFERENTIAL_COVERAGE")
 
-            #if data_type and "date" in data_type.lower():
+            # if data_type and "date" in data_type.lower():
             if data_type and isinstance(data_type, str) and "date" in data_type.lower():
                 rules.add("C05_NULL_CHECK")
 
@@ -212,7 +197,6 @@ class AutoRuleDiscovery:
         rules.add("C010_SCHEMA_DRIFT")
 
         return list(rules)
-
 
     # -----------------------------------------------------
     # RULE REGISTRATION
@@ -279,9 +263,6 @@ class AutoRuleDiscovery:
 
         self.engine_db.execute(insert_query, (rule_id, mapping_id))
 
-
-    
-
     def _detect_foreign_keys_legacy(self, schema, table):
 
         query = """
@@ -295,13 +276,14 @@ class AutoRuleDiscovery:
         AND tc.table_name = %s
         """
 
-        #rows = self.engine_db.execute(query, (schema, table))
+        # rows = self.engine_db.execute(query, (schema, table))
 
-        # For FK detection, we need to query the source database, not the engine metadata database
+        # For FK detection, we need to query the source database,
+        # not the engine metadata database
         rows = self.source_db.execute(query, (schema, table))
 
         return [r[0] for r in rows]
-    
+
     def _detect_foreign_keys(self, schema, table, source_db):
 
         if source_db.config.get("type") == "sqlserver":

@@ -1,0 +1,77 @@
+docker inspect docker-engine   
+[
+    {
+        "Id": "sha256:639eb7cc85797011636d75b376a4160cfd51aec759c76829345890a9b76ee59d",
+        "RepoTags": [
+            "docker-engine:latest"
+        ],
+        "RepoDigests": [
+            "docker-engine@sha256:639eb7cc85797011636d75b376a4160cfd51aec759c76829345890a9b76ee59d"
+        ],
+        "Parent": "",
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-06-17T18:29:34.735493198Z",
+        "DockerVersion": "",
+        "Author": "",
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 128693413,
+        "GraphDriver": {
+            "Data": null,
+            "Name": "overlayfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:f4f8b983b714f130e2cff99176baa26352db6a55d3622e10ada40f2b4720a4eb",
+                "sha256:30397027ad83521a240789f494c872644416a4e3a3c44f2efb5bdc4eb457e20f",
+                "sha256:28b2c2519a708607986b8f9cc0fdd3c481df4c3f4d6730db76bdbce692e8d868",
+                "sha256:fc765e52b6a7a069d79e6fc708336d622c2cd040a37bae484c64b7edf9f7b5a5",
+                "sha256:e6e42f69e2be1f2a62635dc4249b1cfb3481d68ab72db228a6befaad961a49e4",
+                "sha256:80474298e34d84f2157767d0f3f891f7084a13fdc1c746a94ac0729b9700532c",
+                "sha256:8b56232d2bdbb90ef1267d5e1f12e5a40b470489b270bd694a2594064c014cf5",
+                "sha256:20de9d937dec516b1146fcc30a8db91662f3ee3ba0ddb155a6c9e6b3d9176f37"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-06-17T18:29:38.870163016Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.index.v1+json",
+            "digest": "sha256:639eb7cc85797011636d75b376a4160cfd51aec759c76829345890a9b76ee59d",
+            "size": 856
+        },
+        "Config": {
+            "ArgsEscaped": true,
+            "Cmd": [
+                "uvicorn",
+                "app.api.main:app",
+                "--host",
+                "0.0.0.0",
+                "--port",
+                "8000"
+            ],
+            "Entrypoint": null,
+            "Env": [
+                "PATH=/root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D",
+                "PYTHON_VERSION=3.11.15",
+                "PYTHON_SHA256=272179ddd9a2e41a0fc8e42e33dfbdca0b3711aa5abf372d3f2d51543d09b625",
+                "PYTHONPATH=/app"
+            ],
+            "ExposedPorts": {
+                "8000/tcp": {}
+            },
+            "Labels": {
+                "com.docker.compose.project": "docker",
+                "com.docker.compose.service": "engine",
+                "com.docker.compose.version": "2.39.4"
+            },
+            "OnBuild": null,
+            "User": "",
+            "Volumes": null,
+            "WorkingDir": "/app"
+        }
+    }
+]

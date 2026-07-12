@@ -27,5 +27,5 @@ class OracleAdapter(BaseAdapter):
         cur.execute(query, params or {})
         try:
             return cur.fetchall()
-        except:
+        except Exception:
             return []
