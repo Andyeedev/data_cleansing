@@ -1,11 +1,5 @@
-import { CheckCircle, XCircle, Clock, User } from 'lucide-react';
-
-const mockApprovals = [
-  { id: '1', title: 'User Role Change - Admin Access', requester: 'John Smith', approver: 'Sarah Jones', status: 'pending', createdAt: '2026-07-12 09:00', priority: 'high' },
-  { id: '2', title: 'Data Migration Approval', requester: 'Mike Chen', approver: 'Emily Davis', status: 'pending', createdAt: '2026-07-11 14:30', priority: 'medium' },
-  { id: '3', title: 'Policy Exception Request', requester: 'Alex Wilson', approver: 'John Smith', status: 'approved', createdAt: '2026-07-10 11:15', priority: 'low' },
-  { id: '4', title: 'Budget Allocation', requester: 'Sarah Jones', approver: 'Mike Chen', status: 'rejected', createdAt: '2026-07-09 16:45', priority: 'high' },
-];
+import { CheckCircle, XCircle, Clock, User, Loader2 } from 'lucide-react';
+import { useTasks } from '../../hooks/useTasks';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -20,6 +14,8 @@ const priorityColors: Record<string, string> = {
 };
 
 export const TaskApprovals = () => {
+  const { tasks, loading, error } = useTasks({ status: 'pending' });
+
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -27,51 +23,69 @@ export const TaskApprovals = () => {
         <p className="text-neutral-600 mt-1">Review and manage pending approvals</p>
       </div>
 
-      <div className="bg-white rounded-lg border border-neutral-200">
-        <div className="divide-y divide-neutral-200">
-          {mockApprovals.map((approval) => (
-            <div key={approval.id} className="p-4 hover:bg-neutral-50">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="font-medium text-neutral-900">{approval.title}</p>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-neutral-600">
-                    <span className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      Requester: {approval.requester}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="bg-white rounded-lg border border-neutral-200">
+          <div className="divide-y divide-neutral-200">
+            {tasks.map((task) => (
+              <div key={task.id} className="p-4 hover:bg-neutral-50">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="font-medium text-neutral-900">{task.title}</p>
+                    {task.description && (
+                      <p className="text-sm text-neutral-600 mt-1">{task.description}</p>
+                    )}
+                    <div className="flex items-center gap-4 mt-2 text-sm text-neutral-600">
+                      {task.assigned_by && (
+                        <span className="flex items-center gap-1">
+                          <User className="w-4 h-4" />
+                          Requester: {task.assigned_by}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {task.created_at}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[task.priority]}`}>
+                      {task.priority}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      Approver: {approval.approver}
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[task.status]}`}>
+                      {task.status}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {approval.createdAt}
-                    </span>
+                    {task.status === 'pending' && (
+                      <div className="flex items-center gap-1 ml-2">
+                        <button className="p-1 text-green-600 hover:bg-green-50 rounded">
+                          <CheckCircle className="w-5 h-5" />
+                        </button>
+                        <button className="p-1 text-red-600 hover:bg-red-50 rounded">
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[approval.priority]}`}>
-                    {approval.priority}
-                  </span>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[approval.status]}`}>
-                    {approval.status}
-                  </span>
-                  {approval.status === 'pending' && (
-                    <div className="flex items-center gap-1 ml-2">
-                      <button className="p-1 text-green-600 hover:bg-green-50 rounded">
-                        <CheckCircle className="w-5 h-5" />
-                      </button>
-                      <button className="p-1 text-red-600 hover:bg-red-50 rounded">
-                        <XCircle className="w-5 h-5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
-            </div>
-          ))}
+            ))}
+            {tasks.length === 0 && (
+              <div className="p-8 text-center text-neutral-500">No pending approvals</div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
