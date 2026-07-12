@@ -1,7 +1,7 @@
 const API_BASE = '/api/v1';
 
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -15,11 +15,20 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || `HTTP ${response.status}`);
+    const text = await response.text();
+    let message = `HTTP ${response.status}`;
+    try {
+      const json = JSON.parse(text);
+      message = json.detail || json.message || message;
+    } catch {
+      message = text.substring(0, 200) || message;
+    }
+    throw new Error(message);
   }
 
-  return response.json();
+  const text = await response.text();
+  if (!text) return {} as T;
+  return JSON.parse(text);
 }
 
 export const api = {
