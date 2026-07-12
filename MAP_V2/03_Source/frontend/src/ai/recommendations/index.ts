@@ -1,0 +1,13 @@
+export { AIRecommendations } from './AIRecommendations';
+export { RecommendationDashboard } from './RecommendationDashboard';
+export { RecommendationExplorer } from './RecommendationExplorer';
+export { MigrationRecommendations } from './MigrationRecommendations';
+export { OptimizationRecommendations } from './OptimizationRecommendations';
+export { GovernanceRecommendations } from './GovernanceRecommendations';
+export { SecurityRecommendations } from './SecurityRecommendations';
+export { RiskRecommendations } from './RiskRecommendations';
+export { WorkflowRecommendations } from './WorkflowRecommendations';
+export { ResourceRecommendations } from './ResourceRecommendations';
+export { RecommendationGenerator } from './RecommendationGenerator';
+export { RecommendationPrioritiser } from './RecommendationPrioritiser';
+export { RecommendationDelivery } from './RecommendationDelivery';

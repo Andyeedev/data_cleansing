@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment variables
+.env
+.env.*
+
+# Test coverage
+coverage/
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE settings
+.vscode/settings.json
+.idea/
+
+# Logs
+*.log
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Virtual environment
+.venv/

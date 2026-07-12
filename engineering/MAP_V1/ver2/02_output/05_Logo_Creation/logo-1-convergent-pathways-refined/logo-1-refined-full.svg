@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" width="320" height="100">
+  <defs>
+    <linearGradient id="grad-refined" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667EEA"/>
+      <stop offset="100%" stop-color="#764BA2"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="100" fill="white"/>
+  <!-- Icon: Refined converging pathways with improved weight and spacing -->
+  <!-- Left pathway -->
+  <line x1="12" y1="12" x2="44" y2="56" stroke="#667EEA" stroke-width="8" stroke-linecap="round"/>
+  <!-- Centre pathway -->
+  <line x1="44" y1="4" x2="44" y2="56" stroke="#764BA2" stroke-width="8" stroke-linecap="round"/>
+  <!-- Right pathway -->
+  <line x1="76" y1="12" x2="44" y2="56" stroke="#667EEA" stroke-width="8" stroke-linecap="round"/>
+  <!-- Convergence node - larger and more intentional -->
+  <circle cx="44" cy="70" r="12" fill="#3B82F6"/>
+  <!-- Subtle inner detail for depth -->
+  <circle cx="44" cy="70" r="5" fill="white" opacity="0.3"/>
+  <!-- Wordmark: MAP - refined kerning -->
+  <text x="100" y="50" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="600" fill="#1F2937" letter-spacing="1">MAP</text>
+  <!-- Subtitle: refined weight and spacing -->
+  <text x="100" y="72" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="400" fill="#6B7280" letter-spacing="2">MIGRATION ASSURANCE PLATFORM</text>
+</svg>

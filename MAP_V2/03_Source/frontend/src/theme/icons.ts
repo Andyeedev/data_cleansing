@@ -1,0 +1,191 @@
+import {
+  Home, LayoutDashboard, ArrowRightLeft, CheckCircle, Shield,
+  AlertTriangle, BarChart3, Settings, Bot, HelpCircle, Users,
+  FileText, ClipboardList, Clock, Search, Bell, User, Menu,
+  X, ChevronDown, ChevronRight, ChevronLeft, ChevronUp,
+  Briefcase, History, BookOpen, FileCheck, ListTodo,
+  Scale, Grid, FileBarChart, FilePlus, ShieldCheck,
+  MessageSquare, Lightbulb, Terminal, LogOut,
+  Lock, AlertCircle, Info, CheckCircle2, XCircle, RefreshCcw,
+  ArrowLeft, ArrowRight, Download, Upload, Filter, SortAsc,
+  SortDesc, MoreVertical, MoreHorizontal, Edit, Trash2, Plus,
+  Save, Copy, Printer, Mail, Phone, MapPin, Calendar, Tag,
+  Folder, File, Image, Video, Music, Archive, Star, Heart,
+  ThumbsUp, ThumbsDown, Flag, Bookmark, Share2, Link, ExternalLink,
+  Maximize2, Minimize2, ZoomIn, ZoomOut, RotateCw, RotateCcw,
+  Play, Pause, SkipForward, SkipBack, Volume2, VolumeX,
+  Wifi, WifiOff, Battery, BatteryLow, Sun, Moon, Cloud, CloudRain,
+  type LucideIcon,
+} from 'lucide-react';
+
+export const icons = {
+  navigation: {
+    home: Home,
+    dashboard: LayoutDashboard,
+    migration: ArrowRightLeft,
+    validation: CheckCircle,
+    governance: Shield,
+    risk: AlertTriangle,
+    reports: BarChart3,
+    administration: Settings,
+    ai: Bot,
+    help: HelpCircle,
+    settings: Settings,
+  },
+  action: {
+    search: Search,
+    notification: Bell,
+    user: User,
+    menu: Menu,
+    close: X,
+    chevronDown: ChevronDown,
+    chevronRight: ChevronRight,
+    chevronLeft: ChevronLeft,
+    chevronUp: ChevronUp,
+    arrowLeft: ArrowLeft,
+    arrowRight: ArrowRight,
+    refresh: RefreshCcw,
+    download: Download,
+    upload: Upload,
+    filter: Filter,
+    sortAsc: SortAsc,
+    sortDesc: SortDesc,
+    moreVertical: MoreVertical,
+    moreHorizontal: MoreHorizontal,
+    edit: Edit,
+    delete: Trash2,
+    add: Plus,
+    save: Save,
+    copy: Copy,
+    print: Printer,
+    mail: Mail,
+    phone: Phone,
+    link: Link,
+    externalLink: ExternalLink,
+  },
+  status: {
+    success: CheckCircle2,
+    warning: AlertCircle,
+    error: XCircle,
+    info: Info,
+    check: CheckCircle,
+  },
+  migration: {
+    overview: ArrowRightLeft,
+    jobs: Briefcase,
+    history: History,
+    start: Play,
+    pause: Pause,
+    stop: XCircle,
+  },
+  validation: {
+    rules: BookOpen,
+    results: FileCheck,
+    queue: ListTodo,
+  },
+  governance: {
+    policies: FileText,
+    compliance: Scale,
+    audit: ClipboardList,
+  },
+  risk: {
+    assessment: AlertTriangle,
+    register: BookOpen,
+    matrix: Grid,
+  },
+  reports: {
+    standard: FileBarChart,
+    custom: FilePlus,
+    scheduled: Clock,
+  },
+  ai: {
+    assistant: MessageSquare,
+    insights: Lightbulb,
+    prompts: Terminal,
+  },
+  user: {
+    profile: User,
+    users: Users,
+    roles: ShieldCheck,
+    logout: LogOut,
+    lock: Lock,
+  },
+  media: {
+    image: Image,
+    video: Video,
+    music: Music,
+    folder: Folder,
+    file: File,
+    archive: Archive,
+  },
+  communication: {
+    mail: Mail,
+    phone: Phone,
+    mapPin: MapPin,
+    calendar: Calendar,
+    tag: Tag,
+  },
+  weather: {
+    sun: Sun,
+    moon: Moon,
+    cloud: Cloud,
+    cloudRain: CloudRain,
+  },
+  device: {
+    wifi: Wifi,
+    wifiOff: WifiOff,
+    battery: Battery,
+    batteryLow: BatteryLow,
+  },
+  feedback: {
+    star: Star,
+    heart: Heart,
+    thumbsUp: ThumbsUp,
+    thumbsDown: ThumbsDown,
+    flag: Flag,
+    bookmark: Bookmark,
+    share: Share2,
+  },
+  view: {
+    maximize: Maximize2,
+    minimize: Minimize2,
+    zoomIn: ZoomIn,
+    zoomOut: ZoomOut,
+    rotateCw: RotateCw,
+    rotateCcw: RotateCcw,
+  },
+  mediaPlayer: {
+    play: Play,
+    pause: Pause,
+    skipForward: SkipForward,
+    skipBack: SkipBack,
+    volume: Volume2,
+    volumeMute: VolumeX,
+  },
+  auth: {
+    login: LogOut,
+    logout: LogOut,
+    lock: Lock,
+    accessDenied: Lock,
+  },
+} as const;
+
+export const iconSizes = {
+  xs: 12,
+  sm: 16,
+  md: 20,
+  lg: 24,
+  xl: 32,
+  '2xl': 48,
+} as const;
+
+export const getIcon = (category: keyof typeof icons, name: string): LucideIcon | null => {
+  const categoryIcons = icons[category];
+  if (categoryIcons && name in categoryIcons) {
+    return categoryIcons[name as keyof typeof categoryIcons];
+  }
+  return null;
+};
+
+export type Icons = typeof icons;
+export type IconSizes = typeof iconSizes;

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAP Colour Scheme Options</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/map-styles.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .swatch-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .swatch-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen py-12 px-4">
+    <div class="max-w-5xl mx-auto">
+
+        <!-- Header Section -->
+        <header class="text-center mb-12">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                MAP Colour Scheme Options
+            </h1>
+            <p class="text-gray-500 text-base">
+                16 gradient colour options for the MAP brand
+            </p>
+        </header>
+
+        <!-- Section: Purple Family -->
+        <section class="mb-8">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Purple Family
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- 1. Indigo Purple (CURRENT) -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative">
+                    <span class="absolute top-3 right-3 bg-indigo-600 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full z-10">
+                        Current
+                    </span>
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #667eea, #764ba2);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Indigo Purple</p>
+                    <p class="text-xs text-gray-500">#667eea → #764ba2</p>
+                </div>
+
+                <!-- 2. Deep Violet -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #7c3aed, #a855f7);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Deep Violet</p>
+                    <p class="text-xs text-gray-500">#7c3aed → #a855f7</p>
+                </div>
+
+                <!-- 3. Royal Purple -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #6d28d9, #8b5cf6);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Royal Purple</p>
+                    <p class="text-xs text-gray-500">#6d28d9 → #8b5cf6</p>
+                </div>
+
+                <!-- 4. Plum -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #9333ea, #c084fc);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Plum</p>
+                    <p class="text-xs text-gray-500">#9333ea → #c084fc</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Blue Family -->
+        <section class="mb-8">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Blue Family
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- 5. Ocean Blue -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #2563eb, #3b82f6);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Ocean Blue</p>
+                    <p class="text-xs text-gray-500">#2563eb → #3b82f6</p>
+                </div>
+
+                <!-- 6. Azure -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #0ea5e9, #38bdf8);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Azure</p>
+                    <p class="text-xs text-gray-500">#0ea5e9 → #38bdf8</p>
+                </div>
+
+                <!-- 7. Navy Blue -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #1e40af, #60a5fa);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Navy Blue</p>
+                    <p class="text-xs text-gray-500">#1e40af → #60a5fa</p>
+                </div>
+
+                <!-- 8. Steel Blue -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #475569, #94a3b8);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Steel Blue</p>
+                    <p class="text-xs text-gray-500">#475569 → #94a3b8</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Teal Family -->
+        <section class="mb-8">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Teal Family
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- 9. Teal -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #0d9488, #2dd4bf);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Teal</p>
+                    <p class="text-xs text-gray-500">#0d9488 → #2dd4bf</p>
+                </div>
+
+                <!-- 10. Cyan -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #06b6d4, #22d3ee);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Cyan</p>
+                    <p class="text-xs text-gray-500">#06b6d4 → #22d3ee</p>
+                </div>
+
+                <!-- 11. Aqua -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #0891b2, #67e8f9);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Aqua</p>
+                    <p class="text-xs text-gray-500">#0891b2 → #67e8f9</p>
+                </div>
+
+                <!-- 12. Sea Green -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #059669, #34d399);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Sea Green</p>
+                    <p class="text-xs text-gray-500">#059669 → #34d399</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Green Family -->
+        <section class="mb-10">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Green Family
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- 13. Emerald -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #059669, #10b981);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Emerald</p>
+                    <p class="text-xs text-gray-500">#059669 → #10b981</p>
+                </div>
+
+                <!-- 14. Forest -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #166534, #22c55e);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Forest</p>
+                    <p class="text-xs text-gray-500">#166534 → #22c55e</p>
+                </div>
+
+                <!-- 15. Lime -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #65a30d, #a3e635);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Lime</p>
+                    <p class="text-xs text-gray-500">#65a30d → #a3e635</p>
+                </div>
+
+                <!-- 16. Sage -->
+                <div class="swatch-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div
+                        class="h-24 rounded-xl mb-3"
+                        style="background: linear-gradient(to right, #4d7c0f, #84cc16);"
+                    ></div>
+                    <p class="font-semibold text-gray-800 mb-1">Sage</p>
+                    <p class="text-xs text-gray-500">#4d7c0f → #84cc16</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Legend -->
+        <section class="mb-8">
+            <div class="flex items-center justify-center gap-6 text-xs text-gray-500">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
+                    <span>Currently active</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-gray-300"></span>
+                    <span>Available alternatives</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Note -->
+        <footer class="text-center pt-4 pb-6">
+            <div class="inline-flex items-center gap-2.5 bg-white border border-gray-200 rounded-full px-6 py-3 shadow-sm">
+                <svg class="w-4 h-4 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/>
+                </svg>
+                <span class="text-sm text-gray-600">
+                    This is a design utility page. The active colour scheme is:
+                    <strong class="text-gray-800">Indigo Purple (#667eea → #764ba2)</strong>
+                </span>
+            </div>
+        </footer>
+
+    </div>
+</body>
+</html>

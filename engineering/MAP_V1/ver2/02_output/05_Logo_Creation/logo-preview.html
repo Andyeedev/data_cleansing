@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAP Logo Collection — Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #667EEA;
+      --secondary: #764BA2;
+      --accent: #3B82F6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #F9FAFB; color: #1F2937; padding: 40px 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6B7280; font-size: 16px; margin-bottom: 48px; }
+    .logo-section { margin-bottom: 64px; }
+    .logo-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; border-bottom: 2px solid #E5E7EB; padding-bottom: 16px; }
+    .logo-number { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+    .logo-title { font-size: 24px; font-weight: 600; }
+    .logo-concept { color: #6B7280; font-size: 14px; margin-top: 4px; }
+    .variations { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .variation-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .variation-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin-bottom: 16px; }
+    .variation-preview { display: flex; align-items: center; justify-content: center; min-height: 100px; padding: 20px; border-radius: 8px; }
+    .preview-light { background: #FFFFFF; border: 1px solid #E5E7EB; }
+    .preview-dark { background: #111827; }
+    .preview-mono { background: #F3F4F6; }
+    .variation-preview img, .variation-preview object { max-width: 100%; height: auto; }
+    .favicon-preview { display: flex; gap: 16px; align-items: center; }
+    .favicon-preview object { width: 32px; height: 32px; }
+    .color-palette { display: flex; gap: 12px; margin-top: 48px; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .color-swatch { text-align: center; }
+    .color-swatch .swatch { width: 60px; height: 60px; border-radius: 8px; margin-bottom: 8px; }
+    .color-swatch .label { font-size: 12px; font-weight: 500; color: #6B7280; }
+    .color-swatch .hex { font-size: 14px; font-weight: 600; }
+    .nav-buttons { position: fixed; bottom: 24px; right: 24px; display: flex; gap: 8px; z-index: 100; }
+    .nav-btn { background: white; border: 1px solid #E5E7EB; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-decoration: none; color: #374151; }
+    .nav-btn:hover { background: #F3F4F6; }
+    @media (max-width: 768px) {
+      .variations { grid-template-columns: 1fr; }
+      .color-palette { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MAP Logo Collection</h1>
+    <p class="subtitle">Migration Assurance Platform — Enterprise Brand Identity</p>
+
+    <!-- Color Palette -->
+    <div class="color-palette">
+      <div class="color-swatch">
+        <div class="swatch" style="background: #667EEA;"></div>
+        <div class="label">Primary</div>
+        <div class="hex">#667EEA</div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch" style="background: #764BA2;"></div>
+        <div class="label">Secondary</div>
+        <div class="hex">#764BA2</div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch" style="background: #3B82F6;"></div>
+        <div class="label">Accent</div>
+        <div class="hex">#3B82F6</div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch" style="background: #1F2937;"></div>
+        <div class="label">Text</div>
+        <div class="hex">#1F2937</div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch" style="background: #111827;"></div>
+        <div class="label">Dark BG</div>
+        <div class="hex">#111827</div>
+      </div>
+    </div>
+
+    <!-- Logo 1: Convergent Pathways -->
+    <div class="logo-section" id="logo-1">
+      <div class="logo-header">
+        <div class="logo-number">1</div>
+        <div>
+          <div class="logo-title">Convergent Pathways</div>
+          <div class="logo-concept">Three structured lines converging into a validated point — representing data pathways coming together under governance</div>
+        </div>
+      </div>
+      <div class="variations">
+        <div class="variation-card">
+          <div class="variation-label">Full Logo</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-1-convergent-pathways/logo-1-full.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Icon Only</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-1-convergent-pathways/logo-1-icon.svg" type="image/svg+xml" width="80" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Horizontal</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-1-convergent-pathways/logo-1-horizontal.svg" type="image/svg+xml" width="320" height="60"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Favicon</div>
+          <div class="variation-preview preview-light">
+            <div class="favicon-preview">
+              <object data="logo-1-convergent-pathways/logo-1-favicon.svg" type="image/svg+xml" width="32" height="32"></object>
+              <span style="color: #6B7280; font-size: 13px;">32×32</span>
+            </div>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Dark Mode</div>
+          <div class="variation-preview preview-dark">
+            <object data="logo-1-convergent-pathways/logo-1-dark.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Monochrome</div>
+          <div class="variation-preview preview-mono">
+            <object data="logo-1-convergent-pathways/logo-1-mono.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 2: Data Matrix -->
+    <div class="logo-section" id="logo-2">
+      <div class="logo-header">
+        <div class="logo-number">2</div>
+        <div>
+          <div class="logo-title">Data Matrix Mark</div>
+          <div class="logo-concept">A stylised grid with highlighted cells — representing data validation, structure, and precision</div>
+        </div>
+      </div>
+      <div class="variations">
+        <div class="variation-card">
+          <div class="variation-label">Full Logo</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-2-data-matrix/logo-2-full.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Icon Only</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-2-data-matrix/logo-2-icon.svg" type="image/svg+xml" width="80" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Horizontal</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-2-data-matrix/logo-2-horizontal.svg" type="image/svg+xml" width="320" height="60"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Favicon</div>
+          <div class="variation-preview preview-light">
+            <div class="favicon-preview">
+              <object data="logo-2-data-matrix/logo-2-favicon.svg" type="image/svg+xml" width="32" height="32"></object>
+              <span style="color: #6B7280; font-size: 13px;">32×32</span>
+            </div>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Dark Mode</div>
+          <div class="variation-preview preview-dark">
+            <object data="logo-2-data-matrix/logo-2-dark.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Monochrome</div>
+          <div class="variation-preview preview-mono">
+            <object data="logo-2-data-matrix/logo-2-mono.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 3: Arrow Validation -->
+    <div class="logo-section" id="logo-3">
+      <div class="logo-header">
+        <div class="logo-number">3</div>
+        <div>
+          <div class="logo-title">Arrow Validation</div>
+          <div class="logo-concept">Layered chevrons moving upward — representing digital transformation, movement, and progress</div>
+        </div>
+      </div>
+      <div class="variations">
+        <div class="variation-card">
+          <div class="variation-label">Full Logo</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-3-arrow-validation/logo-3-full.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Icon Only</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-3-arrow-validation/logo-3-icon.svg" type="image/svg+xml" width="80" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Horizontal</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-3-arrow-validation/logo-3-horizontal.svg" type="image/svg+xml" width="320" height="60"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Favicon</div>
+          <div class="variation-preview preview-light">
+            <div class="favicon-preview">
+              <object data="logo-3-arrow-validation/logo-3-favicon.svg" type="image/svg+xml" width="32" height="32"></object>
+              <span style="color: #6B7280; font-size: 13px;">32×32</span>
+            </div>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Dark Mode</div>
+          <div class="variation-preview preview-dark">
+            <object data="logo-3-arrow-validation/logo-3-dark.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Monochrome</div>
+          <div class="variation-preview preview-mono">
+            <object data="logo-3-arrow-validation/logo-3-mono.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logo 4: Structural Node -->
+    <div class="logo-section" id="logo-4">
+      <div class="logo-header">
+        <div class="logo-number">4</div>
+        <div>
+          <div class="logo-title">Structural Node</div>
+          <div class="logo-concept">Connected nodes forming a geometric pattern — representing network validation and structured governance</div>
+        </div>
+      </div>
+      <div class="variations">
+        <div class="variation-card">
+          <div class="variation-label">Full Logo</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-4-structural-node/logo-4-full.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Icon Only</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-4-structural-node/logo-4-icon.svg" type="image/svg+xml" width="80" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Horizontal</div>
+          <div class="variation-preview preview-light">
+            <object data="logo-4-structural-node/logo-4-horizontal.svg" type="image/svg+xml" width="320" height="60"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Favicon</div>
+          <div class="variation-preview preview-light">
+            <div class="favicon-preview">
+              <object data="logo-4-structural-node/logo-4-favicon.svg" type="image/svg+xml" width="32" height="32"></object>
+              <span style="color: #6B7280; font-size: 13px;">32×32</span>
+            </div>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Dark Mode</div>
+          <div class="variation-preview preview-dark">
+            <object data="logo-4-structural-node/logo-4-dark.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+        <div class="variation-card">
+          <div class="variation-label">Monochrome</div>
+          <div class="variation-preview preview-mono">
+            <object data="logo-4-structural-node/logo-4-mono.svg" type="image/svg+xml" width="280" height="80"></object>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Nav -->
+  <div class="nav-buttons">
+    <a href="#logo-1" class="nav-btn">1</a>
+    <a href="#logo-2" class="nav-btn">2</a>
+    <a href="#logo-3" class="nav-btn">3</a>
+    <a href="#logo-4" class="nav-btn">4</a>
+  </div>
+</body>
+</html>

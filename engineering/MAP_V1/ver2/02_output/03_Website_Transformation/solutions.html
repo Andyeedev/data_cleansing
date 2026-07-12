@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solutions - Migration Assurance Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#667eea',
+                        'brand': {
+                            'start': '#667eea',
+                            'end': '#764ba2',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/map-styles.css">
+</head>
+<body class="bg-gray-50 font-inter">
+
+    <!-- Fixed Navigation -->
+    <nav class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-brand-start to-brand-end flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold bg-gradient-to-r from-brand-start to-brand-end bg-clip-text text-transparent">MAP</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-gray-600 hover:text-brand-start transition-colors font-medium">Home</a>
+                    <a href="platform.html" class="text-gray-600 hover:text-brand-start transition-colors font-medium">Platform</a>
+                    <a href="solutions.html" class="text-brand-start font-semibold border-b-2 border-primary pb-1">Solutions</a>
+                    <a href="industries.html" class="text-gray-600 hover:text-brand-start transition-colors font-medium">Industries</a>
+                    <a href="security.html" class="text-gray-600 hover:text-brand-start transition-colors font-medium">Security</a>
+                    <a href="roadmap.html" class="text-gray-600 hover:text-brand-start transition-colors font-medium">Roadmap</a>
+                    <a href="about.html" class="text-gray-600 hover:text-brand-start transition-colors font-medium">About</a>
+                    <button onclick="openDemoModal()" class="px-4 py-2 bg-gradient-to-r from-brand-start to-brand-end text-white rounded-lg font-medium hover:shadow-lg transition-all">Contact Us</button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-4 py-3 space-y-3">
+                <a href="index.html" class="block py-2 text-gray-600 hover:text-brand-start">Home</a>
+                <a href="platform.html" class="block py-2 text-gray-600 hover:text-brand-start">Platform</a>
+                <a href="solutions.html" class="block py-2 text-brand-start font-semibold border-b-2 border-primary pb-1">Solutions</a>
+                <a href="industries.html" class="block py-2 text-gray-600 hover:text-brand-start">Industries</a>
+                <a href="security.html" class="block py-2 text-gray-600 hover:text-brand-start">Security</a>
+                <a href="roadmap.html" class="block py-2 text-gray-600 hover:text-brand-start">Roadmap</a>
+                <a href="about.html" class="block py-2 text-gray-600 hover:text-brand-start">About</a>
+                <button onclick="openDemoModal()" class="w-full py-2 bg-gradient-to-r from-brand-start to-brand-end text-white rounded-lg font-medium">Contact Us</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-16">
+        <!-- Breadcrumb -->
+        <div class="bg-white border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <nav class="flex items-center space-x-2 text-sm text-gray-500">
+                    <a href="index.html" class="hover:text-brand-start transition-colors">Home</a>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    <span class="text-gray-900 font-medium">Solutions</span>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Page Header -->
+        <section class="bg-gradient-to-r from-brand-start to-brand-end py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Migration Assurance Solutions</h1>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto">Comprehensive suite of tools and services designed to de-risk and accelerate your cloud migration journey from planning to optimisation.</p>
+            </div>
+        </section>
+
+        <!-- Hero Section -->
+        <section class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <!-- Left Column -->
+                    <div>
+                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Comprehensive Migration Assurance</h2>
+                        <p class="text-lg text-gray-600 mb-6">Our Migration Assurance Platform provides six integrated solutions that work together to deliver end-to-end visibility, governance, and control throughout your entire migration programme.</p>
+                        <p class="text-lg text-gray-600 mb-8">From initial discovery and planning through execution and optimisation, MAP ensures your migration is delivered on time, within budget, and to the highest quality standards.</p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="openDemoModal()" class="px-8 py-3 bg-gradient-to-r from-brand-start to-brand-end text-white rounded-lg font-semibold hover:shadow-lg transition-all">Request Demo</button>
+                            <a href="platform.html" class="px-8 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-brand-start hover:text-brand-start transition-all text-center">View Platform</a>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Staggered Solution Cards -->
+                    <div class="relative">
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Mini Solution Card 1 -->
+                            <div class="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transform hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Governance</h4>
+                                <p class="text-xs text-gray-500">Policy & control</p>
+                            </div>
+
+                            <!-- Mini Solution Card 2 -->
+                            <div class="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transform translate-y-4 hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Validation</h4>
+                                <p class="text-xs text-gray-500">Quality assurance</p>
+                            </div>
+
+                            <!-- Mini Solution Card 3 -->
+                            <div class="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transform hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Reporting</h4>
+                                <p class="text-xs text-gray-500">Insights & analytics</p>
+                            </div>
+
+                            <!-- Mini Solution Card 4 -->
+                            <div class="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transform translate-y-4 hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Intelligence</h4>
+                                <p class="text-xs text-gray-500">AI-powered insights</p>
+                            </div>
+
+                            <!-- Mini Solution Card 5 -->
+                            <div class="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transform hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Delivery</h4>
+                                <p class="text-xs text-gray-500">Progress tracking</p>
+                            </div>
+
+                            <!-- Mini Solution Card 6 -->
+                            <div class="bg-white rounded-xl p-4 shadow-lg border border-gray-100 transform translate-y-4 hover:scale-105 transition-all">
+                                <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Migration</h4>
+                                <p class="text-xs text-gray-500">Full lifecycle</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6 Solution Cards Section -->
+        <section class="py-20 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Six Integrated Solutions</h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">Each solution addresses a critical aspect of migration assurance, working together to deliver comprehensive programme visibility and control.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Solution Card 1 - Migration Assurance -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-bl-full opacity-20"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center mb-6">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Migration Assurance</h3>
+                            <p class="text-gray-600 mb-6">The core platform providing end-to-end lifecycle governance for your entire migration programme.</p>
+                            <ul class="space-y-3">
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">End-to-end lifecycle governance from discovery to decommission</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Central control plane for all migration activities and stakeholders</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Automated evidence collection and audit trail generation</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Real-time risk tracking and escalation workflows</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Solution Card 2 - Migration Governance -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-bl-full opacity-20"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
+                                <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Migration Governance</h3>
+                            <p class="text-gray-600 mb-6">Enforce policies, maintain compliance, and ensure adherence to migration standards throughout.</p>
+                            <ul class="space-y-3">
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Policy enforcement with automated compliance checks</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Complete audit trails for every migration action</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Compliance dashboards with real-time status reporting</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Role-based access control with granular permissions</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Solution Card 3 - Migration Validation -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-bl-full opacity-20"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center mb-6">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Migration Validation</h3>
+                            <p class="text-gray-600 mb-6">Comprehensive testing and validation to ensure migrated applications meet quality standards.</p>
+                            <ul class="space-y-3">
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Automated functional testing across migration waves</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Performance benchmarking with baseline comparisons</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Data integrity verification and reconciliation</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Quality gates with automated pass/fail criteria</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Solution Card 4 - Executive Reporting -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400 to-purple-600 rounded-bl-full opacity-20"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center mb-6">
+                                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Executive Reporting</h3>
+                            <p class="text-gray-600 mb-6">Powerful dashboards and reports designed for C-suite visibility and programme governance.</p>
+                            <ul class="space-y-3">
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">C-suite dashboards with real-time programme health</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Programme-level reporting with drill-down capabilities</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Customisable templates for different stakeholder needs</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Multiple export formats including PDF, Excel, and API</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Solution Card 5 - Delivery Assurance -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-teal-400 to-teal-600 rounded-bl-full opacity-20"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-teal-100 flex items-center justify-center mb-6">
+                                <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Delivery Assurance</h3>
+                            <p class="text-gray-600 mb-6">Track delivery progress, manage milestones, and identify blockers before they impact timelines.</p>
+                            <ul class="space-y-3">
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Sprint and iteration tracking with velocity metrics</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Milestone management with dependency mapping</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Early blocker identification and escalation paths</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Risk scoring with automated impact assessment</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Solution Card 6 - Programme Intelligence -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-bl-full opacity-20"></div>
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center mb-6">
+                                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-3">Programme Intelligence</h3>
+                            <p class="text-gray-600 mb-6">AI-powered analytics providing predictive insights and actionable recommendations.</p>
+                            <ul class="space-y-3">
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Predictive risk analysis using machine learning</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Natural language querying for instant insights</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">Trend detection across migration waves and programmes</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <svg class="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <span class="text-gray-600 text-sm">AI-powered recommendations for optimisation</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How Solutions Work Together -->
+        <section class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How Solutions Work Together</h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">Our six solutions are designed to work seamlessly together, providing a unified migration assurance experience.</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Card 1 - Discover & Govern -->
+                    <div class="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 border border-gray-100 hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-r from-brand-start to-brand-end flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Discover & Govern</h3>
+                        <p class="text-gray-600 mb-4">Start with Migration Assurance to discover your estate, then apply Migration Governance to establish policies and controls for your migration programme.</p>
+                        <div class="flex items-center space-x-2 text-sm text-brand-start font-medium">
+                            <span>Migration Assurance</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                            <span>Migration Governance</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 - Validate & Report -->
+                    <div class="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 border border-gray-100 hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-r from-brand-start to-brand-end flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Validate & Report</h3>
+                        <p class="text-gray-600 mb-4">Use Migration Validation to ensure quality and compliance, while Executive Reporting provides stakeholder visibility and programme-level insights.</p>
+                        <div class="flex items-center space-x-2 text-sm text-brand-start font-medium">
+                            <span>Migration Validation</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                            <span>Executive Reporting</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 - Track & Optimise -->
+                    <div class="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 border border-gray-100 hover:shadow-xl transition-all">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-r from-brand-start to-brand-end flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Track & Optimise</h3>
+                        <p class="text-gray-600 mb-4">Delivery Assurance keeps your programme on track, while Programme Intelligence provides AI-powered insights to continuously optimise your migration approach.</p>
+                        <div class="flex items-center space-x-2 text-sm text-brand-start font-medium">
+                            <span>Delivery Assurance</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                            <span>Programme Intelligence</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="py-20 bg-gradient-to-r from-brand-start to-brand-end">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Transform Your Migration Programme?</h2>
+                <p class="text-xl text-white/90 max-w-3xl mx-auto mb-8">Discover how our comprehensive suite of migration assurance solutions can help you deliver with confidence.</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="openDemoModal()" class="px-8 py-3 bg-white text-brand-start rounded-lg font-semibold hover:shadow-lg transition-all">Request Demo</button>
+                    <button onclick="openTrialModal()" class="px-8 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-brand-start transition-all">Free Trial</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-12">
+                <!-- Brand -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-brand-start to-brand-end flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold">MAP</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">Migration Assurance Platform - Delivering migration programmes with confidence.</p>
+                </div>
+
+                <!-- Platform -->
+                <div>
+                    <h4 class="font-semibold mb-4">Platform</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="platform.html" class="hover:text-white transition-colors">Overview</a></li>
+                        <li><a href="platform.html#features" class="hover:text-white transition-colors">Features</a></li>
+                        <li><a href="platform.html#architecture" class="hover:text-white transition-colors">Architecture</a></li>
+                        <li><a href="platform.html#integration" class="hover:text-white transition-colors">Integration</a></li>
+                    </ul>
+                </div>
+
+                <!-- Solutions -->
+                <div>
+                    <h4 class="font-semibold mb-4">Solutions</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="solutions.html" class="hover:text-white transition-colors">Migration Assurance</a></li>
+                        <li><a href="solutions.html" class="hover:text-white transition-colors">Governance</a></li>
+                        <li><a href="solutions.html" class="hover:text-white transition-colors">Validation</a></li>
+                        <li><a href="solutions.html" class="hover:text-white transition-colors">Reporting</a></li>
+                        <li><a href="solutions.html" class="hover:text-white transition-colors">Intelligence</a></li>
+                    </ul>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="about.html" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="contact.html" class="hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="security.html" class="hover:text-white transition-colors">Security</a></li>
+                        <li><a href="roadmap.html" class="hover:text-white transition-colors">Roadmap</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">&copy; 2026 Migration Assurance Platform. All rights reserved.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Privacy Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Demo Request Modal -->
+    <div id="demo-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-8 relative">
+            <button onclick="closeDemoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Request a Demo</h3>
+            <p class="text-gray-600 mb-6">See how MAP can transform your migration programme. Our team will walk you through the platform.</p>
+            <form class="space-y-4">
+                <input type="text" placeholder="Your Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-start focus:border-transparent">
+                <input type="email" placeholder="Work Email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-start focus:border-transparent">
+                <input type="text" placeholder="Company" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-start focus:border-transparent">
+                <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-start focus:border-transparent text-gray-600">
+                    <option value="">Select Programme Size</option>
+                    <option value="small">Small (&lt;50 applications)</option>
+                    <option value="medium">Medium (50-200 applications)</option>
+                    <option value="large">Large (200+ applications)</option>
+                </select>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-brand-start to-brand-end text-white rounded-lg font-semibold hover:shadow-lg transition-all">Request Demo</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Free Trial Modal -->
+    <div id="trial-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-8 relative">
+            <button onclick="closeTrialModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Start Free Trial</h3>
+            <p class="text-gray-600 mb-6">Get started with MAP today. 14-day free trial with full platform access.</p>
+            <form class="space-y-4">
+                <input type="text" placeholder="Your Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-start focus:border-transparent">
+                <input type="email" placeholder="Work Email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-start focus:border-transparent">
+                <input type="text" placeholder="Company" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-start focus:border-transparent">
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-brand-start to-brand-end text-white rounded-lg font-semibold hover:shadow-lg transition-all">Start Free Trial</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/map-scripts.js"></script>
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Modal functions
+        function openDemoModal() {
+            document.getElementById('demo-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDemoModal() {
+            document.getElementById('demo-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openTrialModal() {
+            document.getElementById('trial-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTrialModal() {
+            document.getElementById('trial-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modals on outside click
+        document.getElementById('demo-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeDemoModal();
+        });
+
+        document.getElementById('trial-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeTrialModal();
+        });
+
+        // Close modals on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDemoModal();
+                closeTrialModal();
+            }
+        });
+    </script>
+</body>
+</html>

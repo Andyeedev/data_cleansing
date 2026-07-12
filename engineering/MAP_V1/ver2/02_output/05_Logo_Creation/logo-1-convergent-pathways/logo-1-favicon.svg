@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" fill="white"/>
+  <!-- Three converging paths -->
+  <line x1="5" y1="5" x2="16" y2="20" stroke="#667EEA" stroke-width="3" stroke-linecap="round"/>
+  <line x1="16" y1="2" x2="16" y2="20" stroke="#764BA2" stroke-width="3" stroke-linecap="round"/>
+  <line x1="27" y1="5" x2="16" y2="20" stroke="#667EEA" stroke-width="3" stroke-linecap="round"/>
+  <!-- Convergence point -->
+  <circle cx="16" cy="24" r="4" fill="#3B82F6"/>
+</svg>

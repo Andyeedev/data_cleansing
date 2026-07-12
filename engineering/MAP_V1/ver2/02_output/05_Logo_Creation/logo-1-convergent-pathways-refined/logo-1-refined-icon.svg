@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <rect width="120" height="120" fill="white"/>
+  <!-- Refined converging pathways -->
+  <line x1="18" y1="18" x2="60" y2="70" stroke="#667EEA" stroke-width="9" stroke-linecap="round"/>
+  <line x1="60" y1="8" x2="60" y2="70" stroke="#764BA2" stroke-width="9" stroke-linecap="round"/>
+  <line x1="102" y1="18" x2="60" y2="70" stroke="#667EEA" stroke-width="9" stroke-linecap="round"/>
+  <!-- Convergence node - larger -->
+  <circle cx="60" cy="88" r="14" fill="#3B82F6"/>
+  <circle cx="60" cy="88" r="6" fill="white" opacity="0.3"/>
+</svg>
