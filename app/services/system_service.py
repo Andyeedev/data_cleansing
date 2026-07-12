@@ -34,7 +34,6 @@ class SystemService:
             "system_id": system_id
         }
 
-
     def create_system_legacy_2(self, payload):
 
         import uuid
@@ -57,7 +56,6 @@ class SystemService:
             "message": "System created",
             "system_id": system_id
         }
-    
 
     def create_system(self, payload):
 
@@ -158,7 +156,6 @@ class SystemService:
         except Exception as e:
             return {"status": "failed", "message": str(e)}
 
-
     def list_tables(self, system_id):
 
         row = self.repo.get_by_id(system_id)
@@ -184,9 +181,8 @@ class SystemService:
         from app.db.adapter_factory import get_adapter
         adapter = get_adapter(db_type, conn)
 
-        from app.db.connection_factory import  connection_factory
+        from app.db.connection_factory import connection_factory
         adapter = connection_factory(db_type, conn)
-
 
         tables = adapter.list_tables()
 

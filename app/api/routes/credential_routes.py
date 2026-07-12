@@ -5,7 +5,7 @@ from app.db.connection import get_db_connection
 from app.services.credential_service import CredentialService
 from app.api.core.auth.dependencies import get_current_user
 
-router = APIRouter(prefix="/credentials", tags=["Credentials"])
+router = APIRouter(prefix="/api/v1/credentials", tags=["Credentials"])
 
 
 # =========================

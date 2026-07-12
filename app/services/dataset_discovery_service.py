@@ -7,7 +7,7 @@ class DatasetDiscoveryService:
         self.engine_db = engine_db
         self.project_id = project_id
 
-    #🔥 Step 1 — Add Matching + Mapping Logic
+    # 🔥 Step 1 — Add Matching + Mapping Logic
     def discover(self):
 
         source_system = self._get_system("SOURCE")
@@ -34,7 +34,7 @@ class DatasetDiscoveryService:
         print("Dataset discovery completed successfully.")
     # -----------------------------------------------------
 
-    #🔥 Step 2 — Add _match_tables() Method
+    # 🔥 Step 2 — Add _match_tables() Method
     def _match_tables(self, source_tables, target_tables):
         matched = []
 
@@ -57,9 +57,7 @@ class DatasetDiscoveryService:
         print("Matched tables:", matched)
         return matched
 
-
-#🔥 Step 3 — Add _create_mapping() Method
-
+    # 🔥 Step 3 — Add _create_mapping() Method
     def _create_mapping_without_column_Mappin(self, source_system_id, target_system_id, table):
 
         insert_query = """
@@ -88,10 +86,8 @@ class DatasetDiscoveryService:
 
         print(f"Created mapping for {table['source_table']}")
 
+    # ✅ Update _create_mapping() to include columns
 
-
-
-    #✅ Update _create_mapping() to include columns
     def _create_mapping_legacy(self, source_system_id, target_system_id, table):
 
         source_db = DBConnector(
@@ -147,16 +143,14 @@ class DatasetDiscoveryService:
             target_columns
         ))
 
-
         mapping_id = mapping[0][0]
 
         self._bind_default_rules(mapping_id)
 
         print(f"Created mapping with columns for {table['source_table']}")
-    
 
+    # 🔁 Replace _create_mapping() with:
 
-    #🔁 Replace _create_mapping() with:
     def _create_mapping(self, source_system_id, target_system_id, table):
 
         source_system = self._get_system("SOURCE")
@@ -249,8 +243,6 @@ class DatasetDiscoveryService:
 
         return mapping_id
 
-
-
     def _normalise_config(self, raw_config):
         """
         Ensures connection_config matches DBConnector expectations.
@@ -296,9 +288,8 @@ class DatasetDiscoveryService:
         """
 
         return db.execute(query)
-    
-    
-    #✅ Add _fetch_columns() method
+
+    # ✅ Add _fetch_columns() method
 
     def _fetch_columns(self, db, schema, table):
 
@@ -313,13 +304,13 @@ class DatasetDiscoveryService:
         rows = db.execute(query, (schema, table))
 
         return [r[0] for r in rows]
-    
 
-    #🔷 PART 2 — Auto Rule Binding
+    # 🔷 PART 2 — Auto Rule Binding
 
-    #N#ow we bind default rules automatically.
+    # N#ow we bind default rules automatically.
 
-    #Add _bind_default_rules()
+    # Add _bind_default_rules()
+
     def _bind_default_rules_OLD_legacy(self, mapping_id):
 
         default_rules = [
@@ -338,7 +329,6 @@ class DatasetDiscoveryService:
 
         for rule in default_rules:
             self.engine_db.execute(insert_query, (rule, mapping_id))
-
 
     def _bind_default_rules(self, mapping_id):
 

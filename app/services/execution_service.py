@@ -1,3 +1,4 @@
+import os
 from app.execution_engine import ExecutionEngine
 from app.db.connection import get_db_connection
 
@@ -6,18 +7,22 @@ class ExecutionService:
 
     def run_legacy(self, project_id):
 
-        # ✅ BUILD CONFIG (minimal working config)
+        # Engine DB (your platform DB)
+        engine_db_pass = os.getenv("ENGINE_DB_PASS")
+        if not engine_db_pass:
+            raise RuntimeError("CRITICAL SECURITY ERROR: ENGINE_DB_PASS is not configured.")
+
         config = {
             "project_id": project_id,
 
             # Engine DB (your platform DB)
             "engine_db": {
                 "type": "POSTGRES",
-                "host": "localhost",
-                "port": 5432,
-                "database": "migration_engine",
-                "user": "postgres",
-                "password": "dev123456"
+                "host": os.getenv("ENGINE_DB_HOST", "localhost"),
+                "port": int(os.getenv("ENGINE_DB_PORT", 5432)),
+                "database": os.getenv("ENGINE_DB_NAME", "migration_engine"),
+                "user": os.getenv("ENGINE_DB_USER", "postgres"),
+                "password": engine_db_pass
             },
 
             # Will be overridden by ConnectionResolver
@@ -35,7 +40,6 @@ class ExecutionService:
             "status": "completed",
             "project_id": project_id
         }
-
 
     def run_delete(self, project_id):
 

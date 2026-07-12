@@ -2,6 +2,7 @@ import yaml
 import os
 import re
 
+
 def load_config(path):
     """
     Loads a YAML configuration file and expands environment variables

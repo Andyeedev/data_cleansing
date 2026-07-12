@@ -3,7 +3,7 @@ import uuid
 from app.services.execution_service import ExecutionService
 from app.api.core.auth.dependencies import get_current_user
 
-router = APIRouter(prefix="/execution", tags=["Execution"])
+router = APIRouter(prefix="/api/v1/execution", tags=["Execution"])
 
 
 @router.post("/run")
@@ -24,6 +24,7 @@ def run_execution(
         "project_id": project_id,
         "status_url": f"/execution/status/{batch_id}"
     }
+
 
 @router.get("/status/{batch_id}")
 def get_execution_status(

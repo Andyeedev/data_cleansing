@@ -6,7 +6,7 @@ from app.services.system_service import SystemService
 from app.api.core.auth.dependencies import get_current_user
 from app.api.models.system_models import SystemCreateRequest
 
-router = APIRouter(prefix="/systems", tags=["Systems"])
+router = APIRouter(prefix="/api/v1/systems", tags=["Systems"])
 
 
 # =========================
@@ -48,20 +48,20 @@ def get_system(system_id: str, current_user=Depends(get_current_user)):
 # =========================
 # CREATE
 # =========================
-#@router.post("/")
-#def create_system_legacy(
+# @router.post("/")
+# def create_system_legacy(
 #    payload: CreateSystemRequest,
 #    current_user=Depends(get_current_user)
-#):
+# ):
 
 #    db = get_db_connection()
 #    return SystemService(db.conn).create_system(payload)
 
-#@router.post("/")
-#def create_system_legacy_1(
+# @router.post("/")
+# def create_system_legacy_1(
 #    payload: SystemCreateRequest,
 #    current_user=Depends(get_current_user)
-#):
+# ):
 #    try:
 #        db = get_db_connection()
 #        service = SystemService(db.conn)
@@ -70,7 +70,7 @@ def get_system(system_id: str, current_user=Depends(get_current_user)):
 
 #    except Exception as e:
 #        raise HTTPException(status_code=500, detail=str(e))
-    
+
 @router.post("/")
 def create_system(
     payload: SystemCreateRequest,
@@ -87,6 +87,8 @@ def create_system(
 # =========================
 # TEST CONNECTION
 # =========================
+
+
 @router.get("/{system_id}/test")
 def test_connection(system_id: str, current_user=Depends(get_current_user)):
 
