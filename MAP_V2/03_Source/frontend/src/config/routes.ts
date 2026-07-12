@@ -39,6 +39,15 @@ export const ROUTES = {
   ADMIN_ROLES: '/administration/roles',
   ADMIN_SETTINGS: '/administration/settings',
 
+  TASK_MANAGEMENT: '/task-management',
+  TASK_MANAGEMENT_DASHBOARD: '/task-management/dashboard',
+  TASK_MANAGEMENT_MY_TASKS: '/task-management/my-tasks',
+  TASK_MANAGEMENT_TASKS: '/task-management/tasks',
+  TASK_MANAGEMENT_WORKFLOWS: '/task-management/workflows',
+  TASK_MANAGEMENT_APPROVALS: '/task-management/approvals',
+  TASK_MANAGEMENT_CALENDAR: '/task-management/calendar',
+  TASK_MANAGEMENT_NOTIFICATIONS: '/task-management/notifications',
+
   AI: '/ai',
   AI_ASSISTANT: '/ai/assistant',
   AI_INSIGHTS: '/ai/insights',

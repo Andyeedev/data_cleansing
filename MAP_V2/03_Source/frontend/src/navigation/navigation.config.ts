@@ -196,6 +196,23 @@ const distributionItem: NavigationItem = {
   ],
 };
 
+const taskManagementItem: NavigationItem = {
+  id: 'task-management',
+  label: 'Task Management',
+  path: '/task-management',
+  icon: ClipboardList,
+  description: 'Task, workflow and approval management',
+  children: [
+    { id: 'tm-dashboard', label: 'Dashboard', path: '/task-management/dashboard', icon: LayoutDashboard, description: 'Task management dashboard' },
+    { id: 'tm-my-tasks', label: 'My Tasks', path: '/task-management/my-tasks', icon: User, description: 'Tasks assigned to me' },
+    { id: 'tm-all-tasks', label: 'All Tasks', path: '/task-management/tasks', icon: ListTodo, description: 'All tasks' },
+    { id: 'tm-workflows', label: 'Workflows', path: '/task-management/workflows', icon: Activity, description: 'Workflow definitions and instances' },
+    { id: 'tm-approvals', label: 'Approvals', path: '/task-management/approvals', icon: BadgeCheck, description: 'Pending approvals' },
+    { id: 'tm-calendar', label: 'Calendar', path: '/task-management/calendar', icon: Calendar, description: 'Task calendar' },
+    { id: 'tm-notifications', label: 'Notifications', path: '/task-management/notifications', icon: AlertTriangle, description: 'Notification centre' },
+  ],
+};
+
 const aiItem: NavigationItem = {
   id: 'ai',
   label: 'AI Platform',
@@ -301,6 +318,7 @@ export const navigationConfig: NavigationConfig = {
       items: [
         operationsItem,
         migrationItem,
+        taskManagementItem,
       ],
     },
     {
@@ -336,6 +354,7 @@ export const flatNavigationItems: NavigationItem[] = [
   dashboardItem,
   operationsItem,
   migrationItem,
+  taskManagementItem,
   validationItem,
   governanceItem,
   riskItem,

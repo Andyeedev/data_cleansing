@@ -7,6 +7,7 @@ import {
   Shield,
   Users,
   Bot,
+  ClipboardList,
 } from 'lucide-react';
 import type { PortalDefinition } from '../types/PortalDefinition';
 
@@ -392,10 +393,54 @@ export const aiPortal: PortalDefinition = {
   ],
 };
 
+export const taskManagementPortal: PortalDefinition = {
+  id: 'task-management',
+  name: 'Task Management Portal',
+  description: 'Task, workflow, approval and notification management',
+  icon: ClipboardList,
+  category: 'operations',
+  route: '/task-management',
+  defaultRoute: '/task-management/dashboard',
+  version: '2.0.0',
+  owner: 'Platform Team',
+  enabled: true,
+  status: 'active',
+  roles: ['admin', 'manager', 'operator', 'analyst'],
+  permissions: ['tasks:read', 'tasks:manage', 'workflows:read', 'workflows:manage'],
+  theme: 'auto',
+  navigationGroup: 'portals',
+  widgets: [
+    { id: 'tm-total', type: 'kpi', title: 'Total Tasks', size: 'md', position: { section: 'overview', order: 1 } },
+    { id: 'tm-pending', type: 'kpi', title: 'Pending Tasks', size: 'md', position: { section: 'overview', order: 2 } },
+    { id: 'tm-in-progress', type: 'kpi', title: 'In Progress', size: 'md', position: { section: 'overview', order: 3 } },
+    { id: 'tm-completed', type: 'kpi', title: 'Completed Today', size: 'md', position: { section: 'overview', order: 4 } },
+    { id: 'tm-overdue', type: 'kpi', title: 'Overdue', size: 'md', position: { section: 'overview', order: 5 } },
+    { id: 'tm-approvals', type: 'kpi', title: 'Pending Approvals', size: 'md', position: { section: 'overview', order: 6 } },
+    { id: 'tm-workflows', type: 'kpi', title: 'Active Workflows', size: 'md', position: { section: 'overview', order: 7 } },
+    { id: 'tm-notifications', type: 'kpi', title: 'Unread Notifications', size: 'md', position: { section: 'overview', order: 8 } },
+    { id: 'tm-ai', type: 'ai-summary', title: 'AI Task Summary', size: 'full', position: { section: 'ai', order: 1 } },
+    { id: 'tm-task-list', type: 'grid', title: 'My Tasks', size: 'full', position: { section: 'tasks', order: 1 } },
+    { id: 'tm-workflow-list', type: 'grid', title: 'Active Workflows', size: 'full', position: { section: 'workflows', order: 1 } },
+    { id: 'tm-approval-list', type: 'grid', title: 'Pending Approvals', size: 'full', position: { section: 'approvals', order: 1 } },
+    { id: 'tm-calendar', type: 'task', title: 'Task Calendar', size: 'full', position: { section: 'calendar', order: 1 } },
+    { id: 'tm-notification-list', type: 'notification', title: 'Notifications', size: 'full', position: { section: 'notifications', order: 1 } },
+  ],
+  navigation: [
+    { id: 'tm-overview', label: 'Dashboard', path: '/task-management/dashboard', icon: ClipboardList },
+    { id: 'tm-my-tasks', label: 'My Tasks', path: '/task-management/my-tasks', icon: ClipboardList },
+    { id: 'tm-all-tasks', label: 'All Tasks', path: '/task-management/tasks', icon: ClipboardList },
+    { id: 'tm-workflows', label: 'Workflows', path: '/task-management/workflows', icon: ClipboardList },
+    { id: 'tm-approvals', label: 'Approvals', path: '/task-management/approvals', icon: ClipboardList },
+    { id: 'tm-calendar', label: 'Calendar', path: '/task-management/calendar', icon: ClipboardList },
+    { id: 'tm-notifications', label: 'Notifications', path: '/task-management/notifications', icon: ClipboardList },
+  ],
+};
+
 export const allPortals: PortalDefinition[] = [
   executivePortal,
   operationsPortal,
   migrationPortal,
+  taskManagementPortal,
   governancePortal,
   reportingPortal,
   securityPortal,

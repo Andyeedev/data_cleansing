@@ -38,6 +38,7 @@ import { AIReportGeneratorPage } from '../../pages/ai/AIReportGeneratorPage';
 import { ReportCentre } from '../../reporting/centre/ReportCentre';
 import { ReportScheduler } from '../../reporting/scheduler/ReportScheduler';
 import { ReportDistributionCentre } from '../../reporting/distribution/ReportDistributionCentre';
+import { TaskManagementPortal } from '../task-management/TaskManagementPortal';
 import { SettingsPage } from '../../pages/settings/SettingsPage';
 import { HelpPage } from '../../pages/help/HelpPage';
 import { NotFound } from '../../components/common/NotFound';
@@ -228,6 +229,10 @@ export const PortalRoutes = () => {
           {/* Report Distribution Centre */}
           <Route path="distribution" element={<ReportDistributionCentre />} />
           <Route path="distribution/*" element={<ReportDistributionCentre />} />
+
+          {/* Task Management Portal */}
+          <Route path="task-management" element={<TaskManagementPortal />} />
+          <Route path="task-management/*" element={<TaskManagementPortal />} />
 
           {/* Settings & Help */}
           <Route path="settings" element={<SettingsPage />} />
