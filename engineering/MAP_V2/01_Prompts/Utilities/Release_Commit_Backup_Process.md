@@ -110,6 +110,55 @@ RELEASE v{VERSION} — {DESCRIPTION}, e.g. RELEASE v5.0 — workflow engine and 
 
 ---
 
+## Sample Invocations
+
+<!-- 
+MODE 1: START_WORK — Create a feature branch to begin work
+============================================================
+START_WORK — workstream-05-administration
+
+START_WORK — workstream-05-database
+
+START_WORK — workstream-05-frontend
+
+START_WORK — workstream-05-workflow
+
+START_WORK — workstream-06-administration
+
+START_WORK — workstream-07-ai-provider
+-->
+
+<!-- 
+MODE 2: FINISH_WORK — Merge completed feature branch back to MAP_V2_Development
+================================================================================
+FINISH_WORK — workstream-05-administration
+
+FINISH_WORK — workstream-05-database
+
+FINISH_WORK — workstream-05-frontend
+-->
+
+<!-- 
+MODE 3: RELEASE — Full release with DB dumps, docs, tag, merge to main
+======================================================================
+Minimal (uses all defaults):
+RELEASE v5.0 — workflow engine and admin panel
+
+With overrides (skip DB dumps):
+RELEASE v5.0 — workflow engine and admin panel, skip DB dumps
+
+With overrides (custom PG host):
+RELEASE v5.0 — workflow engine and admin panel, pg host=localhost, port=5433
+
+With overrides (custom remote):
+RELEASE v5.0 — workflow engine and admin panel, remote=upstream
+
+Full custom:
+RELEASE v5.0 — workflow engine and admin panel, skip DB dumps, no git, remote=upstream, next=v5.1
+-->
+
+---
+
 ## MODE 1: START_WORK
 
 ### Purpose
