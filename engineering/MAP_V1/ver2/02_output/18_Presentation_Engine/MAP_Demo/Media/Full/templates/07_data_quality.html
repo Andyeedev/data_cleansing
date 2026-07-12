@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Data Quality Render</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; }
+    .sidebar { width: 260px; background: linear-gradient(180deg, #0B2447 0%, #003B75 100%); color: #C2C8D0; padding: 24px 0; }
+    .sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-brand h1 { color: #fff; font-size: 22px; font-weight: 700; }
+    .sidebar-brand h1 span { font-weight: 300; }
+    .sidebar-brand .sub { font-size: 12px; opacity: 0.7; }
+    .sidebar-nav { padding: 16px 0; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: #C2C8D0; text-decoration: none; font-size: 14px; border-left: 3px solid transparent; }
+    .nav-item.active { background: rgba(255,255,255,0.08); border-left-color: #0078D4; color: #fff; }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: #fff; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E5E7EB; }
+    .topbar h2 { font-size: 18px; font-weight: 600; }
+    .badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-demo { background: #E8F0FE; color: #003B75; }
+    .badge-error { background: #FDECEA; color: #D13438; }
+    .content { flex: 1; padding: 28px 32px; overflow: hidden; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi { background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #E5E7EB; border-left: 4px solid #0078D4; }
+    .kpi.warning { border-left-color: #FFB900; }
+    .kpi.success { border-left-color: #107C10; }
+    .kpi.error { border-left-color: #D13438; }
+    .kpi-label { font-size: 12px; color: #6B7280; margin-bottom: 6px; }
+    .kpi-value { font-size: 28px; font-weight: 700; }
+    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .chart-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #E5E7EB; }
+    .chart-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: #0B2447; }
+    .radar { width: 240px; height: 240px; margin: 0 auto; position: relative; }
+    .radar-bg { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #E5E7EB; position: absolute; }
+    .radar-inner { width: 66%; height: 66%; border-radius: 50%; border: 1px solid #E5E7EB; position: absolute; top: 17%; left: 17%; }
+    .radar-core { width: 33%; height: 33%; border-radius: 50%; border: 1px solid #E5E7EB; position: absolute; top: 33%; left: 33%; }
+    .radar-fill { width: 80%; height: 80%; border-radius: 50%; background: rgba(0,120,212,0.15); border: 2px solid #0078D4; position: absolute; top: 10%; left: 10%; }
+    .trend { display: flex; align-items: flex-end; gap: 12px; height: 160px; padding-top: 20px; }
+    .trend-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .trend-fill { width: 100%; border-radius: 4px 4px 0 0; background: #0078D4; }
+    .trend-label { font-size: 11px; color: #6B7280; }
+    .dims { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .dim { background: #fff; border-radius: 10px; padding: 16px; border: 1px solid #E5E7EB; }
+    .dim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .dim-name { font-size: 13px; font-weight: 600; }
+    .dim-score { font-size: 13px; font-weight: 700; }
+    .dim-bar { height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
+    .dim-fill { height: 100%; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-brand"><h1>MAP <span>Nexus™</span></h1><div class="sub">Migration Assurance Platform</div></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+      <a class="nav-item active" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Data Quality</a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>Risk Assessment</a>
+      <a class="nav-item" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Governance Centre</a>
+    </nav>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2>Data Quality</h2>
+      <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
+        <span class="badge badge-demo">Demo Environment</span>
+        <span class="badge badge-error">Migration Blocked</span>
+        <span style="font-size:12px;color:#6B7280;">5 Jul 2026 14:30</span>
+      </div>
+    </div>
+    <div class="content">
+      <div class="kpi-grid">
+        <div class="kpi warning"><div class="kpi-label">Overall Score</div><div class="kpi-value">58.3%</div></div>
+        <div class="kpi"><div class="kpi-label">Dimensions</div><div class="kpi-value">6</div></div>
+        <div class="kpi success"><div class="kpi-label">Best</div><div class="kpi-value">90%</div></div>
+        <div class="kpi error"><div class="kpi-label">Worst</div><div class="kpi-value">58%</div></div>
+      </div>
+      <div class="charts">
+        <div class="chart-card">
+          <h3>Quality Radar</h3>
+          <div class="radar">
+            <div class="radar-bg"></div>
+            <div class="radar-inner"></div>
+            <div class="radar-core"></div>
+            <div class="radar-fill"></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Quality Trend</h3>
+          <div class="trend">
+            <div class="trend-bar"><div class="trend-fill" style="height:60%;"></div><div class="trend-label">Week 1</div></div>
+            <div class="trend-bar"><div class="trend-fill" style="height:65%;"></div><div class="trend-label">Week 2</div></div>
+            <div class="trend-bar"><div class="trend-fill" style="height:58%;"></div><div class="trend-label">Week 3</div></div>
+            <div class="trend-bar"><div class="trend-fill" style="height:70%;"></div><div class="trend-label">Week 4</div></div>
+            <div class="trend-bar"><div class="trend-fill" style="height:62%;"></div><div class="trend-label">Week 5</div></div>
+            <div class="trend-bar"><div class="trend-fill" style="height:58%;"></div><div class="trend-label">Week 6</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dims">
+        <div class="dim"><div class="dim-header"><span class="dim-name">Accuracy</span><span class="dim-score" style="color:#FFB900;">75%</span></div><div class="dim-bar"><div class="dim-fill" style="width:75%;background:#FFB900;"></div></div></div>
+        <div class="dim"><div class="dim-header"><span class="dim-name">Completeness</span><span class="dim-score" style="color:#107C10;">82%</span></div><div class="dim-bar"><div class="dim-fill" style="width:82%;background:#107C10;"></div></div></div>
+        <div class="dim"><div class="dim-header"><span class="dim-name">Consistency</span><span class="dim-score" style="color:#FFB900;">68%</span></div><div class="dim-bar"><div class="dim-fill" style="width:68%;background:#FFB900;"></div></div></div>
+        <div class="dim"><div class="dim-header"><span class="dim-name">Timeliness</span><span class="dim-score" style="color:#107C10;">90%</span></div><div class="dim-bar"><div class="dim-fill" style="width:90%;background:#107C10;"></div></div></div>
+        <div class="dim"><div class="dim-header"><span class="dim-name">Validity</span><span class="dim-score" style="color:#D13438;">58%</span></div><div class="dim-bar"><div class="dim-fill" style="width:58%;background:#D13438;"></div></div></div>
+        <div class="dim"><div class="dim-header"><span class="dim-name">Uniqueness</span><span class="dim-score" style="color:#107C10;">85%</span></div><div class="dim-bar"><div class="dim-fill" style="width:85%;background:#107C10;"></div></div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Roadmap Slide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; flex-direction: column; }
+    .header { padding: 60px 80px 0; }
+    .header h2 { font-size: 42px; font-weight: 700; color: #0B2447; }
+    .header h2 span { color: #0078D4; font-weight: 300; }
+    .roadmap { flex: 1; padding: 40px 80px; display: flex; gap: 24px; align-items: center; }
+    .phase { background: #fff; border-radius: 12px; padding: 28px 24px; border: 1px solid #E5E7EB; flex: 1; border-top: 4px solid; }
+    .phase.done { border-top-color: #107C10; }
+    .phase.active { border-top-color: #0078D4; }
+    .phase.planned { border-top-color: #9CA3AF; }
+    .phase h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .phase .status { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 12px; }
+    .phase.done .status { color: #107C10; }
+    .phase.active .status { color: #0078D4; }
+    .phase.planned .status { color: #9CA3AF; }
+    .phase ul { list-style: none; }
+    .phase li { font-size: 13px; color: #424242; padding: 4px 0; }
+    .phase li::before { content: '•'; color: #0078D4; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <div class="header"><h2>Product <span>Roadmap</span></h2></div>
+  <div class="roadmap">
+    <div class="phase done"><h4>Phase 1: Foundation</h4><div class="status">Completed</div><ul><li>Module 00: Master Configuration</li><li>Module 01: Execution Engine</li><li>Module 02: UI Refinement</li></ul></div>
+    <div class="phase done"><h4>Phase 2: Demonstration</h4><div class="status">Completed</div><ul><li>Module 03: Demo Package</li><li>Module 04: Media Pack</li><li>Module 05: Product Brochure</li></ul></div>
+    <div class="phase active"><h4>Phase 3: Go-to-Market</h4><div class="status">In Progress</div><ul><li>Module 06: Investor Pack</li><li>Module 07: Sales Demo</li><li>Module 08: Website Content</li></ul></div>
+    <div class="phase planned"><h4>Phase 4: Enterprise</h4><div class="status">Planned</div><ul><li>Module 09: Partner Pack</li><li>Module 10: Proposal Pack</li><li>Enterprise Deployment</li></ul></div>
+  </div>
+</body>
+</html>

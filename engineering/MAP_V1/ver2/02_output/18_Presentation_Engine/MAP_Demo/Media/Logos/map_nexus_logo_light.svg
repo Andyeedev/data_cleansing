@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <rect width="200" height="60" rx="8" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+  <text x="16" y="28" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#0078D4">MAP</text>
+  <text x="72" y="28" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="300" fill="#003B75">Nexus™</text>
+  <text x="16" y="46" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#6B7280">Migration Assurance Platform</text>
+</svg>

@@ -1,0 +1,35 @@
+{
+  "dashboard": "Migration Progress",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "overall_progress_pct": 50,
+  "days_elapsed": 169,
+  "days_remaining": 181,
+  "total_days": 350,
+  "phases": [
+    { "name": "Planning & Design", "progress": 100, "status": "completed", "start": "2025-11-15", "end": "2025-12-31" },
+    { "name": "Schema Mapping", "progress": 100, "status": "completed", "start": "2025-12-01", "end": "2026-01-15" },
+    { "name": "ETL Development", "progress": 85, "status": "in_progress", "start": "2026-01-15", "end": "2026-03-31" },
+    { "name": "Validation & Testing", "progress": 45, "status": "in_progress", "start": "2026-02-01", "end": "2026-05-31" },
+    { "name": "Pilot Migration", "progress": 0, "status": "not_started", "start": "2026-05-01", "end": "2026-06-30" },
+    { "name": "Full Migration", "progress": 0, "status": "not_started", "start": "2026-06-01", "end": "2026-08-31" },
+    { "name": "Post-Migration Review", "progress": 0, "status": "not_started", "start": "2026-08-01", "end": "2026-10-31" }
+  ],
+  "milestones": [
+    { "name": "Migration Kickoff", "date": "2025-11-15", "status": "completed" },
+    { "name": "Schema Mapping Complete", "date": "2026-01-15", "status": "completed" },
+    { "name": "ETL Development Complete", "date": "2026-03-31", "status": "in_progress" },
+    { "name": "Validation Complete", "date": "2026-05-31", "status": "pending" },
+    { "name": "Pilot Migration", "date": "2026-06-30", "status": "pending" },
+    { "name": "Full Migration", "date": "2026-08-31", "status": "pending" },
+    { "name": "Post-Migration Review", "date": "2026-10-31", "status": "pending" }
+  ],
+  "kpi_cards": [
+    { "label": "Overall Progress", "value": "50%", "status": "warning", "icon": "gauge" },
+    { "label": "Days Elapsed", "value": "169", "status": "info", "icon": "clock" },
+    { "label": "Days Remaining", "value": "181", "status": "warning", "icon": "clock" },
+    { "label": "Phases Completed", "value": "2/7", "status": "info", "icon": "check-circle" },
+    { "label": "Phases In Progress", "value": "2/7", "status": "warning", "icon": "loader" },
+    { "label": "Phases Not Started", "value": "3/7", "status": "error", "icon": "x-circle" }
+  ]
+}

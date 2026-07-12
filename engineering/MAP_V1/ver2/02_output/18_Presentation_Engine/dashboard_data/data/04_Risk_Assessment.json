@@ -1,0 +1,111 @@
+{
+  "dashboard": "Risk Assessment",
+  "version": "1.0",
+  "generated": "2026-07-05T08:36:12.697239+00:00",
+  "batch_id": "e155acaf-652e-41de-8369-7a5b06af08ce",
+  "overall_risk": {
+    "level": "High",
+    "score": 58.3,
+    "factors": [
+      "Schema drift",
+      "Financial integrity",
+      "Referential integrity"
+    ]
+  },
+  "go_no_go": {
+    "decision": "NO-GO",
+    "reason": "Migration is BLOCKED. 3 controls are blocking progression with 6 failed rules.",
+    "minimum_requirements": [
+      "All CRITICAL severity findings resolved",
+      "Validation score above 80%",
+      "Zero blocking controls"
+    ]
+  },
+  "risks": [
+    {
+      "id": "R001",
+      "risk": "Schema drift detected in all entities",
+      "severity": "critical",
+      "impact": "Column additions/removals may cause data loss",
+      "mitigation": "Review schema mapping and align definitions",
+      "status": "open"
+    },
+    {
+      "id": "R002",
+      "risk": "Financial value reconciliation failure",
+      "severity": "critical",
+      "impact": "Financial data integrity compromised",
+      "mitigation": "Investigate financial aggregate discrepancies",
+      "status": "open"
+    },
+    {
+      "id": "R003",
+      "risk": "Referential integrity validation failure",
+      "severity": "critical",
+      "impact": "Foreign key relationships broken",
+      "mitigation": "Validate FK constraints and relationships",
+      "status": "open"
+    },
+    {
+      "id": "R004",
+      "risk": "Column count mismatch across entities",
+      "severity": "high",
+      "impact": "Target schema incomplete",
+      "mitigation": "Align column counts between source and target",
+      "status": "open"
+    },
+    {
+      "id": "R005",
+      "risk": "Data type alignment failure",
+      "severity": "high",
+      "impact": "Type conversion errors during migration",
+      "mitigation": "Standardise data types across platforms",
+      "status": "open"
+    },
+    {
+      "id": "R006",
+      "risk": "Duplicate key detection partially failed",
+      "severity": "medium",
+      "impact": "Potential duplicate records in target",
+      "mitigation": "Review duplicate detection rules",
+      "status": "open"
+    }
+  ],
+  "kpi_cards": [
+    {
+      "label": "Overall Risk",
+      "value": "High",
+      "status": "error"
+    },
+    {
+      "label": "Risk Score",
+      "value": "58.3/100",
+      "status": "error"
+    },
+    {
+      "label": "Blocking Controls",
+      "value": "3",
+      "status": "error"
+    },
+    {
+      "label": "Failed Rules",
+      "value": "6",
+      "status": "error"
+    },
+    {
+      "label": "Schema Drift",
+      "value": "BLOCKED",
+      "status": "error"
+    },
+    {
+      "label": "Financial Integrity",
+      "value": "ERROR",
+      "status": "error"
+    },
+    {
+      "label": "Referential Integrity",
+      "value": "ERROR",
+      "status": "error"
+    }
+  ]
+}

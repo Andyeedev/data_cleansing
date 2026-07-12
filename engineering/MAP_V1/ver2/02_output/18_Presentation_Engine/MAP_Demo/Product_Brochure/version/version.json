@@ -1,0 +1,48 @@
+{
+  "module": "05_Product_Brochure",
+  "version": "2.0",
+  "title": "MAP Nexus™ Product Brochure",
+  "status": "Complete",
+  "date": "2026-07-05",
+  "pages": 16,
+  "formats": ["HTML", "Print-to-PDF"],
+  "delivery": [
+    {
+      "name": "MAP_Product_Brochure.html",
+      "description": "Interactive 16-page enterprise product brochure",
+      "size": "A4 Portrait (210mm x 297mm)"
+    }
+  ],
+  "sections": [
+    "Cover Page",
+    "Inside Cover — About MAP Nexus™",
+    "The Migration Challenge",
+    "The MAP Nexus™ Solution",
+    "Key Capabilities",
+    "Dashboard Showcase — Landing Page",
+    "Executive Dashboard",
+    "Migration & Validation",
+    "Governance & Risk",
+    "Data Quality & Reports",
+    "Customer Benefits",
+    "Azure-Native Architecture",
+    "Target Industries",
+    "Product Roadmap",
+    "About the Founder",
+    "Contact"
+  ],
+  "assets_reused": [
+    "Module 04 Hero images (referenced)",
+    "Module 04 Dashboard templates (referenced)",
+    "Module 04 Logos (SVG)",
+    "Module 04 Icons (SVG)",
+    "Module 00 Brand colours"
+  ],
+  "dependencies": {
+    "module_00": "Master Configuration",
+    "module_01": "Demonstration Execution Engine",
+    "module_02": "UI Refinement",
+    "module_03": "MAP Demo Package",
+    "module_04": "Product Rendering & Media Pack"
+  }
+}

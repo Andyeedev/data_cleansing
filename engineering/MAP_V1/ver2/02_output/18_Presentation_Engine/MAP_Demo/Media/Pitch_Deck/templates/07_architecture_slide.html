@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Architecture Slide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; flex-direction: column; }
+    .header { padding: 60px 80px 0; }
+    .header h2 { font-size: 42px; font-weight: 700; color: #0B2447; }
+    .header h2 span { color: #0078D4; font-weight: 300; }
+    .arch { flex: 1; padding: 40px 80px; display: flex; flex-direction: column; gap: 24px; }
+    .layer { background: #fff; border-radius: 12px; padding: 24px 32px; border: 1px solid #E5E7EB; display: flex; align-items: center; gap: 24px; }
+    .layer-label { width: 160px; font-size: 14px; font-weight: 600; color: #0078D4; }
+    .layer-items { display: flex; gap: 12px; flex: 1; }
+    .layer-item { background: #F3F4F6; border-radius: 8px; padding: 12px 20px; font-size: 13px; color: #0B2447; }
+  </style>
+</head>
+<body>
+  <div class="header"><h2>Platform <span>Architecture</span></h2></div>
+  <div class="arch">
+    <div class="layer"><div class="layer-label">Presentation</div><div class="layer-items"><div class="layer-item">Executive Dashboard</div><div class="layer-item">Validation Centre</div><div class="layer-item">Governance Centre</div><div class="layer-item">Risk Assessment</div><div class="layer-item">Data Quality</div></div></div>
+    <div class="layer"><div class="layer-label">Business Logic</div><div class="layer-items"><div class="layer-item">Rule Discovery</div><div class="layer-item">Control Execution</div><div class="layer-item">Governance Decision</div><div class="layer-item">Risk Assessment</div><div class="layer-item">Quality Analysis</div></div></div>
+    <div class="layer"><div class="layer-label">Data Layer</div><div class="layer-items"><div class="layer-item">Source Database</div><div class="layer-item">Target Database</div><div class="layer-item">Engine Database</div><div class="layer-item">Configuration</div></div></div>
+    <div class="layer"><div class="layer-label">Infrastructure</div><div class="layer-items"><div class="layer-item">Azure SQL</div><div class="layer-item">Azure Data Factory</div><div class="layer-item">Azure Purview</div><div class="layer-item">Power BI</div></div></div>
+  </div>
+</body>
+</html>

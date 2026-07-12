@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Executive Summary — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body style="padding:32px; max-width:960px; margin:0 auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <div><h1 style="font-size:24px; color:#0B2447;">MAP Nexus™</h1><p style="font-size:12px; color:#6B7280;">Executive Summary Report</p></div>
+    <a href="../dashboard/index.html" style="font-size:12px; color:#0078D4; text-decoration:none;">← Back to Dashboard</a>
+  </div>
+  <div class="card" style="margin-bottom:24px;">
+    <h2 style="font-size:18px; color:#0B2447; margin-bottom:16px;">Executive Summary</h2>
+    <p style="font-size:14px; color:#616161; line-height:1.7; margin-bottom:16px;">The Customer Core Banking Migration is currently <strong>BLOCKED</strong> with a readiness score of <strong>62%</strong>. Three controls are blocking progression with 6 failed rules.</p>
+    <table class="data-table"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+      <tr><td>Overall Readiness</td><td>62%</td></tr>
+      <tr><td>Validation Score</td><td>58.3%</td></tr>
+      <tr><td>Data Quality Score</td><td>80%</td></tr>
+      <tr><td>Migration Status</td><td><span class="badge badge-error">BLOCKED</span></td></tr>
+      <tr><td>Blocking Controls</td><td>3</td></tr>
+      <tr><td>Failed Rules</td><td>6</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card" style="margin-bottom:24px;">
+    <h2 style="font-size:18px; color:#0B2447; margin-bottom:16px;">Critical Issues</h2>
+    <table class="data-table"><thead><tr><th>Issue</th><th>Control</th><th>Severity</th></tr></thead><tbody>
+      <tr><td>Schema drift detected in all entities</td><td>C10</td><td><span class="badge badge-error">Critical</span></td></tr>
+      <tr><td>Financial value reconciliation failed</td><td>C02</td><td><span class="badge badge-error">Critical</span></td></tr>
+      <tr><td>Foreign key validation failed</td><td>C03</td><td><span class="badge badge-error">Critical</span></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card" style="background:#FDECEA; border:2px solid #D13438;">
+    <h2 style="font-size:18px; color:#D13438; margin-bottom:8px;">Recommendation: NO-GO</h2>
+    <p style="font-size:14px; color:#616161;">Resolve blocking controls before proceeding to pilot. The migration cannot advance until schema drift, financial integrity, and referential integrity issues are resolved.</p>
+  </div>
+</body>
+</html>

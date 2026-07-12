@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Summary — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/reports.css">
+</head>
+<body>
+  <header class="report-header">
+    <div class="report-header-inner">
+      <div class="report-brand">MAP Nexus™ — Migration Assurance Platform</div>
+      <h1 class="report-title">Risk Summary</h1>
+      <div class="report-subtitle">Risk Register and Go/No-Go Decision</div>
+    </div>
+  </header>
+  <nav class="report-nav">
+    <div class="report-nav-inner">
+      <a href="../Landing.html">Home</a>
+      <span class="sep">/</span>
+      <a href="executive_summary.html">Executive Summary</a>
+      <span class="sep">/</span>
+      <a href="migration_summary.html">Migration</a>
+      <span class="sep">/</span>
+      <a href="validation_summary.html">Validation</a>
+      <span class="sep">/</span>
+      <a href="governance_summary.html">Governance</a>
+      <span class="sep">/</span>
+      <a href="risk_summary.html" style="font-weight:600;">Risk</a>
+      <span class="sep">/</span>
+      <a href="data_quality_summary.html">Quality</a>
+      <span class="sep">/</span>
+      <a href="readiness_report.html">Readiness</a>
+      <span class="sep">/</span>
+      <a href="issue_register.html">Issues</a>
+    </div>
+  </nav>
+  <main class="report-content">
+    <div class="report-section">
+      <h2>Go / No-Go Decision</h2>
+      <div style="background:#FDECEA;border:2px solid #D13438;border-radius:12px;padding:24px 32px;margin-bottom:16px;">
+        <h3 style="color:#D13438;font-size:20px;margin-bottom:8px;">NO-GO</h3>
+        <p style="color:#424242;">Migration cannot proceed. Critical validation issues and high-severity risks prevent safe production cutover.</p>
+      </div>
+    </div>
+    <div class="report-section">
+      <h2>Risk Overview</h2>
+      <div class="kpi-row">
+        <div class="kpi-box error"><div class="label">Total Risks</div><div class="value">5</div></div>
+        <div class="kpi-box error"><div class="label">Critical</div><div class="value">1</div></div>
+        <div class="kpi-box warning"><div class="label">High</div><div class="value">2</div></div>
+        <div class="kpi-box info"><div class="label">Medium</div><div class="value">2</div></div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h2>Top Risks</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>Risk</th><th>Severity</th><th>Impact</th><th>Mitigation</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>R-001</td><td>Data loss during migration</td><td><span class="badge badge-error">CRITICAL</span></td><td>Permanent data loss</td><td>Implement incremental backup</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>R-002</td><td>Schema incompatibility</td><td><span class="badge badge-warning">HIGH</span></td><td>Migration failure</td><td>Schema validation pre-check</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>R-003</td><td>Performance degradation</td><td><span class="badge badge-warning">HIGH</span></td><td>System slowdown</td><td>Load testing and optimization</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>R-004</td><td>Security vulnerability</td><td><span class="badge badge-info">MEDIUM</span></td><td>Data exposure</td><td>Encryption and access controls</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+          <tr><td>R-005</td><td>Rollback complexity</td><td><span class="badge badge-info">MEDIUM</span></td><td>Extended downtime</td><td>Automated rollback procedures</td><td><span class="badge badge-warning">OPEN</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <footer class="report-footer">
+    MAP Nexus™ — Migration Assurance Platform &middot; Presentation Engine v2.0 &middot; <a href="../Landing.html">Home</a>
+  </footer>
+</body>
+</html>

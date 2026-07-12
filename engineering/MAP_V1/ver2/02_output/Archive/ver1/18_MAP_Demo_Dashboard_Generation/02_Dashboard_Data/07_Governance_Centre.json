@@ -1,0 +1,43 @@
+{
+  "dashboard": "Governance Centre",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "theme": "MAP Nexus",
+  "data_source": "MAP Validation Engine — Live Execution",
+  "scenario": "Scenario 3 — MIXTURE",
+  "issues": [
+    { "id": "ISS-001", "type": "Schema Drift", "description": "Column count mismatch between source and target", "severity": "CRITICAL", "owner": "Data Engineering", "status": "Open", "resolution_pct": 0, "control": "C010", "created": "2026-07-03T16:55:31Z" },
+    { "id": "ISS-002", "type": "Balance Mismatch", "description": "Balance reconciliation failure — variance detected", "severity": "CRITICAL", "owner": "Financial Operations", "status": "Open", "resolution_pct": 0, "control": "C02", "created": "2026-07-03T16:55:55Z" },
+    { "id": "ISS-003", "type": "Row Count Mismatch", "description": "Source and target record counts differ", "severity": "HIGH", "owner": "Data Engineering", "status": "Open", "resolution_pct": 0, "control": "C01", "created": "2026-07-03T16:55:31Z" },
+    { "id": "ISS-004", "type": "Permission Error", "description": "Engine unable to execute validation due to permissions", "severity": "MEDIUM", "owner": "Infrastructure", "status": "Open", "resolution_pct": 0, "control": "C01, C02, C03, C07", "created": "2026-07-03T16:55:31Z" },
+    { "id": "ISS-005", "type": "Data Type Error", "description": "Unable to validate data types for 2 of 3 entities", "severity": "MEDIUM", "owner": "Data Engineering", "status": "Open", "resolution_pct": 0, "control": "C06", "created": "2026-07-03T16:55:30Z" }
+  ],
+  "issue_summary_chart": {
+    "type": "bar",
+    "data": [
+      { "type": "Schema Drift", "count": 1, "severity": "CRITICAL" },
+      { "type": "Balance Mismatch", "count": 1, "severity": "CRITICAL" },
+      { "type": "Row Count Mismatch", "count": 1, "severity": "HIGH" },
+      { "type": "Permission Error", "count": 1, "severity": "MEDIUM" },
+      { "type": "Data Type Error", "count": 1, "severity": "MEDIUM" }
+    ]
+  },
+  "severity_distribution": {
+    "type": "donut",
+    "data": [
+      { "label": "Critical", "value": 2, "color": "#C62828" },
+      { "label": "High", "value": 1, "color": "#F9A825" },
+      { "label": "Medium", "value": 2, "color": "#F9A825" },
+      { "label": "Low", "value": 0, "color": "#2E7D32" }
+    ]
+  },
+  "kpi_cards": [
+    { "label": "Total Findings", "value": "5", "status": "warning", "icon": "alert-circle" },
+    { "label": "Critical", "value": "2", "status": "error", "icon": "alert-octagon" },
+    { "label": "High", "value": "1", "status": "warning", "icon": "alert-triangle" },
+    { "label": "Medium", "value": "2", "status": "warning", "icon": "alert-circle" },
+    { "label": "Open Findings", "value": "5", "status": "error", "icon": "circle" },
+    { "label": "Resolution Rate", "value": "0%", "status": "error", "icon": "pie-chart" }
+  ]
+}

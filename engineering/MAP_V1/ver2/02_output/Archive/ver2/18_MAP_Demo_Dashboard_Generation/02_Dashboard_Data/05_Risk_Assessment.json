@@ -1,0 +1,38 @@
+{
+  "dashboard": "Risk Assessment",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "overall_risk": "High",
+  "risk_score": 58.3,
+  "go_nogo": "NO-GO",
+  "go_nogo_details": "Migration is currently blocked. Critical and high priority findings must be resolved before proceeding to pilot. 6 critical findings require immediate attention.",
+  "kpi_cards": [
+    { "label": "Overall Risk", "value": "High", "status": "error", "icon": "alert-triangle" },
+    { "label": "Risk Score", "value": "58.3/100", "status": "error", "icon": "bar-chart" },
+    { "label": "Critical Risks", "value": "6", "status": "error", "icon": "alert-circle" },
+    { "label": "High Risks", "value": "10", "status": "warning", "icon": "alert-circle" },
+    { "label": "Medium Risks", "value": "4", "status": "warning", "icon": "info" },
+    { "label": "Low Risks", "value": "3", "status": "success", "icon": "check-circle" },
+    { "label": "Total Findings", "value": "23", "status": "info", "icon": "list" }
+  ],
+  "risk_matrix": {
+    "dimensions": {
+      "likelihood": ["Rare", "Unlikely", "Possible", "Likely", "Almost Certain"],
+      "impact": ["Negligible", "Minor", "Moderate", "Major", "Catastrophic"]
+    },
+    "risks": [
+      { "likelihood": 4, "impact": 5, "severity": "critical", "count": 6 },
+      { "likelihood": 3, "impact": 4, "severity": "high", "count": 10 },
+      { "likelihood": 2, "impact": 3, "severity": "medium", "count": 4 },
+      { "likelihood": 1, "impact": 2, "severity": "low", "count": 3 }
+    ]
+  },
+  "top_risks": [
+    { "id": "R001", "risk": "Schema drift between source and target", "severity": "critical", "impact": "Data loss or corruption during migration", "mitigation": "Implement comprehensive schema mapping and validation", "status": "open" },
+    { "id": "R002", "risk": "Balance reconciliation discrepancies", "severity": "critical", "impact": "Financial data integrity compromised", "mitigation": "Run balance reconciliation with precision handling", "status": "open" },
+    { "id": "R003", "risk": "Permission provisioning delays", "severity": "critical", "impact": "Migration blocked — cannot access target system", "mitigation": "Escalate permission request to infrastructure team", "status": "open" },
+    { "id": "R004", "risk": "Date format inconsistency", "severity": "high", "impact": "Downstream system failures", "mitigation": "Standardise date format during ETL transformation", "status": "open" },
+    { "id": "R005", "risk": "Orphaned foreign key references", "severity": "high", "impact": "Referential integrity violated in target", "mitigation": "Cleanse orphaned records before migration", "status": "open" },
+    { "id": "R006", "risk": "Duplicate customer records", "severity": "medium", "impact": "Duplicate accounts in target system", "mitigation": "Implement deduplication logic in ETL pipeline", "status": "open" }
+  ]
+}

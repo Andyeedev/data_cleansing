@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAP Nexus™ — Migration Assurance Platform</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <h1>MAP Nexus™</h1>
+        <div class="subtitle">Migration Assurance Platform</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Navigation</div>
+          <a class="nav-item active" data-view="home" href="#">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+            <span>Home</span>
+          </a>
+          <a class="nav-item" data-view="executive" href="#">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 6v6l4 2"/></svg></span>
+            <span>Executive Dashboard</span>
+          </a>
+          <a class="nav-item" data-view="migration" href="#">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
+            <span>Migration Overview</span>
+          </a>
+          <a class="nav-item" data-view="validation" href="#">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+            <span>Validation Centre</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Analysis</div>
+          <a class="nav-item" data-view="risk" href="#">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <span>Risk Assessment</span>
+          </a>
+          <a class="nav-item" data-view="quality" href="#">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
+            <span>Data Quality</span>
+          </a>
+          <a class="nav-item" data-view="governance" href="#">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+            <span>Governance Centre</span>
+          </a>
+          <a class="nav-item" data-view="progress" href="#">
+            <span class="nav-icon"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+            <span>Migration Progress</span>
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-footer">MAP Nexus™ v1.4</div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="top-bar-left"><h2 id="page-title">Home</h2></div>
+        <div class="top-bar-right">
+          <span class="demo-badge">Demo Environment</span>
+          <span class="status-badge error">Migration Blocked</span>
+          <span style="font-size:12px; color:#9E9E9E;">Scenario 3 — MIXTURE</span>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div id="view-home" class="dashboard-view active">
+          <div class="landing-page">
+            <div class="landing-hero">
+              <div class="logo-text">MAP <span>Nexus™</span></div>
+              <div class="tagline">Migration Assurance Platform</div>
+              <div class="env-badge">Demo Environment</div>
+            </div>
+            <div class="landing-meta">Customer Core Banking Migration &middot; Executed 3 July 2026 &middot; Scenario 3 — MIXTURE</div>
+            <div class="landing-stats">
+              <div class="landing-stat"><div class="value">62%</div><div class="label">Readiness</div></div>
+              <div class="landing-stat"><div class="value">58.3%</div><div class="label">Validation Score</div></div>
+              <div class="landing-stat"><div class="value">23</div><div class="label">Total Findings</div></div>
+              <div class="landing-stat"><div class="value">6</div><div class="label">Critical</div></div>
+            </div>
+            <div class="landing-tiles">
+              <div class="landing-tile" data-view="executive">
+                <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 6v6l4 2"/></svg></div>
+                <h3>Executive Dashboard</h3>
+                <p>High-level migration status and key performance indicators</p>
+              </div>
+              <div class="landing-tile" data-view="validation">
+                <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                <h3>Validation Centre</h3>
+                <p>Control execution results and findings analysis</p>
+              </div>
+              <div class="landing-tile" data-view="migration">
+                <div class="tile-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+                <h3>Migration Overview</h3>
+                <p>Source and target platform configuration</p>
+              </div>
+              <div class="landing-tile" data-view="quality">
+                <div class="tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+                <h3>Data Quality</h3>
+                <p>Quality dimensions and trend analysis</p>
+              </div>
+              <div class="landing-tile" data-view="risk">
+                <div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                <h3>Risk Assessment</h3>
+                <p>Risk matrix and go/no-go decision</p>
+              </div>
+              <div class="landing-tile" data-view="governance">
+                <div class="tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                <h3>Governance Centre</h3>
+                <p>All findings with severity and ownership</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-executive" class="dashboard-view">
+          <div class="section-header"><h3>Executive Dashboard</h3><p>Customer Core Banking Migration — Scenario 3 MIXTURE</p></div>
+          <div class="kpi-grid" id="kpi-executive"></div>
+          <div class="card-grid">
+            <div class="card"><div class="card-header"><h3>Findings Distribution</h3></div><div class="chart-container"><canvas id="chart-issue-dist"></canvas></div></div>
+            <div class="card"><div class="card-header"><h3>Control Results</h3></div><div class="chart-container"><canvas id="chart-control-status"></canvas></div></div>
+          </div>
+          <div class="card"><div class="card-header"><h3>Recommendation</h3></div><p style="font-size:14px; color:#616161;">Resolve critical and high priority findings before proceeding to pilot. The migration is currently blocked due to schema drift, balance reconciliation discrepancies, and permission requirements that must be addressed.</p></div>
+        </div>
+
+        <div id="view-migration" class="dashboard-view">
+          <div class="section-header"><h3>Migration Overview</h3><p>Source and Target Platform Configuration</p></div>
+          <div class="kpi-grid" id="kpi-migration"></div>
+          <div class="card"><div class="card-header"><h3>Entity Mapping</h3></div><table class="data-table"><thead><tr><th>Source Entity</th><th>Target Entity</th><th>Source Records</th><th>Target Records</th><th>Record Match</th><th>Status</th></tr></thead><tbody id="entity-table"></tbody></table></div>
+          <div class="card"><div class="card-header"><h3>Platform Health</h3></div><div class="health-grid" id="system-health"></div></div>
+        </div>
+
+        <div id="view-validation" class="dashboard-view">
+          <div class="section-header"><h3>Validation Centre</h3><p>10 Controls Executed — 3 Passed, 2 Attention Required, 4 Critical Issue, 1 Disabled</p></div>
+          <div class="card-grid">
+            <div class="card"><div class="card-header"><h3>Validation Distribution</h3></div><div class="chart-container"><canvas id="chart-val-dist"></canvas></div></div>
+            <div class="card"><div class="card-header"><h3>Control Summary</h3></div><table class="data-table"><thead><tr><th>Control</th><th>Status</th><th>Severity</th><th>Details</th></tr></thead><tbody id="validation-table"></tbody></table></div>
+          </div>
+        </div>
+
+        <div id="view-risk" class="dashboard-view">
+          <div class="section-header"><h3>Risk Assessment</h3><p>Overall Risk: High — Score 58.3/100</p></div>
+          <div class="kpi-grid" id="kpi-risk"></div>
+          <div class="card"><div class="card-header"><h3>Risk Matrix</h3></div><div class="risk-matrix" id="risk-matrix"></div></div>
+          <div class="card"><div class="card-header"><h3>Go / No-Go Decision</h3></div><div id="go-nogo"></div></div>
+          <div class="card"><div class="card-header"><h3>Top Risks</h3></div><table class="data-table"><thead><tr><th>#</th><th>Risk</th><th>Severity</th><th>Impact</th><th>Mitigation</th><th>Status</th></tr></thead><tbody id="risks-table-body"></tbody></table></div>
+        </div>
+
+        <div id="view-quality" class="dashboard-view">
+          <div class="section-header"><h3>Data Quality</h3><p>Overall Quality Score: 80%</p></div>
+          <div class="kpi-grid" id="kpi-quality"></div>
+          <div class="card-grid">
+            <div class="card"><div class="card-header"><h3>Quality Radar</h3></div><div class="chart-container"><canvas id="chart-quality-radar"></canvas></div></div>
+            <div class="card"><div class="card-header"><h3>Quality Trend</h3></div><div class="chart-container"><canvas id="chart-quality-trend"></canvas></div></div>
+          </div>
+          <div class="card"><div class="card-header"><h3>Quality Dimensions</h3></div><div id="quality-dimensions"></div></div>
+        </div>
+
+        <div id="view-governance" class="dashboard-view">
+          <div class="section-header"><h3>Governance Centre</h3><p>5 Findings — 2 Critical, 1 High, 2 Medium — 0% Resolution Rate</p></div>
+          <div class="kpi-grid" id="kpi-governance"></div>
+          <div class="card-grid">
+            <div class="card"><div class="card-header"><h3>Findings by Type</h3></div><div class="chart-container"><canvas id="chart-issue-by-type"></canvas></div></div>
+            <div class="card"><div class="card-header"><h3>Severity Distribution</h3></div><div class="chart-container"><canvas id="chart-severity-dist"></canvas></div></div>
+          </div>
+          <div class="card"><div class="card-header"><h3>All Findings</h3></div><table class="data-table"><thead><tr><th>ID</th><th>Type</th><th>Description</th><th>Severity</th><th>Owner</th><th>Status</th><th>Resolution</th></tr></thead><tbody id="governance-table"></tbody></table></div>
+        </div>
+
+        <div id="view-progress" class="dashboard-view">
+          <div class="section-header"><h3>Migration Progress</h3><p>Overall Progress: 50% — 169 days elapsed, 181 days remaining</p></div>
+          <div class="kpi-grid" id="kpi-progress"></div>
+          <div class="card"><div class="card-header"><h3>Phase Progress</h3></div><div id="progress-bars"></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="js/chart.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

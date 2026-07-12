@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Validation Centre Hero</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; }
+    .left { width: 55%; padding: 80px; display: flex; flex-direction: column; justify-content: center; }
+    .left h2 { font-size: 48px; font-weight: 700; color: #0B2447; margin-bottom: 16px; }
+    .left h2 span { color: #0078D4; font-weight: 300; }
+    .left p { font-size: 18px; color: #424242; line-height: 1.6; margin-bottom: 32px; }
+    .kpi-row { display: flex; gap: 16px; margin-bottom: 32px; }
+    .kpi { background: #fff; border-radius: 10px; padding: 16px 24px; border: 1px solid #E5E7EB; border-left: 4px solid #0078D4; }
+    .kpi.success { border-left-color: #107C10; }
+    .kpi.warning { border-left-color: #FFB900; }
+    .kpi.error { border-left-color: #D13438; }
+    .kpi-val { font-size: 28px; font-weight: 700; color: #0B2447; }
+    .kpi-lbl { font-size: 12px; color: #6B7280; }
+    .right { width: 45%; background: linear-gradient(135deg, #003B75 0%, #0B2447 100%); display: flex; align-items: center; justify-content: center; }
+    .donut { width: 320px; height: 320px; border-radius: 50%; background: conic-gradient(#D13438 0% 55.6%, #FFB900 55.6% 66.7%, #107C10 66.7% 88.9%, #9CA3AF 88.9% 100%); position: relative; }
+    .donut::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 200px; height: 200px; background: #0B2447; border-radius: 50%; }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; color: #fff; z-index: 1; }
+    .donut-center .val { font-size: 42px; font-weight: 700; }
+    .donut-center .lbl { font-size: 13px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <div class="left">
+    <h2>Validation <span>Centre</span></h2>
+    <p>Automated control execution with real-time results. 9 validation controls, 27 rules executed across your migration pipeline.</p>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val">9</div><div class="kpi-lbl">Controls</div></div>
+      <div class="kpi success"><div class="kpi-val">2</div><div class="kpi-lbl">Passed</div></div>
+      <div class="kpi warning"><div class="kpi-val">1</div><div class="kpi-lbl">Failed</div></div>
+      <div class="kpi error"><div class="kpi-val">5</div><div class="kpi-lbl">Errors</div></div>
+    </div>
+  </div>
+  <div class="right">
+    <div class="donut">
+      <div class="donut-center"><div class="val">58.3%</div><div class="lbl">Validation Score</div></div>
+    </div>
+  </div>
+</body>
+</html>

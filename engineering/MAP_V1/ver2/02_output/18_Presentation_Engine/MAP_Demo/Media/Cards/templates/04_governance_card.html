@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=800">
+  <title>MAP Nexus — Governance Card</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 800px; height: 400px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; align-items: center; justify-content: center; }
+    .card { background: #fff; border-radius: 16px; padding: 32px; border: 1px solid #E5E7EB; width: 500px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .card-header h3 { font-size: 16px; font-weight: 600; }
+    .badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge.crit { background: #FDECEA; color: #D13438; }
+    .badge.high { background: #FFF4CE; color: #8B6914; }
+    .card p { font-size: 14px; color: #424242; margin-bottom: 12px; }
+    .meta { font-size: 12px; color: #6B7280; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-header"><h3>GOV-001</h3><span class="badge crit">CRITICAL</span></div>
+    <p>Source record count mismatch between source and target platforms.</p>
+    <div class="meta">Type: Data Quality · Control: C01 · Owner: Data Team · Status: OPEN</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Validation Summary — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body style="padding:32px; max-width:960px; margin:0 auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <div><h1 style="font-size:24px; color:#0B2447;">MAP Nexus™</h1><p style="font-size:12px; color:#6B7280;">Validation Summary Report</p></div>
+    <a href="../dashboard/index.html" style="font-size:12px; color:#0078D4; text-decoration:none;">← Back to Dashboard</a>
+  </div>
+  <div class="card" style="margin-bottom:24px;">
+    <h2 style="font-size:18px; color:#0B2447; margin-bottom:16px;">Control Results</h2>
+    <table class="data-table"><thead><tr><th>Control</th><th>Name</th><th>Status</th><th>Rules</th><th>Passed</th><th>Failed</th><th>Errors</th></tr></thead><tbody>
+      <tr><td>C01</td><td>Record Completeness</td><td><span class="badge badge-error">ERROR</span></td><td>3</td><td>0</td><td>0</td><td>3</td></tr>
+      <tr><td>C02</td><td>Financial Integrity</td><td><span class="badge badge-error">ERROR</span></td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+      <tr><td>C03</td><td>Referential Integrity</td><td><span class="badge badge-error">ERROR</span></td><td>3</td><td>0</td><td>0</td><td>3</td></tr>
+      <tr><td>C04</td><td>Column Count Validation</td><td><span class="badge badge-warning">FAIL</span></td><td>3</td><td>0</td><td>3</td><td>0</td></tr>
+      <tr><td>C05</td><td>Null Drift Detection</td><td><span class="badge badge-success">PASS</span></td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+      <tr><td>C06</td><td>Duplicate Key Detection</td><td><span class="badge badge-error">ERROR</span></td><td>3</td><td>1</td><td>0</td><td>2</td></tr>
+      <tr><td>C07</td><td>Data Type Validation</td><td><span class="badge badge-error">ERROR</span></td><td>3</td><td>0</td><td>0</td><td>3</td></tr>
+      <tr><td>C09</td><td>Referential Coverage</td><td><span class="badge badge-success">PASS</span></td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+      <tr><td>C10</td><td>Schema Drift Detection</td><td><span class="badge badge-error">BLOCKED</span></td><td>3</td><td>0</td><td>3</td><td>0</td></tr>
+    </tbody></table>
+  </div>
+</body>
+</html>

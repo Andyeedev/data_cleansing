@@ -1,0 +1,46 @@
+{
+  "dashboard": "Data Quality",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "overall_score": 80,
+  "dimensions": [
+    { "name": "Completeness", "score": 85, "status": "passed", "details": "Record counts partially validated" },
+    { "name": "Accuracy", "score": 72, "status": "attention_required", "details": "Financial integrity errors detected" },
+    { "name": "Consistency", "score": 65, "status": "attention_required", "details": "Schema drift detected across entities" },
+    { "name": "Timeliness", "score": 90, "status": "passed", "details": "Execution completed within timeout" },
+    { "name": "Validity", "score": 58, "status": "critical", "details": "Data type and column count mismatches" },
+    { "name": "Uniqueness", "score": 88, "status": "passed", "details": "Duplicate key detection passed for 1/3 entities" }
+  ],
+  "trend": [
+    { "week": "Week 1", "score": 45 },
+    { "week": "Week 2", "score": 52 },
+    { "week": "Week 3", "score": 61 },
+    { "week": "Week 4", "score": 68 },
+    { "week": "Week 5", "score": 74 },
+    { "week": "Week 6", "score": 80 }
+  ],
+  "charts": {
+    "radar": {
+      "type": "radar",
+      "data": [
+        { "axis": "Completeness", "value": 85 },
+        { "axis": "Accuracy", "value": 72 },
+        { "axis": "Consistency", "value": 65 },
+        { "axis": "Timeliness", "value": 90 },
+        { "axis": "Validity", "value": 58 },
+        { "axis": "Uniqueness", "value": 88 }
+      ]
+    },
+    "trend_line": {
+      "type": "line",
+      "data": [
+        { "label": "Week 1", "value": 45 },
+        { "label": "Week 2", "value": 52 },
+        { "label": "Week 3", "value": 61 },
+        { "label": "Week 4", "value": 68 },
+        { "label": "Week 5", "value": 74 },
+        { "label": "Week 6", "value": 80 }
+      ]
+    }
+  }
+}

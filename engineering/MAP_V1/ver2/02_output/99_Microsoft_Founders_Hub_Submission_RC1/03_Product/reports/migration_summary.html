@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migration Summary — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/reports.css">
+</head>
+<body>
+  <header class="report-header">
+    <div class="report-header-inner">
+      <div class="report-brand">MAP Nexus™ — Migration Assurance Platform</div>
+      <h1 class="report-title">Migration Summary</h1>
+      <div class="report-subtitle">Source and Target Platform Configuration</div>
+    </div>
+  </header>
+  <nav class="report-nav">
+    <div class="report-nav-inner">
+      <a href="../Landing.html">Home</a>
+      <span class="sep">/</span>
+      <a href="executive_summary.html">Executive Summary</a>
+      <span class="sep">/</span>
+      <a href="migration_summary.html" style="font-weight:600;">Migration</a>
+      <span class="sep">/</span>
+      <a href="validation_summary.html">Validation</a>
+      <span class="sep">/</span>
+      <a href="governance_summary.html">Governance</a>
+      <span class="sep">/</span>
+      <a href="risk_summary.html">Risk</a>
+      <span class="sep">/</span>
+      <a href="data_quality_summary.html">Quality</a>
+      <span class="sep">/</span>
+      <a href="readiness_report.html">Readiness</a>
+      <span class="sep">/</span>
+      <a href="issue_register.html">Issues</a>
+    </div>
+  </nav>
+  <main class="report-content">
+    <div class="report-section">
+      <h2>Platform Overview</h2>
+      <div class="kpi-row">
+        <div class="kpi-box info"><div class="label">Source Platform</div><div class="value">Source</div></div>
+        <div class="kpi-box info"><div class="label">Target Platform</div><div class="value">Target</div></div>
+        <div class="kpi-box info"><div class="label">Source Records</div><div class="value">11</div></div>
+        <div class="kpi-box warning"><div class="label">Target Records</div><div class="value">13</div></div>
+        <div class="kpi-box info"><div class="label">Entities Mapped</div><div class="value">3</div></div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h2>Entity Mapping</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>Source Entity</th><th>Target Entity</th><th>Source Records</th><th>Target Records</th><th>Match</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Customers</td><td>CustomerAccounts</td><td>4</td><td>3</td><td>75.0%</td><td><span class="badge badge-warning">MISMATCH</span></td></tr>
+          <tr><td>Accounts</td><td>CustomerAccounts</td><td>4</td><td>3</td><td>75.0%</td><td><span class="badge badge-warning">MISMATCH</span></td></tr>
+          <tr><td>Balances</td><td>AccountBalances</td><td>3</td><td>3</td><td>100.0%</td><td><span class="badge badge-success">PASS</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="report-section">
+      <h2>Data Quality Observations</h2>
+      <p>The entity mapping reveals a record count mismatch between source and target platforms. The Customers and Accounts entities show 75% match rates, indicating potential data loss or transformation issues during migration. The Balances entity achieves 100% match, suggesting successful data transfer for this entity type.</p>
+      <p><strong>Recommendation:</strong> Investigate the root cause of record count discrepancies in Customers and Accounts entities before proceeding with production migration.</p>
+    </div>
+  </main>
+  <footer class="report-footer">
+    MAP Nexus™ — Migration Assurance Platform &middot; Presentation Engine v2.0 &middot; <a href="../Landing.html">Home</a>
+  </footer>
+</body>
+</html>

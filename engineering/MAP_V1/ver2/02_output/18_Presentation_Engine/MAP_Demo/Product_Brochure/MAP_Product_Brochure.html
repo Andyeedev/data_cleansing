@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=210mm, initial-scale=1.0">
+<title>MAP Nexus™ — Enterprise Migration Governance Platform</title>
+<style>
+  /* ============================================
+     MAP Nexus™ Product Brochure — Page Styles
+     ============================================ */
+
+  @page { size: A4 portrait; margin: 0; }
+  @page :first { margin: 0; }
+
+  :root {
+    --map-blue: #0078D4;
+    --map-blue-dark: #003B75;
+    --map-green: #107C10;
+    --map-yellow: #FFB900;
+    --map-red: #D13438;
+    --map-purple: #5C2D91;
+    --map-white: #FFFFFF;
+    --map-light: #F3F2F1;
+    --map-gray: #605E5C;
+    --map-gray-dark: #323130;
+    --map-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { font-family: var(--map-font); color: var(--map-gray-dark); background: #E8E8E8; }
+
+  .brochure { max-width: 210mm; margin: 0 auto; }
+
+  /* ---- Page Container ---- */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    background: var(--map-white);
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .page:last-child { page-break-after: auto; }
+
+  /* ---- COVER PAGE ---- */
+  .cover {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, var(--map-blue-dark) 0%, var(--map-blue) 40%, #4FC3F7 100%);
+    color: var(--map-white);
+    padding: 40mm 25mm;
+  }
+
+  .cover .logo-mark {
+    width: 100px; height: 100px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; font-weight: 700; color: var(--map-white);
+    margin-bottom: 20mm;
+  }
+
+  .cover h1 { font-size: 42px; font-weight: 700; letter-spacing: -1px; margin-bottom: 5mm; }
+  .cover .subtitle { font-size: 18px; font-weight: 300; opacity: 0.9; margin-bottom: 15mm; }
+  .cover .tagline { font-size: 22px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; margin-bottom: 5mm; }
+  .cover .badge { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 8px 24px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .cover .version { position: absolute; bottom: 15mm; font-size: 11px; opacity: 0.6; }
+
+  /* ---- PAGE HEADER ---- */
+  .page-header {
+    background: var(--map-blue-dark);
+    color: var(--map-white);
+    padding: 8mm 15mm 8mm;
+    position: relative;
+  }
+
+  .page-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 15mm; right: 15mm;
+    height: 3px;
+    background: linear-gradient(90deg, var(--map-blue), var(--map-yellow), var(--map-green));
+  }
+
+  .page-header h2 { font-size: 28px; font-weight: 700; }
+  .page-header .section-num { font-size: 12px; opacity: 0.6; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 2mm; }
+
+  /* ---- PAGE BODY ---- */
+  .page-body { padding: 8mm 15mm 12mm; }
+
+  /* ---- PAGE FOOTER ---- */
+  .page-footer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4mm 15mm;
+    font-size: 9px; color: var(--map-gray);
+    border-top: 1px solid #E1DFDD;
+  }
+  .page-footer .logo-sm { font-weight: 700; color: var(--map-blue); }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--map-light);
+    border-radius: 8px;
+    padding: 6mm;
+    margin-bottom: 4mm;
+  }
+
+  .card-white {
+    background: var(--map-white);
+    border: 1px solid #E1DFDD;
+    border-radius: 8px;
+    padding: 6mm;
+    margin-bottom: 4mm;
+  }
+
+  .card h3 { font-size: 16px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 3mm; }
+  .card p, .card-white p { font-size: 11px; line-height: 1.6; color: var(--map-gray); }
+
+  /* ---- GRIDS ---- */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4mm; }
+
+  /* ---- STAT CARDS ---- */
+  .stat-card {
+    background: var(--map-white);
+    border: 1px solid #E1DFDD;
+    border-radius: 8px;
+    padding: 5mm;
+    text-align: center;
+  }
+
+  .stat-card .icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 3mm;
+    font-size: 22px;
+  }
+
+  .stat-card h4 { font-size: 13px; font-weight: 600; color: var(--map-gray-dark); margin-bottom: 1mm; }
+  .stat-card p { font-size: 10px; color: var(--map-gray); line-height: 1.4; }
+
+  .icon-blue { background: rgba(0,120,212,0.1); color: var(--map-blue); }
+  .icon-green { background: rgba(16,124,16,0.1); color: var(--map-green); }
+  .icon-purple { background: rgba(92,45,145,0.1); color: var(--map-purple); }
+  .icon-yellow { background: rgba(255,185,0,0.1); color: #C8A600; }
+  .icon-red { background: rgba(209,52,56,0.1); color: var(--map-red); }
+
+  /* ---- BENEFIT ITEM ---- */
+  .benefit-item {
+    display: flex; align-items: flex-start; gap: 4mm;
+    padding: 4mm 0;
+    border-bottom: 1px solid #E1DFDD;
+  }
+  .benefit-item:last-child { border-bottom: none; }
+  .benefit-item .num { font-size: 28px; font-weight: 700; color: var(--map-blue); line-height: 1; min-width: 12mm; }
+  .benefit-item h4 { font-size: 14px; font-weight: 600; color: var(--map-gray-dark); margin-bottom: 1mm; }
+  .benefit-item p { font-size: 11px; color: var(--map-gray); line-height: 1.5; }
+
+  /* ---- CAPABILITY ---- */
+  .capability-item {
+    background: var(--map-light);
+    border-radius: 8px;
+    padding: 5mm;
+    text-align: center;
+  }
+  .capability-item .icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 3mm;
+    font-size: 20px;
+    background: var(--map-blue);
+    color: var(--map-white);
+  }
+  .capability-item h4 { font-size: 12px; font-weight: 600; color: var(--map-gray-dark); margin-bottom: 1mm; }
+  .capability-item p { font-size: 10px; color: var(--map-gray); line-height: 1.4; }
+
+  /* ---- DASHBOARD SHOWCASE ---- */
+  .dashboard-showcase {
+    background: var(--map-light);
+    border-radius: 8px;
+    padding: 5mm;
+    margin-bottom: 5mm;
+  }
+  .dashboard-showcase h3 { font-size: 15px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 2mm; }
+  .dashboard-showcase .screen {
+    background: var(--map-white);
+    border: 1px solid #E1DFDD;
+    border-radius: 6px;
+    height: 120mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--map-gray);
+    font-size: 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .dashboard-showcase .screen img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .dashboard-showcase .desc { margin-top: 3mm; font-size: 11px; color: var(--map-gray); line-height: 1.5; }
+  .dashboard-showcase .desc strong { color: var(--map-gray-dark); }
+
+  /* ---- ROADMAP ---- */
+  .roadmap-phase {
+    display: flex; gap: 5mm;
+    margin-bottom: 5mm;
+  }
+  .roadmap-phase .marker {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--map-blue);
+    color: var(--map-white);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .roadmap-phase h4 { font-size: 14px; font-weight: 600; color: var(--map-gray-dark); margin-bottom: 1mm; }
+  .roadmap-phase p { font-size: 11px; color: var(--map-gray); line-height: 1.5; }
+  .roadmap-phase .features { font-size: 10px; color: var(--map-gray); margin-top: 2mm; }
+  .roadmap-phase .features span { display: inline-block; background: rgba(0,120,212,0.08); border-radius: 4px; padding: 2px 8px; margin: 1px 2px; font-size: 9px; color: var(--map-blue); }
+
+  /* ---- INDUSTRY ---- */
+  .industry-card {
+    background: var(--map-light);
+    border-radius: 8px;
+    padding: 4mm;
+    text-align: center;
+  }
+  .industry-card .icon { font-size: 24px; margin-bottom: 2mm; }
+  .industry-card h4 { font-size: 11px; font-weight: 600; color: var(--map-gray-dark); }
+
+  /* ---- FOUNDER ---- */
+  .founder-profile {
+    display: flex; gap: 8mm;
+    align-items: flex-start;
+  }
+  .founder-photo {
+    width: 50mm; height: 60mm;
+    background: linear-gradient(135deg, var(--map-blue-dark), var(--map-blue));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--map-white); font-size: 36px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .founder-bio h3 { font-size: 18px; font-weight: 700; color: var(--map-gray-dark); margin-bottom: 2mm; }
+  .founder-bio .title { font-size: 12px; color: var(--map-blue); font-weight: 600; margin-bottom: 3mm; }
+  .founder-bio p { font-size: 11px; color: var(--map-gray); line-height: 1.6; margin-bottom: 2mm; }
+
+  /* ---- CONTACT ---- */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5mm;
+    margin-top: 5mm;
+  }
+  .contact-item {
+    background: var(--map-light);
+    border-radius: 8px;
+    padding: 5mm;
+    display: flex; align-items: center; gap: 3mm;
+  }
+  .contact-item .icon {
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    background: var(--map-blue);
+    color: var(--map-white);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .contact-item h4 { font-size: 12px; font-weight: 600; color: var(--map-gray-dark); }
+  .contact-item p { font-size: 10px; color: var(--map-gray); }
+
+  /* ---- AZURE SECTION ---- */
+  .azure-pillar {
+    background: var(--map-light);
+    border-radius: 8px;
+    padding: 5mm;
+    border-left: 4px solid var(--map-blue);
+  }
+  .azure-pillar h4 { font-size: 13px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 1mm; }
+  .azure-pillar p { font-size: 10px; color: var(--map-gray); line-height: 1.5; }
+
+  /* ---- PRINT ---- */
+  @media print {
+    body { background: white; }
+    .brochure { max-width: none; }
+    .page { box-shadow: none; page-break-after: always; }
+  }
+
+  @media screen {
+    .page { margin: 4mm auto; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+  }
+</style>
+</head>
+<body>
+<div class="brochure">
+
+  <!-- ============================== PAGE 1: COVER ============================== -->
+  <section class="page cover">
+    <div class="logo-mark">MN</div>
+    <h1>MAP Nexus&trade;</h1>
+    <p class="subtitle">Migration Assurance Platform</p>
+    <div class="tagline">Enterprise Migration Governance</div>
+    <div class="tagline" style="font-size:16px; opacity:0.7; margin-top: 2mm;">Validation &bull; Governance &bull; Assurance</div>
+    <div class="badge">Azure-Native &bull; Enterprise-Ready</div>
+    <span class="version">Version 2.0</span>
+  </section>
+
+  <!-- ============================== PAGE 2: INSIDE COVER ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 01</div>
+      <h2>About MAP Nexus&trade;</h2>
+    </div>
+    <div class="page-body">
+      <div style="margin-bottom: 6mm;">
+        <h3 style="font-size: 20px; font-weight: 700; color: var(--map-blue-dark); margin-bottom: 3mm;">Why MAP Exists</h3>
+        <p style="font-size: 12px; color: var(--map-gray); line-height: 1.7;">
+          Every enterprise migration carries risk. Data integrity failures, governance gaps, compliance breaches, and invisible data quality issues can silently destroy business value. Organisations need a platform that provides <strong style="color: var(--map-gray-dark);">absolute confidence</strong> that their migrated data is accurate, complete, and compliant.
+        </p>
+        <p style="font-size: 12px; color: var(--map-gray); line-height: 1.7; margin-top: 3mm;">
+          MAP Nexus&trade; exists to give executives, programme directors, and enterprise architects the governance, validation, and assurance they need — before, during, and after migration.
+        </p>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 6mm;">
+        <div class="card">
+          <h3>Mission</h3>
+          <p>Provide enterprise-grade migration validation and governance that eliminates data risk, ensures regulatory compliance, and gives leadership absolute confidence in migrated data.</p>
+        </div>
+        <div class="card">
+          <h3>Vision</h3>
+          <p>To become the industry standard for migration assurance — the platform every enterprise trusts to validate, govern, and protect their most critical data assets.</p>
+        </div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--map-blue); background: rgba(0,120,212,0.03);">
+        <h3>Company Overview</h3>
+        <p>MAP is a Microsoft Azure-native company specialising in migration validation and governance. As a Microsoft Founders Hub participant, we build on the Azure platform to deliver enterprise-grade data assurance solutions for organisations navigating complex data migrations.</p>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>2 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 3: PROBLEM ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 02</div>
+      <h2>The Migration Challenge</h2>
+    </div>
+    <div class="page-body">
+      <p style="font-size: 13px; color: var(--map-gray); line-height: 1.7; margin-bottom: 5mm;">
+        Enterprise migrations fail silently. Without governance and validation, organisations migrate data that is incomplete, inconsistent, or non-compliant — and only discover the damage when executives lose confidence.
+      </p>
+
+      <div class="grid-2">
+        <div class="stat-card">
+          <div class="icon icon-red">&#x26A0;</div>
+          <h4>Migration Risk</h4>
+          <p>Data loss, corruption, and schema drift during migration can silently destroy business value.</p>
+        </div>
+        <div class="stat-card">
+          <div class="icon icon-red">&#x2716;</div>
+          <h4>Data Quality</h4>
+          <p>Incomplete data, duplicate records, and broken relationships propagate errors across systems.</p>
+        </div>
+        <div class="stat-card">
+          <div class="icon icon-yellow">&#x1F6E1;</div>
+          <h4>Governance Gaps</h4>
+          <p>Without controls, there is no visibility into what migrated, what failed, or what needs remediation.</p>
+        </div>
+        <div class="stat-card">
+          <div class="icon icon-yellow">&#x1F512;</div>
+          <h4>Compliance Exposure</h4>
+          <p>Regulatory frameworks demand evidence of data integrity. Gaps create audit failures.</p>
+        </div>
+        <div class="stat-card">
+          <div class="icon icon-red">&#x1F3AF;</div>
+          <h4>Business Risk</h4>
+          <p>Inaccurate migrated data drives incorrect decisions, customer harm, and financial exposure.</p>
+        </div>
+        <div class="stat-card">
+          <div class="icon icon-blue">&#x1F4CA;</div>
+          <h4>Executive Visibility</h4>
+          <p>Leadership cannot manage what they cannot see. Without dashboards, risk is invisible.</p>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>3 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 4: SOLUTION ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 03</div>
+      <h2>The MAP Nexus&trade; Solution</h2>
+    </div>
+    <div class="page-body">
+      <p style="font-size: 13px; color: var(--map-gray); line-height: 1.7; margin-bottom: 5mm;">
+        MAP Nexus&trade; is an enterprise migration governance and validation platform that gives organisations absolute confidence in their migrated data.
+      </p>
+
+      <div class="grid-2" style="margin-bottom: 5mm;">
+        <div class="card">
+          <h3>&#x2714; Automated Validation</h3>
+          <p>Discover, execute, and validate migration controls across source and target systems — eliminating manual checks and ensuring nothing is missed.</p>
+        </div>
+        <div class="card">
+          <h3>&#x1F4CA; Executive Dashboards</h3>
+          <p>Real-time visibility into migration progress, validation status, and risk — from C-suite to project team.</p>
+        </div>
+        <div class="card">
+          <h3>&#x1F6E1; Governance Framework</h3>
+          <p>Built-in governance controls, approval workflows, and audit trails ensure compliance with regulatory requirements.</p>
+        </div>
+        <div class="card">
+          <h3>&#x26A1; Azure-Native</h3>
+          <p>Built on Azure from day one. Leverages Azure SQL, Entra ID, Monitor, and Storage for enterprise security and scale.</p>
+        </div>
+      </div>
+
+      <div class="card" style="background: linear-gradient(135deg, var(--map-blue-dark), var(--map-blue)); color: var(--map-white);">
+        <h3 style="color: var(--map-white);">Business Outcomes</h3>
+        <div class="grid-3" style="margin-top: 3mm;">
+          <div style="text-align: center;">
+            <div style="font-size: 28px; font-weight: 700;">0%</div>
+            <div style="font-size: 10px; opacity: 0.8;">Silent Data Loss</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 28px; font-weight: 700;">100%</div>
+            <div style="font-size: 10px; opacity: 0.8;">Validation Coverage</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 28px; font-weight: 700;">Full</div>
+            <div style="font-size: 10px; opacity: 0.8;">Executive Visibility</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>4 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 5: KEY CAPABILITIES ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 04</div>
+      <h2>Key Capabilities</h2>
+    </div>
+    <div class="page-body">
+      <div class="grid-2">
+        <div class="capability-item">
+          <div class="icon" style="background: var(--map-blue);">&#x1F50D;</div>
+          <h4>Discovery</h4>
+          <p>Automated discovery of source and target data structures, relationships, and migration scope.</p>
+        </div>
+        <div class="capability-item">
+          <div class="icon" style="background: var(--map-green);">&#x2714;</div>
+          <h4>Validation</h4>
+          <p>Comprehensive data validation across row counts, balances, relationships, and business rules.</p>
+        </div>
+        <div class="capability-item">
+          <div class="icon" style="background: var(--map-purple);">&#x1F6E1;</div>
+          <h4>Governance</h4>
+          <p>Built-in governance controls, approval workflows, and compliance audit trails.</p>
+        </div>
+        <div class="capability-item">
+          <div class="icon" style="background: var(--map-red);">&#x26A0;</div>
+          <h4>Risk Assessment</h4>
+          <p>Automated risk identification, severity classification, and remediation guidance.</p>
+        </div>
+        <div class="capability-item">
+          <div class="icon" style="background: #0078D4;">&#x1F4CA;</div>
+          <h4>Executive Reporting</h4>
+          <p>Real-time dashboards and reports for C-suite, programme directors, and project teams.</p>
+        </div>
+        <div class="capability-item">
+          <div class="icon" style="background: var(--map-green);">&#x26A1;</div>
+          <h4>Migration Readiness</h4>
+          <p>Pre-migration assessment, dependency mapping, and readiness scoring.</p>
+        </div>
+        <div class="capability-item">
+          <div class="icon" style="background: var(--map-blue);">&#x2709;</div>
+          <h4>Compliance</h4>
+          <p>Regulatory compliance evidence, audit-ready reporting, and governance documentation.</p>
+        </div>
+        <div class="capability-item">
+          <div class="icon" style="background: var(--map-purple);">&#x1F916;</div>
+          <h4>AI Assistance <span style="font-size: 9px; font-weight: 400; opacity: 0.7;">(Roadmap)</span></h4>
+          <p>Future AI-powered anomaly detection, intelligent remediation, and natural language queries.</p>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>5 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 6: DASHBOARD SHOWCASE — LANDING ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 05</div>
+      <h2>Dashboard Showcase</h2>
+    </div>
+    <div class="page-body">
+      <div class="dashboard-showcase">
+        <h3>Landing Page</h3>
+        <div class="screen">
+          <div style="text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 3mm; color: var(--map-blue);">MAP Nexus&trade;</div>
+            <div style="font-size: 12px; color: var(--map-gray);">Migration Assurance Platform</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 3mm; margin-top: 5mm; padding: 0 5mm;">
+              <div style="background: var(--map-light); border-radius: 6px; padding: 3mm;">
+                <div style="font-size: 18px; font-weight: 700; color: var(--map-blue);">9</div>
+                <div style="font-size: 8px; color: var(--map-gray);">Controls</div>
+              </div>
+              <div style="background: var(--map-light); border-radius: 6px; padding: 3mm;">
+                <div style="font-size: 18px; font-weight: 700; color: var(--map-green);">2</div>
+                <div style="font-size: 8px; color: var(--map-gray);">Passed</div>
+              </div>
+              <div style="background: var(--map-light); border-radius: 6px; padding: 3mm;">
+                <div style="font-size: 18px; font-weight: 700; color: var(--map-red);">1</div>
+                <div style="font-size: 8px; color: var(--map-gray);">Failed</div>
+              </div>
+              <div style="background: var(--map-light); border-radius: 6px; padding: 3mm;">
+                <div style="font-size: 18px; font-weight: 700; color: var(--map-yellow);">5</div>
+                <div style="font-size: 8px; color: var(--map-gray);">Errors</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="desc">
+          <strong>Landing Page:</strong> Central navigation hub providing immediate access to all platform modules. Displays key performance indicators at a glance — controls executed, validation status, and migration readiness.
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>6 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 7: DASHBOARD SHOWCASE — EXECUTIVE ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 05</div>
+      <h2>Executive Dashboard</h2>
+    </div>
+    <div class="page-body">
+      <div class="dashboard-showcase">
+        <h3>Executive Dashboard</h3>
+        <div class="screen">
+          <div style="text-align: center;">
+            <div style="font-size: 14px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 2mm;">Migration Executive Summary</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; padding: 0 3mm;">
+              <div style="text-align: left; background: var(--map-light); border-radius: 6px; padding: 3mm;">
+                <div style="font-size: 9px; font-weight: 600; color: var(--map-gray-dark); margin-bottom: 1mm;">Validation Status</div>
+                <div style="display: flex; gap: 2mm; margin-bottom: 1mm;">
+                  <div style="flex: 2; background: var(--map-green); height: 6px; border-radius: 3px;"></div>
+                  <div style="flex: 1; background: var(--map-red); height: 6px; border-radius: 3px;"></div>
+                  <div style="flex: 5; background: var(--map-yellow); height: 6px; border-radius: 3px;"></div>
+                </div>
+                <div style="font-size: 8px; color: var(--map-gray);">22% Passed | 11% Failed | 56% Error</div>
+              </div>
+              <div style="text-align: left; background: var(--map-light); border-radius: 6px; padding: 3mm;">
+                <div style="font-size: 9px; font-weight: 600; color: var(--map-gray-dark); margin-bottom: 1mm;">Risk Assessment</div>
+                <div style="display: flex; gap: 2mm; margin-bottom: 1mm;">
+                  <div style="flex: 3; background: var(--map-green); height: 6px; border-radius: 3px;"></div>
+                  <div style="flex: 1; background: var(--map-yellow); height: 6px; border-radius: 3px;"></div>
+                </div>
+                <div style="font-size: 8px; color: var(--map-gray);">75% Low | 25% Medium</div>
+              </div>
+            </div>
+            <div style="background: var(--map-light); border-radius: 6px; padding: 3mm; margin: 3mm 3mm 0; text-align: left;">
+              <div style="font-size: 9px; font-weight: 600; color: var(--map-gray-dark);">Business Value Delivered</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2mm; margin-top: 2mm;">
+                <div style="text-align: center; background: var(--map-white); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 14px; font-weight: 700; color: var(--map-green);">&#x2714;</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">4 Source<br>Accounts</div>
+                </div>
+                <div style="text-align: center; background: var(--map-white); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 14px; font-weight: 700; color: var(--map-blue);">3</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Target<br>Accounts</div>
+                </div>
+                <div style="text-align: center; background: var(--map-white); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 14px; font-weight: 700; color: var(--map-purple);">$2.1M</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Validated<br>Balance</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="desc">
+          <strong>Executive Dashboard:</strong> High-level view of migration health, validation outcomes, and risk posture. Designed for C-suite and programme directors to assess migration status at a glance.
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>7 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 8: DASHBOARD SHOWCASE — MIGRATION ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 05</div>
+      <h2>Migration &amp; Validation</h2>
+    </div>
+    <div class="page-body">
+      <div class="grid-2">
+        <div class="dashboard-showcase">
+          <h3>Migration Overview</h3>
+          <div class="screen" style="height: 55mm;">
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 2mm;">Migration Batch Summary</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2mm;">
+                <div style="background: var(--map-light); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 12px; font-weight: 700; color: var(--map-blue);">3</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Batches</div>
+                </div>
+                <div style="background: var(--map-light); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 12px; font-weight: 700; color: var(--map-green);">10</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Tables</div>
+                </div>
+                <div style="background: var(--map-light); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 12px; font-weight: 700; color: var(--map-yellow);">847</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Records</div>
+                </div>
+                <div style="background: var(--map-light); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 12px; font-weight: 700; color: var(--map-red);">12</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Exceptions</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="desc" style="font-size: 10px;">
+            <strong>Migration Overview:</strong> Tracks batch-level migration status across all tables. Highlights records processed and exceptions requiring attention.
+          </div>
+        </div>
+
+        <div class="dashboard-showcase">
+          <h3>Validation Centre</h3>
+          <div class="screen" style="height: 55mm;">
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 2mm;">Control Execution Results</div>
+              <div style="display: flex; flex-direction: column; gap: 2mm; padding: 0 2mm;">
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--map-green);"></div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Row Count Validation</div>
+                  <div style="color: var(--map-green); font-weight: 600;">PASS</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--map-red);"></div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Balance Reconciliation</div>
+                  <div style="color: var(--map-red); font-weight: 600;">FAIL</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--map-yellow);"></div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Customer Linkage</div>
+                  <div style="color: #C8A600; font-weight: 600;">ERROR</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--map-yellow);"></div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Duplicate Detection</div>
+                  <div style="color: #C8A600; font-weight: 600;">BLOCKED</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="desc" style="font-size: 10px;">
+            <strong>Validation Centre:</strong> Detailed control execution results with executive-friendly status labels. Every validation outcome is visible and auditable.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>8 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 9: DASHBOARD SHOWCASE — GOVERNANCE & RISK ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 05</div>
+      <h2>Governance &amp; Risk</h2>
+    </div>
+    <div class="page-body">
+      <div class="grid-2">
+        <div class="dashboard-showcase">
+          <h3>Governance Centre</h3>
+          <div class="screen" style="height: 55mm;">
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 2mm;">Governance Framework</div>
+              <div style="display: flex; flex-direction: column; gap: 2mm; padding: 0 2mm;">
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--map-green);"></div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Approval Workflow</div>
+                  <div style="color: var(--map-green); font-weight: 600;">ACTIVE</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--map-green);"></div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Audit Trail</div>
+                  <div style="color: var(--map-green); font-weight: 600;">ENABLED</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--map-blue);"></div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Risk Classification</div>
+                  <div style="color: var(--map-blue); font-weight: 600;">MAPPED</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--map-green);"></div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Compliance Status</div>
+                  <div style="color: var(--map-green); font-weight: 600;">READY</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="desc" style="font-size: 10px;">
+            <strong>Governance Centre:</strong> Built-in governance controls, approval workflows, and audit trails ensure every migration action is documented and compliant.
+          </div>
+        </div>
+
+        <div class="dashboard-showcase">
+          <h3>Risk Assessment</h3>
+          <div class="screen" style="height: 55mm;">
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 2mm;">Risk Summary</div>
+              <div style="display: flex; gap: 3mm; justify-content: center; margin-top: 2mm;">
+                <div style="text-align: center;">
+                  <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--map-green); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 700; margin: 0 auto;">3</div>
+                  <div style="font-size: 7px; color: var(--map-gray); margin-top: 1mm;">Low</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--map-yellow); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 700; margin: 0 auto;">1</div>
+                  <div style="font-size: 7px; color: var(--map-gray); margin-top: 1mm;">Medium</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--map-red); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 700; margin: 0 auto;">0</div>
+                  <div style="font-size: 7px; color: var(--map-gray); margin-top: 1mm;">High</div>
+                </div>
+              </div>
+              <div style="background: var(--map-light); border-radius: 4px; padding: 2mm; margin-top: 3mm; font-size: 8px; color: var(--map-gray); text-align: left;">
+                <strong style="color: var(--map-gray-dark);">Key Finding:</strong> Balance mismatch identified in Account ACC-001. Source balance $125,450 vs Target balance $118,200. Variance: $7,250 (5.8%). Remediation required.
+              </div>
+            </div>
+          </div>
+          <div class="desc" style="font-size: 10px;">
+            <strong>Risk Assessment:</strong> Automated risk identification with severity classification. Every exception is categorised, explained, and linked to remediation actions.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>9 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 10: DASHBOARD SHOWCASE — DATA QUALITY ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 05</div>
+      <h2>Data Quality &amp; Reports</h2>
+    </div>
+    <div class="page-body">
+      <div class="grid-2">
+        <div class="dashboard-showcase">
+          <h3>Data Quality</h3>
+          <div class="screen" style="height: 55mm;">
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 2mm;">Data Quality Profile</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2mm; padding: 0 2mm;">
+                <div style="background: var(--map-light); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 14px; font-weight: 700; color: var(--map-green);">94%</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Completeness</div>
+                </div>
+                <div style="background: var(--map-light); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 14px; font-weight: 700; color: var(--map-blue);">98%</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Accuracy</div>
+                </div>
+                <div style="background: var(--map-light); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 14px; font-weight: 700; color: var(--map-yellow);">96%</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Consistency</div>
+                </div>
+                <div style="background: var(--map-light); border-radius: 4px; padding: 2mm;">
+                  <div style="font-size: 14px; font-weight: 700; color: var(--map-purple);">92%</div>
+                  <div style="font-size: 7px; color: var(--map-gray);">Timeliness</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="desc" style="font-size: 10px;">
+            <strong>Data Quality:</strong> Comprehensive data quality profiling across completeness, accuracy, consistency, and timeliness dimensions.
+          </div>
+        </div>
+
+        <div class="dashboard-showcase">
+          <h3>Executive Reports</h3>
+          <div class="screen" style="height: 55mm;">
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 600; color: var(--map-blue-dark); margin-bottom: 2mm;">Available Reports</div>
+              <div style="display: flex; flex-direction: column; gap: 1.5mm; padding: 0 2mm;">
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px; background: var(--map-light); border-radius: 3px; padding: 2mm;">
+                  <div style="color: var(--map-blue);">&#x1F4CB;</div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Executive Summary</div>
+                  <div style="color: var(--map-blue); font-weight: 600; font-size: 7px;">HTML</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px; background: var(--map-light); border-radius: 3px; padding: 2mm;">
+                  <div style="color: var(--map-blue);">&#x1F4CB;</div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Migration Summary</div>
+                  <div style="color: var(--map-blue); font-weight: 600; font-size: 7px;">HTML</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px; background: var(--map-light); border-radius: 3px; padding: 2mm;">
+                  <div style="color: var(--map-blue);">&#x1F4CB;</div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Validation Summary</div>
+                  <div style="color: var(--map-blue); font-weight: 600; font-size: 7px;">HTML</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px; background: var(--map-light); border-radius: 3px; padding: 2mm;">
+                  <div style="color: var(--map-blue);">&#x1F4CB;</div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Governance Summary</div>
+                  <div style="color: var(--map-blue); font-weight: 600; font-size: 7px;">HTML</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 2mm; font-size: 8px; background: var(--map-light); border-radius: 3px; padding: 2mm;">
+                  <div style="color: var(--map-blue);">&#x1F4CB;</div>
+                  <div style="flex: 1; text-align: left; color: var(--map-gray);">Risk Summary</div>
+                  <div style="color: var(--map-blue); font-weight: 600; font-size: 7px;">HTML</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="desc" style="font-size: 10px;">
+            <strong>Executive Reports:</strong> Eight audit-ready HTML reports covering every aspect of the migration — ready for board meetings, regulatory submissions, and compliance reviews.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>10 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 11: CUSTOMER BENEFITS ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 06</div>
+      <h2>Customer Benefits</h2>
+    </div>
+    <div class="page-body">
+      <p style="font-size: 13px; color: var(--map-gray); line-height: 1.7; margin-bottom: 5mm;">
+        MAP Nexus&trade; delivers measurable business value that extends beyond the migration project — building lasting organisational capability.
+      </p>
+
+      <div class="benefit-item">
+        <div class="num">01</div>
+        <div>
+          <h4>Reduced Migration Risk</h4>
+          <p>Automated validation catches data integrity issues before they reach production. Zero silent data loss.</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="num">02</div>
+        <div>
+          <h4>Executive Confidence</h4>
+          <p>Real-time dashboards give leadership visibility they can trust. No surprises, no guesswork.</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="num">03</div>
+        <div>
+          <h4>Better Governance</h4>
+          <p>Built-in controls, approval workflows, and audit trails ensure every action is documented and compliant.</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="num">04</div>
+        <div>
+          <h4>Faster Delivery</h4>
+          <p>Automated validation reduces manual effort by 80%, accelerating migration timelines.</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="num">05</div>
+        <div>
+          <h4>Compliance Readiness</h4>
+          <p>Audit-ready reports and governance documentation satisfy regulatory requirements from day one.</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="num">06</div>
+        <div>
+          <h4>Audit Evidence</h4>
+          <p>Complete audit trails and governance records demonstrate due diligence to auditors and regulators.</p>
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="num">07</div>
+        <div>
+          <h4>Operational Resilience</h4>
+          <p>Confidence that migrated data is accurate, complete, and ready to support business operations.</p>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>11 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 12: AZURE ALIGNMENT ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 07</div>
+      <h2>Azure-Native Architecture</h2>
+    </div>
+    <div class="page-body">
+      <p style="font-size: 13px; color: var(--map-gray); line-height: 1.7; margin-bottom: 5mm;">
+        MAP Nexus&trade; is built on Microsoft Azure from the ground up — not ported, not adapted. Every component leverages Azure-native services for enterprise security, compliance, and scale.
+      </p>
+
+      <div class="grid-2" style="margin-bottom: 5mm;">
+        <div class="azure-pillar">
+          <h4>Azure SQL</h4>
+          <p>Enterprise-grade relational database with built-in security, encryption, and compliance certifications.</p>
+        </div>
+        <div class="azure-pillar">
+          <h4>Microsoft Entra ID</h4>
+          <p>Enterprise identity and access management with single sign-on, MFA, and conditional access.</p>
+        </div>
+        <div class="azure-pillar">
+          <h4>Azure Monitor</h4>
+          <p>Full observability across the platform — performance metrics, alerts, and diagnostic logging.</p>
+        </div>
+        <div class="azure-pillar">
+          <h4>Azure Storage</h4>
+          <p>Secure, scalable blob and file storage for reports, audit trails, and migration artefacts.</p>
+        </div>
+      </div>
+
+      <div class="card" style="background: linear-gradient(135deg, var(--map-purple), var(--map-blue)); color: var(--map-white);">
+        <h3 style="color: var(--map-white);">Azure OpenAI Roadmap</h3>
+        <p style="color: rgba(255,255,255,0.9);">
+          Future capability: AI-powered anomaly detection, intelligent remediation recommendations, natural language data queries, and automated governance documentation — all powered by Azure OpenAI and responsible AI principles.
+        </p>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>12 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 13: TARGET INDUSTRIES ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 08</div>
+      <h2>Target Industries</h2>
+    </div>
+    <div class="page-body">
+      <p style="font-size: 13px; color: var(--map-gray); line-height: 1.7; margin-bottom: 5mm;">
+        MAP Nexus&trade; is designed for any enterprise navigating complex data migrations — with particular strength in regulated industries where data integrity is non-negotiable.
+      </p>
+
+      <div class="grid-3">
+        <div class="industry-card">
+          <div class="icon">&#x1F3E6;</div>
+          <h4>Financial Services</h4>
+        </div>
+        <div class="industry-card">
+          <div class="icon">&#x1F3E2;</div>
+          <h4>Banking</h4>
+        </div>
+        <div class="industry-card">
+          <div class="icon">&#x1F3E8;</div>
+          <h4>Insurance</h4>
+        </div>
+        <div class="industry-card">
+          <div class="icon">&#x1F3DB;</div>
+          <h4>Government</h4>
+        </div>
+        <div class="industry-card">
+          <div class="icon">&#x1F3E5;</div>
+          <h4>Healthcare</h4>
+        </div>
+        <div class="industry-card">
+          <div class="icon">&#x26A1;</div>
+          <h4>Utilities</h4>
+        </div>
+        <div class="industry-card">
+          <div class="icon">&#x1F3E0;</div>
+          <h4>Housing</h4>
+        </div>
+        <div class="industry-card">
+          <div class="icon">&#x1F4E1;</div>
+          <h4>Telecommunications</h4>
+        </div>
+        <div class="industry-card">
+          <div class="icon">&#x1F6E4;</div>
+          <h4>Logistics</h4>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 5mm;">
+        <h3>Why Regulated Industries Choose MAP</h3>
+        <p>
+          Regulatory frameworks demand evidence of data integrity. MAP Nexus&trade; provides the governance, validation, and audit trails that satisfy regulators — while giving executives confidence that migrated data is accurate, complete, and compliant.
+        </p>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>13 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 14: PRODUCT ROADMAP ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 09</div>
+      <h2>Product Roadmap</h2>
+    </div>
+    <div class="page-body">
+      <div class="roadmap-phase">
+        <div class="marker" style="background: var(--map-green);">Q1</div>
+        <div>
+          <h4>Foundation &amp; Validation</h4>
+          <p>Core platform capabilities — automated validation, governance controls, executive dashboards.</p>
+          <div class="features">
+            <span>Source/Target Discovery</span>
+            <span>Row Count Validation</span>
+            <span>Balance Reconciliation</span>
+            <span>Executive Dashboard</span>
+            <span>Governance Framework</span>
+          </div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="marker" style="background: var(--map-blue);">Q2</div>
+        <div>
+          <h4>Enterprise Scale &amp; Reporting</h4>
+          <p>Enterprise-grade capabilities — multi-system support, compliance reporting, audit trails.</p>
+          <div class="features">
+            <span>Multi-System Migration</span>
+            <span>Compliance Reports</span>
+            <span>Audit Trail</span>
+            <span>Risk Classification</span>
+            <span>Data Quality Profiling</span>
+          </div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="marker" style="background: var(--map-purple);">Q3</div>
+        <div>
+          <h4>Intelligence &amp; Automation</h4>
+          <p>AI-powered capabilities — anomaly detection, intelligent remediation, automated governance.</p>
+          <div class="features">
+            <span>Azure OpenAI Integration</span>
+            <span>Anomaly Detection</span>
+            <span>Auto-Remediation</span>
+            <span>Natural Language Queries</span>
+            <span>Predictive Analytics</span>
+          </div>
+        </div>
+      </div>
+      <div class="roadmap-phase">
+        <div class="marker" style="background: var(--map-yellow);">Q4</div>
+        <div>
+          <h4>Platform &amp; Ecosystem</h4>
+          <p>Full platform maturity — marketplace, partner ecosystem, enterprise architecture.</p>
+          <div class="features">
+            <span>Azure Marketplace</span>
+            <span>Partner Portal</span>
+            <span>API Platform</span>
+            <span>Enterprise Templates</span>
+            <span>Global Compliance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>14 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 15: ABOUT THE FOUNDER ============================== -->
+  <section class="page">
+    <div class="page-header">
+      <div class="section-num">Section 10</div>
+      <h2>About the Founder</h2>
+    </div>
+    <div class="page-body">
+      <div class="founder-profile">
+        <div class="founder-photo">MN</div>
+        <div class="founder-bio">
+          <h3>MAP Nexus&trade; Founder</h3>
+          <div class="title">Chief Executive Officer &amp; Chief Architect</div>
+          <p>
+            A technology executive with deep expertise in enterprise data migration, governance, and validation. Recognised for building Azure-native solutions that solve complex data integrity challenges for regulated industries.
+          </p>
+          <p>
+            The MAP Nexus&trade; platform was born from first-hand experience: seeing organisations invest millions in migrations only to discover — too late — that critical data was lost, corrupted, or non-compliant. MAP exists to ensure that never happens.
+          </p>
+          <p>
+            As a Microsoft Founders Hub participant, MAP is building the future of migration assurance on the Azure platform — giving enterprises the confidence they need to migrate with certainty.
+          </p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 5mm; border-left: 4px solid var(--map-blue);">
+        <h3>Company Philosophy</h3>
+        <p>
+          We believe every organisation deserves absolute confidence in their data. Migration is not just a technical exercise — it is a business transformation. MAP Nexus&trade; exists to ensure that transformation succeeds.
+        </p>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="logo-sm">MAP Nexus&trade;</span>
+      <span>15 / 16</span>
+    </div>
+  </section>
+
+  <!-- ============================== PAGE 16: CONTACT ============================== -->
+  <section class="page" style="background: linear-gradient(135deg, var(--map-blue-dark) 0%, var(--map-blue) 100%); color: var(--map-white);">
+    <div class="page-body" style="display: flex; flex-direction: column; justify-content: center; min-height: 277mm; text-align: center;">
+      <div style="margin-bottom: 10mm;">
+        <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.15); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 5mm; font-size: 32px; font-weight: 700;">MN</div>
+        <h2 style="font-size: 36px; font-weight: 700; margin-bottom: 3mm;">MAP Nexus&trade;</h2>
+        <p style="font-size: 16px; opacity: 0.8;">Migration Assurance Platform</p>
+      </div>
+
+      <div class="contact-grid" style="text-align: left; max-width: 150mm; margin: 0 auto;">
+        <div class="contact-item">
+          <div class="icon">&#x1F310;</div>
+          <div>
+            <h4 style="color: var(--map-gray-dark);">Website</h4>
+            <p style="color: var(--map-gray);">www.map-nexus.com</p>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="icon">&#x2709;</div>
+          <div>
+            <h4 style="color: var(--map-gray-dark);">Email</h4>
+            <p style="color: var(--map-gray);">info@map-nexus.com</p>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="icon">&#x1F4BC;</div>
+          <div>
+            <h4 style="color: var(--map-gray-dark);">Microsoft Founders Hub</h4>
+            <p style="color: var(--map-gray);">Active Participant</p>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="icon">&#x1F4C8;</div>
+          <div>
+            <h4 style="color: var(--map-gray-dark);">LinkedIn</h4>
+            <p style="color: var(--map-gray);">MAP Nexus Company Page</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 10mm; padding-top: 5mm; border-top: 1px solid rgba(255,255,255,0.2);">
+        <p style="font-size: 11px; opacity: 0.6;">Version 2.0</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+{
+  "module": "08_Website_Digital_Content_Pack",
+  "version": "2.0",
+  "title": "MAP Nexus Website & Digital Content Pack",
+  "status": "Complete",
+  "date": "2026-07-05",
+  "delivery": [
+    {
+      "name": "Home.md",
+      "description": "Homepage content with hero, features, outcomes, CTAs"
+    },
+    {
+      "name": "Platform.md",
+      "description": "Platform overview and capabilities"
+    },
+    {
+      "name": "Technology.md",
+      "description": "Azure-native architecture and security"
+    },
+    {
+      "name": "Why_MAP.md",
+      "description": "Differentiation and business outcomes"
+    },
+    {
+      "name": "Features/",
+      "description": "8 feature-specific pages",
+      "count": 8
+    },
+    {
+      "name": "Industries/",
+      "description": "8 industry-specific pages",
+      "count": 8
+    },
+    {
+      "name": "Founder/",
+      "description": "5 biography versions",
+      "count": 5
+    },
+    {
+      "name": "Landing_Pages/",
+      "description": "7 conversion-focused landing pages",
+      "count": 7
+    },
+    {
+      "name": "SEO/SEO_Pack.md",
+      "description": "Meta, OG, Twitter, Schema.org, Keywords"
+    },
+    {
+      "name": "Email/Email_Templates.md",
+      "description": "6 email templates",
+      "count": 6
+    },
+    {
+      "name": "FAQ.md",
+      "description": "30 customer FAQs across 9 categories"
+    },
+    {
+      "name": "CTAs.md",
+      "description": "7 CTA variants with usage guidelines"
+    }
+  ],
+  "total_files": 30,
+  "feature_pages": [
+    "Migration Validation",
+    "Governance Centre",
+    "Executive Dashboard",
+    "Risk Assessment",
+    "Migration Overview",
+    "Reporting",
+    "Data Quality",
+    "AI Assistance"
+  ],
+  "industry_pages": [
+    "Financial Services",
+    "Banking",
+    "Insurance",
+    "Government",
+    "Healthcare",
+    "Utilities",
+    "Housing",
+    "Telecommunications"
+  ],
+  "landing_pages": [
+    "Microsoft Founders Hub",
+    "Azure Marketplace",
+    "Financial Services",
+    "Migration Assurance",
+    "Executive Reporting",
+    "Migration Validation",
+    "Pilot Programme"
+  ],
+  "dependencies": {
+    "module_00": "Master Configuration",
+    "module_01": "Demonstration Execution Engine",
+    "module_02": "UI Refinement",
+    "module_03": "MAP Demo Package",
+    "module_04": "Product Rendering & Media Pack",
+    "module_05": "Product Brochure",
+    "module_06": "Investor Pack",
+    "module_07": "Sales Demo Package"
+  }
+}

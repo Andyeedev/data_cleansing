@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=2480">
+  <title>MAP Nexus™ — Full Page Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 2480px; height: 3508px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #fff; padding: 200px; }
+    .page { width: 100%; height: 100%; display: flex; flex-direction: column; }
+    .header { margin-bottom: 80px; }
+    .header h1 { font-size: 72px; font-weight: 700; color: #0B2447; margin-bottom: 16px; }
+    .header h1 span { color: #0078D4; font-weight: 300; }
+    .header p { font-size: 28px; color: #424242; }
+    .dashboard { flex: 1; background: #F8F9FB; border-radius: 24px; padding: 60px; display: flex; flex-direction: column; gap: 40px; }
+    .kpi-row { display: flex; gap: 24px; }
+    .kpi { flex: 1; background: #fff; border-radius: 16px; padding: 32px; border: 1px solid #E5E7EB; border-left: 6px solid #0078D4; }
+    .kpi.success { border-left-color: #107C10; }
+    .kpi.warning { border-left-color: #FFB900; }
+    .kpi.error { border-left-color: #D13438; }
+    .kpi .val { font-size: 48px; font-weight: 700; color: #0B2447; }
+    .kpi .lbl { font-size: 18px; color: #6B7280; margin-top: 8px; }
+    .charts { display: flex; gap: 32px; flex: 1; }
+    .chart-card { flex: 1; background: #fff; border-radius: 16px; padding: 40px; border: 1px solid #E5E7EB; }
+    .chart-card h3 { font-size: 24px; font-weight: 600; margin-bottom: 24px; }
+    .footer { margin-top: 60px; text-align: center; color: #9CA3AF; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>MAP <span>Nexus™</span></h1>
+      <p>Executive Dashboard — Migration Assurance Platform</p>
+    </div>
+    <div class="dashboard">
+      <div class="kpi-row">
+        <div class="kpi"><div class="val">9</div><div class="lbl">Total Controls</div></div>
+        <div class="kpi success"><div class="val">2</div><div class="lbl">Passed</div></div>
+        <div class="kpi warning"><div class="val">1</div><div class="lbl">Failed</div></div>
+        <div class="kpi error"><div class="val">5</div><div class="lbl">Errors</div></div>
+        <div class="kpi error"><div class="val">1</div><div class="lbl">Blocked</div></div>
+      </div>
+      <div class="charts">
+        <div class="chart-card"><h3>Validation Distribution</h3></div>
+        <div class="chart-card"><h3>Control Status</h3></div>
+      </div>
+    </div>
+    <div class="footer">MAP Nexus™ — Migration Assurance Platform · Presentation Engine v2.0</div>
+  </div>
+</body>
+</html>

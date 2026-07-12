@@ -1,0 +1,32 @@
+{
+  "dashboard": "Migration Overview",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "scenario": "Scenario 3 — MIXTURE",
+  "platforms": {
+    "source": {
+      "name": "Source Platform",
+      "type": "Core Banking",
+      "records": 11,
+      "tables": ["accounts_source", "balances_source", "customer_accounts_source"]
+    },
+    "target": {
+      "name": "Target Platform",
+      "type": "Core Banking",
+      "records": 13,
+      "tables": ["accounts", "accounts_target", "balances_target", "customer_accounts_target"]
+    }
+  },
+  "entity_mapping": [
+    { "source": "accounts_source", "target": "accounts", "source_rows": 4, "target_rows": 3, "record_match_pct": "75.0%", "status": "failed" },
+    { "source": "balances_source", "target": "balances_target", "source_rows": 3, "target_rows": 3, "record_match_pct": "100.0%", "status": "passed" },
+    { "source": "customer_accounts_source", "target": "customer_accounts_target", "source_rows": 4, "target_rows": 4, "record_match_pct": "100.0%", "status": "passed" }
+  ],
+  "kpi_cards": [
+    { "label": "Source Platform", "value": "Source", "status": "info" },
+    { "label": "Target Platform", "value": "Target", "status": "info" },
+    { "label": "Source Records", "value": "11", "status": "info" },
+    { "label": "Target Records", "value": "13", "status": "warning" },
+    { "label": "Entities Mapped", "value": "3", "status": "info" }
+  ]
+}

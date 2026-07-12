@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAP Platform - Migration Assurance Platform | Sopra Steria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-from: #667eea;
+            --primary-to: #764ba2;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+        }
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+            transform: translateX(-50%);
+        }
+        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+        .capability-row:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .architecture-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .architecture-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+        }
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        .animate-delay-100 { animation-delay: 0.1s; }
+        .animate-delay-200 { animation-delay: 0.2s; }
+        .animate-delay-300 { animation-delay: 0.3s; }
+        .animate-delay-400 { animation-delay: 0.4s; }
+        .evidence-grid-item {
+            transition: all 0.3s ease;
+        }
+        .evidence-grid-item:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-xl">M</span>
+                        </div>
+                        <span class="ml-3 text-xl font-bold gradient-text">MAP Platform</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Home</a>
+                    <a href="platform.html" class="text-purple-600 font-medium border-b-2 border-purple-600 pb-1">Platform</a>
+                    <a href="solutions.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Solutions</a>
+                    <a href="industries.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Industries</a>
+                    <a href="security.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Security</a>
+                    <a href="roadmap.html" class="text-gray-700 hover:text-purple-600 font-medium transition">Roadmap</a>
+                    <a href="about.html" class="text-gray-700 hover:text-purple-600 font-medium transition">About</a>
+                    <a href="contact.html" class="gradient-bg text-white px-6 py-2 rounded-full font-medium hover:opacity-90 transition">Contact</a>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-700 hover:text-purple-600">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-4 py-3 space-y-2">
+                <a href="index.html" class="block py-2 text-gray-700 hover:text-purple-600">Home</a>
+                <a href="platform.html" class="block py-2 text-purple-600 font-medium">Platform</a>
+                <a href="solutions.html" class="block py-2 text-gray-700 hover:text-purple-600">Solutions</a>
+                <a href="industries.html" class="block py-2 text-gray-700 hover:text-purple-600">Industries</a>
+                <a href="security.html" class="block py-2 text-gray-700 hover:text-purple-600">Security</a>
+                <a href="roadmap.html" class="block py-2 text-gray-700 hover:text-purple-600">Roadmap</a>
+                <a href="about.html" class="block py-2 text-gray-700 hover:text-purple-600">About</a>
+                <a href="contact.html" class="block py-2 text-purple-600 font-medium">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header with Breadcrumb -->
+    <section class="gradient-bg pt-24 pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="mb-6">
+                <ol class="flex items-center space-x-2 text-white/80 text-sm">
+                    <li><a href="index.html" class="hover:text-white transition">Home</a></li>
+                    <li><i class="fas fa-chevron-right text-xs"></i></li>
+                    <li class="text-white font-medium">Platform</li>
+                </ol>
+            </nav>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">MAP Platform</h1>
+            <p class="text-xl text-white/90 max-w-3xl">The enterprise-grade Migration Assurance Platform that delivers end-to-end visibility, control, and compliance for complex migration programmes.</p>
+        </div>
+    </section>
+
+    <!-- Platform Overview -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Platform Overview</h2>
+                    <p class="text-gray-600 mb-4">MAP (Migration Assurance Platform) is a purpose-built solution designed to manage the complexity of large-scale data and system migrations. Built on decades of financial services expertise, MAP provides the governance, validation, and reporting capabilities required for successful transformation programmes.</p>
+                    <p class="text-gray-600 mb-6">Our platform eliminates the guesswork from migrations by providing automated discovery, intelligent mapping, comprehensive validation, and real-time governance—all backed by an immutable evidence repository.</p>
+                    <div class="grid grid-cols-3 gap-4 mt-8">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold gradient-text">99.97%</div>
+                            <div class="text-sm text-gray-500">Validation Accuracy</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold gradient-text">73%</div>
+                            <div class="text-sm text-gray-500">Reduction in Defects</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold gradient-text">40%</div>
+                            <div class="text-sm text-gray-500">Faster Delivery</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-100 rounded-2xl p-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="text-center mb-4">
+                            <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Architecture Diagram</span>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="gradient-bg text-white p-3 rounded-lg text-center font-medium">Presentation Layer</div>
+                            <div class="flex justify-center"><i class="fas fa-arrow-down text-purple-500"></i></div>
+                            <div class="bg-purple-100 text-purple-700 p-3 rounded-lg text-center font-medium">API Gateway</div>
+                            <div class="flex justify-center"><i class="fas fa-arrow-down text-purple-500"></i></div>
+                            <div class="bg-blue-100 text-blue-700 p-3 rounded-lg text-center font-medium">Platform Core Engine</div>
+                            <div class="grid grid-cols-4 gap-2 mt-2">
+                                <div class="bg-green-100 text-green-700 p-2 rounded text-xs text-center">Discovery</div>
+                                <div class="bg-yellow-100 text-yellow-700 p-2 rounded text-xs text-center">Mapping</div>
+                                <div class="bg-red-100 text-red-700 p-2 rounded text-xs text-center">Validation</div>
+                                <div class="bg-blue-100 text-blue-700 p-2 rounded text-xs text-center">Governance</div>
+                            </div>
+                            <div class="flex justify-center"><i class="fas fa-arrow-down text-purple-500"></i></div>
+                            <div class="bg-gray-800 text-white p-3 rounded-lg text-center font-medium">Data & Integration Layer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Capability Matrix -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Capability Matrix</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Comprehensive platform capabilities designed to address every aspect of migration assurance</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="gradient-bg text-white">
+                                <th class="px-6 py-4 text-left font-semibold">Domain</th>
+                                <th class="px-6 py-4 text-left font-semibold">Capability</th>
+                                <th class="px-6 py-4 text-left font-semibold">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 font-medium text-gray-900" rowspan="4">Discovery</td>
+                                <td class="px-6 py-4 text-gray-700">Automated Asset Discovery</td>
+                                <td class="px-6 py-4 text-gray-600">AI-powered scanning identifies all data sources, applications, and dependencies across the estate</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 text-gray-700">Dependency Mapping</td>
+                                <td class="px-6 py-4 text-gray-600">Automatic detection of system interdependencies and data lineage relationships</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 text-gray-700">Data Classification</td>
+                                <td class="px-6 py-4 text-gray-600">Intelligent categorisation of data assets by type, sensitivity, and regulatory requirements</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 text-gray-700">Legacy Analysis</td>
+                                <td class="px-6 py-4 text-gray-600">Deep inspection of legacy systems to understand business logic and data structures</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 font-medium text-gray-900" rowspan="4">Mapping</td>
+                                <td class="px-6 py-4 text-gray-700">Rule-Based Mapping</td>
+                                <td class="px-6 py-4 text-gray-600">Configurable mapping rules with version control and approval workflows</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 text-gray-700">AI-Assisted Mapping</td>
+                                <td class="px-6 py-4 text-gray-600">Machine learning recommendations for field-level mappings based on historical patterns</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 text-gray-700">Transformation Rules</td>
+                                <td class="px-6 py-4 text-gray-600">Complex data transformation logic with full audit trail and testing capabilities</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 text-gray-700">Cross-Reference Management</td>
+                                <td class="px-6 py-4 text-gray-600">Centralised lookup tables and reference data management across all target systems</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 font-medium text-gray-900" rowspan="4">Validation</td>
+                                <td class="px-6 py-4 text-gray-700">Automated Test Execution</td>
+                                <td class="px-6 py-4 text-gray-600">End-to-end validation with configurable test suites and assertion libraries</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 text-gray-700">Reconciliation Engine</td>
+                                <td class="px-6 py-4 text-gray-600">Record-level and aggregate reconciliation between source and target systems</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 text-gray-700">Exception Management</td>
+                                <td class="px-6 py-4 text-gray-600">Automated exception detection, classification, and routing for resolution</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 text-gray-700">Performance Benchmarking</td>
+                                <td class="px-6 py-4 text-gray-600">Real-time monitoring of migration performance against defined SLAs</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 font-medium text-gray-900" rowspan="4">Governance</td>
+                                <td class="px-6 py-4 text-gray-700">Workflow Orchestration</td>
+                                <td class="px-6 py-4 text-gray-600">Configurable approval workflows with role-based access control</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 text-gray-700">Risk Register</td>
+                                <td class="px-6 py-4 text-gray-600">Centralised risk tracking with automated escalation and mitigation tracking</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 text-gray-700">Change Control</td>
+                                <td class="px-6 py-4 text-gray-600">Full audit trail of all changes with impact analysis and rollback capabilities</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 text-gray-700">Compliance Tracking</td>
+                                <td class="px-6 py-4 text-gray-600">Regulatory compliance monitoring with automated evidence collection</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 font-medium text-gray-900" rowspan="2">Reporting</td>
+                                <td class="px-6 py-4 text-gray-700">Executive Dashboards</td>
+                                <td class="px-6 py-4 text-gray-600">Real-time programme visibility with drill-down capabilities for senior leadership</td>
+                            </tr>
+                            <tr class="capability-row transition">
+                                <td class="px-6 py-4 text-gray-700">Operational Reports</td>
+                                <td class="px-6 py-4 text-gray-600">Detailed operational metrics and KPIs for day-to-day programme management</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 font-medium text-gray-900" rowspan="2">Administration</td>
+                                <td class="px-6 py-4 text-gray-700">Tenant Management</td>
+                                <td class="px-6 py-4 text-gray-600">Multi-tenant architecture with configurable environments and user provisioning</td>
+                            </tr>
+                            <tr class="capability-row transition bg-gray-50">
+                                <td class="px-6 py-4 text-gray-700">Integration APIs</td>
+                                <td class="px-6 py-4 text-gray-600">RESTful APIs for seamless integration with enterprise tools and workflows</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Overview -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Architecture Overview</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">A modern, scalable architecture designed for enterprise-grade migration programmes</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Presentation Layer -->
+                <div class="architecture-card bg-white rounded-2xl shadow-lg p-6 card-hover">
+                    <div class="w-14 h-14 gradient-bg rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-desktop text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Presentation Layer</h3>
+                    <p class="text-gray-600 mb-4">Role-based dashboards and intuitive interfaces designed for different stakeholder personas across the programme.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Executive summary views
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Interactive data exploration
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Mobile-responsive design
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- API Layer -->
+                <div class="architecture-card bg-white rounded-2xl shadow-lg p-6 card-hover">
+                    <div class="w-14 h-14 bg-purple-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-plug text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">API Layer</h3>
+                    <p class="text-gray-600 mb-4">RESTful APIs with comprehensive documentation, rate limiting, and enterprise security controls.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            OAuth 2.0 authentication
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Webhook event streaming
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            GraphQL query support
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Platform Core -->
+                <div class="architecture-card bg-white rounded-2xl shadow-lg p-6 card-hover">
+                    <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-cogs text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Platform Core</h3>
+                    <p class="text-gray-600 mb-4">The central orchestration engine that coordinates all migration activities and enforces governance rules.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Event-driven architecture
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Microservices design
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Horizontal scalability
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Domain Engines -->
+                <div class="architecture-card bg-white rounded-2xl shadow-lg p-6 card-hover">
+                    <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Domain Engines</h3>
+                    <p class="text-gray-600 mb-4">Specialised processing engines for Discovery, Mapping, Validation, and Governance workflows.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Pluggable architecture
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Custom rule engines
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Parallel processing
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Integration Layer -->
+                <div class="architecture-card bg-white rounded-2xl shadow-lg p-6 card-hover">
+                    <div class="w-14 h-14 bg-yellow-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-project-diagram text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Integration Layer</h3>
+                    <p class="text-gray-600 mb-4">Pre-built connectors and adapters for seamless integration with enterprise systems and third-party tools.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            50+ pre-built connectors
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Custom adapter framework
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Real-time data sync
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Data Layer -->
+                <div class="architecture-card bg-white rounded-2xl shadow-lg p-6 card-hover">
+                    <div class="w-14 h-14 bg-red-600 rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-database text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Data Layer</h3>
+                    <p class="text-gray-600 mb-4">Immutable audit storage, evidence repository, and high-performance data processing capabilities.</p>
+                    <ul class="space-y-2">
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Immutable audit logs
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            Encrypted at rest
+                        </li>
+                        <li class="flex items-start text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            GDPR compliant
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Platform Engines -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Core Platform Engines</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Four powerful engines working in concert to deliver comprehensive migration assurance</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Discovery Engine -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mr-4">
+                            <i class="fas fa-search text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">Discovery Engine</h3>
+                            <span class="text-sm text-purple-600 font-medium">Automated Intelligence</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-6">Automated identification and cataloguing of all migration assets, dependencies, and business rules across the enterprise landscape.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-bolt text-yellow-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Smart Scanning:</strong> AI-powered discovery that learns from your environment and adapts scanning patterns</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-link text-blue-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Dependency Graph:</strong> Visual mapping of system interdependencies with impact analysis</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-file-alt text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Schema Extraction:</strong> Automated database schema and business logic extraction</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-chart-line text-purple-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Change Detection:</strong> Continuous monitoring for environment changes during migration</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Mapping Engine -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mr-4">
+                            <i class="fas fa-exchange-alt text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">Mapping Engine</h3>
+                            <span class="text-sm text-purple-600 font-medium">Intelligent Transformation</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-6">Advanced field-level mapping with AI-assisted recommendations and comprehensive transformation rule management.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-robot text-blue-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>AI Recommendations:</strong> Machine learning-powered mapping suggestions based on historical patterns</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-code text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Transformation Logic:</strong> Visual rule builder for complex data transformations</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-history text-yellow-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Version Control:</strong> Full audit trail of mapping changes with rollback capabilities</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-users text-purple-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Collaboration:</strong> Multi-user editing with conflict resolution and approval workflows</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Validation Engine -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mr-4">
+                            <i class="fas fa-check-double text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">Validation Engine</h3>
+                            <span class="text-sm text-purple-600 font-medium">Comprehensive Verification</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-6">End-to-end validation framework ensuring data integrity and business rule compliance throughout the migration.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-vial text-blue-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Test Automation:</strong> Configurable test suites with automated execution and reporting</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-balance-scale text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Reconciliation:</strong> Record-level and aggregate reconciliation between systems</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Exception Handling:</strong> Automated exception detection, classification, and routing</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-tachometer-alt text-red-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Performance Metrics:</strong> Real-time monitoring against defined SLAs and thresholds</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Governance Engine -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 card-hover">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-yellow-600 rounded-2xl flex items-center justify-center mr-4">
+                            <i class="fas fa-shield-alt text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">Governance Engine</h3>
+                            <span class="text-sm text-purple-600 font-medium">Policy Enforcement</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-6">Enterprise-grade governance framework ensuring compliance, risk management, and audit readiness throughout the programme.</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-tasks text-blue-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Workflow Automation:</strong> Configurable approval workflows with SLA tracking</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-exclamation-circle text-red-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Risk Management:</strong> Centralised risk register with automated escalation</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-clipboard-check text-green-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Compliance:</strong> Regulatory compliance monitoring with evidence collection</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-user-lock text-purple-500 mt-1 mr-3"></i>
+                            <span class="text-gray-700"><strong>Access Control:</strong> Role-based permissions with segregation of duties</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Evidence Repository -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Evidence Repository</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Immutable, audit-ready storage of all migration artefacts, decisions, and validation results</p>
+            </div>
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="evidence-grid-item bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-6 text-white">
+                    <i class="fas fa-lock text-3xl mb-4 opacity-80"></i>
+                    <h4 class="font-bold text-lg mb-2">Immutable Storage</h4>
+                    <p class="text-sm text-white/80">Write-once storage ensuring complete audit trail integrity</p>
+                </div>
+                <div class="evidence-grid-item bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-6 text-white">
+                    <i class="fas fa-file-signature text-3xl mb-4 opacity-80"></i>
+                    <h4 class="font-bold text-lg mb-2">Digital Signatures</h4>
+                    <p class="text-sm text-white/80">Cryptographic verification of all evidence authenticity</p>
+                </div>
+                <div class="evidence-grid-item bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+                    <i class="fas fa-search text-3xl mb-4 opacity-80"></i>
+                    <h4 class="font-bold text-lg mb-2">Full-Text Search</h4>
+                    <p class="text-sm text-white/80">Instant retrieval of any evidence across the repository</p>
+                </div>
+                <div class="evidence-grid-item bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-6 text-white">
+                    <i class="fas fa-file-export text-3xl mb-4 opacity-80"></i>
+                    <h4 class="font-bold text-lg mb-2">Export Compliance</h4>
+                    <p class="text-sm text-white/80">One-click regulatory report generation and export</p>
+                </div>
+            </div>
+            <div class="mt-12 bg-gray-50 rounded-2xl p-8">
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="text-center">
+                        <div class="text-4xl font-bold gradient-text mb-2">100%</div>
+                        <div class="text-gray-600">Audit Coverage</div>
+                        <p class="text-sm text-gray-500 mt-2">Every action logged with timestamp and user context</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold gradient-text mb-2">7 Years</div>
+                        <div class="text-gray-600">Retention Guarantee</div>
+                        <p class="text-sm text-gray-500 mt-2">Configurable retention meeting regulatory requirements</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold gradient-text mb-2">&lt; 5s</div>
+                        <div class="text-gray-600">Retrieval Time</div>
+                        <p class="text-sm text-gray-500 mt-2">Instant access to any evidence in the repository</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Executive Reporting -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Executive Reporting</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Role-based dashboards providing actionable insights for every stakeholder level</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Executive Dashboard -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
+                    <div class="gradient-bg p-6">
+                        <i class="fas fa-chart-pie text-white text-3xl mb-2"></i>
+                        <h3 class="text-xl font-bold text-white">Executive Dashboard</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">High-level programme visibility for C-suite and board reporting.</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                Programme health scorecard
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                Budget vs actual tracking
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                Risk exposure summary
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                Milestone achievement status
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Programme Dashboard -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
+                    <div class="bg-purple-600 p-6">
+                        <i class="fas fa-project-diagram text-white text-3xl mb-2"></i>
+                        <h3 class="text-xl font-bold text-white">Programme Dashboard</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">Detailed programme management view for PMO and workstream leads.</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-blue-500 text-xs mr-2"></i>
+                                Workstream progress tracking
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-blue-500 text-xs mr-2"></i>
+                                Dependency management
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-blue-500 text-xs mr-2"></i>
+                                Resource allocation view
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-blue-500 text-xs mr-2"></i>
+                                Issue and blocker tracking
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Operational Dashboard -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
+                    <div class="bg-green-600 p-6">
+                        <i class="fas fa-cogs text-white text-3xl mb-2"></i>
+                        <h3 class="text-xl font-bold text-white">Operational Dashboard</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">Granular operational metrics for technical teams and data engineers.</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                Migration batch status
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                Validation pass rates
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                Exception queue management
+                            </li>
+                            <li class="flex items-center text-gray-700">
+                                <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                Performance benchmarks
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Readiness Timeline -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">AI Readiness Roadmap</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Our strategic vision for AI-powered migration assurance</p>
+            </div>
+            <div class="relative">
+                <div class="timeline-line hidden md:block"></div>
+                <div class="space-y-12">
+                    <!-- 2026 AI Discovery Beta -->
+                    <div class="relative flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right mb-4 md:mb-0">
+                            <div class="bg-white rounded-2xl shadow-lg p-6 card-hover inline-block">
+                                <span class="text-sm font-semibold text-purple-600">2026</span>
+                                <h3 class="text-xl font-bold text-gray-900 mt-1">AI Discovery Beta</h3>
+                                <p class="text-gray-600 mt-2">Intelligent asset discovery with ML-powered classification and automated dependency detection.</p>
+                                <div class="mt-4 flex flex-wrap gap-2 md:justify-end">
+                                    <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">ML Classification</span>
+                                    <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">Auto-Discovery</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-dot hidden md:block" style="top: 50%; transform: translate(-50%, -50%);"></div>
+                        <div class="md:w-1/2 md:pl-12"></div>
+                    </div>
+
+                    <!-- 2027 Predictive Analytics GA -->
+                    <div class="relative flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12"></div>
+                        <div class="timeline-dot hidden md:block" style="top: 50%; transform: translate(-50%, -50%);"></div>
+                        <div class="md:w-1/2 md:pl-12 mb-4 md:mb-0">
+                            <div class="bg-white rounded-2xl shadow-lg p-6 card-hover inline-block">
+                                <span class="text-sm font-semibold text-purple-600">2027 H1</span>
+                                <h3 class="text-xl font-bold text-gray-900 mt-1">Predictive Analytics GA</h3>
+                                <p class="text-gray-600 mt-2">Production-ready predictive models for risk assessment, defect prediction, and timeline forecasting.</p>
+                                <div class="mt-4 flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Risk Prediction</span>
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Defect Forecasting</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2027 Auto-Remediation -->
+                    <div class="relative flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right mb-4 md:mb-0">
+                            <div class="bg-white rounded-2xl shadow-lg p-6 card-hover inline-block">
+                                <span class="text-sm font-semibold text-purple-600">2027 H2</span>
+                                <h3 class="text-xl font-bold text-gray-900 mt-1">Auto-Remediation</h3>
+                                <p class="text-gray-600 mt-2">AI-driven resolution of common migration issues with automated fix suggestions and implementations.</p>
+                                <div class="mt-4 flex flex-wrap gap-2 md:justify-end">
+                                    <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">Auto-Fix</span>
+                                    <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Self-Healing</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-dot hidden md:block" style="top: 50%; transform: translate(-50%, -50%);"></div>
+                        <div class="md:w-1/2 md:pl-12"></div>
+                    </div>
+
+                    <!-- 2028 Full AI Orchestration -->
+                    <div class="relative flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12"></div>
+                        <div class="timeline-dot hidden md:block" style="top: 50%; transform: translate(-50%, -50%);"></div>
+                        <div class="md:w-1/2 md:pl-12">
+                            <div class="bg-white rounded-2xl shadow-lg p-6 card-hover inline-block">
+                                <span class="text-sm font-semibold text-purple-600">2028</span>
+                                <h3 class="text-xl font-bold text-gray-900 mt-1">Full AI Orchestration</h3>
+                                <p class="text-gray-600 mt-2">End-to-end AI-powered migration orchestration with minimal human intervention for standard patterns.</p>
+                                <div class="mt-4 flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">Orchestration</span>
+                                    <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">Autonomous</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 gradient-bg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Transform Your Migration Programme?</h2>
+            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">Experience the MAP difference. Schedule a personalised demo with our solutions architects.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="openModal('demo')" class="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition shadow-lg">
+                    <i class="fas fa-play-circle mr-2"></i>Request Demo
+                </button>
+                <button onclick="openModal('contact')" class="border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white/10 transition">
+                    <i class="fas fa-calendar mr-2"></i>Book Consultation
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-12">
+                <div>
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-xl">M</span>
+                        </div>
+                        <span class="ml-3 text-xl font-bold">MAP Platform</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">Enterprise-grade migration assurance for complex financial services transformations.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-linkedin text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-github text-xl"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Platform</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="platform.html" class="hover:text-white transition">Overview</a></li>
+                        <li><a href="platform.html#capabilities" class="hover:text-white transition">Capabilities</a></li>
+                        <li><a href="platform.html#architecture" class="hover:text-white transition">Architecture</a></li>
+                        <li><a href="platform.html#engines" class="hover:text-white transition">Engines</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Solutions</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="solutions.html" class="hover:text-white transition">Core Banking</a></li>
+                        <li><a href="solutions.html" class="hover:text-white transition">Data Migration</a></li>
+                        <li><a href="solutions.html" class="hover:text-white transition">Cloud Migration</a></li>
+                        <li><a href="security.html" class="hover:text-white transition">Security</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="about.html" class="hover:text-white transition">About Us</a></li>
+                        <li><a href="roadmap.html" class="hover:text-white transition">Roadmap</a></li>
+                        <li><a href="contact.html" class="hover:text-white transition">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition">Careers</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2026 Sopra Steria. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Demo Modal -->
+    <div id="demo-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div class="gradient-bg p-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Request a Demo</h3>
+                    <button onclick="closeModal('demo')" class="text-white/80 hover:text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <form class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Work Email</label>
+                    <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option>Select your role</option>
+                        <option>CxO / Executive</option>
+                        <option>Programme Director</option>
+                        <option>Technical Lead</option>
+                        <option>Data Architect</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full gradient-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition">
+                    Submit Request
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+            <div class="bg-purple-600 p-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Book a Consultation</h3>
+                    <button onclick="closeModal('contact')" class="text-white/80 hover:text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <form class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Date</label>
+                    <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                    <textarea rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
+                    Schedule Consultation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Modal functions
+        function openModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card-hover, .architecture-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

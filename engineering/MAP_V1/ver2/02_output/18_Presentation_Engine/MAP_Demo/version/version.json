@@ -1,0 +1,35 @@
+{
+  "product": "MAP Nexus™",
+  "fullName": "Migration Assurance Platform",
+  "demoVersion": "2.0",
+  "presentationEngineVersion": "2.0",
+  "generationDate": "2026-07-05",
+  "scenario": {
+    "id": "scenario_3",
+    "name": "Scenario 3 — MIXTURE",
+    "industry": "Financial Services",
+    "description": "Financial Services Mixed Quality Migration"
+  },
+  "execution": {
+    "timestamp": "2026-07-05T00:00:00Z",
+    "duration": "27s",
+    "status": "BLOCKED"
+  },
+  "results": {
+    "totalControls": 9,
+    "passed": 2,
+    "failed": 1,
+    "errors": 5,
+    "blocked": 1,
+    "readinessScore": "62%",
+    "validationScore": "58.3%"
+  },
+  "package": {
+    "name": "MAP_Demo_v2.0",
+    "offlineCapable": true,
+    "requiresInstallation": false,
+    "requiresDatabase": false,
+    "requiresInternet": false,
+    "selfContained": true
+  }
+}

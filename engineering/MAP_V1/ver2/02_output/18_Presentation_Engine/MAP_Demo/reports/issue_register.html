@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Issue Register — MAP Nexus™</title>
+  <link rel="stylesheet" href="../css/reports.css">
+</head>
+<body>
+  <header class="report-header">
+    <div class="report-header-inner">
+      <div class="report-brand">MAP Nexus™ — Migration Assurance Platform</div>
+      <h1 class="report-title">Issue Register</h1>
+      <div class="report-subtitle">Complete Issue Tracking</div>
+    </div>
+  </header>
+  <nav class="report-nav">
+    <div class="report-nav-inner">
+      <a href="../Landing.html">Home</a>
+      <span class="sep">/</span>
+      <a href="executive_summary.html">Executive Summary</a>
+      <span class="sep">/</span>
+      <a href="migration_summary.html">Migration</a>
+      <span class="sep">/</span>
+      <a href="validation_summary.html">Validation</a>
+      <span class="sep">/</span>
+      <a href="governance_summary.html">Governance</a>
+      <span class="sep">/</span>
+      <a href="risk_summary.html">Risk</a>
+      <span class="sep">/</span>
+      <a href="data_quality_summary.html">Quality</a>
+      <span class="sep">/</span>
+      <a href="readiness_report.html">Readiness</a>
+      <span class="sep">/</span>
+      <a href="issue_register.html" style="font-weight:600;">Issues</a>
+    </div>
+  </nav>
+  <main class="report-content">
+    <div class="report-section">
+      <h2>Issue Summary</h2>
+      <div class="kpi-row">
+        <div class="kpi-box info"><div class="label">Total Issues</div><div class="value">12</div></div>
+        <div class="kpi-box error"><div class="label">Critical</div><div class="value">3</div></div>
+        <div class="kpi-box warning"><div class="label">High</div><div class="value">5</div></div>
+        <div class="kpi-box info"><div class="label">Medium</div><div class="value">4</div></div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h2>Issue Register</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>ID</th><th>Source</th><th>Description</th><th>Severity</th><th>Owner</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>ISS-001</td><td>C01</td><td>Row count mismatch between source and target</td><td><span class="badge badge-error">CRITICAL</span></td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-002</td><td>C02</td><td>Schema compliance deviation detected</td><td><span class="badge badge-error">CRITICAL</span></td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-003</td><td>C07</td><td>Referential integrity constraint violated</td><td><span class="badge badge-error">CRITICAL</span></td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-004</td><td>C03</td><td>Data type validation control execution error</td><td><span class="badge badge-warning">HIGH</span></td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-005</td><td>C04</td><td>Null check control execution error</td><td><span class="badge badge-warning">HIGH</span></td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-006</td><td>C06</td><td>Cross-field validation control execution error</td><td><span class="badge badge-warning">HIGH</span></td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-007</td><td>C01</td><td>Control execution timeout exceeded</td><td><span class="badge badge-warning">HIGH</span></td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-008</td><td>C09</td><td>Uniqueness validation blocked by upstream failure</td><td><span class="badge badge-warning">HIGH</span></td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-009</td><td>DQ</td><td>Validity dimension score below threshold</td><td><span class="badge badge-info">MEDIUM</span></td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-010</td><td>DQ</td><td>Consistency dimension score below threshold</td><td><span class="badge badge-info">MEDIUM</span></td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-011</td><td>DQ</td><td>Accuracy dimension score below target</td><td><span class="badge badge-info">MEDIUM</span></td><td>Data Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+          <tr><td>ISS-012</td><td>PERF</td><td>Query execution performance degraded</td><td><span class="badge badge-info">MEDIUM</span></td><td>Platform Team</td><td><span class="badge badge-warning">OPEN</span></td><td>2026-07-05</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="report-section">
+      <h2>Issues by Owner</h2>
+      <table class="data-table">
+        <thead><tr><th>Owner</th><th>Total</th><th>Critical</th><th>High</th><th>Medium</th></tr></thead>
+        <tbody>
+          <tr><td>Data Team</td><td>6</td><td>2</td><td>1</td><td>3</td></tr>
+          <tr><td>Platform Team</td><td>6</td><td>1</td><td>4</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <footer class="report-footer">
+    MAP Nexus™ — Migration Assurance Platform &middot; Presentation Engine v2.0 &middot; <a href="../Landing.html">Home</a>
+  </footer>
+</body>
+</html>

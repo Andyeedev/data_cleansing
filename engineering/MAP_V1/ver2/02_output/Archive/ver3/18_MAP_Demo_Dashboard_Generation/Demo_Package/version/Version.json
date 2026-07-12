@@ -1,0 +1,31 @@
+{
+  "product": "MAP Nexus™",
+  "package_name": "Enterprise Demonstration Package",
+  "package_version": "1.0",
+  "generation_date": "2026-07-03T16:55:57Z",
+  "scenario": {
+    "name": "Scenario 3 — MIXTURE",
+    "industry": "Financial Services",
+    "migration_type": "Mixed Quality Migration",
+    "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71"
+  },
+  "execution": {
+    "status": "BLOCKED",
+    "readiness_pct": 62,
+    "validation_score": 58.3,
+    "duration_seconds": 27,
+    "controls_executed": 9,
+    "failed_rules": 6,
+    "blocking_controls": 3
+  },
+  "presentation_engine": {
+    "version": "1.0",
+    "modules_executed": ["00_Master_Configuration", "01_Demonstration_Execution", "02_UI_Refinement", "03_MAP_Demo_Package"]
+  },
+  "branding": {
+    "product_name": "MAP Nexus™",
+    "tagline": "Every migration validated. Every outcome assured.",
+    "primary_colour": "#0078D4",
+    "font": "Segoe UI"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "dashboard": "Data Quality",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "batch_id": "d3f78b07-09f4-4f92-be32-06efd06a5f71",
+  "theme": "MAP Nexus",
+  "data_source": "MAP Validation Engine — Live Execution",
+  "scenario": "Scenario 3 — MIXTURE",
+  "quality_dimensions": [
+    { "dimension": "Accuracy", "score": 72, "status": "warning", "details": "Balance mismatch detected — variance between source and target", "icon": "target" },
+    { "dimension": "Completeness", "score": 75, "status": "warning", "details": "1 missing record in target accounts table", "icon": "layers" },
+    { "dimension": "Consistency", "score": 68, "status": "warning", "details": "Schema inconsistencies detected across all entities", "icon": "repeat" },
+    { "dimension": "Validity", "score": 85, "status": "success", "details": "Data types and formats are valid where checked", "icon": "check-circle" },
+    { "dimension": "Uniqueness", "score": 100, "status": "success", "details": "No duplicate records detected", "icon": "hash" },
+    { "dimension": "Integrity", "score": 80, "status": "success", "details": "Referential integrity maintained for existing records", "icon": "link" }
+  ],
+  "overall_quality_score": 80,
+  "quality_chart": {
+    "type": "radar",
+    "data": [
+      { "dimension": "Accuracy", "score": 72 },
+      { "dimension": "Completeness", "score": 75 },
+      { "dimension": "Consistency", "score": 68 },
+      { "dimension": "Validity", "score": 85 },
+      { "dimension": "Uniqueness", "score": 100 },
+      { "dimension": "Integrity", "score": 80 }
+    ]
+  },
+  "quality_trend": {
+    "type": "line",
+    "data": [
+      { "date": "2026-06-01", "score": 82 },
+      { "date": "2026-06-15", "score": 79 },
+      { "date": "2026-07-01", "score": 80 },
+      { "date": "2026-07-03", "score": 80 }
+    ]
+  },
+  "kpi_cards": [
+    { "label": "Overall Quality", "value": "80%", "status": "warning", "icon": "award" },
+    { "label": "Accuracy", "value": "72%", "status": "warning", "icon": "target" },
+    { "label": "Completeness", "value": "75%", "status": "warning", "icon": "layers" },
+    { "label": "Consistency", "value": "68%", "status": "warning", "icon": "repeat" },
+    { "label": "Validity", "value": "85%", "status": "success", "icon": "check-circle" },
+    { "label": "Uniqueness", "value": "100%", "status": "success", "icon": "hash" }
+  ]
+}

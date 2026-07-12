@@ -1,0 +1,26 @@
+{
+  "dashboard": "Risk Assessment",
+  "version": "1.0",
+  "generated": "2026-07-03T16:55:57Z",
+  "overall_risk": "High",
+  "risk_score": 58.3,
+  "go_nogo": "NO-GO",
+  "go_nogo_details": "Migration is BLOCKED. 3 controls are blocking progression with 6 failed rules. Schema drift, financial integrity, and referential integrity issues must be resolved.",
+  "kpi_cards": [
+    { "label": "Overall Risk", "value": "High", "status": "error" },
+    { "label": "Risk Score", "value": "58.3/100", "status": "error" },
+    { "label": "Blocking Controls", "value": "3", "status": "error" },
+    { "label": "Failed Rules", "value": "6", "status": "error" },
+    { "label": "Schema Drift", "value": "FAIL", "status": "error" },
+    { "label": "Financial Integrity", "value": "ERROR", "status": "error" },
+    { "label": "Referential Integrity", "value": "ERROR", "status": "error" }
+  ],
+  "top_risks": [
+    { "id": "R001", "risk": "Schema drift detected in all entities", "severity": "critical", "impact": "Column additions/removals may cause data loss", "mitigation": "Review schema mapping and align source/target definitions", "status": "open" },
+    { "id": "R002", "risk": "Financial value reconciliation failure", "severity": "critical", "impact": "Financial data integrity compromised", "mitigation": "Investigate financial aggregate discrepancies", "status": "open" },
+    { "id": "R003", "risk": "Referential integrity validation failure", "severity": "critical", "impact": "Foreign key relationships broken", "mitigation": "Validate FK constraints and relationship preservation", "status": "open" },
+    { "id": "R004", "risk": "Column count mismatch across entities", "severity": "high", "impact": "Target schema incomplete", "mitigation": "Align column counts between source and target", "status": "open" },
+    { "id": "R005", "risk": "Data type alignment failure", "severity": "high", "impact": "Type conversion errors during migration", "mitigation": "Standardise data types across platforms", "status": "open" },
+    { "id": "R006", "risk": "Duplicate key detection partially failed", "severity": "medium", "impact": "Potential duplicate records in target", "mitigation": "Review duplicate detection rules for failing entities", "status": "open" }
+  ]
+}

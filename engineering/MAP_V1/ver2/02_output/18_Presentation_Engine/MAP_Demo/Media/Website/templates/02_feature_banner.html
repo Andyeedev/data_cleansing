@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920">
+  <title>MAP Nexus™ — Feature Banner</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 1920px; height: 500px; overflow: hidden; font-family: 'Segoe UI', -apple-system, sans-serif; background: #F8F9FB; display: flex; align-items: center; }
+    .banner { display: flex; align-items: center; gap: 80px; padding: 0 120px; width: 100%; }
+    .text { flex: 1; }
+    .text h2 { font-size: 42px; font-weight: 700; color: #0B2447; margin-bottom: 12px; }
+    .text h2 span { color: #0078D4; font-weight: 300; }
+    .text p { font-size: 16px; color: #424242; line-height: 1.6; margin-bottom: 24px; }
+    .cta { display: inline-block; background: #0078D4; color: #fff; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+    .visual { width: 500px; height: 340px; background: #fff; border-radius: 16px; border: 1px solid #E5E7EB; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+    .vis-kpi { display: flex; gap: 12px; }
+    .vis-kpi div { flex: 1; background: #F3F4F6; border-radius: 8px; padding: 12px; text-align: center; }
+    .vis-kpi .val { font-size: 24px; font-weight: 700; color: #0078D4; }
+    .vis-kpi .lbl { font-size: 11px; color: #6B7280; }
+    .vis-chart { flex: 1; background: #F3F4F6; border-radius: 8px; display: flex; align-items: flex-end; padding: 16px; gap: 8px; }
+    .vis-bar { flex: 1; border-radius: 4px 4px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <div class="text">
+      <h2>Automated <span>Validation</span></h2>
+      <p>Execute 9 validation controls with 27 rules across your migration pipeline. Real-time results with governance decision tracking.</p>
+      <div class="cta">Learn More →</div>
+    </div>
+    <div class="visual">
+      <div class="vis-kpi">
+        <div><div class="val">9</div><div class="lbl">Controls</div></div>
+        <div><div class="val">2</div><div class="lbl">Passed</div></div>
+        <div><div class="val">5</div><div class="lbl">Errors</div></div>
+      </div>
+      <div class="vis-chart">
+        <div class="vis-bar" style="height:60%;background:#107C10;"></div>
+        <div class="vis-bar" style="height:60%;background:#107C10;"></div>
+        <div class="vis-bar" style="height:40%;background:#FFB900;"></div>
+        <div class="vis-bar" style="height:80%;background:#D13438;"></div>
+        <div class="vis-bar" style="height:80%;background:#D13438;"></div>
+        <div class="vis-bar" style="height:80%;background:#D13438;"></div>
+        <div class="vis-bar" style="height:80%;background:#D13438;"></div>
+        <div class="vis-bar" style="height:80%;background:#D13438;"></div>
+        <div class="vis-bar" style="height:30%;background:#9CA3AF;"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

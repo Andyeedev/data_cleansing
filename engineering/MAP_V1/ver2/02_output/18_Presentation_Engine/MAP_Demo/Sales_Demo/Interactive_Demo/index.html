@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAP Nexus - Interactive Demo Launcher</title>
+<style>
+  :root {
+    --map-blue: #0078D4;
+    --map-blue-dark: #003B75;
+    --map-green: #107C10;
+    --map-yellow: #FFB900;
+    --map-red: #D13438;
+    --map-purple: #5C2D91;
+    --map-white: #FFFFFF;
+    --map-light: #F3F2F1;
+    --map-gray: #605E5C;
+    --map-gray-dark: #323130;
+    --map-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--map-font); color: var(--map-gray-dark); background: var(--map-light); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+  .launcher { max-width: 800px; width: 100%; padding: 20px; }
+  .header { background: linear-gradient(135deg, var(--map-blue-dark), var(--map-blue)); color: var(--map-white); padding: 50px 40px; border-radius: 16px; text-align: center; margin-bottom: 30px; }
+  .header h1 { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+  .header .subtitle { font-size: 18px; opacity: 0.85; margin-bottom: 20px; }
+  .header .badge { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 8px 24px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; }
+
+  .audience-section { background: var(--map-white); border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .audience-section h2 { font-size: 20px; font-weight: 700; color: var(--map-blue-dark); margin-bottom: 20px; }
+
+  .audience-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+
+  .audience-btn {
+    background: var(--map-light);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .audience-btn:hover { border-color: var(--map-blue); background: rgba(0,120,212,0.05); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,120,212,0.15); }
+  .audience-btn .icon { font-size: 32px; margin-bottom: 10px; }
+  .audience-btn h3 { font-size: 15px; font-weight: 600; color: var(--map-gray-dark); margin-bottom: 6px; }
+  .audience-btn p { font-size: 11px; color: var(--map-gray); line-height: 1.4; }
+
+  .duration-section { background: var(--map-white); border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .duration-section h2 { font-size: 20px; font-weight: 700; color: var(--map-blue-dark); margin-bottom: 20px; }
+  .duration-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .duration-card { background: var(--map-light); border-radius: 8px; padding: 16px; text-align: center; border: 2px solid transparent; cursor: pointer; transition: all 0.3s ease; }
+  .duration-card:hover { border-color: var(--map-blue); background: rgba(0,120,212,0.05); }
+  .duration-card .time { font-size: 28px; font-weight: 700; color: var(--map-blue); }
+  .duration-card .label { font-size: 11px; color: var(--map-gray); margin-top: 4px; }
+
+  .footer { text-align: center; padding: 20px; font-size: 12px; color: var(--map-gray); }
+</style>
+</head>
+<body>
+<div class="launcher">
+  <div class="header">
+    <h1>MAP Nexus</h1>
+    <div class="subtitle">Interactive Demo Launcher</div>
+    <div class="badge">Official Sales Demo Package</div>
+  </div>
+
+  <div class="audience-section">
+    <h2>Select Your Audience</h2>
+    <div class="audience-grid">
+      <a href="#executive" class="audience-btn">
+        <div class="icon">&#x1F3E2;</div>
+        <h3>Executive Demo</h3>
+        <p>Business outcomes, risk reduction, executive visibility. 5 minutes.</p>
+      </a>
+      <a href="#business" class="audience-btn">
+        <div class="icon">&#x1F4CA;</div>
+        <h3>Business Demo</h3>
+        <p>Governance, compliance, operational benefits. 15 minutes.</p>
+      </a>
+      <a href="#technical" class="audience-btn">
+        <div class="icon">&#x1F527;</div>
+        <h3>Technical Demo</h3>
+        <p>Architecture, integration, platform capabilities. 30 minutes.</p>
+      </a>
+      <a href="#microsoft" class="audience-btn">
+        <div class="icon">&#x1F5A5;</div>
+        <h3>Microsoft Demo</h3>
+        <p>Azure alignment, Founders Hub, Marketplace. 15 minutes.</p>
+      </a>
+      <a href="#partner" class="audience-btn">
+        <div class="icon">&#x1F517;</div>
+        <h3>Partner Demo</h3>
+        <p>Integration, co-selling, mutual value. 15 minutes.</p>
+      </a>
+      <a href="#investor" class="audience-btn">
+        <div class="icon">&#x1F4C8;</div>
+        <h3>Investor Demo</h3>
+        <p>Market opportunity, business model, traction. 20 minutes.</p>
+      </a>
+    </div>
+  </div>
+
+  <div class="duration-section">
+    <h2>Select Duration</h2>
+    <div class="duration-grid">
+      <div class="duration-card"><div class="time">5</div><div class="label">Minute Quick</div></div>
+      <div class="duration-card"><div class="time">15</div><div class="label">Minute Standard</div></div>
+      <div class="duration-card"><div class="time">30</div><div class="label">Minute Full</div></div>
+      <div class="duration-card"><div class="time">45</div><div class="label">Minute Workshop</div></div>
+      <div class="duration-card"><div class="time">60</div><div class="label">Minute Technical</div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>MAP Nexus - Interactive Demo Launcher - Version 2.0 - July 2026</p>
+  </div>
+</div>
+</body>
+</html>

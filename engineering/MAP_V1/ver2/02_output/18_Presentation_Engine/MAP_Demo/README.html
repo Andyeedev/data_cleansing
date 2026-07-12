@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MAP Nexus — Migration Assurance Platform Documentation">
+  <title>README — MAP Nexus™</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #F8F9FB; color: #0B2447; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .readme-header { background: linear-gradient(135deg, #0078D4 0%, #003B75 100%); color: #fff; padding: 32px 48px; }
+    .readme-header-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .readme-brand h1 { font-size: 28px; font-weight: 700; }
+    .readme-brand h1 span { font-weight: 300; }
+    .readme-nav { display: flex; gap: 8px; }
+    .readme-nav a { color: #fff; text-decoration: none; font-size: 13px; padding: 8px 16px; border-radius: 6px; transition: background 0.2s; }
+    .readme-nav a:hover { background: rgba(255,255,255,0.15); }
+    .readme-content { max-width: 960px; margin: 0 auto; padding: 40px 48px; }
+    .readme-section { background: #fff; border-radius: 12px; padding: 32px; margin-bottom: 24px; border: 1px solid #E5E7EB; }
+    .readme-section h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #0B2447; padding-bottom: 12px; border-bottom: 2px solid #E8F0FE; }
+    .readme-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #003B75; }
+    .readme-section p { font-size: 14px; color: #424242; margin-bottom: 12px; }
+    .readme-section ul, .readme-section ol { margin-left: 20px; margin-bottom: 16px; }
+    .readme-section li { font-size: 14px; color: #424242; margin-bottom: 8px; }
+    .readme-section code { background: #F3F4F6; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'Cascadia Code', 'Consolas', monospace; }
+    .readme-section pre { background: #0B2447; color: #E5E7EB; padding: 16px 20px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; }
+    .readme-section pre code { background: none; padding: 0; color: inherit; }
+    .readme-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    .readme-table th { background: #F3F4F6; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 13px; border-bottom: 2px solid #E5E7EB; }
+    .readme-table td { padding: 10px 12px; border-bottom: 1px solid #F3F4F6; font-size: 13px; }
+    .readme-footer { text-align: center; padding: 32px 48px; color: #9CA3AF; font-size: 12px; border-top: 1px solid #E5E7EB; }
+    .readme-footer a { color: #0078D4; text-decoration: none; }
+    @media (max-width: 768px) {
+      .readme-header, .readme-content, .readme-footer { padding-left: 24px; padding-right: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="readme-header">
+    <div class="readme-header-inner">
+      <div class="readme-brand">
+        <h1>MAP <span>Nexus™</span></h1>
+      </div>
+      <nav class="readme-nav" aria-label="Utility navigation">
+        <a href="Launch_MAP.html">Launch</a>
+        <a href="Landing.html">Home</a>
+        <a href="About_MAP.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="readme-content">
+    <div class="readme-section">
+      <h2>Overview</h2>
+      <p>MAP Nexus™ (Migration Assurance Platform) is an enterprise demonstration package showcasing the platform's capabilities for data migration validation, governance, and risk assessment.</p>
+      <p>This package operates completely offline with no installation, no database, and no internet connection required. It can be distributed simply by copying the folder.</p>
+    </div>
+
+    <div class="readme-section">
+      <h2>Launching the Demo</h2>
+      <ol>
+        <li>Open <code>Launch_MAP.html</code> in any modern web browser</li>
+        <li>Click <strong>"Launch Dashboard"</strong> to enter the demonstration</li>
+        <li>Navigate using the tiles or sidebar menu</li>
+      </ol>
+      <p>The demo loads directly into the product home screen — never into raw dashboards.</p>
+    </div>
+
+    <div class="readme-section">
+      <h2>Navigation</h2>
+      <p>The demonstration provides enterprise-style navigation similar to Microsoft Azure Portal:</p>
+      <table class="readme-table">
+        <thead>
+          <tr><th>Dashboard</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Executive Dashboard</td><td>High-level migration status, KPIs, and executive recommendation</td></tr>
+          <tr><td>Migration Overview</td><td>Source and target platform configuration and entity mapping</td></tr>
+          <tr><td>Validation Centre</td><td>Control execution results and validation distribution</td></tr>
+          <tr><td>Governance Centre</td><td>Findings, severity distribution, and ownership tracking</td></tr>
+          <tr><td>Data Quality</td><td>Quality dimensions, radar analysis, and trend data</td></tr>
+          <tr><td>Risk Assessment</td><td>Risk register, severity matrix, and go/no-go decision</td></tr>
+          <tr><td>Migration Progress</td><td>Phase completion and execution timeline</td></tr>
+          <tr><td>Executive Reports</td><td>Summary reports for executive review and governance</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="readme-section">
+      <h2>Offline Support</h2>
+      <p>This demonstration operates entirely via <code>file://</code> protocol. No server, web server, or internet connection is required.</p>
+      <ul>
+        <li>Chart.js is bundled locally (no CDN)</li>
+        <li>All fonts use system font stack (Segoe UI)</li>
+        <li>All assets are self-contained</li>
+        <li>No external dependencies</li>
+      </ul>
+    </div>
+
+    <div class="readme-section">
+      <h2>Supported Browsers</h2>
+      <ul>
+        <li>Microsoft Edge (latest)</li>
+        <li>Google Chrome (latest)</li>
+        <li>Mozilla Firefox (latest)</li>
+        <li>Apple Safari (latest)</li>
+      </ul>
+    </div>
+
+    <div class="readme-section">
+      <h2>Package Structure</h2>
+      <pre><code>MAP_Demo/
+├── Launch_MAP.html          # Entry point
+├── Landing.html             # Product home screen
+├── About_MAP.html           # Company and product information
+├── README.html              # This documentation
+├── css/
+│   ├── style.css            # Main stylesheet
+│   └── reports.css          # Report styles
+├── js/
+│   ├── chart.min.js         # Chart.js library (bundled)
+│   ├── dashboard.js         # Dashboard navigation and charts
+│   └── data.js              # Embedded MAP data
+├── dashboard/
+│   └── index.html           # Dashboard SPA
+├── reports/
+│   ├── executive_summary.html
+│   ├── migration_summary.html
+│   ├── validation_summary.html
+│   ├── governance_summary.html
+│   ├── risk_summary.html
+│   ├── data_quality_summary.html
+│   ├── readiness_report.html
+│   └── issue_register.html
+├── data/                    # JSON data files
+├── assets/                  # Static assets
+├── branding/                # Brand assets
+├── documentation/           # Documentation
+├── version/                 # Version information
+└── analysis/                # Analysis files</code></pre>
+    </div>
+
+    <div class="readme-section">
+      <h2>Version</h2>
+      <table class="readme-table">
+        <tbody>
+          <tr><td>Product</td><td>MAP Nexus™</td></tr>
+          <tr><td>Demo Version</td><td>2.0</td></tr>
+          <tr><td>Presentation Engine</td><td>v2.0</td></tr>
+          <tr><td>Scenario</td><td>Scenario 3 — MIXTURE</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="readme-footer">
+    MAP Nexus™ — Migration Assurance Platform &middot; Presentation Engine v2.0 &middot;
+    <a href="Landing.html">Home</a> &middot;
+    <a href="About_MAP.html">About</a>
+  </footer>
+</body>
+</html>

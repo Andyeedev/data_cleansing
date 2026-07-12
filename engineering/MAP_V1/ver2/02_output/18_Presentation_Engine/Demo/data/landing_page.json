@@ -1,0 +1,47 @@
+{
+  "landing": {
+    "product": "MAP Nexus™",
+    "subtitle": "Migration Assurance Platform",
+    "scenario": "Scenario 3 — MIXTURE",
+    "scenario_name": "Customer Core Banking Migration",
+    "environment": "Enterprise Demonstration",
+    "executed": "2026-07-05T08:36:12.697239+00:00",
+    "status": "BLOCKED",
+    "readiness": "46%",
+    "validation_score": "58.3%",
+    "failed_rules": "6",
+    "blocking_controls": "3"
+  },
+  "navigation_tiles": [
+    {
+      "view": "executive",
+      "title": "Executive Dashboard",
+      "description": "High-level migration status and KPIs"
+    },
+    {
+      "view": "validation",
+      "title": "Validation Centre",
+      "description": "Control execution results"
+    },
+    {
+      "view": "migration",
+      "title": "Migration Overview",
+      "description": "Source and target platform"
+    },
+    {
+      "view": "quality",
+      "title": "Data Quality",
+      "description": "Quality dimensions and trends"
+    },
+    {
+      "view": "risk",
+      "title": "Risk Assessment",
+      "description": "Risk matrix and go/no-go"
+    },
+    {
+      "view": "governance",
+      "title": "Governance Centre",
+      "description": "Findings and ownership"
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+Excellent. I think we've reached a turning point in the project.
+
+Over the last few days we've been trying to answer **"What have we built?"**
+
+From this point onwards we're answering a different question:
+
+> **"What company are we building?"**
+
+That subtle shift changes the quality of every document we produce.
+
+---
+
+# Phase 2 - Company Foundation
+
+I'd actually like to rename Phase 2.
+
+Instead of:
+
+> **Phase 2 – Product Canon**
+
+I'd call it:
+
+# Phase 2 – Company Foundation
+
+The Product Canon becomes the first deliverable within that phase.
+
+```
+Phase 2 – Company Foundation
+
+2.0 Company Blueprint
+        │
+        ▼
+2.1 Product Canon
+        │
+        ▼
+2.2 Company Knowledge Base
+        │
+        ▼
+2.3 Founder Application Template
+        │
+        ▼
+2.4 Microsoft Founders Hub Package
+        │
+        ▼
+2.5 Investor Package
+        │
+        ▼
+2.6 Cloud Provider Packages
+```
+
+That structure is much closer to how an enterprise architecture programme is run.
+
+---
+
+# Deliverable 2.0 – Company Blueprint
+
+Before we write another chapter, I want to establish the "cover page" for the whole company. This isn't marketing—it's our internal architectural map.
+
+## Company Blueprint v1.0
+
+### Company Purpose
+
+> Build enterprise software that enables organisations to modernise critical database platforms with confidence through automated migration assurance, evidence-based validation and intelligent migration capabilities.
+
+---
+
+### Vision
+
+Become the trusted **Migration Intelligence Platform** for enterprise modernisation.
+
+---
+
+### Mission
+
+Deliver a **Migration Assurance Platform** that automates migration validation today while evolving into a complete migration intelligence ecosystem.
+
+---
+
+### Product Hierarchy
+
+```
+Company
+        │
+        ▼
+Migration Intelligence Platform
+        │
+        ▼
+Migration Assurance Platform
+        │
+        ▼
+Platform Core
+        │
+        ├── Validation Engine
+        ├── Workflow Engine
+        ├── Rule Engine
+        ├── Audit & Evidence
+        └── Database Abstraction
+```
+
+This becomes our official product hierarchy.
+
+---
+
+### Platform Evolution
+
+```
+Current
+
+Validation
+Workflow
+Audit
+
+↓
+
+Next
+
+Schema Discovery
+Metadata Intelligence
+Relationship Discovery
+
+↓
+
+Future
+
+Automated Mapping
+AI Assistance
+Migration Knowledge
+Migration Intelligence
+```
+
+---
+
+### Business Strategy
+
+We provide software that reduces migration risk by automating validation, governance and evidence generation.
+
+We **do not** compete with migration consultancies.
+
+We **enable** them.
+
+This positioning is important because it makes partners part of our route to market rather than our competition.
+
+---
+
+### Technical Strategy
+
+The platform is:
+
+* Metadata-driven
+* Modular
+* Workflow-orchestrated
+* Database-agnostic
+* Cloud-native
+* Automation-first
+* AI-enhanced (where it adds value)
+
+The phrase **"Automation-first, AI-enhanced"** is particularly important. It accurately reflects the maturity of the platform and prevents us from over-positioning AI.
+
+---
+
+### Commercial Strategy
+
+The commercial offering is the **Migration Assurance Platform**.
+
+The long-term platform vision remains the **Migration Intelligence Platform**.
+
+This distinction will appear in every proposal, website, and application.
+
+---
+
+### Evidence Strategy
+
+Every external statement must be traceable to one of three sources:
+
+* **Current Capability** – Implemented and evidenced by the codebase.
+* **Roadmap Capability** – Approved for future development.
+* **Vision** – Long-term strategic direction.
+
+This keeps our messaging credible and consistent.
+
+---
+
+### Company Assets
+
+By the end of Phase 2, we will have a reusable knowledge base:
+
+```
+Company Knowledge Base
+
+├── Company Blueprint
+├── Product Canon
+├── Architecture Canon
+├── Commercial Canon
+├── Technical Evidence Library
+├── Brand Messaging
+├── Founder Pack Template
+├── Microsoft Founders Hub Package
+├── Investor Package
+├── Website Content
+├── Sales Assets
+└── Future Cloud Provider Packages
+```
+
+Each asset has a clear purpose and references the others where appropriate.
+
+---
+
+## One refinement I'd like to introduce
+
+Having now stepped back and looked at the entire project, I think we should distinguish between **canonical** documents and **derived** documents.
+
+### Canonical Assets (maintained)
+
+These define the company and evolve with the product:
+
+* Company Blueprint
+* Product Canon
+* Architecture Canon
+* Commercial Canon
+* Technical Evidence Library
+
+They are living documents.
+
+### Derived Assets (generated)
+
+These are produced from the canonical assets:
+
+* Microsoft Founders Hub application
+* AWS Activate application
+* Google for Startups application
+* NVIDIA Inception application
+* Investor deck
+* Website content
+* Sales presentations
+* Executive summaries
+* Whitepapers
+
+This separation is common in enterprise architecture and ensures we only ever update the source material. Every outward-facing document is regenerated from the latest approved canon rather than manually edited over time.
+
+## What comes next
+
+With the **Company Blueprint** agreed, the next major task is to build **Book II – Business**. In my view, this is where the Product Canon really begins to differentiate us.
+
+Book II won't describe software. It will answer the questions that enterprise customers, Microsoft reviewers, and investors care about most:
+
+* What industry problem are we solving?
+* Why do existing approaches fall short?
+* Why is this problem worth solving now?
+* Where does our platform fit in the migration ecosystem?
+* What measurable business outcomes do we deliver?
+
+Once Book II is complete, the company narrative will be firmly established, and every subsequent technical and commercial document will have a solid, consistent foundation. I think that's the right sequence because it ensures our technology is always presented in the context of the business value it creates, rather than as a collection of features.

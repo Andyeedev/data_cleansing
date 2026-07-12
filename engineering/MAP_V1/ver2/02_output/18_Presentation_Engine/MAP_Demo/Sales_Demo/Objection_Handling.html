@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAP Nexus - Objection Handling Guide</title>
+<style>
+  :root {
+    --map-blue: #0078D4;
+    --map-blue-dark: #003B75;
+    --map-green: #107C10;
+    --map-yellow: #FFB900;
+    --map-red: #D13438;
+    --map-purple: #5C2D91;
+    --map-white: #FFFFFF;
+    --map-light: #F3F2F1;
+    --map-gray: #605E5C;
+    --map-gray-dark: #323130;
+    --map-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--map-font); color: var(--map-gray-dark); background: var(--map-light); line-height: 1.6; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  .header { background: linear-gradient(135deg, var(--map-blue-dark), var(--map-blue)); color: var(--map-white); padding: 40px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+  .header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .header .subtitle { font-size: 16px; opacity: 0.85; }
+  .section { background: var(--map-white); border-radius: 12px; padding: 30px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .section h2 { font-size: 24px; font-weight: 700; color: var(--map-blue-dark); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid var(--map-blue); }
+  .objection { background: var(--map-light); border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 4px solid var(--map-yellow); }
+  .objection h3 { font-size: 16px; font-weight: 600; color: var(--map-gray-dark); margin-bottom: 10px; }
+  .objection h4 { font-size: 13px; font-weight: 600; color: var(--map-blue); margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .objection p { font-size: 13px; color: var(--map-gray); margin-bottom: 6px; }
+  .objection ul { font-size: 13px; color: var(--map-gray); padding-left: 20px; margin-bottom: 6px; }
+  .objection li { margin-bottom: 4px; }
+  @media print { body { background: white; } .section { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>MAP Nexus</h1>
+    <div class="subtitle">Objection Handling Guide</div>
+  </div>
+
+  <div class="section">
+    <h2>8 Common Objections and Responses</h2>
+
+    <div class="objection">
+      <h3>Objection 1: We already have migration tools.</h3>
+      <h4>Response</h4>
+      <p>Migration tools move data. MAP Nexus validates that it arrived correctly. They are complementary, not competitive. Every migration tool deployment creates a natural opportunity for MAP.</p>
+      <h4>Key Points</h4>
+      <ul>
+        <li>Migration tools focus on speed and throughput</li>
+        <li>MAP focuses on validation and governance</li>
+        <li>Together they provide complete migration assurance</li>
+      </ul>
+    </div>
+
+    <div class="objection">
+      <h3>Objection 2: We already use Power BI.</h3>
+      <h4>Response</h4>
+      <p>Power BI visualises data. MAP Nexus validates that migration succeeded. Power BI shows you what happened. MAP tells you whether it was correct. They serve different purposes.</p>
+      <h4>Key Points</h4>
+      <ul>
+        <li>Power BI is a visualisation tool</li>
+        <li>MAP is a validation and governance platform</li>
+        <li>MAP can feed data to Power BI for additional analysis</li>
+      </ul>
+    </div>
+
+    <div class="objection">
+      <h3>Objection 3: We have internal validation.</h3>
+      <h4>Response</h4>
+      <p>Internal validation is valuable but often manual, inconsistent, and undocumented. MAP provides automated, consistent, audit-ready validation with executive dashboards and governance evidence.</p>
+      <h4>Key Points</h4>
+      <ul>
+        <li>MAP automates manual validation processes</li>
+        <li>MAP provides audit-ready documentation</li>
+        <li>MAP gives executives visibility they cannot get from scripts</li>
+      </ul>
+    </div>
+
+    <div class="objection">
+      <h3>Objection 4: Migration is not our problem.</h3>
+      <h4>Response</h4>
+      <p>Migration is inevitable. Cloud adoption, system consolidation, and digital transformation all require data migration. MAP ensures these migrations succeed without business risk.</p>
+      <h4>Key Points</h4>
+      <ul>
+        <li>Every organisation migrates data eventually</li>
+        <li>The question is not if, but when</li>
+        <li>MAP reduces risk for any migration</li>
+      </ul>
+    </div>
+
+    <div class="objection">
+      <h3>Objection 5: We do not use Azure.</h3>
+      <h4>Response</h4>
+      <p>MAP is Azure-native today, but the validation and governance framework is cloud-agnostic. Future roadmap includes multi-cloud support. The value of MAP transcends the cloud platform.</p>
+      <h4>Key Points</h4>
+      <ul>
+        <li>MAP validates any source-to-target migration</li>
+        <li>Cloud-agnostic validation framework</li>
+        <li>Multi-cloud support on roadmap</li>
+      </ul>
+    </div>
+
+    <div class="objection">
+      <h3>Objection 6: Too expensive.</h3>
+      <h4>Response</h4>
+      <p>MAP prevents migration failures that cost millions. The cost of a failed migration far exceeds the investment in MAP. MAP is insurance for your most critical data assets.</p>
+      <h4>Key Points</h4>
+      <ul>
+        <li>Migration failures cost millions in remediation</li>
+        <li>Regulatory penalties for data integrity failures</li>
+        <li>MAP provides ROI from the first migration project</li>
+      </ul>
+    </div>
+
+    <div class="objection">
+      <h3>Objection 7: Too much change.</h3>
+      <h4>Response</h4>
+      <p>MAP complements your existing processes. It does not replace your migration tools or workflows. MAP adds validation and governance to what you already do.</p>
+      <h4>Key Points</h4>
+      <ul>
+        <li>MAP is additive, not disruptive</li>
+        <li>Works with existing migration tools</li>
+        <li>Gradual adoption possible</li>
+      </ul>
+    </div>
+
+    <div class="objection">
+      <h3>Objection 8: We will build our own.</h3>
+      <h4>Response</h4>
+      <p>Building validation and governance in-house takes years and requires ongoing investment. MAP provides enterprise-grade capabilities today, with continuous updates and Azure-native security.</p>
+      <h4>Key Points</h4>
+      <ul>
+        <li>Build vs. buy: years of development vs. immediate value</li>
+        <li>Ongoing maintenance burden vs. managed platform</li>
+        <li>Azure-native security and compliance vs. custom solutions</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section" style="text-align: center; padding: 20px;">
+    <p style="font-size: 13px; color: var(--map-gray);">MAP Nexus - Objection Handling Guide - Version 2.0 - July 2026</p>
+  </div>
+</div>
+</body>
+</html>
