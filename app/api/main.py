@@ -2,6 +2,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.openapi.utils import get_openapi
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
 import time
 import logging
@@ -24,7 +27,11 @@ from app.api.routes import (
 
 logger = logging.getLogger(__name__)
 
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(title="Migration Validation SaaS")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # =========================
@@ -98,6 +105,41 @@ async def validation_error_handler(request: Request, exc):
 
 
 # =========================
+# HEALTH CHECK ENDPOINTS
+# =========================
+@app.get("/health")
+@limiter.exempt
+def health_check():
+    return {"status": "healthy", "version": "2.0.0"}
+
+
+@app.get("/api/v1/health")
+@limiter.exempt
+def api_health_check():
+    return {"status": "healthy", "version": "2.0.0"}
+
+
+@app.get("/api/v1/ready")
+@limiter.exempt
+def readiness_check():
+    checks = {"database": False}
+    try:
+        from app.db.connection import get_db_connection
+        db = get_db_connection()
+        with db.conn.cursor() as cur:
+            cur.execute("SELECT 1")
+        checks["database"] = True
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
+
+    healthy = all(checks.values())
+    return {
+        "status": "ready" if healthy else "degraded",
+        "checks": checks
+    }
+
+
+# =========================
 # REGISTER ROUTES
 # =========================
 app.include_router(auth_routes.router)
@@ -112,11 +154,6 @@ app.include_router(task_routes.router)
 app.include_router(calendar_routes.router)
 app.include_router(notification_routes.router)
 app.include_router(settings_routes.router)
-
-
-@app.get("/health")
-def health_check():
-    return {"status": "healthy", "version": "2.0.0"}
 
 
 # =========================
