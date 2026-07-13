@@ -1,7 +1,7 @@
 const API_BASE = '/api/v1';
 
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || localStorage.getItem('token') || sessionStorage.getItem('token') || localStorage.getItem('map_nexus_token') || localStorage.getItem('map_nexus_auth_token');
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

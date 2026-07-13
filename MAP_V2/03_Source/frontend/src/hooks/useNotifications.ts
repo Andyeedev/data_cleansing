@@ -43,9 +43,9 @@ export function useNotifications(options: UseNotificationsOptions = {}) {
       if (options.page_size) params.append('page_size', String(options.page_size));
       
       const query = params.toString();
-      const data = await api.get<NotificationListResponse>(`/notifications/${query ? `?${query}` : ''}`);
-      setNotifications(data.notifications);
-      setTotal(data.total);
+      const data = await api.get<{ success: boolean; data: NotificationListResponse }>(`/notifications/${query ? `?${query}` : ''}`);
+      setNotifications(data.data.notifications);
+      setTotal(data.data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
     } finally {
@@ -69,8 +69,8 @@ export function useUnreadCount() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.get<{ count: number }>('/notifications/unread/count');
-      setCount(data.count);
+      const data = await api.get<{ success: boolean; data: { count: number } }>('/notifications/unread/count');
+      setCount(data.data.count);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch unread count');
     } finally {

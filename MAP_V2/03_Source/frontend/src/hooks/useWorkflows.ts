@@ -48,9 +48,9 @@ export function useWorkflows(options: UseWorkflowsOptions = {}) {
       if (options.page_size) params.append('page_size', String(options.page_size));
       
       const query = params.toString();
-      const data = await api.get<WorkflowListResponse>(`/workflows/${query ? `?${query}` : ''}`);
-      setWorkflows(data.workflows);
-      setTotal(data.total);
+      const data = await api.get<{ success: boolean; data: WorkflowListResponse }>(`/workflows/${query ? `?${query}` : ''}`);
+      setWorkflows(data.data.workflows);
+      setTotal(data.data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch workflows');
     } finally {
@@ -80,8 +80,8 @@ export function useWorkflow(workflowId: string | null) {
       setLoading(true);
       setError(null);
       try {
-        const data = await api.get<Workflow>(`/workflows/${workflowId}`);
-        setWorkflow(data);
+        const data = await api.get<{ success: boolean; data: Workflow }>(`/workflows/${workflowId}`);
+        setWorkflow(data.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch workflow');
       } finally {

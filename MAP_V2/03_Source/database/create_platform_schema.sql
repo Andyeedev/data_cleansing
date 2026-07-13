@@ -442,3 +442,21 @@ CREATE TABLE platform.feature_flags (
 );
 
 CREATE INDEX idx_platform_feature_flags_key ON platform.feature_flags (key);
+
+-- =====================================================
+-- CROSS-SCHEMA FOREIGN KEYS (platform → core)
+-- =====================================================
+
+-- Tenant references
+ALTER TABLE platform.users ADD CONSTRAINT fk_users_tenant FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id);
+ALTER TABLE platform.roles ADD CONSTRAINT fk_roles_tenant FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id);
+ALTER TABLE platform.tasks ADD CONSTRAINT fk_tasks_tenant FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id);
+ALTER TABLE platform.workflow_definitions ADD CONSTRAINT fk_workflow_definitions_tenant FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id);
+ALTER TABLE platform.workflow_instances ADD CONSTRAINT fk_workflow_instances_tenant FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id);
+ALTER TABLE platform.approval_requests ADD CONSTRAINT fk_approval_requests_tenant FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id);
+ALTER TABLE platform.approval_templates ADD CONSTRAINT fk_approval_templates_tenant FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id);
+ALTER TABLE platform.calendar_events ADD CONSTRAINT fk_calendar_events_tenant FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id);
+
+-- Project references
+ALTER TABLE platform.tasks ADD CONSTRAINT fk_tasks_project FOREIGN KEY (project_id) REFERENCES core.projects(project_id);
+ALTER TABLE platform.calendar_events ADD CONSTRAINT fk_calendar_events_project FOREIGN KEY (project_id) REFERENCES core.projects(project_id);

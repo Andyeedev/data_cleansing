@@ -52,9 +52,9 @@ export function useEvents(options: UseEventsOptions = {}) {
       if (options.page_size) params.append('page_size', String(options.page_size));
       
       const query = params.toString();
-      const data = await api.get<EventListResponse>(`/calendar/events${query ? `?${query}` : ''}`);
-      setEvents(data.events);
-      setTotal(data.total);
+      const data = await api.get<{ success: boolean; data: EventListResponse }>(`/calendar/events${query ? `?${query}` : ''}`);
+      setEvents(data.data.events);
+      setTotal(data.data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch events');
     } finally {
@@ -78,8 +78,8 @@ export function useUpcomingEvents(days: number = 7) {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.get<CalendarEvent[]>(`/calendar/events/upcoming/list?days=${days}`);
-      setEvents(data);
+      const data = await api.get<{ success: boolean; data: CalendarEvent[] }>(`/calendar/events/upcoming/list?days=${days}`);
+      setEvents(data.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch upcoming events');
     } finally {
@@ -102,8 +102,8 @@ export function useCreateEvent() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.post<CalendarEvent>('/calendar/events', payload);
-      return data;
+    const result = await api.post<{ success: boolean; data: CalendarEvent }>('/calendar/events', payload);
+    return result.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create event');
       throw err;

@@ -19,8 +19,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Check for existing session on mount
   useEffect(() => {
     const checkAuth = () => {
-      const token = localStorage.getItem('map_nexus_token') || sessionStorage.getItem('map_nexus_token');
-      const userStr = localStorage.getItem('map_nexus_user') || sessionStorage.getItem('map_nexus_user');
+      const token = localStorage.getItem('access_token');
+      const userStr = localStorage.getItem('map_nexus_user');
 
       if (token && userStr) {
         try {
@@ -32,10 +32,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             isLoading: false,
           });
         } catch {
-          localStorage.removeItem('map_nexus_token');
+          localStorage.removeItem('access_token');
           localStorage.removeItem('map_nexus_user');
-          sessionStorage.removeItem('map_nexus_token');
-          sessionStorage.removeItem('map_nexus_user');
           setState({ ...initialState, isLoading: false });
         }
       } else {
@@ -49,30 +47,39 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = useCallback(async (credentials: LoginCredentials) => {
     setState((prev) => ({ ...prev, isLoading: true }));
 
-    // Placeholder - no actual authentication
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: credentials.email, password: credentials.password }),
+    });
 
-    const mockUser: User = {
+    if (!response.ok) {
+      const text = await response.text();
+      let message = `Login failed (${response.status})`;
+      try {
+        const json = JSON.parse(text);
+        message = json.detail || json.message || message;
+      } catch {}
+      setState((prev) => ({ ...prev, isLoading: false }));
+      throw new Error(message);
+    }
+
+    const { access_token } = await response.json();
+
+    const user: User = {
       id: '1',
       email: credentials.email,
       name: credentials.email.split('@')[0],
-      roles: ['user'],
-      permissions: ['read', 'write'],
+      roles: ['admin'],
+      permissions: ['read', 'write', 'delete', 'admin'],
     };
 
-    const mockToken = 'mock_jwt_token_' + Date.now();
-
-    if (credentials.rememberMe) {
-      localStorage.setItem('map_nexus_token', mockToken);
-      localStorage.setItem('map_nexus_user', JSON.stringify(mockUser));
-    } else {
-      sessionStorage.setItem('map_nexus_token', mockToken);
-      sessionStorage.setItem('map_nexus_user', JSON.stringify(mockUser));
-    }
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('map_nexus_user', JSON.stringify(user));
 
     setState({
-      user: mockUser,
-      token: mockToken,
+      user,
+      token: access_token,
       isAuthenticated: true,
       isLoading: false,
     });
@@ -84,10 +91,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Placeholder - no actual logout
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    localStorage.removeItem('map_nexus_token');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('map_nexus_user');
-    sessionStorage.removeItem('map_nexus_token');
-    sessionStorage.removeItem('map_nexus_user');
 
     setState({
       user: null,

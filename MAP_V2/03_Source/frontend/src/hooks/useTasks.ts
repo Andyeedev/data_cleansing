@@ -54,9 +54,9 @@ export function useTasks(options: UseTasksOptions = {}) {
       if (options.page_size) params.append('page_size', String(options.page_size));
       
       const query = params.toString();
-      const data = await api.get<TaskListResponse>(`/tasks/${query ? `?${query}` : ''}`);
-      setTasks(data.tasks);
-      setTotal(data.total);
+      const data = await api.get<{ success: boolean; data: TaskListResponse }>(`/tasks/${query ? `?${query}` : ''}`);
+      setTasks(data.data.tasks);
+      setTotal(data.data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
     } finally {
@@ -87,9 +87,9 @@ export function useMyTasks(options: UseTasksOptions = {}) {
       if (options.page_size) params.append('page_size', String(options.page_size));
       
       const query = params.toString();
-      const data = await api.get<TaskListResponse>(`/tasks/my/list${query ? `?${query}` : ''}`);
-      setTasks(data.tasks);
-      setTotal(data.total);
+      const data = await api.get<{ success: boolean; data: TaskListResponse }>(`/tasks/my/list${query ? `?${query}` : ''}`);
+      setTasks(data.data.tasks);
+      setTotal(data.data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch tasks');
     } finally {
@@ -119,8 +119,8 @@ export function useTask(taskId: string | null) {
       setLoading(true);
       setError(null);
       try {
-        const data = await api.get<Task>(`/tasks/${taskId}`);
-        setTask(data);
+        const data = await api.get<{ success: boolean; data: Task }>(`/tasks/${taskId}`);
+        setTask(data.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch task');
       } finally {
@@ -142,8 +142,8 @@ export function useCreateTask() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.post<Task>('/tasks/', payload);
-      return data;
+      const result = await api.post<{ success: boolean; data: Task }>('/tasks/', payload);
+      return result.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create task');
       throw err;
@@ -163,8 +163,8 @@ export function useUpdateTask() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.put<Task>(`/tasks/${taskId}`, payload);
-      return data;
+      const result = await api.put<{ success: boolean; data: Task }>(`/tasks/${taskId}`, payload);
+      return result.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update task');
       throw err;
