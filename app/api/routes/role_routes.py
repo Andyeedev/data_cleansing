@@ -1,17 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 
 from app.db.connection import get_db_connection
 from app.api.core.auth.dependencies import get_current_user
+from app.api.helpers import standardize_response
 from app.services.role_service import RoleService
 
 router = APIRouter(prefix="/api/v1/roles", tags=["Roles"])
 
 
-# =========================
-# REQUEST MODELS
-# =========================
 class RoleCreateRequest(BaseModel):
     name: str
     description: Optional[str] = None
@@ -30,9 +28,6 @@ class PermissionAssignRequest(BaseModel):
     granted: bool = True
 
 
-# =========================
-# LIST ROLES
-# =========================
 @router.get("/")
 def list_roles(
     page: int = Query(1, ge=1),
@@ -42,22 +37,16 @@ def list_roles(
 ):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.list_roles(page=page, page_size=page_size, status=status)
+    return standardize_response(service.list_roles(page=page, page_size=page_size, status=status))
 
 
-# =========================
-# GET ROLE
-# =========================
 @router.get("/{role_id}")
 def get_role(role_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.get_role(role_id)
+    return standardize_response(service.get_role(role_id))
 
 
-# =========================
-# CREATE ROLE
-# =========================
 @router.post("/")
 def create_role(
     payload: RoleCreateRequest,
@@ -65,12 +54,9 @@ def create_role(
 ):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.create_role(payload)
+    return standardize_response(service.create_role(payload))
 
 
-# =========================
-# UPDATE ROLE
-# =========================
 @router.put("/{role_id}")
 def update_role(
     role_id: str,
@@ -79,22 +65,16 @@ def update_role(
 ):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.update_role(role_id, payload)
+    return standardize_response(service.update_role(role_id, payload))
 
 
-# =========================
-# DELETE ROLE
-# =========================
 @router.delete("/{role_id}")
 def delete_role(role_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.delete_role(role_id)
+    return standardize_response(service.delete_role(role_id))
 
 
-# =========================
-# ASSIGN PERMISSION
-# =========================
 @router.post("/{role_id}/permissions")
 def assign_permission(
     role_id: str,
@@ -103,12 +83,9 @@ def assign_permission(
 ):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.assign_permission(role_id, payload)
+    return standardize_response(service.assign_permission(role_id, payload))
 
 
-# =========================
-# REMOVE PERMISSION
-# =========================
 @router.delete("/{role_id}/permissions/{permission_id}")
 def remove_permission(
     role_id: str,
@@ -117,24 +94,18 @@ def remove_permission(
 ):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.remove_permission(role_id, permission_id)
+    return standardize_response(service.remove_permission(role_id, permission_id))
 
 
-# =========================
-# GET ROLE PERMISSIONS
-# =========================
 @router.get("/{role_id}/permissions")
 def get_role_permissions(role_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.get_role_permissions(role_id)
+    return standardize_response(service.get_role_permissions(role_id))
 
 
-# =========================
-# LIST ALL PERMISSIONS
-# =========================
 @router.get("/permissions/list")
 def list_all_permissions(current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = RoleService(db.conn)
-    return service.list_all_permissions()
+    return standardize_response(service.list_all_permissions())

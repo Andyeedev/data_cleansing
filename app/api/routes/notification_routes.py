@@ -4,14 +4,12 @@ from typing import Optional
 
 from app.db.connection import get_db_connection
 from app.api.core.auth.dependencies import get_current_user
+from app.api.helpers import standardize_response
 from app.services.notification_service import NotificationService
 
 router = APIRouter(prefix="/api/v1/notifications", tags=["Notifications"])
 
 
-# =========================
-# REQUEST MODELS
-# =========================
 class NotificationMarkReadRequest(BaseModel):
     is_read: bool = True
 
@@ -22,9 +20,6 @@ class PreferenceUpdateRequest(BaseModel):
     enabled: bool
 
 
-# =========================
-# LIST NOTIFICATIONS
-# =========================
 @router.get("/")
 def list_notifications(
     page: int = Query(1, ge=1),
@@ -35,26 +30,20 @@ def list_notifications(
 ):
     db = get_db_connection()
     service = NotificationService(db.conn)
-    return service.list_notifications(
+    return standardize_response(service.list_notifications(
         user_id=current_user.get("sub"),
         page=page, page_size=page_size,
         is_read=is_read, type=type
-    )
+    ))
 
 
-# =========================
-# GET NOTIFICATION
-# =========================
 @router.get("/{notification_id}")
 def get_notification(notification_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = NotificationService(db.conn)
-    return service.get_notification(notification_id)
+    return standardize_response(service.get_notification(notification_id))
 
 
-# =========================
-# MARK AS READ
-# =========================
 @router.put("/{notification_id}/read")
 def mark_as_read(
     notification_id: str,
@@ -62,52 +51,37 @@ def mark_as_read(
 ):
     db = get_db_connection()
     service = NotificationService(db.conn)
-    return service.mark_as_read(notification_id)
+    return standardize_response(service.mark_as_read(notification_id))
 
 
-# =========================
-# MARK ALL AS READ
-# =========================
 @router.put("/read-all")
 def mark_all_as_read(current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = NotificationService(db.conn)
-    return service.mark_all_as_read(current_user.get("sub"))
+    return standardize_response(service.mark_all_as_read(current_user.get("sub")))
 
 
-# =========================
-# DELETE NOTIFICATION
-# =========================
 @router.delete("/{notification_id}")
 def delete_notification(notification_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = NotificationService(db.conn)
-    return service.delete_notification(notification_id)
+    return standardize_response(service.delete_notification(notification_id))
 
 
-# =========================
-# GET UNREAD COUNT
-# =========================
 @router.get("/unread/count")
 def get_unread_count(current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = NotificationService(db.conn)
-    return service.get_unread_count(current_user.get("sub"))
+    return standardize_response(service.get_unread_count(current_user.get("sub")))
 
 
-# =========================
-# GET PREFERENCES
-# =========================
 @router.get("/preferences/list")
 def get_preferences(current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = NotificationService(db.conn)
-    return service.get_preferences(current_user.get("sub"))
+    return standardize_response(service.get_preferences(current_user.get("sub")))
 
 
-# =========================
-# UPDATE PREFERENCE
-# =========================
 @router.put("/preferences")
 def update_preference(
     payload: PreferenceUpdateRequest,
@@ -115,4 +89,4 @@ def update_preference(
 ):
     db = get_db_connection()
     service = NotificationService(db.conn)
-    return service.update_preference(current_user.get("sub"), payload)
+    return standardize_response(service.update_preference(current_user.get("sub"), payload))

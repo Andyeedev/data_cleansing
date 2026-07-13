@@ -4,14 +4,12 @@ from typing import Optional
 
 from app.db.connection import get_db_connection
 from app.api.core.auth.dependencies import get_current_user
+from app.api.helpers import standardize_response
 from app.services.workflow_service import WorkflowService
 
 router = APIRouter(prefix="/api/v1/workflows", tags=["Workflows"])
 
 
-# =========================
-# REQUEST MODELS
-# =========================
 class WorkflowCreateRequest(BaseModel):
     name: str
     description: Optional[str] = None
@@ -33,9 +31,6 @@ class WorkflowExecuteRequest(BaseModel):
     assigned_to: Optional[str] = None
 
 
-# =========================
-# LIST WORKFLOWS
-# =========================
 @router.get("/")
 def list_workflows(
     page: int = Query(1, ge=1),
@@ -46,25 +41,19 @@ def list_workflows(
 ):
     db = get_db_connection()
     service = WorkflowService(db.conn)
-    return service.list_workflows(
+    return standardize_response(service.list_workflows(
         page=page, page_size=page_size,
         type=type, status=status
-    )
+    ))
 
 
-# =========================
-# GET WORKFLOW
-# =========================
 @router.get("/{workflow_id}")
 def get_workflow(workflow_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = WorkflowService(db.conn)
-    return service.get_workflow(workflow_id)
+    return standardize_response(service.get_workflow(workflow_id))
 
 
-# =========================
-# CREATE WORKFLOW
-# =========================
 @router.post("/")
 def create_workflow(
     payload: WorkflowCreateRequest,
@@ -72,12 +61,9 @@ def create_workflow(
 ):
     db = get_db_connection()
     service = WorkflowService(db.conn)
-    return service.create_workflow(payload)
+    return standardize_response(service.create_workflow(payload))
 
 
-# =========================
-# UPDATE WORKFLOW
-# =========================
 @router.put("/{workflow_id}")
 def update_workflow(
     workflow_id: str,
@@ -86,22 +72,16 @@ def update_workflow(
 ):
     db = get_db_connection()
     service = WorkflowService(db.conn)
-    return service.update_workflow(workflow_id, payload)
+    return standardize_response(service.update_workflow(workflow_id, payload))
 
 
-# =========================
-# DELETE WORKFLOW
-# =========================
 @router.delete("/{workflow_id}")
 def delete_workflow(workflow_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = WorkflowService(db.conn)
-    return service.delete_workflow(workflow_id)
+    return standardize_response(service.delete_workflow(workflow_id))
 
 
-# =========================
-# EXECUTE WORKFLOW
-# =========================
 @router.post("/{workflow_id}/execute")
 def execute_workflow(
     workflow_id: str,
@@ -110,12 +90,9 @@ def execute_workflow(
 ):
     db = get_db_connection()
     service = WorkflowService(db.conn)
-    return service.execute_workflow(workflow_id, payload)
+    return standardize_response(service.execute_workflow(workflow_id, payload))
 
 
-# =========================
-# GET WORKFLOW INSTANCES
-# =========================
 @router.get("/{workflow_id}/instances")
 def get_workflow_instances(
     workflow_id: str,
@@ -125,14 +102,11 @@ def get_workflow_instances(
 ):
     db = get_db_connection()
     service = WorkflowService(db.conn)
-    return service.get_workflow_instances(workflow_id, page, page_size)
+    return standardize_response(service.get_workflow_instances(workflow_id, page, page_size))
 
 
-# =========================
-# GET WORKFLOW INSTANCE
-# =========================
 @router.get("/instances/{instance_id}")
 def get_workflow_instance(instance_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = WorkflowService(db.conn)
-    return service.get_workflow_instance(instance_id)
+    return standardize_response(service.get_workflow_instance(instance_id))

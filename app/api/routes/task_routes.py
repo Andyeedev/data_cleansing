@@ -5,14 +5,12 @@ from datetime import date
 
 from app.db.connection import get_db_connection
 from app.api.core.auth.dependencies import get_current_user
+from app.api.helpers import standardize_response
 from app.services.task_service import TaskService
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["Tasks"])
 
 
-# =========================
-# REQUEST MODELS
-# =========================
 class TaskCreateRequest(BaseModel):
     title: str
     description: Optional[str] = None
@@ -40,9 +38,6 @@ class TaskCommentRequest(BaseModel):
     content: str
 
 
-# =========================
-# LIST TASKS
-# =========================
 @router.get("/")
 def list_tasks(
     page: int = Query(1, ge=1),
@@ -54,26 +49,20 @@ def list_tasks(
 ):
     db = get_db_connection()
     service = TaskService(db.conn)
-    return service.list_tasks(
+    return standardize_response(service.list_tasks(
         page=page, page_size=page_size,
         status=status, priority=priority,
         assigned_to=assigned_to
-    )
+    ))
 
 
-# =========================
-# GET TASK
-# =========================
 @router.get("/{task_id}")
 def get_task(task_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = TaskService(db.conn)
-    return service.get_task(task_id)
+    return standardize_response(service.get_task(task_id))
 
 
-# =========================
-# CREATE TASK
-# =========================
 @router.post("/")
 def create_task(
     payload: TaskCreateRequest,
@@ -81,12 +70,9 @@ def create_task(
 ):
     db = get_db_connection()
     service = TaskService(db.conn)
-    return service.create_task(payload, current_user.get("sub"))
+    return standardize_response(service.create_task(payload, current_user.get("sub")))
 
 
-# =========================
-# UPDATE TASK
-# =========================
 @router.put("/{task_id}")
 def update_task(
     task_id: str,
@@ -95,22 +81,16 @@ def update_task(
 ):
     db = get_db_connection()
     service = TaskService(db.conn)
-    return service.update_task(task_id, payload)
+    return standardize_response(service.update_task(task_id, payload))
 
 
-# =========================
-# DELETE TASK
-# =========================
 @router.delete("/{task_id}")
 def delete_task(task_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = TaskService(db.conn)
-    return service.delete_task(task_id)
+    return standardize_response(service.delete_task(task_id))
 
 
-# =========================
-# ADD COMMENT
-# =========================
 @router.post("/{task_id}/comments")
 def add_comment(
     task_id: str,
@@ -119,22 +99,16 @@ def add_comment(
 ):
     db = get_db_connection()
     service = TaskService(db.conn)
-    return service.add_comment(task_id, payload, current_user.get("sub"))
+    return standardize_response(service.add_comment(task_id, payload, current_user.get("sub")))
 
 
-# =========================
-# GET COMMENTS
-# =========================
 @router.get("/{task_id}/comments")
 def get_comments(task_id: str, current_user=Depends(get_current_user)):
     db = get_db_connection()
     service = TaskService(db.conn)
-    return service.get_comments(task_id)
+    return standardize_response(service.get_comments(task_id))
 
 
-# =========================
-# GET MY TASKS
-# =========================
 @router.get("/my/list")
 def get_my_tasks(
     page: int = Query(1, ge=1),
@@ -143,7 +117,7 @@ def get_my_tasks(
 ):
     db = get_db_connection()
     service = TaskService(db.conn)
-    return service.list_tasks(
+    return standardize_response(service.list_tasks(
         page=page, page_size=page_size,
         assigned_to=current_user.get("sub")
-    )
+    ))
