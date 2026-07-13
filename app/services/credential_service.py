@@ -132,3 +132,39 @@ class CredentialService:
         self.conn.commit()
 
         return {"deleted": credential_id}
+
+    # =========================
+    # UPDATE PASSWORD BY USERNAME
+    # =========================
+    def update_password(self, username: str, new_password: str):
+
+        encrypted_password = self.encryption.encrypt(new_password)
+
+        check_query = """
+        SELECT credential_id
+        FROM core.system_credentials
+        WHERE username = %s
+        """
+
+        with self.conn.cursor() as cur:
+            cur.execute(check_query, (username,))
+            result = cur.fetchone()
+
+        if not result:
+            raise ValueError(f"Username not found: {username}")
+
+        update_query = """
+        UPDATE core.system_credentials
+        SET password_encrypted = %s
+        WHERE username = %s
+        """
+
+        with self.conn.cursor() as cur:
+            cur.execute(update_query, (encrypted_password, username))
+
+        self.conn.commit()
+
+        return {
+            "status": "success",
+            "username": username
+        }

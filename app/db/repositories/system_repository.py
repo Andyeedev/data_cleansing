@@ -6,58 +6,6 @@ class SystemRepository:
     # =========================
     # CREATE
     # =========================
-    def insert_legacy(self, system_id, system_name, system_role, database_type, connection_config):
-
-        query = """
-        INSERT INTO core.system_registry (
-            system_id,
-            system_name,
-            system_role,
-            database_type,
-            connection_config
-        )
-        VALUES (%s, %s, %s, %s, %s)
-        """
-
-        with self.conn.cursor() as cur:
-            cur.execute(query, (
-                system_id,
-                system_name,
-                system_role,
-                database_type,
-                connection_config
-            ))
-
-        self.conn.commit()
-
-    def insert_legacy_2(
-        self, system_id, project_id, system_name, system_role, database_type, connection_config
-    ):
-
-        query = """
-        INSERT INTO core.system_registry (
-            system_id,
-            project_id,
-            system_name,
-            system_role,
-            database_type,
-            connection_config
-        )
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """
-
-        with self.conn.cursor() as cur:
-            cur.execute(query, (
-                system_id,
-                project_id,
-                system_name,
-                system_role,
-                database_type,
-                connection_config
-            ))
-
-        self.conn.commit()
-
     def insert(
         self,
         system_id,

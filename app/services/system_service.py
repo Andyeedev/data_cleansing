@@ -15,48 +15,6 @@ class SystemService:
     # =========================
     # CREATE
     # =========================
-    def create_system_legacy(self, payload):
-
-        system_id = str(uuid.uuid4())
-
-        config_json = json.dumps(payload.connection_config.dict())
-
-        self.repo.insert(
-            system_id=system_id,
-            system_name=payload.system_name,
-            system_role=payload.system_role,
-            database_type=payload.database_type,
-            connection_config=config_json
-        )
-
-        return {
-            "message": "System created",
-            "system_id": system_id
-        }
-
-    def create_system_legacy_2(self, payload):
-
-        import uuid
-        import json
-
-        system_id = str(uuid.uuid4())
-
-        config_json = json.dumps(payload.connection_config.dict())
-
-        self.repo.insert(
-            system_id=system_id,
-            project_id=payload.project_id,
-            system_name=payload.system_name,
-            system_role=payload.system_role,
-            database_type=payload.database_type,
-            connection_config=config_json
-        )
-
-        return {
-            "message": "System created",
-            "system_id": system_id
-        }
-
     def create_system(self, payload):
 
         system_id = str(uuid.uuid4())
