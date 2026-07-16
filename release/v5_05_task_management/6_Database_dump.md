@@ -2,25 +2,25 @@
 
 ## Database Dumps
 
-| File | Database | Description |
-|------|----------|-------------|
-| `db/migration_engine_v5_05.dump` | migration_engine | Platform database (engine, platform, audit, core, reporting schemas) |
-| `db/migration_source_v5_05.dump` | migration_source | Source database for validation |
-| `db/migration_target_v5_05.dump` | migration_target | Target database for validation |
+| File | Database | Format | Description |
+|------|----------|--------|-------------|
+| `db/migration_engine_v5_05.dump` | migration_engine | PostgreSQL Custom (PGDMP) | Platform database (engine, platform, audit, core, reporting schemas) |
+| `db/migration_source_v5_05.dump` | migration_source | PostgreSQL Custom (PGDMP) | Source database for validation |
+| `db/migration_target_v5_05.dump` | migration_target | PostgreSQL Custom (PGDMP) | Target database for validation |
 
 ---
 
 ## Dump Commands Used
 
 ```bash
-# Engine database (platform)
-pg_dump -U postgres -d migration_engine --file=db/migration_engine_v5_05.dump
+# Engine database (platform) - Custom format
+pg_dump -U postgres -d migration_engine -Fc --file=db/migration_engine_v5_05.dump
 
-# Source database
-pg_dump -U postgres -d migration_source --file=db/migration_source_v5_05.dump
+# Source database - Custom format
+pg_dump -U postgres -d migration_source -Fc --file=db/migration_source_v5_05.dump
 
-# Target database
-pg_dump -U postgres -d migration_target --file=db/migration_target_v5_05.dump
+# Target database - Custom format
+pg_dump -U postgres -d migration_target -Fc --file=db/migration_target_v5_05.dump
 ```
 
 ---
@@ -29,13 +29,13 @@ pg_dump -U postgres -d migration_target --file=db/migration_target_v5_05.dump
 
 ```bash
 # Restore engine database
-psql -U postgres -d migration_engine -f db/migration_engine_v5_05.dump
+pg_restore -U postgres -d migration_engine db/migration_engine_v5_05.dump
 
 # Restore source database
-psql -U postgres -d migration_source -f db/migration_source_v5_05.dump
+pg_restore -U postgres -d migration_source db/migration_source_v5_05.dump
 
 # Restore target database
-psql -U postgres -d migration_target -f db/migration_target_v5_05.dump
+pg_restore -U postgres -d migration_target db/migration_target_v5_05.dump
 ```
 
 ---
