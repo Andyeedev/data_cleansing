@@ -1,0 +1,1506 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 17.4
+-- Dumped by pg_dump version 17.4
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: core; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA core;
+
+
+ALTER SCHEMA core OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: column_mappings; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.column_mappings (
+    column_mapping_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    mapping_id uuid NOT NULL,
+    source_column_id uuid NOT NULL,
+    target_column_id uuid NOT NULL,
+    confidence_score numeric,
+    match_status character varying(20),
+    match_reason text,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.column_mappings OWNER TO postgres;
+
+--
+-- Name: column_mappings_legacy; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.column_mappings_legacy (
+    column_mapping_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    mapping_id uuid NOT NULL,
+    source_column_id uuid NOT NULL,
+    target_column_id uuid,
+    column_role character varying(50),
+    is_active boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.column_mappings_legacy OWNER TO postgres;
+
+--
+-- Name: column_mappings_legacy_2; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.column_mappings_legacy_2 (
+    column_mapping_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    mapping_id uuid NOT NULL,
+    source_column_id uuid NOT NULL,
+    target_column_id uuid NOT NULL,
+    confidence_score numeric,
+    match_status character varying(20),
+    match_reason text,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.column_mappings_legacy_2 OWNER TO postgres;
+
+--
+-- Name: dataset_columns; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.dataset_columns (
+    column_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    mapping_id uuid NOT NULL,
+    column_name character varying(150) NOT NULL,
+    column_position integer,
+    data_type character varying(100),
+    column_side character varying(10),
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    is_nullable boolean,
+    is_primary_key boolean DEFAULT false,
+    inferred_role character varying(50),
+    is_foreign_key boolean,
+    referenced_table text,
+    referenced_column text,
+    CONSTRAINT dataset_columns_column_side_check CHECK (((column_side)::text = ANY (ARRAY[('SOURCE'::character varying)::text, ('TARGET'::character varying)::text])))
+);
+
+
+ALTER TABLE core.dataset_columns OWNER TO postgres;
+
+--
+-- Name: dataset_columns_future; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.dataset_columns_future (
+    column_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    dataset_id uuid NOT NULL,
+    column_name character varying(150) NOT NULL,
+    column_position integer,
+    data_type character varying(100),
+    is_nullable boolean,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    is_primary_key boolean DEFAULT false,
+    inferred_role character varying(50)
+);
+
+
+ALTER TABLE core.dataset_columns_future OWNER TO postgres;
+
+--
+-- Name: dataset_columns_legacy; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.dataset_columns_legacy (
+    column_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    mapping_id uuid NOT NULL,
+    column_name character varying(150) NOT NULL,
+    column_position integer,
+    data_type character varying(100),
+    column_side character varying(10),
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    is_nullable boolean,
+    is_primary_key boolean DEFAULT false,
+    inferred_role character varying(50),
+    CONSTRAINT dataset_columns_column_side_check_o CHECK (((column_side)::text = ANY ((ARRAY['SOURCE'::character varying, 'TARGET'::character varying])::text[])))
+);
+
+
+ALTER TABLE core.dataset_columns_legacy OWNER TO postgres;
+
+--
+-- Name: dataset_mappings; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.dataset_mappings (
+    mapping_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    project_id uuid NOT NULL,
+    source_system_id uuid NOT NULL,
+    target_system_id uuid,
+    source_schema character varying(150),
+    source_table character varying(150),
+    source_columns text[],
+    target_schema character varying(150),
+    target_table character varying(150),
+    target_columns text[],
+    is_active boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.dataset_mappings OWNER TO postgres;
+
+--
+-- Name: dataset_mappings_legacy; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.dataset_mappings_legacy (
+    mapping_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    project_id uuid NOT NULL,
+    source_system_id uuid NOT NULL,
+    target_system_id uuid,
+    source_schema character varying(150),
+    source_table character varying(150),
+    source_columns text[],
+    target_schema character varying(150),
+    target_table character varying(150),
+    target_columns text[],
+    is_active boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.dataset_mappings_legacy OWNER TO postgres;
+
+--
+-- Name: datasets; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.datasets (
+    dataset_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    system_id uuid NOT NULL,
+    schema_name character varying(150),
+    table_name character varying(150) NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.datasets OWNER TO postgres;
+
+--
+-- Name: discovered_columns; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.discovered_columns (
+    column_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    discovered_dataset_id uuid,
+    column_name text,
+    data_type text,
+    ordinal_position integer,
+    is_nullable boolean,
+    is_primary_key boolean,
+    discovered_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.discovered_columns OWNER TO postgres;
+
+--
+-- Name: discovered_datasets; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.discovered_datasets (
+    discovered_dataset_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    project_id uuid,
+    system_id uuid,
+    table_name text,
+    schema_name text,
+    discovered_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    last_seen timestamp without time zone
+);
+
+
+ALTER TABLE core.discovered_datasets OWNER TO postgres;
+
+--
+-- Name: mapping_suggestions; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.mapping_suggestions (
+    suggestion_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    project_id uuid,
+    source_system_id uuid,
+    target_system_id uuid,
+    source_table text,
+    target_table text,
+    source_column text,
+    target_column text,
+    confidence_score numeric(5,2),
+    match_status text,
+    match_reason text,
+    mapping_type text,
+    approved boolean DEFAULT false,
+    rejected boolean DEFAULT false,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.mapping_suggestions OWNER TO postgres;
+
+--
+-- Name: projects; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.projects (
+    project_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    tenant_id uuid NOT NULL,
+    project_name character varying(200) NOT NULL,
+    project_type character varying(50) NOT NULL,
+    status character varying(50) DEFAULT 'ACTIVE'::character varying NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT projects_project_type_check CHECK (((project_type)::text = ANY ((ARRAY['MIGRATION'::character varying, 'DATA_QUALITY'::character varying])::text[])))
+);
+
+
+ALTER TABLE core.projects OWNER TO postgres;
+
+--
+-- Name: rule_dataset_mapping; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.rule_dataset_mapping (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    rule_id character varying(50) NOT NULL,
+    mapping_id uuid NOT NULL,
+    is_active boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE core.rule_dataset_mapping OWNER TO postgres;
+
+--
+-- Name: rule_dataset_mapping_legacy; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.rule_dataset_mapping_legacy (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    rule_id character varying(50) NOT NULL,
+    mapping_id uuid NOT NULL,
+    is_active boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE core.rule_dataset_mapping_legacy OWNER TO postgres;
+
+--
+-- Name: schema_diff_details; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.schema_diff_details (
+    detail_id uuid NOT NULL,
+    schema_diff_id uuid,
+    column_name text,
+    source_data_type text,
+    target_data_type text,
+    issue_type text,
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE core.schema_diff_details OWNER TO postgres;
+
+--
+-- Name: schema_diffs; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.schema_diffs (
+    schema_diff_id uuid NOT NULL,
+    project_id uuid,
+    source_system_id uuid,
+    target_system_id uuid,
+    source_table text,
+    target_table text,
+    diff_type text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+ALTER TABLE core.schema_diffs OWNER TO postgres;
+
+--
+-- Name: schema_diffs_legacy; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.schema_diffs_legacy (
+    schema_diff_id uuid NOT NULL,
+    project_id uuid,
+    source_system_id uuid,
+    target_system_id uuid,
+    table_name text,
+    diff_type text,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE core.schema_diffs_legacy OWNER TO postgres;
+
+--
+-- Name: system_credentials; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.system_credentials (
+    credential_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    system_id uuid NOT NULL,
+    username text,
+    password_encrypted bytea NOT NULL,
+    encryption_key_id text NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE core.system_credentials OWNER TO postgres;
+
+--
+-- Name: system_registry; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.system_registry (
+    system_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    project_id uuid NOT NULL,
+    system_name character varying(200) NOT NULL,
+    system_role character varying(50) NOT NULL,
+    database_type character varying(50) NOT NULL,
+    connection_config jsonb NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    password text,
+    credential_id uuid,
+    is_active boolean DEFAULT true,
+    schema_name character varying(50),
+    CONSTRAINT system_registry_database_type_check CHECK (((database_type)::text = ANY ((ARRAY['POSTGRES'::character varying, 'ORACLE'::character varying, 'SQLSERVER'::character varying, 'MYSQL'::character varying, 'SNOWFLAKE'::character varying, 'DATABRICKS'::character varying])::text[]))),
+    CONSTRAINT system_registry_system_role_check CHECK (((system_role)::text = ANY ((ARRAY['SOURCE'::character varying, 'TARGET'::character varying, 'ANALYTICS'::character varying])::text[])))
+);
+
+
+ALTER TABLE core.system_registry OWNER TO postgres;
+
+--
+-- Name: table_match_details; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.table_match_details (
+    detail_id uuid NOT NULL,
+    match_id uuid,
+    metric_name text,
+    metric_score numeric,
+    created_at timestamp without time zone
+);
+
+
+ALTER TABLE core.table_match_details OWNER TO postgres;
+
+--
+-- Name: table_match_details_legacy; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.table_match_details_legacy (
+    detail_id uuid NOT NULL,
+    match_id uuid,
+    metric_name text,
+    metric_score numeric,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE core.table_match_details_legacy OWNER TO postgres;
+
+--
+-- Name: table_matches; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.table_matches (
+    match_id uuid NOT NULL,
+    project_id uuid NOT NULL,
+    source_system_id uuid NOT NULL,
+    target_system_id uuid NOT NULL,
+    source_table text NOT NULL,
+    target_table text NOT NULL,
+    confidence_score numeric,
+    match_status text,
+    decision_reason text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+ALTER TABLE core.table_matches OWNER TO postgres;
+
+--
+-- Name: table_matches_legacy; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.table_matches_legacy (
+    match_id uuid NOT NULL,
+    project_id uuid,
+    source_system_id uuid,
+    target_system_id uuid,
+    source_table text,
+    target_table text,
+    confidence_score numeric,
+    match_status text,
+    created_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE core.table_matches_legacy OWNER TO postgres;
+
+--
+-- Name: tenants; Type: TABLE; Schema: core; Owner: postgres
+--
+
+CREATE TABLE core.tenants (
+    tenant_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    tenant_name character varying(200) NOT NULL,
+    status character varying(50) DEFAULT 'ACTIVE'::character varying NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE core.tenants OWNER TO postgres;
+
+--
+-- Data for Name: column_mappings; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.column_mappings (column_mapping_id, mapping_id, source_column_id, target_column_id, confidence_score, match_status, match_reason, created_at) FROM stdin;
+0198116c-a0e2-404b-b223-ca111c92b0e2	3ca26a5c-5fd5-40a2-b240-051796d41097	a8640ec8-5662-4abf-9bcc-b6fb01c8455c	971be92d-5399-4c85-82dc-deb84db16292	1.0	AUTO_MATCHED	EXACT_MATCH	2026-04-01 14:21:39.254657
+40c558e0-ba4d-4e5b-8840-5953715d27f4	3ca26a5c-5fd5-40a2-b240-051796d41097	64c12f4d-9bf7-4d1a-ac6b-d27f2de6dc7a	9e5bac23-ee93-4734-ae6f-b02dd3ade535	1.0	AUTO_MATCHED	EXACT_MATCH	2026-04-01 14:21:39.254657
+b9454fa6-d63b-4795-a1ec-13c5140071b1	a788da1c-ecf3-4221-b748-6a03508d2fe5	53125f42-844b-4bc7-9927-c1fe9e363890	b87ad2fc-a424-42dd-87bf-284b18335283	1.0	AUTO_MATCHED	EXACT_MATCH	2026-04-01 14:21:39.287274
+0b3509c3-b315-4c37-b391-68f436054822	a788da1c-ecf3-4221-b748-6a03508d2fe5	ea3dfdef-0629-43f2-a33e-bfd7f6bb4dad	b8cf2058-f9d4-46aa-982b-d139ff07dd26	1.0	AUTO_MATCHED	EXACT_MATCH	2026-04-01 14:21:39.287274
+\.
+
+
+--
+-- Data for Name: column_mappings_legacy; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.column_mappings_legacy (column_mapping_id, mapping_id, source_column_id, target_column_id, column_role, is_active, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: column_mappings_legacy_2; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.column_mappings_legacy_2 (column_mapping_id, mapping_id, source_column_id, target_column_id, confidence_score, match_status, match_reason, created_at) FROM stdin;
+bec870a3-0631-457b-b6f7-02bc72ec51d6	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	b8b1b41a-da84-4fc7-a8b4-2f313fce3197	df300aa1-d248-4ee9-9bcb-f14be9238bc3	1.0	AUTO_MATCHED	EXACT_MATCH	2026-03-31 00:23:11.896892
+e8fde2c7-26f1-417b-b5ab-32dcc0fcf0eb	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	7a52b2bb-e189-443e-9dbf-42f24223cc74	804f4243-09a1-4ce2-a188-508bf679da73	1.0	AUTO_MATCHED	EXACT_MATCH	2026-03-31 00:23:11.907731
+3cb5e985-a14c-4a68-b560-ee9589c0d996	7ebdc8d6-4637-47bb-84e4-63828009d50c	bd4de4c3-915b-453c-87e2-084f3d672475	189d131a-bb20-4242-9865-c81592f982ac	1.0	AUTO_MATCHED	EXACT_MATCH	2026-03-31 00:23:11.925831
+d53cc766-fe9c-4d50-bd51-09b48cee6356	7ebdc8d6-4637-47bb-84e4-63828009d50c	4f761807-e89c-4b88-8b66-6872fb41d450	71fb1969-9fef-4b29-9c71-3596d65c7192	1.0	AUTO_MATCHED	EXACT_MATCH	2026-03-31 00:23:11.927617
+90a4b819-db3b-46de-a54d-01c2235ba7f0	bfa33f37-27dc-442f-8977-01bb6663b6f4	d3edd998-0b9c-4d91-b090-b5ca84d43288	f984637b-7cc6-4200-8e51-3279e267f5a9	1.0	AUTO_MATCHED	EXACT_MATCH	2026-03-31 00:23:11.947636
+7d3c6798-3857-4e82-ac89-b13ce938c551	bfa33f37-27dc-442f-8977-01bb6663b6f4	d234f2ca-3cb0-4a79-a9ca-17367be779b5	24e5d776-d778-4cf1-ab3a-6e61fa41fefb	1.0	AUTO_MATCHED	EXACT_MATCH	2026-03-31 00:23:11.948831
+\.
+
+
+--
+-- Data for Name: dataset_columns; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.dataset_columns (column_id, mapping_id, column_name, column_position, data_type, column_side, created_at, is_nullable, is_primary_key, inferred_role, is_foreign_key, referenced_table, referenced_column) FROM stdin;
+a8640ec8-5662-4abf-9bcc-b6fb01c8455c	3ca26a5c-5fd5-40a2-b240-051796d41097	account_id	1	integer	SOURCE	2026-04-01 13:21:39.236588	f	t	PRIMARY_KEY	f	\N	\N
+64c12f4d-9bf7-4d1a-ac6b-d27f2de6dc7a	3ca26a5c-5fd5-40a2-b240-051796d41097	account_name	2	text	SOURCE	2026-04-01 13:21:39.239588	t	f	DIMENSION	f	\N	\N
+971be92d-5399-4c85-82dc-deb84db16292	3ca26a5c-5fd5-40a2-b240-051796d41097	account_id	1	integer	TARGET	2026-04-01 13:21:39.240588	f	t	PRIMARY_KEY	f	\N	\N
+9e5bac23-ee93-4734-ae6f-b02dd3ade535	3ca26a5c-5fd5-40a2-b240-051796d41097	account_name	2	text	TARGET	2026-04-01 13:21:39.241589	t	f	DIMENSION	f	\N	\N
+53125f42-844b-4bc7-9927-c1fe9e363890	a788da1c-ecf3-4221-b748-6a03508d2fe5	account_id	1	integer	SOURCE	2026-04-01 13:21:39.270569	f	t	PRIMARY_KEY	f	\N	\N
+ea3dfdef-0629-43f2-a33e-bfd7f6bb4dad	a788da1c-ecf3-4221-b748-6a03508d2fe5	balance	2	numeric	SOURCE	2026-04-01 13:21:39.271562	t	f	NUMERIC_METRIC	f	\N	\N
+b87ad2fc-a424-42dd-87bf-284b18335283	a788da1c-ecf3-4221-b748-6a03508d2fe5	account_id	1	integer	TARGET	2026-04-01 13:21:39.272569	f	t	PRIMARY_KEY	f	\N	\N
+b8cf2058-f9d4-46aa-982b-d139ff07dd26	a788da1c-ecf3-4221-b748-6a03508d2fe5	balance	2	numeric	TARGET	2026-04-01 13:21:39.274072	t	f	NUMERIC_METRIC	f	\N	\N
+71287fe8-7ddb-4a3d-ad55-8719a56245e4	7e2f39b6-c349-48dc-a47d-2615d7777908	account_id	1	integer	SOURCE	2026-04-01 13:21:39.303696	f	t	PRIMARY_KEY	f	\N	\N
+9b761742-0ff9-43e4-bd40-4a823ef719b0	7e2f39b6-c349-48dc-a47d-2615d7777908	customer_id	2	integer	SOURCE	2026-04-01 13:21:39.306163	t	f	IDENTIFIER	f	\N	\N
+9a075153-dbb1-4d3a-b38f-9877a6c9686d	7e2f39b6-c349-48dc-a47d-2615d7777908	account_id	1	integer	TARGET	2026-04-01 13:21:39.306693	f	t	PRIMARY_KEY	f	\N	\N
+aa27ffcf-14f9-481b-9af0-357d513a9f28	7e2f39b6-c349-48dc-a47d-2615d7777908	customer_id	2	integer	TARGET	2026-04-01 13:21:39.309098	t	f	IDENTIFIER	f	\N	\N
+\.
+
+
+--
+-- Data for Name: dataset_columns_future; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.dataset_columns_future (column_id, dataset_id, column_name, column_position, data_type, is_nullable, created_at, is_primary_key, inferred_role) FROM stdin;
+\.
+
+
+--
+-- Data for Name: dataset_columns_legacy; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.dataset_columns_legacy (column_id, mapping_id, column_name, column_position, data_type, column_side, created_at, is_nullable, is_primary_key, inferred_role) FROM stdin;
+b8b1b41a-da84-4fc7-a8b4-2f313fce3197	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	account_id	1	integer	SOURCE	2026-03-06 14:40:32.229215	t	t	PRIMARY_KEY
+7a52b2bb-e189-443e-9dbf-42f24223cc74	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	account_name	1	text	SOURCE	2026-03-06 14:40:32.229215	t	f	\N
+df300aa1-d248-4ee9-9bcb-f14be9238bc3	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	account_id	1	integer	TARGET	2026-03-06 14:40:32.229215	t	t	PRIMARY_KEY
+804f4243-09a1-4ce2-a188-508bf679da73	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	account_name	1	text	TARGET	2026-03-06 14:40:32.229215	t	f	\N
+bd4de4c3-915b-453c-87e2-084f3d672475	7ebdc8d6-4637-47bb-84e4-63828009d50c	account_id	1	integer	SOURCE	2026-03-06 14:40:32.229215	t	t	PRIMARY_KEY
+4f761807-e89c-4b88-8b66-6872fb41d450	7ebdc8d6-4637-47bb-84e4-63828009d50c	balance	1	numeric	SOURCE	2026-03-06 14:40:32.229215	t	f	NUMERIC_METRIC
+189d131a-bb20-4242-9865-c81592f982ac	7ebdc8d6-4637-47bb-84e4-63828009d50c	account_id	1	integer	TARGET	2026-03-06 14:40:32.229215	t	t	PRIMARY_KEY
+71fb1969-9fef-4b29-9c71-3596d65c7192	7ebdc8d6-4637-47bb-84e4-63828009d50c	balance	1	numeric	TARGET	2026-03-06 14:40:32.229215	t	f	NUMERIC_METRIC
+d3edd998-0b9c-4d91-b090-b5ca84d43288	bfa33f37-27dc-442f-8977-01bb6663b6f4	account_id	1	integer	SOURCE	2026-03-06 14:40:32.229215	t	t	PRIMARY_KEY
+d234f2ca-3cb0-4a79-a9ca-17367be779b5	bfa33f37-27dc-442f-8977-01bb6663b6f4	customer_id	1	integer	SOURCE	2026-03-06 14:40:32.229215	t	f	\N
+f984637b-7cc6-4200-8e51-3279e267f5a9	bfa33f37-27dc-442f-8977-01bb6663b6f4	account_id	1	integer	TARGET	2026-03-06 14:40:32.229215	t	t	PRIMARY_KEY
+24e5d776-d778-4cf1-ab3a-6e61fa41fefb	bfa33f37-27dc-442f-8977-01bb6663b6f4	customer_id	1	integer	TARGET	2026-03-06 14:40:32.229215	t	f	\N
+\.
+
+
+--
+-- Data for Name: dataset_mappings; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.dataset_mappings (mapping_id, project_id, source_system_id, target_system_id, source_schema, source_table, source_columns, target_schema, target_table, target_columns, is_active, created_at) FROM stdin;
+3ca26a5c-5fd5-40a2-b240-051796d41097	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	public	accounts_source	\N	public	accounts_target	\N	t	2026-04-01 13:21:39.056529
+a788da1c-ecf3-4221-b748-6a03508d2fe5	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	public	balances_source	\N	public	balances_target	\N	t	2026-04-01 13:21:39.258177
+7e2f39b6-c349-48dc-a47d-2615d7777908	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	public	customer_accounts_source	\N	public	customer_accounts_target	\N	t	2026-04-01 13:21:39.288092
+\.
+
+
+--
+-- Data for Name: dataset_mappings_legacy; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.dataset_mappings_legacy (mapping_id, project_id, source_system_id, target_system_id, source_schema, source_table, source_columns, target_schema, target_table, target_columns, is_active, created_at) FROM stdin;
+8ef6caa9-d570-49d4-8a0b-b5210e8feee3	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	public	accounts_source	{account_id,account_name}	public	accounts_target	{account_id,account_name}	t	2026-03-06 11:06:01.024303
+7ebdc8d6-4637-47bb-84e4-63828009d50c	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	public	balances_source	{account_id,balance}	public	balances_target	{account_id,balance}	t	2026-03-06 11:06:01.274887
+bfa33f37-27dc-442f-8977-01bb6663b6f4	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	public	customer_accounts_source	{account_id,customer_id}	public	customer_accounts_target	{account_id,customer_id}	t	2026-03-06 11:06:01.593006
+\.
+
+
+--
+-- Data for Name: datasets; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.datasets (dataset_id, system_id, schema_name, table_name, created_at) FROM stdin;
+1b4ed39b-1169-4b0d-b49a-df1f0abb0ef0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	public	balances_source	2026-03-24 17:48:00.810276
+05482bf8-839a-4632-8ca2-70a8d6f0bbad	99987703-20bf-4c48-a3c0-04e3f5be2d7d	public	customer_accounts_source	2026-03-24 17:48:00.817424
+ca02005f-6f2b-453b-843b-dba57b70be23	99987703-20bf-4c48-a3c0-04e3f5be2d7d	public	accounts_source	2026-03-24 17:48:00.818684
+b1e47f34-dce5-4477-81ad-99499c95b427	99987703-20bf-4c48-a3c0-04e3f5be2d7d	public	accounts_duplicate_test	2026-03-24 17:48:00.819825
+50acd73e-d128-40b6-b001-6b3694800294	80f1c83c-56d7-47fc-9487-debfc30b9360	public	accounts	2026-03-24 17:48:00.919345
+862da8a0-fdbe-4422-bb84-248265c91547	80f1c83c-56d7-47fc-9487-debfc30b9360	public	accounts_target	2026-03-24 17:48:00.921233
+21fc7eaa-1ac1-4816-a830-f768a7ccf2a4	80f1c83c-56d7-47fc-9487-debfc30b9360	public	balances_target	2026-03-24 17:48:00.922895
+38869571-76fa-4fbb-a4fd-e9818e66208c	80f1c83c-56d7-47fc-9487-debfc30b9360	public	customer_accounts_target	2026-03-24 17:48:00.924231
+\.
+
+
+--
+-- Data for Name: discovered_columns; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.discovered_columns (column_id, discovered_dataset_id, column_name, data_type, ordinal_position, is_nullable, is_primary_key, discovered_at) FROM stdin;
+9ec9909d-9d7b-4f0c-a5f4-1cb19ea0b4c2	211d9011-f978-4d45-a6dd-3b924ebe78e6	account_id	integer	1	f	f	2026-04-01 13:18:15.192473
+b68a4f13-c8f3-4a36-a72b-7e5c72fa6b6f	211d9011-f978-4d45-a6dd-3b924ebe78e6	account_name	text	2	f	f	2026-04-01 13:18:15.199199
+90bbb021-c664-412a-9bff-e647e82e8c2f	b98192eb-4fe8-4d00-ad4d-7c0e89f41f5d	account_id	integer	1	f	f	2026-04-01 13:18:15.213611
+f05db070-3501-4edb-84f7-b04a2a7bf91b	b98192eb-4fe8-4d00-ad4d-7c0e89f41f5d	account_name	text	2	f	f	2026-04-01 13:18:15.214609
+77dd431c-7e6b-4a38-bc2c-9f51b69544aa	8c1ad6cc-58e8-456c-a0a8-d49317dc7c97	account_id	integer	1	f	f	2026-04-01 13:18:15.223608
+184908f1-eed6-4407-8bea-218a53f157ad	8c1ad6cc-58e8-456c-a0a8-d49317dc7c97	balance	numeric	2	f	f	2026-04-01 13:18:15.224611
+4479c150-da44-4056-8789-c84db6740f04	06d69425-3f56-4917-ab7b-cc718c3c1f20	account_id	integer	1	f	f	2026-04-01 13:18:15.235176
+cbaa871e-beab-4a7e-9564-2c67c11ae1fc	06d69425-3f56-4917-ab7b-cc718c3c1f20	customer_id	integer	2	f	f	2026-04-01 13:18:15.236181
+d18ec646-db4d-4b92-af84-e417777b6def	b5ac6091-39f5-4257-9907-53824b8e769b	account_id	integer	1	f	f	2026-04-01 13:18:15.365641
+83c13e41-f50a-42c8-9fa6-0744c96394e3	b5ac6091-39f5-4257-9907-53824b8e769b	balance	numeric	2	f	f	2026-04-01 13:18:15.366649
+17ac823b-4e35-4379-bc09-bfa816b1d697	b03a983f-269d-44d5-bce3-471f6e636dfe	account_id	integer	1	f	f	2026-04-01 13:18:15.376824
+f855938d-43f8-4b2e-8b90-4bc56658d22a	b03a983f-269d-44d5-bce3-471f6e636dfe	account_name	text	2	f	f	2026-04-01 13:18:15.377847
+9f62bf0b-3656-4764-845a-3e5432710259	8601e249-3033-4ee4-b8aa-2dbe94c354a6	account_id	integer	1	f	f	2026-04-01 13:18:15.388057
+a595a8e8-1e7c-492f-9365-99ddafe29dda	8601e249-3033-4ee4-b8aa-2dbe94c354a6	balance	numeric	2	f	f	2026-04-01 13:18:15.389163
+8ecfca42-b194-4bf8-a4c0-ee3072970619	ff2b586b-d558-4712-9549-382583402854	account_id	integer	1	f	f	2026-04-01 13:18:15.399672
+2ef0a1f3-bebf-4b93-be41-b0f34419f235	ff2b586b-d558-4712-9549-382583402854	customer_id	integer	2	f	f	2026-04-01 13:18:15.399672
+\.
+
+
+--
+-- Data for Name: discovered_datasets; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.discovered_datasets (discovered_dataset_id, project_id, system_id, table_name, schema_name, discovered_at, last_seen) FROM stdin;
+211d9011-f978-4d45-a6dd-3b924ebe78e6	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	accounts_duplicate_test	public	2026-04-01 13:18:15.152807	2026-04-02 07:26:10.764832
+b98192eb-4fe8-4d00-ad4d-7c0e89f41f5d	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	accounts_source	public	2026-04-01 13:18:15.201182	2026-04-02 07:26:10.805378
+8c1ad6cc-58e8-456c-a0a8-d49317dc7c97	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	balances_source	public	2026-04-01 13:18:15.215603	2026-04-02 07:26:10.824016
+06d69425-3f56-4917-ab7b-cc718c3c1f20	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	customer_accounts_source	public	2026-04-01 13:18:15.226119	2026-04-02 07:26:10.841221
+b5ac6091-39f5-4257-9907-53824b8e769b	ae40b96c-20da-4972-bb29-bff3c2451ae0	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts	public	2026-04-01 13:18:15.337901	2026-04-02 07:26:10.992236
+b03a983f-269d-44d5-bce3-471f6e636dfe	ae40b96c-20da-4972-bb29-bff3c2451ae0	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_target	public	2026-04-01 13:18:15.366649	2026-04-02 07:26:11.033791
+8601e249-3033-4ee4-b8aa-2dbe94c354a6	ae40b96c-20da-4972-bb29-bff3c2451ae0	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_target	public	2026-04-01 13:18:15.378844	2026-04-02 07:26:11.046149
+ff2b586b-d558-4712-9549-382583402854	ae40b96c-20da-4972-bb29-bff3c2451ae0	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_target	public	2026-04-01 13:18:15.390077	2026-04-02 07:26:11.057975
+\.
+
+
+--
+-- Data for Name: mapping_suggestions; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.mapping_suggestions (suggestion_id, project_id, source_system_id, target_system_id, source_table, target_table, source_column, target_column, confidence_score, match_status, match_reason, mapping_type, approved, rejected, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: projects; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.projects (project_id, tenant_id, project_name, project_type, status, created_at) FROM stdin;
+ae40b96c-20da-4972-bb29-bff3c2451ae0	aaf73536-2fd0-461e-87be-aa980cc1a8f1	Legacy Migration Program	MIGRATION	ACTIVE	2026-02-22 19:21:47.262252
+\.
+
+
+--
+-- Data for Name: rule_dataset_mapping; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.rule_dataset_mapping (id, rule_id, mapping_id, is_active, created_at) FROM stdin;
+57257831-5285-478e-939d-601ad02c333e	C04_COLUMN_COUNT	3ca26a5c-5fd5-40a2-b240-051796d41097	t	2026-04-01 14:23:08.612352
+94971e26-3658-45c6-9468-175964950001	C07_DUPLICATE_DETECTION	3ca26a5c-5fd5-40a2-b240-051796d41097	t	2026-04-01 14:23:08.616775
+a375c661-06e3-481d-94b3-5c8f5874b960	C06_DATA_TYPE_MATCH	3ca26a5c-5fd5-40a2-b240-051796d41097	t	2026-04-01 14:23:08.618634
+2b27d8da-e133-4c23-92dc-c5fa783f575f	C03_REFERENTIAL	3ca26a5c-5fd5-40a2-b240-051796d41097	t	2026-04-01 14:23:08.620894
+5368f6ae-ea45-4588-b459-5074e911efa0	C010_SCHEMA_DRIFT	3ca26a5c-5fd5-40a2-b240-051796d41097	t	2026-04-01 14:23:08.622894
+4483bb04-b4c0-40e8-9962-fd90e527b364	C01_ROWCOUNT	3ca26a5c-5fd5-40a2-b240-051796d41097	t	2026-04-01 14:23:08.624385
+79511997-a878-4f75-89bd-9d6ea93f5825	C02_BALANCE_RECON	a788da1c-ecf3-4221-b748-6a03508d2fe5	t	2026-04-01 14:23:08.628975
+8468f92c-4610-4265-8351-7139b2aa44be	C04_COLUMN_COUNT	a788da1c-ecf3-4221-b748-6a03508d2fe5	t	2026-04-01 14:23:08.630865
+09a6a227-52e2-48ad-b311-2a5dc3c19b0d	C07_DUPLICATE_DETECTION	a788da1c-ecf3-4221-b748-6a03508d2fe5	t	2026-04-01 14:23:08.63235
+f8f8a033-4b77-4ca2-82af-996c9af44552	C08_DATA_DRIFT	a788da1c-ecf3-4221-b748-6a03508d2fe5	t	2026-04-01 14:23:08.63388
+afad110a-9307-4560-a95f-c216976b9370	C06_DATA_TYPE_MATCH	a788da1c-ecf3-4221-b748-6a03508d2fe5	t	2026-04-01 14:23:08.635778
+1436281a-1085-4649-a3f7-b6210765669e	C03_REFERENTIAL	a788da1c-ecf3-4221-b748-6a03508d2fe5	t	2026-04-01 14:23:08.637367
+ac351a59-ebd2-4a13-a4a9-69b343d3e0d7	C010_SCHEMA_DRIFT	a788da1c-ecf3-4221-b748-6a03508d2fe5	t	2026-04-01 14:23:08.638922
+b9b900ed-4bcf-4d4e-9736-766956f4f197	C01_ROWCOUNT	a788da1c-ecf3-4221-b748-6a03508d2fe5	t	2026-04-01 14:23:08.640876
+02b1b274-4a5a-4d23-aec3-9c352aa03445	C04_COLUMN_COUNT	7e2f39b6-c349-48dc-a47d-2615d7777908	t	2026-04-01 14:23:08.645414
+00b19c13-b771-4750-b426-92a9b30e3891	C07_DUPLICATE_DETECTION	7e2f39b6-c349-48dc-a47d-2615d7777908	t	2026-04-01 14:23:08.647427
+4aa983f6-3dd8-4e06-85cf-a350e7c16bc3	C06_DATA_TYPE_MATCH	7e2f39b6-c349-48dc-a47d-2615d7777908	t	2026-04-01 14:23:08.649135
+2fb10de7-5eea-43e0-8e80-e7907359e59d	C03_REFERENTIAL	7e2f39b6-c349-48dc-a47d-2615d7777908	t	2026-04-01 14:23:08.65082
+1e0cff67-9df2-4ab5-b0fd-e7d9d6f218ad	C010_SCHEMA_DRIFT	7e2f39b6-c349-48dc-a47d-2615d7777908	t	2026-04-01 14:23:08.652297
+635488af-597a-4d49-aac0-026d053fc034	C01_ROWCOUNT	7e2f39b6-c349-48dc-a47d-2615d7777908	t	2026-04-01 14:23:08.653829
+\.
+
+
+--
+-- Data for Name: rule_dataset_mapping_legacy; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.rule_dataset_mapping_legacy (id, rule_id, mapping_id, is_active, created_at) FROM stdin;
+fe261a81-edbf-4f72-b4d2-1765a483b2d2	C01_ROWCOUNT	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-07 23:19:39.04938
+99a0a5ee-aa3b-4bde-837a-cd63e0f20529	C03_REFERENTIAL	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-07 23:19:39.05709
+86433c27-1138-4cdb-b073-6320766c8aba	C04_COLUMN_COUNT	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-07 23:19:39.057967
+c25f509e-a880-4738-b0c7-d1c055b42b8e	C05_NULL_CHECK	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-07 23:19:39.058656
+b969cfe9-10f3-4108-a484-9a168e3a6e6d	C06_DATA_TYPE_MATCH	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-07 23:19:39.059212
+edc07dc9-3f8f-4d7b-b0ba-c7a55d0d6936	C01_ROWCOUNT	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-07 23:19:39.266491
+fcc01ce7-79d0-4f5c-9e7e-cef344d877cd	C03_REFERENTIAL	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-07 23:19:39.268274
+cc6a98b6-ab37-4138-bdba-ab41cc9a997d	C04_COLUMN_COUNT	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-07 23:19:39.268915
+b4622376-7caa-49dd-bf5b-65effc95b8a3	C05_NULL_CHECK	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-07 23:19:39.269339
+0f6b5d09-ece9-4e7c-8ea7-c07585bdda66	C06_DATA_TYPE_MATCH	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-07 23:19:39.269673
+d04ee004-4c01-42a9-a19e-07072b2b55f7	C01_ROWCOUNT	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-07 23:19:39.467857
+ae29b67e-eeb2-4422-b765-1c16c4940412	C03_REFERENTIAL	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-07 23:19:39.469696
+00d4bd91-5f67-41bb-9ab6-18d2aea7f472	C04_COLUMN_COUNT	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-07 23:19:39.470408
+c97091b6-5397-4e24-9f3d-16d604a210ae	C05_NULL_CHECK	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-07 23:19:39.471075
+52f1a61b-fdfa-4d77-b2a0-71bcf553a9db	C06_DATA_TYPE_MATCH	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-07 23:19:39.471642
+b3b1c7c5-a24e-4f92-a0f8-87d0d8a4bb2b	C07_DUPLICATE_DETECTION	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-08 03:18:27.299942
+68903070-666a-41b8-80c9-13a41d22b539	C07_DUPLICATE_DETECTION	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-08 03:18:27.308676
+35e966e2-7d5a-4caa-8265-f27dc1d3cd47	C02_BALANCE_RECON	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-08 03:18:27.311411
+aedb855e-800a-4bc4-b3d1-42fe824f4e68	C07_DUPLICATE_DETECTION	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-08 03:18:27.320673
+e0974eb1-3512-4120-b8c7-69ef6ebc0fdd	C02_BALANCE_RECON	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-08 04:52:40.515984
+c0cacff1-4edf-4471-8407-b3837a25d1c3	C02_BALANCE_RECON	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-08 04:52:40.664358
+cfcaddee-ea2d-4db4-9054-143c91113130	C08_DATA_DRIFT	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-08 09:14:13.678569
+6feaea37-4a33-492e-8b98-4be5f014593a	C08_DATA_DRIFT	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-08 09:14:13.862865
+287487a2-93b0-40b1-a20a-f16ba70cd332	C08_DATA_DRIFT	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-08 09:14:14.031328
+c9a8cca8-0d15-4618-be20-5a05e0d066dc	C09_REFERENTIAL_COVERAGE	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-08 12:32:25.711988
+a74013fe-5444-4bef-8544-0856e3fb93d1	C010_SCHEMA_DRIFT	7ebdc8d6-4637-47bb-84e4-63828009d50c	t	2026-03-08 12:32:25.721775
+c2b47717-ecbf-44d0-846b-0dc6436b0637	C09_REFERENTIAL_COVERAGE	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-08 12:32:25.913211
+64d2e155-796b-4c76-92b4-c91e6cfa0cdf	C010_SCHEMA_DRIFT	bfa33f37-27dc-442f-8977-01bb6663b6f4	t	2026-03-08 12:32:25.913796
+e1ef42ff-4ec2-4e56-be5c-3554c7da5898	C09_REFERENTIAL_COVERAGE	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-08 12:32:26.153587
+f93193e6-0097-4b6e-9d38-7909112c73ff	C010_SCHEMA_DRIFT	8ef6caa9-d570-49d4-8a0b-b5210e8feee3	t	2026-03-08 12:32:26.154534
+\.
+
+
+--
+-- Data for Name: schema_diff_details; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.schema_diff_details (detail_id, schema_diff_id, column_name, source_data_type, target_data_type, issue_type, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: schema_diffs; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.schema_diffs (schema_diff_id, project_id, source_system_id, target_system_id, source_table, target_table, diff_type, created_at, updated_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: schema_diffs_legacy; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.schema_diffs_legacy (schema_diff_id, project_id, source_system_id, target_system_id, table_name, diff_type, created_at) FROM stdin;
+66c2f2b6-12b8-4ddd-b9bc-74eb58181af1	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test → accounts_target	COLUMN_DIFF	2026-03-29 23:21:58.447913
+5e9157a3-4ee0-48d2-b03a-40f321594ff6	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source → accounts_target	COLUMN_DIFF	2026-03-29 23:21:58.594708
+ec393fce-d70f-48ec-8096-8c4e243b93ef	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source → balances_target	COLUMN_DIFF	2026-03-29 23:21:58.599715
+e628ad16-e1ac-40be-8ab3-1d996eb1f491	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source → customer_accounts_target	COLUMN_DIFF	2026-03-29 23:21:58.605671
+59100ce6-14b2-478e-9079-a81d833bda19	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test → accounts_target	COLUMN_DIFF	2026-03-29 23:36:12.600587
+a16ecfd2-8bc4-4cf9-85a3-c0f801cbdeeb	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source → accounts_target	COLUMN_DIFF	2026-03-29 23:36:12.929583
+74f0c7e8-c99b-4b10-b2a5-8957bd100cfb	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source → balances_target	COLUMN_DIFF	2026-03-29 23:36:12.940952
+861eeeef-76f0-4b49-b109-cd196575d2ef	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source → customer_accounts_target	COLUMN_DIFF	2026-03-29 23:36:12.949669
+c1b2391c-25df-4dff-ad82-0681b0bc0819	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.14218
+954ad6af-36a7-44ef-b3e9-ad4619f3800b	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.285739
+a07234d3-8602-4fa2-822b-6b4141124377	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source → balances_target	COLUMN_DIFF	2026-03-30 00:59:04.292339
+e440e949-e558-4c1e-a0c5-3c7cb82dead9	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source → customer_accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.297838
+0a184359-5a92-4d02-9dde-9d825ff905aa	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.305254
+adb1a5ca-99b7-4f55-9280-a8b0000891a9	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.311902
+d5b946a9-7f96-4058-afe3-f63ed321c44c	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source → balances_target	COLUMN_DIFF	2026-03-30 00:59:04.31855
+aaf3c901-5b8c-4695-be74-21e0dbd02cd0	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source → customer_accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.324563
+85f1ca6c-fc75-413d-b926-e3c5f84b076e	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.331771
+baf5a5b9-e48d-4038-915d-5d2f4ef01abb	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.33839
+6fee949c-e55f-4794-8838-fe508d8377e1	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source → balances_target	COLUMN_DIFF	2026-03-30 00:59:04.345387
+73608e53-090c-495b-9579-04c9ab89fbf4	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source → customer_accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.353424
+c5cb1427-6656-408f-baca-70095feec01b	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.35991
+20a33e32-3624-4052-9e97-ab811ffaf220	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.367182
+295be2ee-991d-47b9-8863-d36e3b5f0f4e	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source → balances_target	COLUMN_DIFF	2026-03-30 00:59:04.37372
+b5a7b74b-a1d7-47dc-9cda-bd61247e4d06	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source → customer_accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.380888
+029699b5-c1b8-44e6-8412-532f700e3817	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.387955
+1e0d169a-6a9a-443e-a6a0-23b03e90cc0e	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source → accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.397252
+86b63fe7-86ec-42ee-b8dd-9a2a439a3d0a	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source → balances_target	COLUMN_DIFF	2026-03-30 00:59:04.404971
+2729ee25-05db-44e4-980c-b43bb7c8a553	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source → customer_accounts_target	COLUMN_DIFF	2026-03-30 00:59:04.411107
+\.
+
+
+--
+-- Data for Name: system_credentials; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.system_credentials (credential_id, system_id, username, password_encrypted, encryption_key_id, created_at) FROM stdin;
+301b772e-3ce9-4923-9ff2-5aa5fb1c1acf	99987703-20bf-4c48-a3c0-04e3f5be2d7d	migration_user_source	\\x674141414141427035677143394b7341425968674e7947465673526843656e594147396a5f7270596b79726946326c394a68416c3438487554707956357552466467314d545178374f534c58456d384470677979305933485875634f43314a7375716a6267793273526a396e4746756673564b5572426f3d	env-key-1	2026-03-28 00:53:45.049618
+945d042a-9af1-4d16-94af-22d30bf69366	80f1c83c-56d7-47fc-9487-debfc30b9360	migration_user_target	\\x6741414141414270356771646233384d5a4c4273457a506359657a4a5f6e45426c58434a4f65436642305f476e6b39436c735854376e3339526a62437736627351614c373345494f4c3838656a4b565a71364c54336e7872595a774731586765747031444e4476756c617453366d6b4c7064795f3471633d	env-key-1	2026-03-28 00:25:51.339987
+abb7c542-bdde-4b93-a8a0-0e599b85844d	47c2c47e-d7ee-4092-95f1-0180f0872619	test_user	\\x674141414141427037434b444144526f5153685a385a46647873794c4c466351376e6d32383234373857584d79363647373747764a51565f4c7162663271327a6b733350693846584e477338497652726f4b2d5a4a7232376c4c65426f7368414f413d3d	env-key-1	2026-04-24 15:24:00.291857
+\.
+
+
+--
+-- Data for Name: system_registry; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.system_registry (system_id, project_id, system_name, system_role, database_type, connection_config, created_at, password, credential_id, is_active, schema_name) FROM stdin;
+80f1c83c-56d7-47fc-9487-debfc30b9360	ae40b96c-20da-4972-bb29-bff3c2451ae0	TargetDB	TARGET	POSTGRES	{"host": "localhost", "port": 5432, "user": "postgres", "database": "migration_target"}	2026-02-22 19:26:08.91895	\N	945d042a-9af1-4d16-94af-22d30bf69366	t	public
+99987703-20bf-4c48-a3c0-04e3f5be2d7d	ae40b96c-20da-4972-bb29-bff3c2451ae0	SourceDB	SOURCE	POSTGRES	{"host": "localhost", "port": 5432, "user": "postgres", "database": "migration_source"}	2026-02-22 19:22:49.046842	\N	301b772e-3ce9-4923-9ff2-5aa5fb1c1acf	t	public
+47c2c47e-d7ee-4092-95f1-0180f0872619	ae40b96c-20da-4972-bb29-bff3c2451ae0	TestSQL	SOURCE	SQLSERVER	{"host": "DEVWORK2\\\\SQLEXPRESS", "port": 1433, "database": "AdventureWorks2019"}	2026-04-24 15:19:29.911653	\N	abb7c542-bdde-4b93-a8a0-0e599b85844d	t	dbo
+\.
+
+
+--
+-- Data for Name: table_match_details; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.table_match_details (detail_id, match_id, metric_name, metric_score, created_at) FROM stdin;
+97c28c86-1736-43e9-ad50-5afff8b7384b	8e2053e9-be4e-4004-8451-03de76b397bf	NAME_SIMILARITY	0.516	2026-04-01 13:20:46.507851
+d5f89999-707a-49a5-88b7-a8d996c102dd	8e2053e9-be4e-4004-8451-03de76b397bf	COLUMN_OVERLAP	1.0	2026-04-01 13:20:46.511791
+9b58debe-aa0d-45ba-b386-893ced36ec9e	e6d94268-966d-474c-81b3-f7e130cdfb93	NAME_SIMILARITY	1.0	2026-04-01 13:20:46.513804
+df4d3793-6202-4a0e-97f1-3010fd6aa8dd	e6d94268-966d-474c-81b3-f7e130cdfb93	COLUMN_OVERLAP	1.0	2026-04-01 13:20:46.513804
+b9102489-75ab-4986-8e4b-9c7040961ac2	a6482a5b-37ac-4344-9a47-2e46f83939e9	NAME_SIMILARITY	1.0	2026-04-01 13:20:46.515804
+17fb84c2-97ee-4ab9-b7d7-85ce67a41af5	a6482a5b-37ac-4344-9a47-2e46f83939e9	COLUMN_OVERLAP	1.0	2026-04-01 13:20:46.516977
+d0211629-5771-4782-9bf7-e7167216ebdc	b1eea276-6247-4020-9b17-702d67206851	NAME_SIMILARITY	1.0	2026-04-01 13:20:46.518989
+67d9fa8f-f097-4266-ac5a-147c9c669bbf	b1eea276-6247-4020-9b17-702d67206851	COLUMN_OVERLAP	1.0	2026-04-01 13:20:46.519986
+\.
+
+
+--
+-- Data for Name: table_match_details_legacy; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.table_match_details_legacy (detail_id, match_id, metric_name, metric_score, created_at) FROM stdin;
+96271cad-d217-40aa-980e-93294f3c8ab3	4938d084-3904-4e27-8b20-d9a4381b6727	NAME_SIMILARITY	0.516	2026-03-29 22:33:26.630602
+7f173caf-e3eb-4a98-aeda-02b95619658e	4938d084-3904-4e27-8b20-d9a4381b6727	COLUMN_OVERLAP	1.0	2026-03-29 22:33:26.635083
+d17de2b3-66ba-4c47-b35d-18a1e0d2d794	5955fee5-7023-4355-9860-c356a9cbfec6	NAME_SIMILARITY	1.0	2026-03-29 22:33:26.638557
+7ec345e9-057b-4395-924b-aa1261c5b3ac	5955fee5-7023-4355-9860-c356a9cbfec6	COLUMN_OVERLAP	1.0	2026-03-29 22:33:26.639558
+f1b53b29-418f-46b9-84da-a301ae457336	04d40e59-7690-4d13-b4c4-ce7d50941de7	NAME_SIMILARITY	1.0	2026-03-29 22:33:26.641555
+f6196d32-49c2-45d0-9136-2c27ed1c2776	04d40e59-7690-4d13-b4c4-ce7d50941de7	COLUMN_OVERLAP	1.0	2026-03-29 22:33:26.641555
+8b5f1ea4-05ba-4f9f-8831-48a5ebf13a4a	22b9fc47-1ad6-4071-ace6-c7c2264865d3	NAME_SIMILARITY	1.0	2026-03-29 22:33:26.643554
+e9224057-ef95-4509-b0bc-2b9d1f79e831	22b9fc47-1ad6-4071-ace6-c7c2264865d3	COLUMN_OVERLAP	1.0	2026-03-29 22:33:26.644556
+b7aaa620-cfbd-407c-86ca-b4e0a4f1f8e8	291a1a77-d44f-4337-9272-aac102c0d1d5	NAME_SIMILARITY	0.516	2026-03-29 23:36:57.349636
+fe1cf9c3-910e-4baf-b520-89092c34f999	291a1a77-d44f-4337-9272-aac102c0d1d5	COLUMN_OVERLAP	1.0	2026-03-29 23:36:57.353655
+1d9018bb-024e-4e30-bd15-00a357c0928d	70f80e36-c391-48c0-97c6-050903fc7f70	NAME_SIMILARITY	1.0	2026-03-29 23:36:57.355646
+076a5c40-52d0-45b8-8850-01596793c16c	70f80e36-c391-48c0-97c6-050903fc7f70	COLUMN_OVERLAP	1.0	2026-03-29 23:36:57.355646
+124b195f-f2d1-40da-ae4a-03a1ee8d29be	ae890236-9634-4ecd-a2da-809b56b01e08	NAME_SIMILARITY	1.0	2026-03-29 23:36:57.356644
+2ecc57d5-eaaf-4256-b16f-638671270c74	ae890236-9634-4ecd-a2da-809b56b01e08	COLUMN_OVERLAP	1.0	2026-03-29 23:36:57.357726
+730e8877-fbba-4df8-8620-33d9c164139f	f52a0447-15c0-433e-b54c-f4ff371c910d	NAME_SIMILARITY	1.0	2026-03-29 23:36:57.359675
+c592a131-1f5e-4131-a9e5-f96d61ca1128	f52a0447-15c0-433e-b54c-f4ff371c910d	COLUMN_OVERLAP	1.0	2026-03-29 23:36:57.36064
+56247fed-fcea-4669-9ea7-6d3eb6be4746	7a42dac5-f6cd-4749-80ff-b2900d3c90b5	NAME_SIMILARITY	0.516	2026-03-29 23:37:41.733023
+f0d4aef8-c7f0-481a-85d8-c5299f940863	7a42dac5-f6cd-4749-80ff-b2900d3c90b5	COLUMN_OVERLAP	1.0	2026-03-29 23:37:41.735023
+e417b923-8caa-4d00-9a88-ce4f7a2cba42	07f3aae8-68ba-42a0-ae28-0653190f9965	NAME_SIMILARITY	1.0	2026-03-29 23:37:41.736538
+02d63160-47ed-4e51-8e94-cf1674329de9	07f3aae8-68ba-42a0-ae28-0653190f9965	COLUMN_OVERLAP	1.0	2026-03-29 23:37:41.737942
+96975f71-6279-46e8-8ff9-1e2f5e42663e	6f378920-04e5-4f07-b807-f41321192261	NAME_SIMILARITY	1.0	2026-03-29 23:37:41.739464
+57a9eaad-7a2a-424c-a54a-ec9882b699ee	6f378920-04e5-4f07-b807-f41321192261	COLUMN_OVERLAP	1.0	2026-03-29 23:37:41.740478
+c0171388-0b3f-464d-b120-f96d520a6953	4287e316-e174-423d-adc5-d8e0c9dcd31d	NAME_SIMILARITY	1.0	2026-03-29 23:37:41.742483
+d4b6e3d0-9c3e-481f-a8fa-3914651372e0	4287e316-e174-423d-adc5-d8e0c9dcd31d	COLUMN_OVERLAP	1.0	2026-03-29 23:37:41.742483
+beb3ec44-eec0-4ee6-86f1-6a28ae2f9713	53c61207-4844-4995-9a62-c344aa7a778b	NAME_SIMILARITY	0.516	2026-03-30 00:57:58.973737
+dedd2f03-60fc-49df-b117-1faeb2556bab	53c61207-4844-4995-9a62-c344aa7a778b	COLUMN_OVERLAP	1.0	2026-03-30 00:57:58.979268
+5ed5f630-2b69-4ffc-8593-e6f466627ea0	3394c697-af87-47f4-954b-1687eb935700	NAME_SIMILARITY	1.0	2026-03-30 00:57:58.981967
+8a0d2830-602d-4748-bc36-2a66c30a1304	3394c697-af87-47f4-954b-1687eb935700	COLUMN_OVERLAP	1.0	2026-03-30 00:57:58.982964
+35317cd8-bd2b-4f7a-80c8-42b1e7ce494e	13349932-4518-49fd-a6b5-c1cbdf503ccc	NAME_SIMILARITY	1.0	2026-03-30 00:57:58.985961
+125f487c-28a5-48e9-9ce9-3d8e79e5907b	13349932-4518-49fd-a6b5-c1cbdf503ccc	COLUMN_OVERLAP	1.0	2026-03-30 00:57:58.985961
+34026b7e-e94f-48b9-be46-4f4925badbed	099d6c14-eeb5-4110-b338-34009a9b869f	NAME_SIMILARITY	1.0	2026-03-30 00:57:58.989487
+ba7c6d29-62ee-4e3f-86fc-118b557383c4	099d6c14-eeb5-4110-b338-34009a9b869f	COLUMN_OVERLAP	1.0	2026-03-30 00:57:58.9905
+6e5208f7-eff1-4312-9543-3bba383b869b	15d7e66e-cb1a-4045-972f-8cb95daebe02	NAME_SIMILARITY	0.516	2026-03-30 00:58:32.295516
+91fd990e-e1a1-4208-986b-c0dfef891bdd	15d7e66e-cb1a-4045-972f-8cb95daebe02	COLUMN_OVERLAP	1.0	2026-03-30 00:58:32.296515
+5e6dd3cf-dfc7-4ad3-9483-c2e5654fb4b7	d560b1fb-8444-4e22-b615-4b9c45e1f3e6	NAME_SIMILARITY	1.0	2026-03-30 00:58:32.298754
+0e5cc29e-084e-43ec-90ff-3d236e8a3c08	d560b1fb-8444-4e22-b615-4b9c45e1f3e6	COLUMN_OVERLAP	1.0	2026-03-30 00:58:32.298754
+bd68ed76-c724-4e2a-8fa5-af830d25c876	e1cd3a5b-41fb-4baa-ae7a-e474ad98b7c7	NAME_SIMILARITY	1.0	2026-03-30 00:58:32.299751
+0fdc7f54-521a-484a-aa08-004ba2241c45	e1cd3a5b-41fb-4baa-ae7a-e474ad98b7c7	COLUMN_OVERLAP	1.0	2026-03-30 00:58:32.300797
+29024db0-2c0a-4c1f-893b-343a7f71ca68	8f5ec336-5780-405a-95e9-12cd12149912	NAME_SIMILARITY	1.0	2026-03-30 00:58:32.302387
+cd95d194-df49-4015-ae00-8d8ad31e39f7	8f5ec336-5780-405a-95e9-12cd12149912	COLUMN_OVERLAP	1.0	2026-03-30 00:58:32.303386
+\.
+
+
+--
+-- Data for Name: table_matches; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.table_matches (match_id, project_id, source_system_id, target_system_id, source_table, target_table, confidence_score, match_status, decision_reason, created_at, updated_at) FROM stdin;
+8e2053e9-be4e-4004-8451-03de76b397bf	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test	accounts_target	0.806	REVIEW_REQUIRED	Moderate confidence - needs review	2026-04-01 13:20:46.50231	2026-04-02 07:27:02.773787
+e6d94268-966d-474c-81b3-f7e130cdfb93	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source	accounts_target	1.0	AUTO_MATCHED	High confidence match	2026-04-01 13:20:46.512803	2026-04-02 07:27:02.778374
+a6482a5b-37ac-4344-9a47-2e46f83939e9	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source	balances_target	1.0	AUTO_MATCHED	High confidence match	2026-04-01 13:20:46.514806	2026-04-02 07:27:02.781374
+b1eea276-6247-4020-9b17-702d67206851	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source	customer_accounts_target	1.0	AUTO_MATCHED	High confidence match	2026-04-01 13:20:46.517998	2026-04-02 07:27:02.784058
+\.
+
+
+--
+-- Data for Name: table_matches_legacy; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.table_matches_legacy (match_id, project_id, source_system_id, target_system_id, source_table, target_table, confidence_score, match_status, created_at) FROM stdin;
+4938d084-3904-4e27-8b20-d9a4381b6727	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test	accounts_target	0.758	AUTO_MATCHED	2026-03-29 22:33:26.623207
+5955fee5-7023-4355-9860-c356a9cbfec6	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source	accounts_target	1.0	AUTO_MATCHED	2026-03-29 22:33:26.637561
+04d40e59-7690-4d13-b4c4-ce7d50941de7	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source	balances_target	1.0	AUTO_MATCHED	2026-03-29 22:33:26.640557
+22b9fc47-1ad6-4071-ace6-c7c2264865d3	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source	customer_accounts_target	1.0	AUTO_MATCHED	2026-03-29 22:33:26.642554
+291a1a77-d44f-4337-9272-aac102c0d1d5	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test	accounts_target	0.758	AUTO_MATCHED	2026-03-29 23:36:57.346713
+70f80e36-c391-48c0-97c6-050903fc7f70	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source	accounts_target	1.0	AUTO_MATCHED	2026-03-29 23:36:57.354654
+ae890236-9634-4ecd-a2da-809b56b01e08	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source	balances_target	1.0	AUTO_MATCHED	2026-03-29 23:36:57.356644
+f52a0447-15c0-433e-b54c-f4ff371c910d	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source	customer_accounts_target	1.0	AUTO_MATCHED	2026-03-29 23:36:57.357726
+7a42dac5-f6cd-4749-80ff-b2900d3c90b5	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test	accounts_target	0.758	AUTO_MATCHED	2026-03-29 23:37:41.730285
+07f3aae8-68ba-42a0-ae28-0653190f9965	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source	accounts_target	1.0	AUTO_MATCHED	2026-03-29 23:37:41.735023
+6f378920-04e5-4f07-b807-f41321192261	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source	balances_target	1.0	AUTO_MATCHED	2026-03-29 23:37:41.738953
+4287e316-e174-423d-adc5-d8e0c9dcd31d	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source	customer_accounts_target	1.0	AUTO_MATCHED	2026-03-29 23:37:41.741479
+53c61207-4844-4995-9a62-c344aa7a778b	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test	accounts_target	0.758	AUTO_MATCHED	2026-03-30 00:57:58.963618
+3394c697-af87-47f4-954b-1687eb935700	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source	accounts_target	1.0	AUTO_MATCHED	2026-03-30 00:57:58.980946
+13349932-4518-49fd-a6b5-c1cbdf503ccc	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source	balances_target	1.0	AUTO_MATCHED	2026-03-30 00:57:58.98496
+099d6c14-eeb5-4110-b338-34009a9b869f	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source	customer_accounts_target	1.0	AUTO_MATCHED	2026-03-30 00:57:58.988482
+15d7e66e-cb1a-4045-972f-8cb95daebe02	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_duplicate_test	accounts_target	0.758	AUTO_MATCHED	2026-03-30 00:58:32.292517
+d560b1fb-8444-4e22-b615-4b9c45e1f3e6	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	accounts_source	accounts_target	1.0	AUTO_MATCHED	2026-03-30 00:58:32.297518
+e1cd3a5b-41fb-4baa-ae7a-e474ad98b7c7	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	balances_source	balances_target	1.0	AUTO_MATCHED	2026-03-30 00:58:32.299751
+8f5ec336-5780-405a-95e9-12cd12149912	ae40b96c-20da-4972-bb29-bff3c2451ae0	99987703-20bf-4c48-a3c0-04e3f5be2d7d	80f1c83c-56d7-47fc-9487-debfc30b9360	customer_accounts_source	customer_accounts_target	1.0	AUTO_MATCHED	2026-03-30 00:58:32.301376
+\.
+
+
+--
+-- Data for Name: tenants; Type: TABLE DATA; Schema: core; Owner: postgres
+--
+
+COPY core.tenants (tenant_id, tenant_name, status, created_at) FROM stdin;
+aaf73536-2fd0-461e-87be-aa980cc1a8f1	Default Tenant	ACTIVE	2026-02-22 19:19:19.701441
+\.
+
+
+--
+-- Name: column_mappings_legacy column_mappings_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy
+    ADD CONSTRAINT column_mappings_pkey PRIMARY KEY (column_mapping_id);
+
+
+--
+-- Name: column_mappings column_mappings_pkey1; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings
+    ADD CONSTRAINT column_mappings_pkey1 PRIMARY KEY (column_mapping_id);
+
+
+--
+-- Name: column_mappings_legacy_2 column_mappings_pkey1_o; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy_2
+    ADD CONSTRAINT column_mappings_pkey1_o PRIMARY KEY (column_mapping_id);
+
+
+--
+-- Name: dataset_columns_future dataset_columns_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns_future
+    ADD CONSTRAINT dataset_columns_pkey PRIMARY KEY (column_id);
+
+
+--
+-- Name: dataset_columns dataset_columns_pkey_legacy; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns
+    ADD CONSTRAINT dataset_columns_pkey_legacy PRIMARY KEY (column_id);
+
+
+--
+-- Name: dataset_columns_legacy dataset_columns_pkey_legacy_o; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns_legacy
+    ADD CONSTRAINT dataset_columns_pkey_legacy_o PRIMARY KEY (column_id);
+
+
+--
+-- Name: dataset_mappings dataset_mappings_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings
+    ADD CONSTRAINT dataset_mappings_pkey PRIMARY KEY (mapping_id);
+
+
+--
+-- Name: dataset_mappings_legacy dataset_mappings_pkey_o; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings_legacy
+    ADD CONSTRAINT dataset_mappings_pkey_o PRIMARY KEY (mapping_id);
+
+
+--
+-- Name: datasets datasets_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.datasets
+    ADD CONSTRAINT datasets_pkey PRIMARY KEY (dataset_id);
+
+
+--
+-- Name: datasets datasets_system_id_schema_name_table_name_key; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.datasets
+    ADD CONSTRAINT datasets_system_id_schema_name_table_name_key UNIQUE (system_id, schema_name, table_name);
+
+
+--
+-- Name: discovered_columns discovered_columns_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.discovered_columns
+    ADD CONSTRAINT discovered_columns_pkey PRIMARY KEY (column_id);
+
+
+--
+-- Name: discovered_datasets discovered_datasets_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.discovered_datasets
+    ADD CONSTRAINT discovered_datasets_pkey PRIMARY KEY (discovered_dataset_id);
+
+
+--
+-- Name: discovered_datasets discovered_datasets_project_id_system_id_schema_name_table__key; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.discovered_datasets
+    ADD CONSTRAINT discovered_datasets_project_id_system_id_schema_name_table__key UNIQUE (project_id, system_id, schema_name, table_name);
+
+
+--
+-- Name: mapping_suggestions mapping_suggestions_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.mapping_suggestions
+    ADD CONSTRAINT mapping_suggestions_pkey PRIMARY KEY (suggestion_id);
+
+
+--
+-- Name: projects projects_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.projects
+    ADD CONSTRAINT projects_pkey PRIMARY KEY (project_id);
+
+
+--
+-- Name: projects projects_tenant_id_project_name_key; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.projects
+    ADD CONSTRAINT projects_tenant_id_project_name_key UNIQUE (tenant_id, project_name);
+
+
+--
+-- Name: rule_dataset_mapping_legacy rule_dataset_mapping_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.rule_dataset_mapping_legacy
+    ADD CONSTRAINT rule_dataset_mapping_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: rule_dataset_mapping rule_dataset_mapping_pkey1; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.rule_dataset_mapping
+    ADD CONSTRAINT rule_dataset_mapping_pkey1 PRIMARY KEY (id);
+
+
+--
+-- Name: schema_diff_details schema_diff_details_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.schema_diff_details
+    ADD CONSTRAINT schema_diff_details_pkey PRIMARY KEY (detail_id);
+
+
+--
+-- Name: schema_diffs_legacy schema_diffs_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.schema_diffs_legacy
+    ADD CONSTRAINT schema_diffs_pkey PRIMARY KEY (schema_diff_id);
+
+
+--
+-- Name: schema_diffs schema_diffs_pkey1; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.schema_diffs
+    ADD CONSTRAINT schema_diffs_pkey1 PRIMARY KEY (schema_diff_id);
+
+
+--
+-- Name: system_credentials system_credentials_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.system_credentials
+    ADD CONSTRAINT system_credentials_pkey PRIMARY KEY (credential_id);
+
+
+--
+-- Name: system_registry system_registry_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.system_registry
+    ADD CONSTRAINT system_registry_pkey PRIMARY KEY (system_id);
+
+
+--
+-- Name: system_registry system_registry_project_id_system_name_key; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.system_registry
+    ADD CONSTRAINT system_registry_project_id_system_name_key UNIQUE (project_id, system_name);
+
+
+--
+-- Name: table_match_details_legacy table_match_details_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.table_match_details_legacy
+    ADD CONSTRAINT table_match_details_pkey PRIMARY KEY (detail_id);
+
+
+--
+-- Name: table_match_details table_match_details_pkey1; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.table_match_details
+    ADD CONSTRAINT table_match_details_pkey1 PRIMARY KEY (detail_id);
+
+
+--
+-- Name: table_matches_legacy table_matches_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.table_matches_legacy
+    ADD CONSTRAINT table_matches_pkey PRIMARY KEY (match_id);
+
+
+--
+-- Name: table_matches table_matches_pkey1; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.table_matches
+    ADD CONSTRAINT table_matches_pkey1 PRIMARY KEY (match_id);
+
+
+--
+-- Name: tenants tenants_pkey; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.tenants
+    ADD CONSTRAINT tenants_pkey PRIMARY KEY (tenant_id);
+
+
+--
+-- Name: tenants tenants_tenant_name_key; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.tenants
+    ADD CONSTRAINT tenants_tenant_name_key UNIQUE (tenant_name);
+
+
+--
+-- Name: discovered_columns unique_dataset_column; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.discovered_columns
+    ADD CONSTRAINT unique_dataset_column UNIQUE (discovered_dataset_id, column_name);
+
+
+--
+-- Name: table_match_details unique_match_metric; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.table_match_details
+    ADD CONSTRAINT unique_match_metric UNIQUE (match_id, metric_name);
+
+
+--
+-- Name: table_matches unique_source_match; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.table_matches
+    ADD CONSTRAINT unique_source_match UNIQUE (project_id, source_system_id, target_system_id, source_table);
+
+
+--
+-- Name: system_credentials unique_system; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.system_credentials
+    ADD CONSTRAINT unique_system UNIQUE (system_id);
+
+
+--
+-- Name: schema_diffs unique_table_diff; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.schema_diffs
+    ADD CONSTRAINT unique_table_diff UNIQUE (project_id, source_system_id, target_system_id, source_table, target_table);
+
+
+--
+-- Name: column_mappings uq_column_match; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings
+    ADD CONSTRAINT uq_column_match UNIQUE (mapping_id, source_column_id);
+
+
+--
+-- Name: column_mappings_legacy_2 uq_column_match_o; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy_2
+    ADD CONSTRAINT uq_column_match_o UNIQUE (mapping_id, source_column_id);
+
+
+--
+-- Name: column_mappings_legacy uq_column_pair; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy
+    ADD CONSTRAINT uq_column_pair UNIQUE (mapping_id, source_column_id, target_column_id);
+
+
+--
+-- Name: dataset_columns_future uq_dataset_column; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns_future
+    ADD CONSTRAINT uq_dataset_column UNIQUE (dataset_id, column_name);
+
+
+--
+-- Name: dataset_columns uq_mapping_column_legacy; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns
+    ADD CONSTRAINT uq_mapping_column_legacy UNIQUE (mapping_id, column_name, column_side);
+
+
+--
+-- Name: dataset_columns_legacy uq_mapping_column_legacy_o; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns_legacy
+    ADD CONSTRAINT uq_mapping_column_legacy_o UNIQUE (mapping_id, column_name, column_side);
+
+
+--
+-- Name: dataset_mappings uq_project_source_target_1; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings
+    ADD CONSTRAINT uq_project_source_target_1 UNIQUE (project_id, source_schema, source_table, target_schema, target_table);
+
+
+--
+-- Name: dataset_mappings_legacy uq_project_source_target_o; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings_legacy
+    ADD CONSTRAINT uq_project_source_target_o UNIQUE (project_id, source_schema, source_table, target_schema, target_table);
+
+
+--
+-- Name: rule_dataset_mapping_legacy uq_rule_mapping; Type: CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.rule_dataset_mapping_legacy
+    ADD CONSTRAINT uq_rule_mapping UNIQUE (rule_id, mapping_id);
+
+
+--
+-- Name: dataset_columns dataset_columns_mapping_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns
+    ADD CONSTRAINT dataset_columns_mapping_id_fkey FOREIGN KEY (mapping_id) REFERENCES core.dataset_mappings(mapping_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dataset_columns_legacy dataset_columns_mapping_id_fkey_o; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns_legacy
+    ADD CONSTRAINT dataset_columns_mapping_id_fkey_o FOREIGN KEY (mapping_id) REFERENCES core.dataset_mappings_legacy(mapping_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dataset_mappings dataset_mappings_project_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings
+    ADD CONSTRAINT dataset_mappings_project_id_fkey FOREIGN KEY (project_id) REFERENCES core.projects(project_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dataset_mappings_legacy dataset_mappings_project_id_fkey_o; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings_legacy
+    ADD CONSTRAINT dataset_mappings_project_id_fkey_o FOREIGN KEY (project_id) REFERENCES core.projects(project_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dataset_mappings dataset_mappings_source_system_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings
+    ADD CONSTRAINT dataset_mappings_source_system_id_fkey FOREIGN KEY (source_system_id) REFERENCES core.system_registry(system_id);
+
+
+--
+-- Name: dataset_mappings_legacy dataset_mappings_source_system_id_fkey_o; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings_legacy
+    ADD CONSTRAINT dataset_mappings_source_system_id_fkey_o FOREIGN KEY (source_system_id) REFERENCES core.system_registry(system_id);
+
+
+--
+-- Name: dataset_mappings dataset_mappings_target_system_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings
+    ADD CONSTRAINT dataset_mappings_target_system_id_fkey FOREIGN KEY (target_system_id) REFERENCES core.system_registry(system_id);
+
+
+--
+-- Name: dataset_mappings_legacy dataset_mappings_target_system_id_fkey_o; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_mappings_legacy
+    ADD CONSTRAINT dataset_mappings_target_system_id_fkey_o FOREIGN KEY (target_system_id) REFERENCES core.system_registry(system_id);
+
+
+--
+-- Name: datasets datasets_system_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.datasets
+    ADD CONSTRAINT datasets_system_id_fkey FOREIGN KEY (system_id) REFERENCES core.system_registry(system_id) ON DELETE CASCADE;
+
+
+--
+-- Name: discovered_columns discovered_columns_discovered_dataset_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.discovered_columns
+    ADD CONSTRAINT discovered_columns_discovered_dataset_id_fkey FOREIGN KEY (discovered_dataset_id) REFERENCES core.discovered_datasets(discovered_dataset_id) ON DELETE CASCADE;
+
+
+--
+-- Name: column_mappings_legacy fk_column_mapping_mapping; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy
+    ADD CONSTRAINT fk_column_mapping_mapping FOREIGN KEY (mapping_id) REFERENCES core.dataset_mappings_legacy(mapping_id) ON DELETE CASCADE;
+
+
+--
+-- Name: dataset_columns_future fk_dataset; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.dataset_columns_future
+    ADD CONSTRAINT fk_dataset FOREIGN KEY (dataset_id) REFERENCES core.datasets(dataset_id) ON DELETE CASCADE;
+
+
+--
+-- Name: column_mappings fk_mapping; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings
+    ADD CONSTRAINT fk_mapping FOREIGN KEY (mapping_id) REFERENCES core.dataset_mappings(mapping_id) ON DELETE CASCADE;
+
+
+--
+-- Name: column_mappings_legacy_2 fk_mapping_o; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy_2
+    ADD CONSTRAINT fk_mapping_o FOREIGN KEY (mapping_id) REFERENCES core.dataset_mappings_legacy(mapping_id) ON DELETE CASCADE;
+
+
+--
+-- Name: rule_dataset_mapping fk_rule_dataset_mapping; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.rule_dataset_mapping
+    ADD CONSTRAINT fk_rule_dataset_mapping FOREIGN KEY (mapping_id) REFERENCES core.dataset_mappings(mapping_id) ON DELETE CASCADE;
+
+
+--
+-- Name: column_mappings fk_source_col; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings
+    ADD CONSTRAINT fk_source_col FOREIGN KEY (source_column_id) REFERENCES core.dataset_columns(column_id);
+
+
+--
+-- Name: column_mappings_legacy_2 fk_source_col_o; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy_2
+    ADD CONSTRAINT fk_source_col_o FOREIGN KEY (source_column_id) REFERENCES core.dataset_columns_legacy(column_id);
+
+
+--
+-- Name: column_mappings_legacy fk_source_column; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy
+    ADD CONSTRAINT fk_source_column FOREIGN KEY (source_column_id) REFERENCES core.dataset_columns_legacy(column_id) ON DELETE CASCADE;
+
+
+--
+-- Name: system_credentials fk_system; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.system_credentials
+    ADD CONSTRAINT fk_system FOREIGN KEY (system_id) REFERENCES core.system_registry(system_id) ON DELETE CASCADE;
+
+
+--
+-- Name: column_mappings fk_target_col; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings
+    ADD CONSTRAINT fk_target_col FOREIGN KEY (target_column_id) REFERENCES core.dataset_columns(column_id);
+
+
+--
+-- Name: column_mappings_legacy_2 fk_target_col_o; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy_2
+    ADD CONSTRAINT fk_target_col_o FOREIGN KEY (target_column_id) REFERENCES core.dataset_columns_legacy(column_id);
+
+
+--
+-- Name: column_mappings_legacy fk_target_column; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.column_mappings_legacy
+    ADD CONSTRAINT fk_target_column FOREIGN KEY (target_column_id) REFERENCES core.dataset_columns_legacy(column_id) ON DELETE CASCADE;
+
+
+--
+-- Name: projects projects_tenant_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.projects
+    ADD CONSTRAINT projects_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES core.tenants(tenant_id) ON DELETE CASCADE;
+
+
+--
+-- Name: schema_diff_details schema_diff_details_schema_diff_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.schema_diff_details
+    ADD CONSTRAINT schema_diff_details_schema_diff_id_fkey FOREIGN KEY (schema_diff_id) REFERENCES core.schema_diffs(schema_diff_id) ON DELETE CASCADE;
+
+
+--
+-- Name: system_registry system_registry_project_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.system_registry
+    ADD CONSTRAINT system_registry_project_id_fkey FOREIGN KEY (project_id) REFERENCES core.projects(project_id) ON DELETE CASCADE;
+
+
+--
+-- Name: table_match_details_legacy table_match_details_match_id_fkey; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.table_match_details_legacy
+    ADD CONSTRAINT table_match_details_match_id_fkey FOREIGN KEY (match_id) REFERENCES core.table_matches_legacy(match_id);
+
+
+--
+-- Name: table_match_details table_match_details_match_id_fkey1; Type: FK CONSTRAINT; Schema: core; Owner: postgres
+--
+
+ALTER TABLE ONLY core.table_match_details
+    ADD CONSTRAINT table_match_details_match_id_fkey1 FOREIGN KEY (match_id) REFERENCES core.table_matches(match_id) ON DELETE CASCADE;
+
+
+--
+-- Name: projects; Type: ROW SECURITY; Schema: core; Owner: postgres
+--
+
+ALTER TABLE core.projects ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: projects tenant_isolation_projects; Type: POLICY; Schema: core; Owner: postgres
+--
+
+CREATE POLICY tenant_isolation_projects ON core.projects USING ((tenant_id = (current_setting('app.tenant_id'::text))::uuid));
+
+
+--
+-- PostgreSQL database dump complete
+--
+
