@@ -1,0 +1,154 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 17.4
+-- Dumped by pg_dump version 17.4
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: accounts_source; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.accounts_source (
+    account_id integer NOT NULL,
+    account_name text
+);
+
+
+ALTER TABLE public.accounts_source OWNER TO postgres;
+
+--
+-- Name: balances_source; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.balances_source (
+    account_id integer NOT NULL,
+    balance numeric(18,2)
+);
+
+
+ALTER TABLE public.balances_source OWNER TO postgres;
+
+--
+-- Name: customer_accounts_source; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.customer_accounts_source (
+    account_id integer NOT NULL,
+    customer_id integer
+);
+
+
+ALTER TABLE public.customer_accounts_source OWNER TO postgres;
+
+--
+-- Data for Name: accounts_source; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.accounts_source (account_id, account_name) FROM stdin;
+1	Alice
+2	Bob
+3	Charlie
+4	Daisy
+\.
+
+
+--
+-- Data for Name: balances_source; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.balances_source (account_id, balance) FROM stdin;
+1	1000.00
+2	2000.00
+3	3000.00
+\.
+
+
+--
+-- Data for Name: customer_accounts_source; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.customer_accounts_source (account_id, customer_id) FROM stdin;
+1	10
+2	20
+3	30
+4	40
+\.
+
+
+--
+-- Name: accounts_source accounts_source_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.accounts_source
+    ADD CONSTRAINT accounts_source_pkey PRIMARY KEY (account_id);
+
+
+--
+-- Name: balances_source balances_source_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.balances_source
+    ADD CONSTRAINT balances_source_pkey PRIMARY KEY (account_id);
+
+
+--
+-- Name: customer_accounts_source customer_accounts_source_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.customer_accounts_source
+    ADD CONSTRAINT customer_accounts_source_pkey PRIMARY KEY (account_id);
+
+
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: pg_database_owner
+--
+
+GRANT USAGE ON SCHEMA public TO migration_user_source;
+GRANT USAGE ON SCHEMA public TO migration_user_target;
+
+
+--
+-- Name: TABLE accounts_source; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.accounts_source TO migration_user_source;
+GRANT SELECT ON TABLE public.accounts_source TO migration_user_target;
+
+
+--
+-- Name: TABLE balances_source; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.balances_source TO migration_user_source;
+GRANT SELECT ON TABLE public.balances_source TO migration_user_target;
+
+
+--
+-- Name: TABLE customer_accounts_source; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT ON TABLE public.customer_accounts_source TO migration_user_source;
+GRANT SELECT ON TABLE public.customer_accounts_source TO migration_user_target;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
