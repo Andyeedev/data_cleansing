@@ -1,0 +1,871 @@
+# Generate_00_Arch_999_Master_Gap_Analysis_Phase_C_REPLACEMENT.md
+
+You are generating Phase C of the MAP Nexus Enterprise Architecture Review.
+
+This is NOT a summary.
+
+This is NOT a copy of Phase A or Phase B.
+
+This is the MASTER GAP ANALYSIS.
+
+---
+
+## Primary Rule
+
+Never repeat numerical values simply because they appeared in Phase A or Phase B.
+
+If multiple reports disagree,
+
+DO NOT choose one.
+
+DO NOT average them.
+
+DO NOT guess.
+
+Instead state:
+
+"Evidence is inconsistent."
+
+and identify every conflicting source.
+
+---
+
+## Required Evidence Standard
+
+Every statement must be one of only four categories:
+
+### VERIFIED
+
+Supported consistently by multiple reports.
+
+### CONTRADICTED
+
+Two or more reports disagree.
+
+List every conflicting document.
+
+### MISSING
+
+No evidence exists.
+
+### UNVERIFIABLE
+
+Claim exists but supporting evidence cannot be located.
+
+---
+
+## Forbidden
+
+Never write:
+
+"The repository contains 85 documents"
+
+unless every inventory confirms it.
+
+Instead write:
+
+Repository document count cannot be confirmed.
+
+Evidence:
+
+Inventory A = XX
+
+Inventory B = YY
+
+Status = CONTRADICTED
+
+---
+
+## Layer Analysis
+
+For every architecture layer:
+
+State
+
+Verified Assets
+
+Contradictions
+
+Missing Evidence
+
+Unknown Items
+
+Confidence
+
+High
+
+Medium
+
+Low
+
+No assumptions.
+
+---
+
+## Statistics
+
+Never generate new totals.
+
+If totals disagree:
+
+State:
+
+Repository statistics remain unresolved.
+
+Do not calculate.
+
+Do not estimate.
+
+---
+
+## Gap Analysis
+
+Each gap must include
+
+Gap ID
+
+Evidence
+
+Conflicting Documents
+
+Business Impact
+
+Architectural Impact
+
+Risk
+
+Confidence
+
+Recommendation
+
+---
+
+## Repository Health
+
+Replace numerical scoring with confidence scoring.
+
+Example
+
+Repository Completeness
+
+Confidence: Medium
+
+Reason:
+Inventory reports disagree on document totals.
+
+---
+
+## Executive Summary
+
+Report only:
+
+Verified repository strengths
+
+Verified repository weaknesses
+
+Verified unresolved contradictions
+
+Verified missing evidence
+
+Highest architectural risks
+
+No unsupported numbers.
+
+
+
+---
+# Required Deliverables
+
+Produce the following markdown documents.
+# Working Output
+
+Generate all artefacts into the temporary engineering output area.
+
+engineering/
+└── MAP_V2/
+    └── 02_Output/
+        └──999_Master_Architecture_Consolidation/
+            └──999_Master_Gap_Analysis_Phase_C/
+
+
+---
+
+## Output
+
+Produce evidence-first documentation.
+
+If evidence conflicts,
+
+show the conflict,
+
+never resolve it.
+
+The objective is an auditable architecture review rather than a descriptive report.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Generate_00_Arch_999_Master_Gap_Analysis_Phase_C
+
+## Objective
+
+Regenerate the MAP Nexus Enterprise Architecture Phase C Gap Analysis from Phase A and Phase B evidence.
+
+This is a complete rebuild, not a patch or revision of previous Phase C documents.
+
+The output must be an authoritative, evidence-based Phase C assessment with zero invented metrics and zero numerical contradictions.
+
+---
+
+# Source Authority Rules
+
+Use only:
+
+1. Phase A Repository Inventory
+2. Phase A Contradiction Register
+3. Phase A Duplicate Register
+4. Phase A Evidence Gap Register
+5. Phase A Terminology Register
+6. Phase A Coverage Register
+7. Phase B Gap Register
+8. Phase B Traceability Model
+9. Phase B Contradiction Classification Register
+
+Do NOT use previous Phase C generated documents as factual sources.
+
+Previous Phase C documents may only be used for structure inspiration.
+
+---
+
+# Critical Generation Rules
+
+## 1. Numerical Integrity
+
+Before generating any document:
+
+Create an internal validation table containing:
+
+- Total documents
+- Layer document counts
+- Domain counts
+- Contradiction counts
+- Severity counts
+- Duplicate counts
+- Evidence gap counts
+- Terminology issue counts
+- Missing deliverable counts
+
+Every number must reconcile.
+
+If a number conflicts:
+
+STOP and resolve from Phase A/B authoritative sources.
+
+Never publish conflicting numbers.
+
+---
+
+## 2. Evidence First Rule
+
+Every finding must include:
+
+- Finding ID
+- Description
+- Evidence source
+- Severity
+- Impact
+- Recommendation
+
+No unsupported statements.
+
+Do not write:
+
+"Architecture appears complete"
+
+unless supported by inventory evidence.
+
+---
+
+## 3. Contradiction Handling
+
+Create a dedicated contradiction analysis.
+
+For every contradiction:
+
+Capture:
+
+- ID
+- Conflicting statements
+- Source documents
+- Severity
+- Business impact
+- Required resolution
+
+Do not summarise contradictions without preserving source evidence.
+
+---
+
+## 4. Duplicate Handling
+
+Analyse duplicate content by domain:
+
+- Security
+- Deployment
+- Backend
+- API
+- Database
+- Cross-domain
+
+For each duplicate:
+
+Identify:
+
+- Topic
+- Documents involved
+- Overlap type
+- Recommended authoritative location
+
+---
+
+## 5. Traceability Validation
+
+Validate these chains:
+
+Business Requirements
+→ Capabilities
+→ Processes
+→ Applications
+→ Services
+→ APIs
+→ Database
+→ Implementation
+→ Deployment
+→ Operations
+
+Explicitly identify:
+
+- Complete chains
+- Partial chains
+- Broken chains
+- Missing architecture documents
+
+
+
+---
+# Required Deliverables
+
+Produce the following markdown documents.
+# Working Output
+
+Generate all artefacts into the temporary engineering output area.
+
+engineering/
+└── MAP_V2/
+    └── 02_Output/
+        └──999_Master_Architecture_Consolidation/
+            └──999_Master_Gap_Analysis_Phase_C/
+
+
+---
+
+# Required Output Documents
+
+Generate:
+
+## 01_Executive_Summary.md
+
+Include:
+
+- Repository health
+- Coverage assessment
+- Consistency assessment
+- Traceability assessment
+- Overall maturity assessment
+
+---
+
+## 02_Repository_Statistics.md
+
+Include validated:
+
+- Document counts
+- Layer distribution
+- Domain distribution
+- Contradiction statistics
+- Duplicate statistics
+- Evidence statistics
+- Terminology statistics
+
+Numbers must match all other documents.
+
+---
+
+## 03_Gap_Analysis_by_Architecture_Layer.md
+
+Analyse:
+
+Layer 1 Core Architecture
+
+Layer 2 Application Architecture
+
+Layer 3 Functional Traceability
+
+Layer 4 Capability Model
+
+Layer 5 Process Model
+
+Layer 6 Data Model
+
+Layer 7 Solution Architecture
+
+Layer 8 Implementation Architecture
+
+For each:
+
+- Coverage
+- Strengths
+- Weaknesses
+- Missing deliverables
+- Evidence
+
+---
+
+## 04_Cross_Layer_Gap_Analysis.md
+
+Analyse:
+
+- Business → Application
+- Application → Data
+- Data → Technology
+- Technology → Deployment
+- Deployment → Implementation
+- Implementation → Operations
+- Security Chain
+- Governance Chain
+
+---
+
+## 05_Traceability_Gap_Analysis.md
+
+Include:
+
+- Traceability matrix
+- Broken chains
+- Missing mappings
+- Orphan components
+- Missing dependencies
+
+---
+
+## 06_Duplicate_Analysis.md
+
+Provide:
+
+- Duplicate summary
+- Domain breakdown
+- Detailed duplicate register references
+
+---
+
+## 07_Standards_Compliance_Analysis.md
+
+Analyse:
+
+- Naming
+- Numbering
+- Folder structure
+- Metadata
+- Versioning
+- Documentation standards
+
+---
+
+## 08_Missing_Deliverables.md
+
+Identify missing:
+
+Architecture documents:
+
+- Principles
+- Governance
+- Risk
+- Operations
+- Standards
+- Reference Architectures
+- Decision Log
+
+Process documents:
+
+- Requirements Traceability
+- Testing Architecture
+- Change Management
+
+Each item requires:
+
+- Reason required
+- Priority
+- Evidence
+
+---
+
+## 09_Recommended_Remediation_Roadmap.md
+
+Create:
+
+Phase C1:
+Critical corrections
+
+Phase C2:
+Traceability improvements
+
+Phase C3:
+Repository consistency
+
+Phase C4:
+Architecture maturity
+
+Every action must map to evidence.
+
+---
+
+## 10_Final_Repository_Assessment.md
+
+Provide final conclusion:
+
+Include:
+
+- Overall strengths
+- Overall weaknesses
+- Critical findings
+- Readiness assessment
+- Final recommendation
+
+---
+
+# Quality Gates Before Completion
+
+Before final output verify:
+
+[ ] All document counts reconcile
+
+[ ] All severity totals reconcile
+
+[ ] Duplicate totals reconcile
+
+[ ] Evidence gap totals reconcile
+
+[ ] Missing deliverable totals reconcile
+
+[ ] No references to previous Phase C documents
+
+[ ] No invented metrics
+
+[ ] Every finding has evidence
+
+[ ] Executive summary matches final assessment
+
+[ ] Statistics match all reports
+
+---
+
+# Final Status Requirement
+
+The final assessment must conclude one of:
+
+ACCEPTED:
+Repository provides reliable enterprise architecture baseline.
+
+CONDITIONALLY ACCEPTED:
+Repository is strong but requires remediation.
+
+REJECTED:
+Repository cannot be considered authoritative.
+
+The decision must be evidence-based.
+
+
+---
+
+
+# Production Promotion
+
+After engineering review and explicit user approval, promote all:
+
+
+
+to
+
+engineering/
+└── MAP_V2/
+    └── 00_Architecture/
+        └──999_Master_Architecture_Consolidation/
+            └──999_Master_Gap_Analysis_Phase_C/
+            (same files)
+
+
+
+
+--- 
+
+
+# Extended
+
+
+Execute the Extended Validation prompt. If an output already exists, validate it and regenerate only if evidence is insufficient or inconsistent.
+
+--- 
+
+
+
+
+# Generate_00_Arch_999_Master_Gap_Analysis_Phase_C_2_of_2_Extended_Validation.md
+
+You are generating Phase C of the MAP Nexus Enterprise Architecture Review.
+
+This is NOT a summary.
+
+This is NOT a copy of Phase A or Phase B.
+
+This is the MASTER GAP ANALYSIS.
+
+---
+
+## Primary Rule
+
+Never repeat numerical values simply because they appeared in Phase A or Phase B.
+
+If multiple reports disagree,
+
+DO NOT choose one.
+
+DO NOT average them.
+
+DO NOT guess.
+
+Instead state:
+
+"Evidence is inconsistent."
+
+and identify every conflicting source.
+
+---
+
+## Required Evidence Standard
+
+Every statement must be one of only four categories:
+
+### VERIFIED
+
+Supported consistently by multiple reports.
+
+### CONTRADICTED
+
+Two or more reports disagree.
+
+List every conflicting document.
+
+### MISSING
+
+No evidence exists.
+
+### UNVERIFIABLE
+
+Claim exists but supporting evidence cannot be located.
+
+---
+
+## Forbidden
+
+Never write:
+
+"The repository contains 85 documents"
+
+unless every inventory confirms it.
+
+Instead write:
+
+Repository document count cannot be confirmed.
+
+Evidence:
+
+Inventory A = XX
+
+Inventory B = YY
+
+Status = CONTRADICTED
+
+---
+
+## Layer Analysis
+
+For every architecture layer:
+
+State
+
+Verified Assets
+
+Contradictions
+
+Missing Evidence
+
+Unknown Items
+
+Confidence
+
+High
+
+Medium
+
+Low
+
+No assumptions.
+
+---
+
+## Statistics
+
+Never generate new totals.
+
+If totals disagree:
+
+State:
+
+Repository statistics remain unresolved.
+
+Do not calculate.
+
+Do not estimate.
+
+---
+
+## Gap Analysis
+
+Each gap must include
+
+Gap ID
+
+Evidence
+
+Conflicting Documents
+
+Business Impact
+
+Architectural Impact
+
+Risk
+
+Confidence
+
+Recommendation
+
+---
+
+## Repository Health
+
+Replace numerical scoring with confidence scoring.
+
+Example
+
+Repository Completeness
+
+Confidence: Medium
+
+Reason:
+Inventory reports disagree on document totals.
+
+---
+
+## Executive Summary
+
+Report only:
+
+Verified repository strengths
+
+Verified repository weaknesses
+
+Verified unresolved contradictions
+
+Verified missing evidence
+
+Highest architectural risks
+
+No unsupported numbers.
+
+---
+
+## Output
+
+Produce evidence-first documentation.
+
+If evidence conflicts,
+
+show the conflict,
+
+never resolve it.
+
+The objective is an auditable architecture review rather than a descriptive report.
+
+----
+## Output
+Recommended structure
+Phase C reports → Primary deliverables.
+QA Validation Report → Independent audit of those deliverables.
+
+
+
+# Working Output
+
+Generate '999_Master_Gap_Analysis_Phase_C_QA_Validation_Report' into the temporary engineering output area.
+
+engineering/
+└── MAP_V2/
+    └── 02_Output/
+        └── 999_Master_Gap_Analysis_Phase_C/
+        ├── 01_Executive_Summary.md
+        ├── 02_Repository_Statistics.md
+        ├── ...
+        ├── 12_Final_Recommendations.md
+        └── 999_Master_Gap_Analysis_Phase_C_QA_Validation_Report   ← Independent QA
+
+---
+
+
+# Production Promotion
+
+After engineering review and explicit user approval, promote all:
+
+
+to
+For example:
+
+engineering/
+└── MAP_V2/
+    └── 00_Architecture/
+        └── 999_Master_Gap_Analysis_Phase_C/
+        ├── 01_Executive_Summary.md
+        ├── 02_Repository_Statistics.md
+        ├── ...
+        ├── 12_Final_Recommendations.md
+        └── 999_Master_Gap_Analysis_Phase_C_QA_Validation_Report   ← Independent QA
+
+
+The QA report should contain
+Validation scope
+Evidence verification results
+Verified findings
+Contradictions detected
+Missing evidence
+Confidence assessment
+Accept / Conditionally Accept / Reject decision
+Recommended corrective actions

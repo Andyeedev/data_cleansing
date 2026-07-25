@@ -1,0 +1,8 @@
+[
+  {"transaction_id": "TXN-4001", "customer_id": 3001, "date": "2026-01-15", "amount": 1500.00, "type": "transfer", "status": "completed"},
+  {"transaction_id": "TXN-4002", "customer_id": 3002, "date": "2026-01-16", "amount": 850.50, "type": "payment", "status": "completed"},
+  {"transaction_id": "TXN-4003", "customer_id": 3003, "date": "2026-01-17", "amount": 3200.00, "type": "transfer", "status": "completed"},
+  {"transaction_id": "TXN-4004", "customer_id": 3001, "date": "2026-01-18", "amount": 420.75, "type": "payment", "status": "completed"},
+  {"transaction_id": "TXN-4005", "customer_id": 3004, "date": "2026-01-19", "amount": 7500.00, "type": "transfer", "status": "completed"},
+  {"transaction_id": "TXN-4006", "customer_id": 3005, "date": "2026-01-20", "amount": 2100.00, "type": "payment", "status": "pending"}
+]

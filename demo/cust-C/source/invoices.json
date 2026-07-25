@@ -1,0 +1,7 @@
+[
+  {"invoice_id": "INV-6001", "customer_id": 3001, "date": "2026-01-15", "total": 1500.00, "paid": true, "items": [{"desc": "Transfer fee", "amount": 1500.00}]},
+  {"invoice_id": "INV-6002", "customer_id": 3002, "date": "2026-01-16", "total": 850.50, "paid": true, "items": [{"desc": "Service payment", "amount": 850.50}]},
+  {"invoice_id": "INV-6003", "customer_id": 3003, "date": "2026-01-17", "total": 3200.00, "paid": false, "items": [{"desc": "Transfer fee", "amount": 3200.00}]},
+  {"invoice_id": "INV-6004", "customer_id": 3001, "date": "2026-01-18", "total": 420.75, "paid": true, "items": [{"desc": "Service payment", "amount": 420.75}]},
+  {"invoice_id": "INV-6005", "customer_id": 3004, "date": "2026-01-19", "total": 7500.00, "paid": true, "items": [{"desc": "Transfer fee", "amount": 7500.00}]}
+]

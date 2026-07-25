@@ -6,17 +6,15 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from passlib.context import CryptContext
+import bcrypt
 from app.db.connection import get_db_connection
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def migrate():
     admin_email = os.getenv("APP_ADMIN_USER", "admin@mapnexus.com")
     admin_pass = os.getenv("APP_ADMIN_PASS", "admin123")
 
-    password_hash = pwd_context.hash(admin_pass)
+    password_hash = bcrypt.hashpw(admin_pass.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     db = get_db_connection()
 

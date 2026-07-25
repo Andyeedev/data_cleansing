@@ -5,6 +5,7 @@ from datetime import datetime
 
 from app.db.connection import get_db_connection
 from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.rbac import require_permissions
 from app.api.helpers import standardize_response
 from app.services.calendar_service import CalendarService
 
@@ -41,10 +42,10 @@ def list_events(
     type: Optional[str] = None,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
-    current_user=Depends(get_current_user)
+    current_user=Depends(require_permissions("calendar:read"))
 ):
     db = get_db_connection()
-    service = CalendarService(db.conn)
+    service = CalendarService(db.conn, current_user.get("tenant_id"))
     return standardize_response(service.list_events(
         page=page, page_size=page_size,
         type=type, start_date=start_date, end_date=end_date
@@ -52,19 +53,19 @@ def list_events(
 
 
 @router.get("/events/{event_id}")
-def get_event(event_id: str, current_user=Depends(get_current_user)):
+def get_event(event_id: str, current_user=Depends(require_permissions("calendar:read"))):
     db = get_db_connection()
-    service = CalendarService(db.conn)
+    service = CalendarService(db.conn, current_user.get("tenant_id"))
     return standardize_response(service.get_event(event_id))
 
 
 @router.post("/events")
 def create_event(
     payload: EventCreateRequest,
-    current_user=Depends(get_current_user)
+    current_user=Depends(require_permissions("calendar:create"))
 ):
     db = get_db_connection()
-    service = CalendarService(db.conn)
+    service = CalendarService(db.conn, current_user.get("tenant_id"))
     return standardize_response(service.create_event(payload, current_user.get("sub")))
 
 
@@ -72,25 +73,25 @@ def create_event(
 def update_event(
     event_id: str,
     payload: EventUpdateRequest,
-    current_user=Depends(get_current_user)
+    current_user=Depends(require_permissions("calendar:update"))
 ):
     db = get_db_connection()
-    service = CalendarService(db.conn)
+    service = CalendarService(db.conn, current_user.get("tenant_id"))
     return standardize_response(service.update_event(event_id, payload))
 
 
 @router.delete("/events/{event_id}")
-def delete_event(event_id: str, current_user=Depends(get_current_user)):
+def delete_event(event_id: str, current_user=Depends(require_permissions("calendar:delete"))):
     db = get_db_connection()
-    service = CalendarService(db.conn)
+    service = CalendarService(db.conn, current_user.get("tenant_id"))
     return standardize_response(service.delete_event(event_id))
 
 
 @router.get("/events/upcoming/list")
 def get_upcoming_events(
     days: int = Query(7, ge=1, le=90),
-    current_user=Depends(get_current_user)
+    current_user=Depends(require_permissions("calendar:read"))
 ):
     db = get_db_connection()
-    service = CalendarService(db.conn)
+    service = CalendarService(db.conn, current_user.get("tenant_id"))
     return standardize_response(service.get_upcoming_events(days))

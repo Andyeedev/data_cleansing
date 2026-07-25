@@ -1,0 +1,6 @@
+[
+  {"payment_id": "PAY-5001", "transaction_id": "TXN-4001", "method": "bank_transfer", "amount": 1500.00, "fee": 5.00, "net_amount": 1495.00},
+  {"payment_id": "PAY-5002", "transaction_id": "TXN-4002", "method": "card", "amount": 850.50, "fee": 2.55, "net_amount": 847.95},
+  {"payment_id": "PAY-5003", "transaction_id": "TXN-4004", "method": "bank_transfer", "amount": 420.75, "fee": 1.50, "net_amount": 419.25},
+  {"payment_id": "PAY-5004", "transaction_id": "TXN-4005", "method": "bank_transfer", "amount": 7500.00, "fee": 15.00, "net_amount": 7485.00}
+]

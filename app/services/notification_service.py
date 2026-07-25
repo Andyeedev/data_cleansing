@@ -1,10 +1,14 @@
 import secrets
+import logging
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationService:
-    def __init__(self, conn):
+    def __init__(self, conn, tenant_id: str = None):
         self.conn = conn
+        self.tenant_id = tenant_id
 
     def list_notifications(self, user_id: str, page: int = 1, page_size: int = 50,
                            is_read: Optional[bool] = None, type: Optional[str] = None):
@@ -16,6 +20,10 @@ class NotificationService:
             WHERE user_id = %s
         """
         params = [user_id]
+
+        if self.tenant_id:
+            query += " AND tenant_id = %s"
+            params.append(self.tenant_id)
 
         if is_read is not None:
             query += " AND is_read = %s"

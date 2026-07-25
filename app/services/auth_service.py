@@ -1,11 +1,9 @@
 import os
+import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta
-from passlib.context import CryptContext
 from app.api.core.auth.jwt_config import SECRET_KEY, ALGORITHM
 from app.db.connection import get_db_connection
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthService:
@@ -28,7 +26,7 @@ class AuthService:
         if status != "active":
             raise Exception("Account is not active")
 
-        if not pwd_context.verify(password, password_hash):
+        if not bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
             raise Exception("Invalid credentials")
 
         with db.conn.cursor() as cur:
@@ -53,4 +51,4 @@ class AuthService:
         }
 
     def get_password_hash(self, password: str) -> str:
-        return pwd_context.hash(password)
+        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")

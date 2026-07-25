@@ -1,0 +1,48 @@
+from fastapi import APIRouter, Depends, HTTPException, Query
+from app.api.core.auth.dependencies import get_current_user
+from app.api.models.responses import APIResponse
+from app.services.dashboard_service import DashboardService
+
+router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
+
+dashboard_service = DashboardService()
+
+
+def _require_admin(current_user=Depends(get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Access denied. Admin role required.")
+    return current_user
+
+
+@router.get("/portfolio", response_model=APIResponse)
+def get_portfolio(
+    current_user=Depends(_require_admin)
+):
+    try:
+        result = dashboard_service.get_portfolio_summary()
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/kpis", response_model=APIResponse)
+def get_kpis(
+    current_user=Depends(_require_admin)
+):
+    try:
+        result = dashboard_service.get_kpis()
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/activity", response_model=APIResponse)
+def get_activity(
+    limit: int = Query(10, ge=1, le=50),
+    current_user=Depends(_require_admin)
+):
+    try:
+        result = dashboard_service.get_activity(limit)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

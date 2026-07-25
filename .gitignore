@@ -34,3 +34,14 @@ xd
 generate_docx_pdf.py
 v_*.md
 xd
+
+# Node
+node_modules/
+*.map
+package-lock.json
+
+# Binary
+*.exe
+
+# Temp files
+~$*

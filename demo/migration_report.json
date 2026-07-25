@@ -1,0 +1,42 @@
+{
+  "migration_job": {
+    "job_id": "JOB-2026-001",
+    "created_at": "2026-07-17T10:00:00Z",
+    "source": {
+      "database": "migration_source",
+      "table": "customers",
+      "row_count": 10
+    },
+    "target": {
+      "database": "migration_target",
+      "table": "customers",
+      "row_count": 11
+    },
+    "validation": {
+      "status": "completed",
+      "records_checked": 10,
+      "records_matched": 7,
+      "records_mismatched": 3,
+      "discrepancies": [
+        {
+          "row_id": 1005,
+          "field": "account_balance",
+          "source_value": "67000.00",
+          "target_value": "67500.00"
+        },
+        {
+          "row_id": 1006,
+          "field": "status",
+          "source_value": "active",
+          "target_value": "inactive"
+        },
+        {
+          "row_id": 1010,
+          "field": "account_balance",
+          "source_value": "11000.00",
+          "target_value": "11500.00"
+        }
+      ]
+    }
+  }
+}

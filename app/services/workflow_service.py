@@ -1,12 +1,16 @@
 import secrets
 import json
+import logging
 from typing import Optional
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
 
 class WorkflowService:
-    def __init__(self, conn):
+    def __init__(self, conn, tenant_id: str = None):
         self.conn = conn
+        self.tenant_id = tenant_id
 
     def list_workflows(self, page: int = 1, page_size: int = 50, type: Optional[str] = None, status: Optional[str] = None):
         offset = (page - 1) * page_size
@@ -17,6 +21,10 @@ class WorkflowService:
             WHERE deleted_at IS NULL
         """
         params = []
+
+        if self.tenant_id:
+            query += " AND tenant_id = %s"
+            params.append(self.tenant_id)
 
         if type:
             query += " AND type = %s"
@@ -34,7 +42,11 @@ class WorkflowService:
             workflows = [dict(zip(columns, row)) for row in cur.fetchall()]
 
             count_query = "SELECT COUNT(*) FROM platform.workflow_definitions WHERE deleted_at IS NULL"
-            cur.execute(count_query)
+            if self.tenant_id:
+                count_query += " AND tenant_id = %s"
+                cur.execute(count_query, (self.tenant_id,))
+            else:
+                cur.execute(count_query)
             total = cur.fetchone()[0]
 
         return {
@@ -64,24 +76,25 @@ class WorkflowService:
 
         return {"success": True, "data": workflow}
 
-    def create_workflow(self, payload):
+    def create_workflow(self, payload, user_id: str = None):
         workflow_id = secrets.token_uuid()
 
         query = """
             INSERT INTO platform.workflow_definitions 
-                (id, name, description, type, steps, triggers, status)
-            VALUES (%s, %s, %s, %s, %s, %s, 'draft')
+                (id, name, description, type, steps, triggers, status, tenant_id, created_by)
+            VALUES (%s, %s, %s, %s, %s, %s, 'draft', %s, %s)
             RETURNING id, name, description, type, status, created_at
         """
         with self.conn.cursor() as cur:
             cur.execute(query, (
                 workflow_id, payload.name, payload.description,
                 payload.type, json.dumps(payload.steps),
-                json.dumps(payload.triggers)
+                json.dumps(payload.triggers), self.tenant_id, user_id
             ))
             columns = [desc[0] for desc in cur.description]
             workflow = dict(zip(columns, cur.fetchone()))
 
+        logger.info(f"Workflow created: {workflow_id} by user {user_id}")
         return {"success": True, "data": workflow}
 
     def update_workflow(self, workflow_id: str, payload):
@@ -137,7 +150,7 @@ class WorkflowService:
 
         return {"success": True, "message": "Workflow deleted"}
 
-    def execute_workflow(self, workflow_id: str, payload):
+    def execute_workflow(self, workflow_id: str, payload, user_id: str = None):
         instance_id = secrets.token_uuid()
 
         query = """
@@ -152,12 +165,24 @@ class WorkflowService:
                 instance_id, workflow_id,
                 json.dumps(payload.context),
                 json.dumps(payload.variables),
-                payload.assigned_to,
+                user_id,
                 payload.assigned_to
             ))
             columns = [desc[0] for desc in cur.description]
             instance = dict(zip(columns, cur.fetchone()))
 
+            # Log workflow execution to history
+            history_query = """
+                INSERT INTO platform.workflow_history 
+                    (workflow_definition_id, workflow_instance_id, action, performed_by, details)
+                VALUES (%s, %s, 'executed', %s, %s)
+            """
+            cur.execute(history_query, (
+                workflow_id, instance_id, user_id,
+                json.dumps({"context": payload.context, "variables": payload.variables})
+            ))
+
+        logger.info(f"Workflow executed: {workflow_id}, instance: {instance_id} by user {user_id}")
         return {"success": True, "data": instance}
 
     def get_workflow_instances(self, workflow_id: str, page: int = 1, page_size: int = 50):

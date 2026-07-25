@@ -1,0 +1,122 @@
+First priority: back up your work
+
+Before doing any repairs, copy any important files to an external drive or cloud storage if you can. If the SSD is developing problems, repairs can sometimes make the situation worse.
+
+Step 1: Check the SSD
+
+Open an elevated Command Prompt and run:
+
+chkdsk C: /scan
+
+Then:
+
+wmic diskdrive get model,status
+
+A "Status = OK" result is only a basic health check, but it's still useful.
+
+If you have an NVMe SSD (Samsung, WD, Crucial, Kingston, etc.), tell me the model. We can use the manufacturer's diagnostic tool if needed.
+
+Step 2: Try DISM
+
+Since SFC couldn't repair everything, the next step is:
+
+DISM /Online /Cleanup-Image /CheckHealth
+
+then
+
+DISM /Online /Cleanup-Image /ScanHealth
+
+then
+
+DISM /Online /Cleanup-Image /RestoreHealth
+
+If RestoreHealth completes successfully, run:
+
+sfc /scannow
+
+again.
+
+Please copy the output from the DISM commands.
+
+Step 3: Check Event Viewer
+
+Open:
+
+eventvwr.msc
+
+Look under:
+
+Windows Logs
+    System
+
+and
+
+Windows Logs
+    Application
+
+Look for lots of:
+
+Disk
+NTFS
+Kernel-Power
+Display
+WHEA
+Explorer
+
+errors around the time the freezing started.
+
+Step 4: Check Reliability Monitor
+
+Press:
+
+Win + R
+
+Run:
+
+perfmon /rel
+
+This often gives a much clearer timeline of what started failing.
+
+A screenshot of the graph would be very helpful.
+
+Step 5: Graphics driver
+
+The flickering makes me suspicious of the display driver.
+
+Tell me:
+
+Laptop make/model
+Intel or AMD CPU?
+NVIDIA GPU?
+
+If Windows is barely usable, we may need to reinstall the graphics driver.
+
+Step 6: About Safe Mode and BitLocker
+
+You mentioned:
+
+I cannot start in safe mode as it requires BitLocker which I don't have.
+
+That usually means Device Encryption or BitLocker is enabled and Windows is asking for the recovery key.
+
+Please check:
+
+Settings
+→ Privacy & security
+→ Device encryption
+
+or
+
+Control Panel
+→ BitLocker Drive Encryption
+
+Many Windows 11 laptops automatically enable device encryption when you sign in with a Microsoft account.
+
+The recovery key is often available in your Microsoft account if that's how you sign in.
+
+A few questions
+What laptop is this? (Dell XPS, Lenovo ThinkPad, HP, etc.)
+Did Windows Update install anything yesterday or today?
+Did this start after a reboot?
+Can you still open Task Manager with Ctrl + Shift + Esc?
+Can you open Command Prompt and PowerShell reliably?

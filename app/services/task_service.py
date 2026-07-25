@@ -1,12 +1,16 @@
 import secrets
 import json
+import logging
 from typing import Optional
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
 
 class TaskService:
-    def __init__(self, conn):
+    def __init__(self, conn, tenant_id: str = None):
         self.conn = conn
+        self.tenant_id = tenant_id
 
     def list_tasks(self, page: int = 1, page_size: int = 50, status: Optional[str] = None, 
                    priority: Optional[str] = None, assigned_to: Optional[str] = None):
@@ -18,6 +22,10 @@ class TaskService:
             WHERE deleted_at IS NULL
         """
         params = []
+
+        if self.tenant_id:
+            query += " AND tenant_id = %s"
+            params.append(self.tenant_id)
 
         if status:
             query += " AND status = %s"
@@ -38,7 +46,11 @@ class TaskService:
             tasks = [dict(zip(columns, row)) for row in cur.fetchall()]
 
             count_query = "SELECT COUNT(*) FROM platform.tasks WHERE deleted_at IS NULL"
-            cur.execute(count_query)
+            if self.tenant_id:
+                count_query += " AND tenant_id = %s"
+                cur.execute(count_query, (self.tenant_id,))
+            else:
+                cur.execute(count_query)
             total = cur.fetchone()[0]
 
         return {
@@ -76,8 +88,8 @@ class TaskService:
         query = """
             INSERT INTO platform.tasks 
                 (id, title, description, priority, type, assigned_to,
-                 assigned_by, parent_task_id, due_date, estimated_hours, tags)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 assigned_by, parent_task_id, due_date, estimated_hours, tags, tenant_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, title, status, priority, created_at
         """
         with self.conn.cursor() as cur:
@@ -85,11 +97,12 @@ class TaskService:
                 task_id, payload.title, payload.description,
                 payload.priority, payload.type, payload.assigned_to,
                 user_id, payload.parent_task_id, payload.due_date,
-                payload.estimated_hours, json.dumps(payload.tags)
+                payload.estimated_hours, json.dumps(payload.tags), self.tenant_id
             ))
             columns = [desc[0] for desc in cur.description]
             task = dict(zip(columns, cur.fetchone()))
 
+        logger.info(f"Task created: {task_id} by user {user_id}")
         return {"success": True, "data": task}
 
     def update_task(self, task_id: str, payload):

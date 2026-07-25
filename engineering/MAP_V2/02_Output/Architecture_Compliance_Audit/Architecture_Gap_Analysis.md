@@ -82,7 +82,7 @@
 > 08_Security_Architecture.md: "Secrets Management: Azure Key Vault preferred; never hard-code credentials"
 
 **Current State:**
-- `JWT_SECRET_KEY=my_super_secret_key_1234567890_very_secure` in `.env`
+- `JWT_SECRET_KEY=REDACTED` in `.env`
 - Same secret across all environments
 
 **Impact:** Token forgery if secret is leaked.

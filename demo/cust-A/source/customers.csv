@@ -1,0 +1,9 @@
+customer_id,first_name,last_name,email,phone,date_of_birth,account_balance,account_type,status
+1001,John,Smith,john.smith@email.com,+447911123456,1985-03-15,15000.00,savings,active
+1002,Sarah,Johnson,sarah.j@email.com,+447922234567,1990-07-22,8500.00,checking,active
+1003,Michael,Brown,m.brown@email.com,+447933345678,1978-11-03,42000.00,savings,active
+1004,Emily,Davis,emily.d@email.com,+447944456789,1995-01-28,3200.00,checking,active
+1005,James,Wilson,j.wilson@email.com,+447955567890,1982-09-12,67000.00,premium,active
+1006,Emma,Taylor,emma.t@email.com,+447966678901,1988-06-17,12000.00,savings,active
+1007,David,Anderson,d.anderson@email.com,+447977789012,1975-04-30,95000.00,premium,active
+1008,Lucy,Thomas,lucy.t@email.com,+447988890123,1992-12-08,5800.00,checking,active

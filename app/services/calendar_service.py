@@ -1,12 +1,16 @@
 import secrets
 import json
+import logging
 from typing import Optional
 from datetime import datetime, timedelta
 
+logger = logging.getLogger(__name__)
+
 
 class CalendarService:
-    def __init__(self, conn):
+    def __init__(self, conn, tenant_id: str = None):
         self.conn = conn
+        self.tenant_id = tenant_id
 
     def list_events(self, page: int = 1, page_size: int = 50, type: Optional[str] = None,
                     start_date: Optional[datetime] = None, end_date: Optional[datetime] = None):
@@ -18,6 +22,10 @@ class CalendarService:
             WHERE deleted_at IS NULL
         """
         params = []
+
+        if self.tenant_id:
+            query += " AND tenant_id = %s"
+            params.append(self.tenant_id)
 
         if type:
             query += " AND type = %s"
