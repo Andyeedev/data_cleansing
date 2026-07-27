@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../ThemeToggle';
 import { RoleSwitcher } from '../RoleSwitcher/RoleSwitcher';
+import { useAuth } from '../../context/AuthContext';
 
 interface LayoutProps {
   sidebar: ReactNode;
@@ -10,6 +11,15 @@ interface LayoutProps {
 }
 
 export function Layout({ sidebar, children, breadcrumb, loading }: LayoutProps) {
+  const { logout } = useAuth();
+  
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      await logout();
+      window.location.href = '/login';
+    }
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <aside
@@ -43,6 +53,22 @@ export function Layout({ sidebar, children, breadcrumb, loading }: LayoutProps) 
         >
           <RoleSwitcher />
           <ThemeToggle />
+          <button
+            onClick={handleLogout}
+            style={{ 
+              marginLeft: 16, 
+              padding: '8px 16px', 
+              background: 'var(--color-error)', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: 4, 
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 600
+            }}
+          >
+            Logout
+          </button>
         </header>
         {breadcrumb && (
           <div style={{ padding: '0 24px', borderBottom: '1px solid var(--color-border)' }}>

@@ -1,5 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Shell } from './components/Shell/Shell';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { LoginPage } from './routes/LoginPage';
 import { HomePage } from './routes/HomePage';
 import { DashboardPage } from './routes/DashboardPage';
 import { MigrationPage } from './routes/MigrationPage';
@@ -31,8 +33,10 @@ import { NotFoundPage } from './routes/NotFoundPage';
 export function AppRoutes() {
   return (
     <Routes>
-      <Route element={<Shell />}>
-        <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+
+      <Route element={<ProtectedRoute><Shell /></ProtectedRoute>}>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
 
         <Route path="/migration" element={<MigrationPage />} />

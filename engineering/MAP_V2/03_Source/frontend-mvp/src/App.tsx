@@ -5,7 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 export function App() {
   return (
     <BrowserRouter>
-      <AuthProvider initialRole="viewer">
+      <AuthProvider>
         <AppRoutes />
       </AuthProvider>
     </BrowserRouter>

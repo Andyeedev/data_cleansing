@@ -50,7 +50,8 @@ describe('RolesPage Integration', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/roles')
+        expect.stringContaining('/api/v1/roles'),
+        expect.anything()
       );
     });
   });
@@ -103,7 +104,8 @@ describe('RolesPage Integration', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('status=active')
+        expect.stringContaining('status=active'),
+        expect.anything()
       );
     });
   });
@@ -157,7 +159,8 @@ describe('RolesPage Integration', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('page=2')
+        expect.stringContaining('page=2'),
+        expect.anything()
       );
     });
   });

@@ -62,7 +62,8 @@ describe('MigrationPage Integration', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/execution/history')
+        expect.stringContaining('/api/v1/execution/history'),
+        expect.any(Object)
       );
     });
   });

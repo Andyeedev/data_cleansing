@@ -58,7 +58,11 @@ export function Shell({ navItems: overrideNavItems, userRoles: propRoles }: Shel
   useEffect(() => {
     if (overrideNavItems) return;
 
-    fetch(NAV_API_URL)
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    fetch(NAV_API_URL, { headers })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

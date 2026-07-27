@@ -1,9 +1,8 @@
 import { useAuth } from '../../context/AuthContext';
-import type { MockRole } from '../../types/auth';
 
-const ROLES: MockRole[] = ['admin', 'manager', 'operator', 'viewer'];
+const ROLES = ['admin', 'manager', 'operator', 'viewer'] as const;
 
-const ROLE_LABELS: Record<MockRole, string> = {
+const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
   manager: 'Manager',
   operator: 'Operator',
@@ -11,15 +10,17 @@ const ROLE_LABELS: Record<MockRole, string> = {
 };
 
 export function RoleSwitcher() {
-  const { user, switchRole } = useAuth();
+  const { user, userRoles, switchRole } = useAuth();
+
+  if (!user) return null;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 12 }}>
       <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Role:</span>
       <select
         aria-label="Switch role"
-        value={user.roles[0]}
-        onChange={(e) => switchRole(e.target.value as MockRole)}
+        value={userRoles[0] ?? 'viewer'}
+        onChange={(e) => switchRole(e.target.value)}
         style={{
           background: 'var(--color-bg)',
           color: 'var(--color-text)',

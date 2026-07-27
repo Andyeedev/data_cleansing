@@ -35,8 +35,13 @@ export function useExecutionHistory() {
     setLoading(true);
     setError(null);
     try {
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const headers: HeadersInit = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      
       const res = await fetch(
-        `${API_BASE}/execution/history?page=${pageNum}&page_size=${pageSize}`
+        `${API_BASE}/execution/history?page=${pageNum}&page_size=${pageSize}`,
+        { headers }
       );
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);

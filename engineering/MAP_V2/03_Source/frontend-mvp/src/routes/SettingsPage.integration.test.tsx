@@ -57,7 +57,8 @@ describe('SettingsPage Integration', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/settings')
+        expect.stringContaining('/api/v1/settings'),
+        expect.anything()
       );
     });
   });

@@ -81,7 +81,8 @@ describe('GovernancePage Integration', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/governance/compliance')
+        expect.stringContaining('/api/v1/governance/compliance'),
+        expect.anything()
       );
     });
   });
@@ -110,7 +111,8 @@ describe('GovernancePage Integration', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/governance/audit')
+        expect.stringContaining('/api/v1/governance/audit'),
+        expect.anything()
       );
     });
   });
@@ -163,7 +165,8 @@ describe('GovernancePage Integration', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/governance/approvals')
+        expect.stringContaining('/api/v1/governance/approvals'),
+        expect.anything()
       );
     });
   });

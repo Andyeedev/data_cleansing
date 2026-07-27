@@ -78,6 +78,75 @@ Matching names alone are insufficient. If either condition fails, stop and repor
 
 After verifying schema compatibility, verify every selected column, filter column, JOIN column, GROUP BY column, ORDER BY column, and aggregate exists in the replacement table (or can be obtained through an existing documented relationship). If the repository query cannot be reproduced without redesigning the query, stop and report the incompatibility rather than rewriting business logic.
 
+### RULE 18: Frontend Traceability (Capability Matrix)
+
+**Every frontend feature must be traceable to exactly one authoritative MAP CLI business capability.**
+
+#### Business Capability First
+
+The frontend must bind to the authoritative MAP CLI **business capability**, not to a table name. Tables are implementation details. The authoritative source is the table currently populated by MAP CLI that best represents the business function. If no authoritative source exists, the feature must be marked **Not Implementable** rather than inventing new storage.
+
+#### Implementation Checklist
+
+Before implementing any dashboard or API endpoint, OpenCode must:
+
+1. **Identify** the authoritative MAP CLI table that provides the data
+2. **Verify** the table is actively populated (database evidence + source code)
+3. **Trace** the Python code that writes to it (file:function:line)
+4. **Confirm** it has not been superseded by another table (RULE 17 check)
+5. **Record** the mapping in the `MAP_CLI_Frontend_Capability_Matrix.md`
+
+**No implementation may proceed until this matrix entry exists.**
+
+#### Required Matrix Columns
+
+The matrix must include:
+- Frontend Feature (card, page, or API endpoint)
+- Business Capability (what the feature does)
+- Original Table (what the code currently references)
+- MAP CLI Authoritative Table (the actual table MAP CLI writes to)
+- Row Count (evidence of active population)
+- Last Populated (timestamp of most recent write)
+- Populated By (Python file:function:line)
+- Status (VERIFIED / NEEDS FIX / BLOCKED / Not Implementable)
+
+#### Empty Features
+
+If a frontend feature maps to a table that:
+- Has 0 rows
+- Is not populated by MAP CLI
+- Has no defined business requirement
+
+Then the feature must be flagged for **removal review** rather than kept as empty scaffolding.
+
+This eliminates imaginary tables forever, prevents duplicate functionality, and makes every dashboard value origin deterministic.
+
+### RULE 19: Preserve Functional Fidelity
+
+Any frontend endpoint implemented during Phase 08 must faithfully represent the capabilities of the underlying MAP CLI source.
+
+**Missing data must be reported as unavailable rather than inferred, synthesized, defaulted, or fabricated.**
+
+The frontend may expose a subset of available functionality but must never imply functionality that MAP CLI does not currently provide.
+
+#### Implementation Requirements
+
+- If a column does not exist in the MAP CLI table, the frontend must not display a value for it
+- If a row does not exist, the frontend must show "No data available" — not a default or placeholder
+- If a business capability is not implemented by MAP CLI, the frontend must mark it "Not implemented" — not fabricate results
+- If a table has 0 rows, the frontend must show empty state — not generate synthetic data
+- If a field is not populated by MAP CLI code, the frontend must not assume a value
+
+#### Prohibited Patterns
+
+- Defaulting missing fields to arbitrary values (e.g., `status = "UNKNOWN"`, `score = 0`)
+- Generating placeholder data to make dashboards look populated
+- Inferring business decisions from unrelated tables
+- Synthesizing lifecycle events from partial data
+- Creating "fallback" logic that invents data when the source is empty
+
+This rule ensures the frontend is a faithful window into MAP CLI behaviour, not a fabrication layer.
+
 ---
 
 ## Stop Conditions

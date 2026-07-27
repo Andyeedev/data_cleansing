@@ -1,30 +1,28 @@
-export type MockRole = 'admin' | 'manager' | 'operator' | 'viewer';
-
-export interface MockUser {
+export interface User {
   id: string;
-  displayName: string;
-  roles: MockRole[];
+  email: string;
+  name: string;
+  avatar?: string;
+  roles: string[];
+  permissions: string[];
 }
 
-export const MOCK_USERS: Record<MockRole, MockUser> = {
-  admin: {
-    id: 'user-001',
-    displayName: 'Admin User',
-    roles: ['admin'],
-  },
-  manager: {
-    id: 'user-002',
-    displayName: 'Manager User',
-    roles: ['manager'],
-  },
-  operator: {
-    id: 'user-003',
-    displayName: 'Operator User',
-    roles: ['operator'],
-  },
-  viewer: {
-    id: 'user-004',
-    displayName: 'Viewer User',
-    roles: ['viewer'],
-  },
-};
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
+export interface AuthContextType extends AuthState {
+  userRoles: string[];
+  login: (credentials: LoginCredentials) => Promise<void>;
+  logout: () => Promise<void>;
+  switchRole: (role: string) => void;
+}

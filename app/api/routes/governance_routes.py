@@ -9,7 +9,8 @@ governance_service = GovernanceService()
 
 
 def _require_admin(current_user=Depends(get_current_user)):
-    if current_user.get("role") != "admin":
+    roles = current_user.get("roles", [])
+    if not any("admin" in r.lower() for r in roles):
         raise HTTPException(status_code=403, detail="Access denied. Admin role required.")
     return current_user
 

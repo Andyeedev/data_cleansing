@@ -56,19 +56,6 @@ describe('DashboardPage', () => {
     });
   });
 
-  it('shows KPI section', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { kpis: [{ label: 'Success Rate', value: '95%' }] } }),
-    });
-    renderWithProviders(<DashboardPage />);
-    await waitFor(() => {
-      expect(screen.getByText('Key Performance Indicators')).toBeInTheDocument();
-      expect(screen.getByText('Success Rate')).toBeInTheDocument();
-      expect(screen.getByText('95%')).toBeInTheDocument();
-    });
-  });
-
   it('shows quick actions section', async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,

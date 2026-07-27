@@ -1,10 +1,9 @@
 import { screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, type RenderOptions } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import { ValidationResultsPage } from './ValidationResultsPage';
-import type { MockRole } from '../types/auth';
 
 const mockBatchStatus = {
   batch_id: 'batch-123',
@@ -16,13 +15,19 @@ const mockBatchStatus = {
 };
 
 function renderValidationResultsPage({
-  initialRole = 'admin' as MockRole,
+  initialRole = 'admin',
   batchId = 'batch-123',
-}: { initialRole?: MockRole; batchId?: string } = {}) {
+}: { initialRole?: string; batchId?: string } = {}) {
+  localStorage.setItem('access_token', 'mock-jwt-token-for-tests');
+  localStorage.setItem('map_nexus_user', JSON.stringify({
+    id: '1', email: 'admin@test.com', name: 'admin',
+    roles: [initialRole], permissions: ['read', 'write', 'delete', 'admin'],
+  }));
+
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <MemoryRouter initialEntries={[`/validation/results/${batchId}`]}>
-        <AuthProvider initialRole={initialRole}>
+        <AuthProvider>
           <Routes>
             <Route path="/validation/results/:batchId" element={children} />
           </Routes>

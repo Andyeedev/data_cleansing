@@ -15,7 +15,7 @@ client = TestClient(app)
 
 
 def override_get_current_user():
-    return {"user_id": "test-user", "role": "admin"}
+    return {"user_id": "test-user", "roles": ["Super Admin"]}
 
 
 app.dependency_overrides[get_current_user] = override_get_current_user

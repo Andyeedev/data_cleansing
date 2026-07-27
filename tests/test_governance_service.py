@@ -34,8 +34,13 @@ class TestGovernanceService:
         result = service.get_exceptions()
         assert result["total"] == 0
 
-    def test_get_compliance_status(self):
+    @patch('app.services.governance_service.GovernanceRepository')
+    def test_get_compliance_status(self, MockRepo):
+        mock_repo = MockRepo.return_value
+        mock_repo.db.execute.return_value = [(100, 80, 20)]
         service = GovernanceService()
         result = service.get_compliance_status()
-        assert result["total_controls"] == 0
-        assert result["passed_controls"] == 0
+        assert result["total_controls"] == 100
+        assert result["passed_controls"] == 80
+        assert result["failed_controls"] == 20
+        assert result["score"] == 80.0

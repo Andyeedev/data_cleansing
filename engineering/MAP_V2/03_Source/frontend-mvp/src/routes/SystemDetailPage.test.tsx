@@ -1,10 +1,9 @@
 import { screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, type RenderOptions } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import { SystemDetailPage } from './SystemDetailPage';
-import type { MockRole } from '../types/auth';
 
 const mockSystem = {
   system_id: '1',
@@ -20,13 +19,19 @@ const mockSystem = {
 };
 
 function renderSystemDetailPage({
-  initialRole = 'admin' as MockRole,
+  initialRole = 'admin',
   initialEntries = ['/migration/connections/1'],
-}: { initialRole?: MockRole; initialEntries?: string[] } = {}) {
+}: { initialRole?: string; initialEntries?: string[] } = {}) {
+  localStorage.setItem('access_token', 'mock-jwt-token-for-tests');
+  localStorage.setItem('map_nexus_user', JSON.stringify({
+    id: '1', email: 'admin@test.com', name: 'admin',
+    roles: [initialRole], permissions: ['read', 'write', 'delete', 'admin'],
+  }));
+
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <MemoryRouter initialEntries={initialEntries}>
-        <AuthProvider initialRole={initialRole}>
+        <AuthProvider>
           <Routes>
             <Route path="/migration/connections/:id" element={children} />
           </Routes>

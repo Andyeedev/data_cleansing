@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiGet } from '../utils/apiClient';
 import { LoadingSpinner } from '../components/LoadingSpinner/LoadingSpinner';
 
 interface AuditEntry {
@@ -50,7 +52,11 @@ const TABS = [
 
 export function GovernancePage() {
   const { userRoles } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const tabFromUrl = TABS.find((t) => t.route === location.pathname)?.id ?? 'overview';
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
   const [approvals, setApprovals] = useState<Approval[]>([]);
   const [compliance, setCompliance] = useState<ComplianceStatus | null>(null);
@@ -60,51 +66,38 @@ export function GovernancePage() {
   const [filterType, setFilterType] = useState('all');
 
   useEffect(() => {
-    if (activeTab === 'audit') {
-      setLoading(true);
-      fetch('/api/v1/governance/audit?limit=50')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.data) {
-            setAuditEntries(data.data.entries || []);
-          }
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    } else if (activeTab === 'approvals') {
-      setLoading(true);
-      fetch('/api/v1/governance/approvals')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.data) {
-            setApprovals(data.data.pending || []);
-          }
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    } else if (activeTab === 'overview' || activeTab === 'compliance') {
-      setLoading(true);
-      fetch('/api/v1/governance/compliance')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.data) {
-            setCompliance(data.data);
-          }
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    } else if (activeTab === 'exceptions') {
-      setLoading(true);
-      fetch('/api/v1/governance/exceptions')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.data) {
-            setExceptions(data.data.exceptions || []);
-          }
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }
+    const tab = TABS.find((t) => t.route === location.pathname)?.id ?? 'overview';
+    setActiveTab(tab);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+
+    const fetchTab = async () => {
+      try {
+        if (activeTab === 'audit') {
+          const data = await apiGet<{ entries: AuditEntry[] }>('/governance/audit?limit=50');
+          if (!cancelled) setAuditEntries(data.entries || []);
+        } else if (activeTab === 'approvals') {
+          const data = await apiGet<{ pending: Approval[] }>('/governance/approvals');
+          if (!cancelled) setApprovals(data.pending || []);
+        } else if (activeTab === 'overview' || activeTab === 'compliance') {
+          const data = await apiGet<ComplianceStatus>('/governance/compliance');
+          if (!cancelled) setCompliance(data);
+        } else if (activeTab === 'exceptions') {
+          const data = await apiGet<{ exceptions: ExceptionEntry[] }>('/governance/exceptions');
+          if (!cancelled) setExceptions(data.exceptions || []);
+        }
+      } catch {
+        // Endpoint unavailable
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchTab();
+    return () => { cancelled = true; };
   }, [activeTab]);
 
   if (!userRoles.includes('admin')) {
@@ -144,7 +137,7 @@ export function GovernancePage() {
             key={tab.id}
             role="tab"
             aria-selected={activeTab === tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => navigate(tab.route)}
             style={{
               padding: '12px 24px',
               background: activeTab === tab.id ? 'var(--color-primary)' : 'transparent',

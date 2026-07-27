@@ -36,10 +36,18 @@ class AuthService:
             )
             db.conn.commit()
 
+        with db.conn.cursor() as cur:
+            cur.execute(
+                "SELECT r.name FROM platform.user_roles ur JOIN platform.roles r ON ur.role_id = r.id WHERE ur.user_id = %s",
+                (user_id,)
+            )
+            roles = [row[0] for row in cur.fetchall()]
+
         payload = {
             "sub": str(user_id),
             "user": email,
             "tenant_id": str(tenant_id) if tenant_id else None,
+            "roles": roles,
             "exp": datetime.utcnow() + timedelta(hours=2)
         }
 

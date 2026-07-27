@@ -1,38 +1,92 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import type { MockRole, MockUser } from '../types/auth';
-import { MOCK_USERS } from '../types/auth';
+import type { User, LoginCredentials, AuthState, AuthContextType } from '../types/auth';
 
-interface AuthContextValue {
-  user: MockUser;
-  userRoles: string[];
-  switchRole: (role: MockRole) => void;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  initialRole?: MockRole;
   children: ReactNode;
 }
 
-export function AuthProvider({ initialRole = 'viewer', children }: AuthProviderProps) {
-  const [currentRole, setCurrentRole] = useState<MockRole>(initialRole);
+function getInitialAuthState(): AuthState {
+  try {
+    const token = localStorage.getItem('access_token');
+    const userStr = localStorage.getItem('map_nexus_user');
+    if (token && userStr) {
+      const user = JSON.parse(userStr);
+      return { user, token, isAuthenticated: true, isLoading: false };
+    }
+  } catch {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('map_nexus_user');
+  }
+  return { user: null, token: null, isAuthenticated: false, isLoading: false };
+}
 
-  const user = MOCK_USERS[currentRole];
-  const userRoles = user.roles;
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [state, setState] = useState<AuthState>(getInitialAuthState);
 
-  const switchRole = useCallback((role: MockRole) => {
-    setCurrentRole(role);
+  const login = useCallback(async (credentials: LoginCredentials) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: credentials.email, password: credentials.password }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      let message = `Login failed (${response.status})`;
+      try {
+        const json = JSON.parse(text);
+        message = json.detail || json.message || message;
+      } catch {}
+      setState((prev) => ({ ...prev, isLoading: false }));
+      throw new Error(message);
+    }
+
+    const { access_token } = await response.json();
+
+    const user: User = {
+      id: '1',
+      email: credentials.email,
+      name: credentials.email.split('@')[0],
+      roles: ['admin'],
+      permissions: ['read', 'write', 'delete', 'admin'],
+    };
+
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('map_nexus_user', JSON.stringify(user));
+
+    setState({ user, token: access_token, isAuthenticated: true, isLoading: false });
   }, []);
 
+  const logout = useCallback(async () => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('map_nexus_user');
+    setState({ user: null, token: null, isAuthenticated: false, isLoading: false });
+  }, []);
+
+  const switchRole = useCallback((role: string) => {
+    setState((prev) => {
+      if (!prev.user) return prev;
+      const updatedUser = { ...prev.user, roles: [role] };
+      localStorage.setItem('map_nexus_user', JSON.stringify(updatedUser));
+      return { ...prev, user: updatedUser };
+    });
+  }, []);
+
+  const userRoles = state.user?.roles ?? [];
+
   return (
-    <AuthContext.Provider value={{ user, userRoles, switchRole }}>
+    <AuthContext.Provider value={{ ...state, userRoles, login, logout, switchRole }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth(): AuthContextValue {
+export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;

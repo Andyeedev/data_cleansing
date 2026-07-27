@@ -11,9 +11,13 @@ export function useRunExecution() {
     setLoading(true);
     setError(null);
     try {
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      
       const res = await fetch(`${API_BASE}/execution/run?project_id=${encodeURIComponent(projectId)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
       });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -46,7 +50,11 @@ export function usePollBatchStatus() {
 
   const fetchStatus = useCallback(async (batchId: string): Promise<ExecutionBatchStatus | null> => {
     try {
-      const res = await fetch(`${API_BASE}/execution/status/${batchId}`);
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const headers: HeadersInit = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      
+      const res = await fetch(`${API_BASE}/execution/status/${batchId}`, { headers });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }

@@ -7,7 +7,7 @@ class DashboardRepository:
         self.db = get_db_connection()
 
     def get_system_count(self):
-        query = "SELECT COUNT(*) FROM engine.systems"
+        query = "SELECT COUNT(*) FROM core.system_registry"
         rows = self.db.execute(query)
         return rows[0][0] if rows else 0
 
@@ -24,7 +24,7 @@ class DashboardRepository:
         return 0, 0
 
     def get_total_controls(self):
-        query = "SELECT COUNT(*) FROM engine.controls"
+        query = "SELECT COUNT(*) FROM engine.control_registry"
         rows = self.db.execute(query)
         return rows[0][0] if rows else 0
 
@@ -32,13 +32,13 @@ class DashboardRepository:
         query = """
             SELECT
                 id,
-                action,
-                entity_type,
-                entity_id,
-                user_email,
-                timestamp
-            FROM engine.audit_log
-            ORDER BY timestamp DESC
+                execution_status AS action,
+                control_id AS resource_type,
+                rule_id AS resource_id,
+                'SYSTEM' AS user_email,
+                created_at
+            FROM engine.migration_control_execution
+            ORDER BY created_at DESC
             LIMIT %s
         """
         return self.db.execute(query, (limit,))

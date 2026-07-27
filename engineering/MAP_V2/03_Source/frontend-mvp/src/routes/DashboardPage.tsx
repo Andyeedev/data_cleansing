@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { apiGet } from '../utils/apiClient';
 import { LoadingSpinner } from '../components/LoadingSpinner/LoadingSpinner';
 
 interface PortfolioSummary {
@@ -9,39 +10,44 @@ interface PortfolioSummary {
   active_batches: number;
 }
 
-interface KPIMetric {
-  label: string;
-  value: string | number;
-  trend?: string;
+interface ActivityEntry {
+  id: string;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  user_email: string;
+  timestamp: string;
 }
 
 export function DashboardPage() {
   const { userRoles } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
-  const [kpis, setKpis] = useState<KPIMetric[]>([]);
+  const [activity, setActivity] = useState<ActivityEntry[]>([]);
 
   const isAdmin = userRoles.includes('admin');
   const isManager = userRoles.includes('manager');
   const isExecutive = isAdmin || isManager;
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
+
     Promise.all([
-      fetch('/api/v1/dashboard/portfolio').then((res) => res.json()),
-      fetch('/api/v1/dashboard/kpis').then((res) => res.json()),
+      apiGet<PortfolioSummary>('/dashboard/portfolio').catch(() => null),
+      isExecutive ? apiGet<{ entries: ActivityEntry[]; total: number }>('/dashboard/activity?limit=5').catch(() => null) : Promise.resolve(null),
     ])
-      .then(([portfolioData, kpiData]) => {
-        if (portfolioData.success && portfolioData.data) {
-          setPortfolio(portfolioData.data);
-        }
-        if (kpiData.success && kpiData.data) {
-          setKpis(kpiData.data.kpis || []);
-        }
+      .then(([portfolioData, activityData]) => {
+        if (cancelled) return;
+        if (portfolioData) setPortfolio(portfolioData);
+        if (activityData) setActivity(activityData.entries || []);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [isExecutive]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -86,29 +92,6 @@ export function DashboardPage() {
 
       <div style={{ marginBottom: 32 }}>
         <h2 style={{ fontSize: 18, marginBottom: 16, color: 'var(--color-text-primary)' }}>
-          Key Performance Indicators
-        </h2>
-        {kpis.length === 0 ? (
-          <div style={{ padding: 16, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-            <p style={{ color: 'var(--color-text-secondary)' }}>No KPI data available.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-            {kpis.map((kpi, idx) => (
-              <div key={idx} style={{ padding: 16, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-                <div style={{ color: 'var(--color-text-secondary)', fontSize: 12, marginBottom: 4 }}>{kpi.label}</div>
-                <div style={{ fontSize: 24, fontWeight: 600 }}>{kpi.value}</div>
-                {kpi.trend && (
-                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>{kpi.trend}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div style={{ marginBottom: 32 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 16, color: 'var(--color-text-primary)' }}>
           Quick Actions
         </h2>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -134,7 +117,43 @@ export function DashboardPage() {
             Recent Activity
           </h2>
           <div style={{ padding: 16, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-            <p style={{ color: 'var(--color-text-secondary)' }}>No recent activity.</p>
+            {activity.length === 0 ? (
+              <p style={{ color: 'var(--color-text-secondary)' }}>No recent activity.</p>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Action</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Control</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Entity</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activity.map((entry) => (
+                    <tr key={entry.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                      <td style={{ padding: '8px 12px' }}>
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          background: entry.action === 'PASS' ? 'rgba(34,197,94,0.1)' : entry.action === 'FAIL' ? 'rgba(239,68,68,0.1)' : 'rgba(99,102,241,0.1)',
+                          color: entry.action === 'PASS' ? '#16a34a' : entry.action === 'FAIL' ? '#ef4444' : '#6366f1',
+                        }}>
+                          {entry.action}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px 12px', fontFamily: 'monospace' }}>{entry.entity_type}</td>
+                      <td style={{ padding: '8px 12px' }}>{entry.entity_id}</td>
+                      <td style={{ padding: '8px 12px', color: 'var(--color-text-secondary)' }}>
+                        {new Date(entry.timestamp).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}

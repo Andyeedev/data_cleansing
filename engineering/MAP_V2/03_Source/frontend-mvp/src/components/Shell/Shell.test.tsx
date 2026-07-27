@@ -66,7 +66,7 @@ describe('Shell', () => {
       expect(screen.getByText('API Home')).toBeInTheDocument();
     });
     expect(screen.getByText('API Migration')).toBeInTheDocument();
-    expect(mockFetch).toHaveBeenCalledWith('/api/v1/navigation');
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/navigation', expect.objectContaining({ headers: expect.any(Object) }));
   });
 
   it('renders custom nav items when provided, skipping API fetch', async () => {

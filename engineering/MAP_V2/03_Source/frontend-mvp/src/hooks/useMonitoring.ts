@@ -56,7 +56,11 @@ export function useMonitoring() {
 
   const fetchMetrics = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/monitoring/metrics`);
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const headers: HeadersInit = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      
+      const res = await fetch(`${API_BASE}/monitoring/metrics`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success && data.data) setMetrics(data.data);
@@ -67,7 +71,11 @@ export function useMonitoring() {
 
   const fetchQueue = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/monitoring/queue`);
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const headers: HeadersInit = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      
+      const res = await fetch(`${API_BASE}/monitoring/queue`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success && data.data) setQueue(data.data);
@@ -78,7 +86,11 @@ export function useMonitoring() {
 
   const fetchAlerts = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/monitoring/alerts`);
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const headers: HeadersInit = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      
+      const res = await fetch(`${API_BASE}/monitoring/alerts`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success && data.data) setAlerts(data.data);
@@ -89,7 +101,11 @@ export function useMonitoring() {
 
   const fetchLogs = useCallback(async (limit = 50) => {
     try {
-      const res = await fetch(`${API_BASE}/monitoring/logs?limit=${limit}`);
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const headers: HeadersInit = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      
+      const res = await fetch(`${API_BASE}/monitoring/logs?limit=${limit}`, { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success && data.data) setLogs(data.data);

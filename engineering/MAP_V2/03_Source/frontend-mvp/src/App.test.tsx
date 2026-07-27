@@ -11,10 +11,11 @@ describe('App', () => {
     });
   });
 
-  it('renders the home page on /', () => {
+  it('redirects / to /dashboard', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/'] });
-    expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument();
-    expect(screen.getByText('Welcome to MAP Nexus Enterprise Platform.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    });
   });
 
   it('renders the dashboard on /dashboard', async () => {

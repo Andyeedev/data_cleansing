@@ -54,7 +54,8 @@ describe('UsersPage Integration', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/users')
+        expect.stringContaining('/api/v1/users'),
+        expect.anything()
       );
     });
   });
@@ -108,7 +109,8 @@ describe('UsersPage Integration', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('search=admin')
+        expect.stringContaining('search=admin'),
+        expect.anything()
       );
     });
   });
@@ -139,7 +141,8 @@ describe('UsersPage Integration', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('status=active')
+        expect.stringContaining('status=active'),
+        expect.anything()
       );
     });
   });
@@ -193,7 +196,8 @@ describe('UsersPage Integration', () => {
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('page=2')
+        expect.stringContaining('page=2'),
+        expect.anything()
       );
     });
   });

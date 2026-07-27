@@ -4,11 +4,11 @@ from app.api.core.auth.dependencies import get_current_user
 
 
 def _mock_admin():
-    return {"sub": "test@test.com", "role": "admin", "email": "test@test.com"}
+    return {"sub": "test@test.com", "roles": ["Super Admin"], "email": "test@test.com"}
 
 
 def _mock_viewer():
-    return {"sub": "viewer@test.com", "role": "viewer", "email": "viewer@test.com"}
+    return {"sub": "viewer@test.com", "roles": ["Viewer"], "email": "viewer@test.com"}
 
 
 def _get_client(user_override):
