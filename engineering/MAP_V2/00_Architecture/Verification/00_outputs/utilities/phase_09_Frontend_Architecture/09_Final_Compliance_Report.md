@@ -161,3 +161,9 @@ PASS
 ---
 
 *This report certifies that Phase 09 is fully compliant with 09Z_Implementation_Governance.md. All governance gates are satisfied. Future Modules Track may begin.*
+
+---
+
+## Baseline Correction (2026-07-29)
+
+The frozen frontend reference was corrected from `engineering/MAP_V2/03_Source/frontend-mvp/` to `MAP_V2/03_Source/frontend/`, which is a fully functional enterprise application. See `09_Frontend_Restoration_Traceability_Matrix.md` for the complete restoration map connecting Frozen UI Components → Business Capabilities → Backend APIs → Services → Repositories → Database Tables/Views → MAP CLI Writers → Runtime Evidence → Restoration Decisions.
