@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 export function ApprovalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser: _currentUser } = useAuth();
 
   const { data: approval, loading, error } = useApprovalDetail(id || null);
   const { approve, loading: approving } = useApproveRequest();
@@ -111,7 +111,7 @@ export function ApprovalDetailPage() {
     );
   }
 
-  const isAssignedToMe = approval.assigned_to === currentUser?.email;
+  const isAssignedToMe = approval.assigned_to === _currentUser?.email;
   const isPending = approval.status === 'pending';
 
   return (

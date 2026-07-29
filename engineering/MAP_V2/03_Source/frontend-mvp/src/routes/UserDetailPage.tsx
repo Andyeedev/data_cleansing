@@ -10,7 +10,7 @@ export function UserDetailPage() {
   const { userRoles } = useAuth();
 
   const { data: user, loading, error } = useUser(id ?? null);
-  const { data: roles, loading: rolesLoading, refetch: refetchRoles } = useUserRoles(id ?? null);
+  const { data: roles, loading: rolesLoading, refetch: _refetchRoles } = useUserRoles(id ?? null);
   const { update, loading: updating } = useUpdateUser();
   const { remove, loading: deleting } = useDeleteUser();
 

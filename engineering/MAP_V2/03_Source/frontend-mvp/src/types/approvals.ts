@@ -4,11 +4,14 @@ export interface Approval {
   description: string | null;
   priority: string;
   type: string;
+  approval_type?: string;
   status: string;
   assigned_to: string | null;
+  requested_by?: string;
   created_by: string | null;
   due_date: string | null;
   decision_notes: string | null;
+  comment?: string;
   decided_at: string | null;
   created_at: string;
 }
@@ -25,10 +28,13 @@ export interface ApprovalCreateRequest {
   description?: string;
   priority?: string;
   type?: string;
+  approval_type?: string;
   assigned_to?: string;
   due_date?: string;
 }
 
 export interface ApprovalDecisionRequest {
   notes?: string;
+  decision?: string;
+  comment?: string;
 }

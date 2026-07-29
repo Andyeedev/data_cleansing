@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTaskList, useCreateTask, useDeleteTask } from '../hooks/useTasks';
-import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import { ErrorState } from '../components/shared/ErrorState';
+import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
+import { StatusBadge } from '../components/shared/StatusBadge';
+import { EmptyState } from '../components/shared/EmptyState';
+import { Pagination } from '../components/shared/Pagination';
+import { Modal } from '../components/shared/Modal';
 
 export function TaskManagementPage() {
   const navigate = useNavigate();
@@ -49,22 +54,22 @@ export function TaskManagementPage() {
     if (success) refetch();
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityVariant = (priority: string): 'danger' | 'warning' | 'success' => {
     switch (priority) {
-      case 'high': return '#ef4444';
-      case 'medium': return '#f59e0b';
-      case 'low': return '#22c55e';
-      default: return 'var(--color-text-secondary)';
+      case 'high': return 'danger';
+      case 'medium': return 'warning';
+      case 'low': return 'success';
+      default: return 'warning';
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): 'success' | 'info' | 'warning' | 'danger' => {
     switch (status) {
-      case 'done': return '#22c55e';
-      case 'in_progress': return '#3b82f6';
-      case 'pending': return '#f59e0b';
-      case 'blocked': return '#ef4444';
-      default: return 'var(--color-text-secondary)';
+      case 'done': return 'success';
+      case 'in_progress': return 'info';
+      case 'pending': return 'warning';
+      case 'blocked': return 'danger';
+      default: return 'warning';
     }
   };
 
@@ -74,45 +79,45 @@ export function TaskManagementPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 16 }}>Task Management</h1>
-        <ErrorMessage message="You do not have permission to view this page. Required role: admin" />
+      <div style={{ padding: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h2)', marginBottom: 'var(--space-md)' }}>Task Management</h1>
+        <ErrorState message="You do not have permission to view this page. Required role: admin" />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, margin: 0 }}>Task Management</h1>
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h2)', margin: 0 }}>Task Management</h1>
         <button
           onClick={() => setShowCreateModal(true)}
           style={{
-            padding: '8px 16px',
+            padding: 'var(--space-sm) var(--space-md)',
             background: 'var(--color-sidebar-active)',
             color: 'white',
             border: 'none',
             borderRadius: 'var(--radius)',
             cursor: 'pointer',
-            fontSize: 14,
+            fontSize: 'var(--font-size-sm)',
           }}
         >
           Create Task
         </button>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-md)' }}>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          aria-label="Filter by status"
           style={{
-            padding: '8px 12px',
-            border: '1px solid var(--color-border)',
+            padding: 'var(--space-sm) var(--space-sm)',
+            border: 'var(--border-width) solid var(--color-border)',
             borderRadius: 'var(--radius)',
             background: 'var(--color-background)',
             color: 'var(--color-text)',
-            fontSize: 14,
+            fontSize: 'var(--font-size-sm)',
           }}
         >
           <option value="">All Status</option>
@@ -124,13 +129,14 @@ export function TaskManagementPage() {
         <select
           value={priorityFilter}
           onChange={(e) => { setPriorityFilter(e.target.value); setPage(1); }}
+          aria-label="Filter by priority"
           style={{
-            padding: '8px 12px',
-            border: '1px solid var(--color-border)',
+            padding: 'var(--space-sm) var(--space-sm)',
+            border: 'var(--border-width) solid var(--color-border)',
             borderRadius: 'var(--radius)',
             background: 'var(--color-background)',
             color: 'var(--color-text)',
-            fontSize: 14,
+            fontSize: 'var(--font-size-sm)',
           }}
         >
           <option value="">All Priority</option>
@@ -140,48 +146,41 @@ export function TaskManagementPage() {
         </select>
       </div>
 
-      {loading && <LoadingSpinner />}
-      {error && <ErrorMessage message={error} />}
+      {loading && <LoadingSkeleton variant="table" rows={5} />}
+      {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && data && (
         <>
           {data.tasks.length === 0 ? (
-            <div style={{
-              padding: 48,
-              textAlign: 'center',
-              color: 'var(--color-text-secondary)',
-              border: '1px dashed var(--color-border)',
-              borderRadius: 'var(--radius)',
-            }}>
-              <p style={{ fontSize: 16, marginBottom: 8 }}>No tasks found</p>
-              <p style={{ fontSize: 14 }}>
-                {(statusFilter || priorityFilter) ? 'Try different filters' : 'Create your first task to get started'}
-              </p>
-            </div>
+            <EmptyState
+              title="No tasks found"
+              description={(statusFilter || priorityFilter) ? 'Try different filters' : 'Create your first task to get started'}
+              action={!statusFilter && !priorityFilter ? { label: 'Create Task', onClick: () => setShowCreateModal(true) } : undefined}
+            />
           ) : (
             <div style={{
-              border: '1px solid var(--color-border)',
+              border: 'var(--border-width) solid var(--color-border)',
               borderRadius: 'var(--radius)',
               overflow: 'hidden',
             }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
                 <thead>
                   <tr style={{ background: 'var(--color-background)' }}>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Title</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Status</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Priority</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Assigned To</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Due Date</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>Actions</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Title</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Status</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Priority</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Assigned To</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Due Date</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'right', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.tasks.map((task) => (
                     <tr
                       key={task.id}
-                      style={{ borderBottom: '1px solid var(--color-border)' }}
+                      style={{ borderBottom: 'var(--border-width) solid var(--color-border)' }}
                     >
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
                         <button
                           onClick={() => navigate(`/tasks/${task.id}`)}
                           style={{
@@ -189,7 +188,7 @@ export function TaskManagementPage() {
                             border: 'none',
                             color: 'var(--color-sidebar-active)',
                             cursor: 'pointer',
-                            fontSize: 14,
+                            fontSize: 'var(--font-size-sm)',
                             padding: 0,
                             textDecoration: 'underline',
                           }}
@@ -197,47 +196,30 @@ export function TaskManagementPage() {
                           {task.title}
                         </button>
                       </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 500,
-                          background: `${getStatusColor(task.status)}15`,
-                          color: getStatusColor(task.status),
-                        }}>
-                          {formatStatus(task.status)}
-                        </span>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                        <StatusBadge status={formatStatus(task.status)} variant={getStatusVariant(task.status)} size="sm" />
                       </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 500,
-                          background: `${getPriorityColor(task.priority)}15`,
-                          color: getPriorityColor(task.priority),
-                        }}>
-                          {task.priority}
-                        </span>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                        <StatusBadge status={task.priority} variant={getPriorityVariant(task.priority)} size="sm" />
                       </td>
-                      <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)' }}>
                         {task.assigned_to || '—'}
                       </td>
-                      <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)', fontSize: 13 }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)' }}>
                         {task.due_date ? new Date(task.due_date).toLocaleDateString() : '—'}
                       </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'right' }}>
                         <button
                           onClick={() => navigate(`/tasks/${task.id}`)}
+                          aria-label={`View task ${task.title}`}
                           style={{
                             background: 'none',
-                            border: '1px solid var(--color-border)',
+                            border: 'var(--border-width) solid var(--color-border)',
                             borderRadius: 'var(--radius)',
-                            padding: '4px 8px',
+                            padding: 'var(--space-xs) var(--space-sm)',
                             cursor: 'pointer',
-                            fontSize: 12,
-                            marginRight: 8,
+                            fontSize: 'var(--font-size-xs)',
+                            marginRight: 'var(--space-sm)',
                             color: 'var(--color-text)',
                           }}
                         >
@@ -246,14 +228,15 @@ export function TaskManagementPage() {
                         <button
                           onClick={() => handleDelete(task.id, task.title)}
                           disabled={deleting}
+                          aria-label={`Delete task ${task.title}`}
                           style={{
                             background: 'none',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            border: 'var(--border-width) solid var(--color-danger)',
                             borderRadius: 'var(--radius)',
-                            padding: '4px 8px',
+                            padding: 'var(--space-xs) var(--space-sm)',
                             cursor: 'pointer',
-                            fontSize: 12,
-                            color: '#ef4444',
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-danger)',
                           }}
                         >
                           Delete
@@ -266,180 +249,123 @@ export function TaskManagementPage() {
             </div>
           )}
 
-          {/* Pagination */}
           {data.total > 20 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: page === 1 ? 'not-allowed' : 'pointer',
-                  opacity: page === 1 ? 0.5 : 1,
-                }}
-              >
-                Previous
-              </button>
-              <span style={{ padding: '6px 12px', fontSize: 14, color: 'var(--color-text-secondary)' }}>
-                Page {page} of {Math.ceil(data.total / 20)}
-              </span>
-              <button
-                onClick={() => setPage(p => p + 1)}
-                disabled={page >= Math.ceil(data.total / 20)}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: page >= Math.ceil(data.total / 20) ? 'not-allowed' : 'pointer',
-                  opacity: page >= Math.ceil(data.total / 20) ? 0.5 : 1,
-                }}
-              >
-                Next
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-md)' }}>
+              <Pagination page={page} pageSize={20} total={data.total} onPageChange={setPage} />
             </div>
           )}
         </>
       )}
 
-      {/* Create Task Modal */}
-      {showCreateModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            background: 'var(--color-background)',
-            borderRadius: 'var(--radius)',
-            padding: 24,
-            width: 480,
-            maxHeight: '80vh',
-            overflow: 'auto',
-          }}>
-            <h2 style={{ fontSize: 18, marginBottom: 16 }}>Create Task</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>Title *</label>
-                <input
-                  value={createForm.title}
-                  onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
-                  placeholder="Enter task title"
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius)',
-                    background: 'var(--color-background)',
-                    color: 'var(--color-text)',
-                    fontSize: 14,
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>Description</label>
-                <textarea
-                  value={createForm.description}
-                  onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                  placeholder="Enter task description"
-                  rows={3}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius)',
-                    background: 'var(--color-background)',
-                    color: 'var(--color-text)',
-                    fontSize: 14,
-                    resize: 'vertical',
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>Priority</label>
-                <select
-                  value={createForm.priority}
-                  onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius)',
-                    background: 'var(--color-background)',
-                    color: 'var(--color-text)',
-                    fontSize: 14,
-                  }}
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>Assigned To</label>
-                <input
-                  value={createForm.assigned_to}
-                  onChange={(e) => setCreateForm({ ...createForm, assigned_to: e.target.value })}
-                  placeholder="Enter user ID"
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius)',
-                    background: 'var(--color-background)',
-                    color: 'var(--color-text)',
-                    fontSize: 14,
-                  }}
-                />
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24 }}>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreate}
-                disabled={creating || !createForm.title.trim()}
-                style={{
-                  padding: '8px 16px',
-                  background: 'var(--color-sidebar-active)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius)',
-                  cursor: creating || !createForm.title.trim() ? 'not-allowed' : 'pointer',
-                  fontSize: 14,
-                  opacity: creating || !createForm.title.trim() ? 0.5 : 1,
-                }}
-              >
-                {creating ? 'Creating...' : 'Create'}
-              </button>
-            </div>
+      <Modal open={showCreateModal} title="Create Task" onClose={() => setShowCreateModal(false)}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Title *</label>
+            <input
+              value={createForm.title}
+              onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+              placeholder="Enter task title"
+              style={{
+                width: '100%',
+                padding: 'var(--space-sm)',
+                border: 'var(--border-width) solid var(--color-border)',
+                borderRadius: 'var(--radius)',
+                background: 'var(--color-background)',
+                color: 'var(--color-text)',
+                fontSize: 'var(--font-size-sm)',
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Description</label>
+            <textarea
+              value={createForm.description}
+              onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+              placeholder="Enter task description"
+              rows={3}
+              style={{
+                width: '100%',
+                padding: 'var(--space-sm)',
+                border: 'var(--border-width) solid var(--color-border)',
+                borderRadius: 'var(--radius)',
+                background: 'var(--color-background)',
+                color: 'var(--color-text)',
+                fontSize: 'var(--font-size-sm)',
+                resize: 'vertical',
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Priority</label>
+            <select
+              value={createForm.priority}
+              onChange={(e) => setCreateForm({ ...createForm, priority: e.target.value })}
+              style={{
+                width: '100%',
+                padding: 'var(--space-sm)',
+                border: 'var(--border-width) solid var(--color-border)',
+                borderRadius: 'var(--radius)',
+                background: 'var(--color-background)',
+                color: 'var(--color-text)',
+                fontSize: 'var(--font-size-sm)',
+              }}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Assigned To</label>
+            <input
+              value={createForm.assigned_to}
+              onChange={(e) => setCreateForm({ ...createForm, assigned_to: e.target.value })}
+              placeholder="Enter user ID"
+              style={{
+                width: '100%',
+                padding: 'var(--space-sm)',
+                border: 'var(--border-width) solid var(--color-border)',
+                borderRadius: 'var(--radius)',
+                background: 'var(--color-background)',
+                color: 'var(--color-text)',
+                fontSize: 'var(--font-size-sm)',
+              }}
+            />
           </div>
         </div>
-      )}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginTop: 'var(--space-lg)' }}>
+          <button
+            onClick={() => setShowCreateModal(false)}
+            style={{
+              padding: 'var(--space-sm) var(--space-md)',
+              border: 'var(--border-width) solid var(--color-border)',
+              borderRadius: 'var(--radius)',
+              background: 'var(--color-background)',
+              color: 'var(--color-text)',
+              cursor: 'pointer',
+              fontSize: 'var(--font-size-sm)',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleCreate}
+            disabled={creating || !createForm.title.trim()}
+            style={{
+              padding: 'var(--space-sm) var(--space-md)',
+              background: 'var(--color-sidebar-active)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 'var(--radius)',
+              cursor: creating || !createForm.title.trim() ? 'not-allowed' : 'pointer',
+              fontSize: 'var(--font-size-sm)',
+              opacity: creating || !createForm.title.trim() ? 0.5 : 1,
+            }}
+          >
+            {creating ? 'Creating...' : 'Create'}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

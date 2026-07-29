@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoleList, useDeleteRole } from '../hooks/useRoles';
-import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import { ErrorState, LoadingSkeleton, StatusBadge, EmptyState, Pagination } from '../components/shared';
 
 export function RolesPage() {
   const navigate = useNavigate();
@@ -26,45 +26,45 @@ export function RolesPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 16 }}>Roles</h1>
-        <ErrorMessage message="You do not have permission to view this page. Required role: admin" />
+      <div style={{ padding: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Roles</h1>
+        <ErrorState title="Access Denied" message="You do not have permission to view this page. Required role: admin" />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, margin: 0 }}>Roles</h1>
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h1)', margin: 0 }}>Roles</h1>
         <button
           onClick={() => navigate('/administration/roles/new')}
           style={{
-            padding: '8px 16px',
+            padding: 'var(--space-sm) var(--space-md)',
             background: 'var(--color-sidebar-active)',
             color: 'white',
             border: 'none',
             borderRadius: 'var(--radius)',
             cursor: 'pointer',
-            fontSize: 14,
+            fontSize: 'var(--font-size-sm)',
           }}
         >
           Add Role
         </button>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          aria-label="Filter by status"
           style={{
-            padding: '8px 12px',
-            border: '1px solid var(--color-border)',
+            padding: 'var(--space-sm) var(--space-md)',
+            border: 'var(--border-width) solid var(--color-border)',
             borderRadius: 'var(--radius)',
             background: 'var(--color-background)',
             color: 'var(--color-text)',
-            fontSize: 14,
+            fontSize: 'var(--font-size-sm)',
           }}
         >
           <option value="">All Status</option>
@@ -73,46 +73,41 @@ export function RolesPage() {
         </select>
       </div>
 
-      {loading && <LoadingSpinner />}
-      {error && <ErrorMessage message={error} />}
+      {loading && <LoadingSkeleton variant="table" rows={5} />}
+      {error && <ErrorState message={error} />}
 
       {!loading && !error && data && (
         <>
           {data.roles.length === 0 ? (
-            <div style={{
-              padding: 48,
-              textAlign: 'center',
-              color: 'var(--color-text-secondary)',
-              border: '1px dashed var(--color-border)',
-              borderRadius: 'var(--radius)',
-            }}>
-              <p style={{ fontSize: 16, marginBottom: 8 }}>No roles found</p>
-              <p style={{ fontSize: 14 }}>Create your first role to get started</p>
-            </div>
+            <EmptyState
+              title="No roles found"
+              description="Create your first role to get started"
+              action={{ label: 'Add Role', onClick: () => navigate('/administration/roles/new') }}
+            />
           ) : (
             <div style={{
-              border: '1px solid var(--color-border)',
+              border: 'var(--border-width) solid var(--color-border)',
               borderRadius: 'var(--radius)',
               overflow: 'hidden',
             }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
                 <thead>
                   <tr style={{ background: 'var(--color-background)' }}>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Name</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Description</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Type</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Status</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>System</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>Actions</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Name</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Description</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Type</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Status</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: 'var(--border-width) solid var(--color-border)' }}>System</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'right', borderBottom: 'var(--border-width) solid var(--color-border)' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.roles.map((role) => (
                     <tr
                       key={role.id}
-                      style={{ borderBottom: '1px solid var(--color-border)' }}
+                      style={{ borderBottom: 'var(--border-width) solid var(--color-border)' }}
                     >
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
                         <button
                           onClick={() => navigate(`/administration/roles/${role.id}`)}
                           style={{
@@ -120,7 +115,7 @@ export function RolesPage() {
                             border: 'none',
                             color: 'var(--color-sidebar-active)',
                             cursor: 'pointer',
-                            fontSize: 14,
+                            fontSize: 'var(--font-size-sm)',
                             padding: 0,
                             textDecoration: 'underline',
                           }}
@@ -128,45 +123,28 @@ export function RolesPage() {
                           {role.name}
                         </button>
                       </td>
-                      <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>{role.description || '—'}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 500,
-                          background: 'rgba(99, 102, 241, 0.1)',
-                          color: '#6366f1',
-                        }}>
-                          {role.type}
-                        </span>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)' }}>{role.description || '—'}</td>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                        <StatusBadge status={role.type} variant="info" size="sm" />
                       </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 500,
-                          background: role.status === 'active' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                          color: role.status === 'active' ? '#22c55e' : '#ef4444',
-                        }}>
-                          {role.status}
-                        </span>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                        <StatusBadge status={role.status} size="sm" />
                       </td>
-                      <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)' }}>
                         {role.is_system ? 'Yes' : 'No'}
                       </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'right' }}>
                         <button
                           onClick={() => navigate(`/administration/roles/${role.id}`)}
+                          aria-label={`View ${role.name}`}
                           style={{
                             background: 'none',
-                            border: '1px solid var(--color-border)',
+                            border: 'var(--border-width) solid var(--color-border)',
                             borderRadius: 'var(--radius)',
-                            padding: '4px 8px',
+                            padding: 'var(--space-xs) var(--space-sm)',
                             cursor: 'pointer',
-                            fontSize: 12,
-                            marginRight: 8,
+                            fontSize: 'var(--font-size-xs)',
+                            marginRight: 'var(--space-sm)',
                             color: 'var(--color-text)',
                           }}
                         >
@@ -176,14 +154,15 @@ export function RolesPage() {
                           <button
                             onClick={() => handleDelete(role.id, role.name)}
                             disabled={deleting}
+                            aria-label={`Delete ${role.name}`}
                             style={{
                               background: 'none',
-                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              border: 'var(--border-width) solid var(--color-danger)',
                               borderRadius: 'var(--radius)',
-                              padding: '4px 8px',
+                              padding: 'var(--space-xs) var(--space-sm)',
                               cursor: 'pointer',
-                              fontSize: 12,
-                              color: '#ef4444',
+                              fontSize: 'var(--font-size-xs)',
+                              color: 'var(--color-danger)',
                             }}
                           >
                             Delete
@@ -197,44 +176,14 @@ export function RolesPage() {
             </div>
           )}
 
-          {/* Pagination */}
-          {data.total > 20 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: page === 1 ? 'not-allowed' : 'pointer',
-                  opacity: page === 1 ? 0.5 : 1,
-                }}
-              >
-                Previous
-              </button>
-              <span style={{ padding: '6px 12px', fontSize: 14, color: 'var(--color-text-secondary)' }}>
-                Page {page} of {Math.ceil(data.total / 20)}
-              </span>
-              <button
-                onClick={() => setPage(p => p + 1)}
-                disabled={page >= Math.ceil(data.total / 20)}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: page >= Math.ceil(data.total / 20) ? 'not-allowed' : 'pointer',
-                  opacity: page >= Math.ceil(data.total / 20) ? 0.5 : 1,
-                }}
-              >
-                Next
-              </button>
-            </div>
-          )}
+          <div style={{ marginTop: 'var(--space-md)' }}>
+            <Pagination
+              page={page}
+              pageSize={20}
+              total={data.total}
+              onPageChange={setPage}
+            />
+          </div>
         </>
       )}
     </div>

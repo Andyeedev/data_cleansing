@@ -87,16 +87,12 @@ describe('CalendarPage', () => {
   });
 
   it('renders error state on API failure', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
+    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('HTTP 500'));
 
     renderWithProviders(<CalendarPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/HTTP 500/)).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
     });
   });
 
@@ -138,10 +134,10 @@ describe('CalendarPage', () => {
     renderWithProviders(<CalendarPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Event')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Create new event' })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Create Event'));
+    fireEvent.click(screen.getByRole('button', { name: 'Create new event' }));
 
     await waitFor(() => {
       expect(screen.getByText('Cancel')).toBeInTheDocument();

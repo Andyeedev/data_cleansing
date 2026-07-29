@@ -1,6 +1,25 @@
 import { useState } from 'react';
 import { useNotificationList, useMarkAsRead, useMarkAllAsRead, useDeleteNotification } from '../hooks/useNotifications';
-import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
+import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
+import { ErrorState } from '../components/shared/ErrorState';
+import { EmptyState } from '../components/shared/EmptyState';
+import { StatusBadge } from '../components/shared/StatusBadge';
+import { Pagination } from '../components/shared/Pagination';
+import { TabBar } from '../components/shared/TabBar';
+
+const typeTabs = [
+  { key: '', label: 'All Types' },
+  { key: 'info', label: 'Info' },
+  { key: 'success', label: 'Success' },
+  { key: 'warning', label: 'Warning' },
+  { key: 'error', label: 'Error' },
+];
+
+const readTabs = [
+  { key: '', label: 'All Status' },
+  { key: 'unread', label: 'Unread' },
+  { key: 'read', label: 'Read' },
+];
 
 export function NotificationsPage() {
   const [page, setPage] = useState(1);
@@ -33,163 +52,135 @@ export function NotificationsPage() {
     }
   };
 
-  const getNotificationColor = (type: string) => {
+  const getStatusVariant = (type: string): 'info' | 'success' | 'warning' | 'danger' => {
     switch (type) {
-      case 'info': return '#3b82f6';
-      case 'success': return '#22c55e';
-      case 'warning': return '#f59e0b';
-      case 'error': return '#ef4444';
-      default: return 'var(--color-text-secondary)';
+      case 'info': return 'info';
+      case 'success': return 'success';
+      case 'warning': return 'warning';
+      case 'error': return 'danger';
+      default: return 'info';
     }
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, margin: 0 }}>Notifications</h1>
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h2)', margin: 0 }}>Notifications</h1>
         <button
           onClick={handleMarkAllRead}
           disabled={markingAll}
           style={{
-            padding: '8px 16px',
+            padding: 'var(--space-sm) var(--space-md)',
             background: 'none',
             color: 'var(--color-text)',
-            border: '1px solid var(--color-border)',
+            border: 'var(--border-width) solid var(--color-border)',
             borderRadius: 'var(--radius)',
             cursor: 'pointer',
-            fontSize: 14,
+            fontSize: 'var(--font-size-base)',
           }}
         >
           {markingAll ? 'Marking...' : 'Mark All as Read'}
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <select
-          value={typeFilter}
-          onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
-          style={{
-            padding: '8px 12px',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)',
-            background: 'var(--color-background)',
-            color: 'var(--color-text)',
-            fontSize: 14,
-          }}
-        >
-          <option value="">All Types</option>
-          <option value="info">Info</option>
-          <option value="success">Success</option>
-          <option value="warning">Warning</option>
-          <option value="error">Error</option>
-        </select>
-        <select
-          value={readFilter}
-          onChange={(e) => { setReadFilter(e.target.value); setPage(1); }}
-          style={{
-            padding: '8px 12px',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)',
-            background: 'var(--color-background)',
-            color: 'var(--color-text)',
-            fontSize: 14,
-          }}
-        >
-          <option value="">All Status</option>
-          <option value="unread">Unread</option>
-          <option value="read">Read</option>
-        </select>
+      <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
+        <TabBar
+          tabs={typeTabs}
+          activeTab={typeFilter}
+          onTabChange={(key) => { setTypeFilter(key); setPage(1); }}
+        />
+        <TabBar
+          tabs={readTabs}
+          activeTab={readFilter}
+          onTabChange={(key) => { setReadFilter(key); setPage(1); }}
+        />
       </div>
 
-      {loading && <LoadingSpinner />}
-      {error && <ErrorMessage message={error} />}
+      {loading && <LoadingSkeleton variant="list" rows={5} />}
+      {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && data && (
         <>
           {data.notifications.length === 0 ? (
-            <div style={{
-              padding: 48,
-              textAlign: 'center',
-              color: 'var(--color-text-secondary)',
-              border: '1px dashed var(--color-border)',
-              borderRadius: 'var(--radius)',
-            }}>
-              <p style={{ fontSize: 16, marginBottom: 8 }}>No notifications</p>
-              <p style={{ fontSize: 14 }}>
-                {(typeFilter || readFilter) ? 'Try different filters' : 'You\'re all caught up!'}
-              </p>
-            </div>
+            <EmptyState
+              icon="🔔"
+              title="No notifications"
+              description={(typeFilter || readFilter) ? 'Try different filters' : "You're all caught up!"}
+            />
           ) : (
             <div style={{
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius)',
+              border: 'var(--border-width) solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
               overflow: 'hidden',
             }}>
               {data.notifications.map((notification, index) => (
                 <div
                   key={notification.id}
                   style={{
-                    padding: '16px',
-                    borderBottom: index < data.notifications.length - 1 ? '1px solid var(--color-border)' : 'none',
+                    padding: 'var(--space-md)',
+                    borderBottom: index < data.notifications.length - 1 ? 'var(--border-width) solid var(--color-border)' : 'none',
                     background: notification.read ? 'transparent' : 'rgba(59, 130, 246, 0.03)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', gap: 12, flex: 1 }}>
-                      <span style={{ fontSize: 20 }}>
+                    <div style={{ display: 'flex', gap: 'var(--space-md)', flex: 1 }}>
+                      <span style={{ fontSize: 'var(--icon-md)' }}>
                         {getNotificationIcon(notification.type)}
                       </span>
                       <div style={{ flex: 1 }}>
                         <div style={{
-                          fontWeight: notification.read ? 400 : 600,
-                          marginBottom: 4,
+                          fontWeight: notification.read ? 'var(--font-weight-normal)' : 'var(--font-weight-semibold)',
+                          marginBottom: 'var(--space-xs)',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 8,
+                          gap: 'var(--space-sm)',
                         }}>
                           <span>{notification.title || 'Notification'}</span>
                           {!notification.read && (
-                            <span style={{
-                              width: 8,
-                              height: 8,
-                              borderRadius: '50%',
-                              background: '#3b82f6',
+                            <span aria-hidden="true" style={{
+                              width: 'var(--space-sm)',
+                              height: 'var(--space-sm)',
+                              borderRadius: 'var(--radius-full)',
+                              background: 'var(--color-primary)',
                               display: 'inline-block',
                             }} />
                           )}
                         </div>
-                        <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5 }}>
+                        <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5 }}>
                           {notification.message}
                         </p>
                         <div style={{
-                          marginTop: 8,
-                          fontSize: 12,
-                          color: 'var(--color-text-tertiary)',
+                          marginTop: 'var(--space-sm)',
+                          fontSize: 'var(--font-size-xs)',
+                          color: 'var(--color-text-secondary)',
                           display: 'flex',
-                          gap: 12,
+                          gap: 'var(--space-md)',
                         }}>
-                          <span style={{ color: getNotificationColor(notification.type) }}>
-                            {notification.type.charAt(0).toUpperCase() + notification.type.slice(1)}
-                          </span>
+                          <StatusBadge
+                            status={notification.type.charAt(0).toUpperCase() + notification.type.slice(1)}
+                            variant={getStatusVariant(notification.type)}
+                            size="sm"
+                          />
                           <span>·</span>
                           <span>{new Date(notification.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 4 }}>
+                    <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
                       {!notification.read && (
                         <button
                           onClick={async () => {
                             const success = await markAsRead(notification.id);
                             if (success) refetch();
                           }}
+                          aria-label={`Mark ${notification.title || 'notification'} as read`}
                           style={{
                             background: 'none',
                             border: 'none',
-                            padding: '4px 8px',
+                            padding: 'var(--space-xs) var(--space-sm)',
                             cursor: 'pointer',
-                            fontSize: 12,
-                            color: '#3b82f6',
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-primary)',
                           }}
                         >
                           Mark Read
@@ -201,13 +192,14 @@ export function NotificationsPage() {
                           const success = await remove(notification.id);
                           if (success) refetch();
                         }}
+                        aria-label={`Delete ${notification.title || 'notification'}`}
                         style={{
                           background: 'none',
                           border: 'none',
-                          padding: '4px 8px',
+                          padding: 'var(--space-xs) var(--space-sm)',
                           cursor: 'pointer',
-                          fontSize: 12,
-                          color: '#ef4444',
+                          fontSize: 'var(--font-size-xs)',
+                          color: 'var(--color-danger)',
                         }}
                       >
                         Delete
@@ -219,43 +211,12 @@ export function NotificationsPage() {
             </div>
           )}
 
-          {data.total > 20 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: page === 1 ? 'not-allowed' : 'pointer',
-                  opacity: page === 1 ? 0.5 : 1,
-                }}
-              >
-                Previous
-              </button>
-              <span style={{ padding: '6px 12px', fontSize: 14, color: 'var(--color-text-secondary)' }}>
-                Page {page} of {Math.ceil(data.total / 20)}
-              </span>
-              <button
-                onClick={() => setPage(p => p + 1)}
-                disabled={page >= Math.ceil(data.total / 20)}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: page >= Math.ceil(data.total / 20) ? 'not-allowed' : 'pointer',
-                  opacity: page >= Math.ceil(data.total / 20) ? 0.5 : 1,
-                }}
-              >
-                Next
-              </button>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            pageSize={20}
+            total={data.total}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>

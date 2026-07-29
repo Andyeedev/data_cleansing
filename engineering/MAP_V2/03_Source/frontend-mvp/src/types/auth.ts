@@ -22,6 +22,7 @@ export interface AuthState {
 
 export interface AuthContextType extends AuthState {
   userRoles: string[];
+  currentUser?: User | null;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   switchRole: (role: string) => void;

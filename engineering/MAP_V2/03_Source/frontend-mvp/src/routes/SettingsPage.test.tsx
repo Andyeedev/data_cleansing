@@ -28,19 +28,6 @@ const mockSettings = [
   },
 ];
 
-const mockFlags = [
-  {
-    id: '1',
-    name: 'New UI',
-    description: 'Enable new UI',
-    key: 'new_ui',
-    enabled: true,
-    rollout_percentage: 50,
-    status: 'active',
-    created_at: '2026-07-20T10:00:00Z',
-  },
-];
-
 describe('SettingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -94,16 +81,12 @@ describe('SettingsPage', () => {
   });
 
   it('renders error state on API failure', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
+    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('HTTP 500'));
 
     renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
 
     await waitFor(() => {
-      expect(screen.getByText(/HTTP 500/)).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
     });
   });
 

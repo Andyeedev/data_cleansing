@@ -3,6 +3,7 @@ export interface CalendarEvent {
   title: string;
   description: string | null;
   type: string;
+  event_type?: string;
   start_time: string;
   end_time: string | null;
   all_day: boolean;
@@ -26,6 +27,7 @@ export interface EventCreateRequest {
   title: string;
   description?: string;
   type?: string;
+  event_type?: string;
   start_time: string;
   end_time?: string;
   all_day?: boolean;

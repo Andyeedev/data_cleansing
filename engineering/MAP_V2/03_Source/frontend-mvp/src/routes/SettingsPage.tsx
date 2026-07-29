@@ -1,10 +1,21 @@
 import { useState } from 'react';
 import { useSettingList, useUpdateSetting } from '../hooks/useSettings';
 import { useFeatureFlagList, useUpdateFeatureFlag } from '../hooks/useFeatureFlags';
-import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import {
+  ErrorState,
+  LoadingSkeleton,
+  TabBar,
+  EmptyState,
+  StatusBadge,
+} from '../components/shared';
 
 type Tab = 'settings' | 'feature-flags';
+
+const tabs = [
+  { key: 'settings', label: 'System Settings' },
+  { key: 'feature-flags', label: 'Feature Flags' },
+];
 
 export function SettingsPage() {
   const { userRoles } = useAuth();
@@ -37,60 +48,33 @@ export function SettingsPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 16 }}>Settings</h1>
-        <ErrorMessage message="You do not have permission to view this page. Required role: admin" />
+      <div style={{ padding: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h2)', marginBottom: 'var(--space-md)' }}>Settings</h1>
+        <ErrorState
+          title="Access Denied"
+          message="You do not have permission to view this page. Required role: admin"
+        />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 24, marginBottom: 24 }}>Settings</h1>
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <h1 style={{ fontSize: 'var(--font-size-h2)', marginBottom: 'var(--space-lg)' }}>Settings</h1>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid var(--color-border)', paddingBottom: 4 }}>
-        <button
-          onClick={() => setActiveTab('settings')}
-          style={{
-            padding: '8px 16px',
-            background: activeTab === 'settings' ? 'var(--color-sidebar-active)' : 'transparent',
-            color: activeTab === 'settings' ? 'white' : 'var(--color-text)',
-            border: 'none',
-            borderRadius: 'var(--radius) var(--radius) 0 0',
-            cursor: 'pointer',
-            fontSize: 14,
-            fontWeight: activeTab === 'settings' ? 600 : 400,
-          }}
-        >
-          System Settings
-        </button>
-        <button
-          onClick={() => setActiveTab('feature-flags')}
-          style={{
-            padding: '8px 16px',
-            background: activeTab === 'feature-flags' ? 'var(--color-sidebar-active)' : 'transparent',
-            color: activeTab === 'feature-flags' ? 'white' : 'var(--color-text)',
-            border: 'none',
-            borderRadius: 'var(--radius) var(--radius) 0 0',
-            cursor: 'pointer',
-            fontSize: 14,
-            fontWeight: activeTab === 'feature-flags' ? 600 : 400,
-          }}
-        >
-          Feature Flags
-        </button>
-      </div>
+      <TabBar
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(key) => setActiveTab(key as Tab)}
+      />
 
-      {/* Settings Tab */}
       {activeTab === 'settings' && (
         <>
-          {loading && <LoadingSpinner />}
-          {error && <ErrorMessage message={error} />}
+          {loading && <LoadingSkeleton variant="list" rows={5} />}
+          {error && <ErrorState message={error} />}
 
           {!loading && !error && (
-            <div style={{ display: 'flex', gap: 24 }}>
-              {/* Category Sidebar */}
+            <div style={{ display: 'flex', gap: 'var(--space-lg)' }}>
               <div style={{ width: 200, flexShrink: 0 }}>
                 <div style={{
                   border: '1px solid var(--color-border)',
@@ -99,16 +83,17 @@ export function SettingsPage() {
                 }}>
                   <button
                     onClick={() => setSelectedCategory('')}
+                    aria-label="Filter by category"
                     style={{
                       width: '100%',
-                      padding: '10px 16px',
+                      padding: 'var(--space-sm) var(--space-md)',
                       background: !selectedCategory ? 'var(--color-sidebar-active)' : 'var(--color-background)',
                       color: !selectedCategory ? 'white' : 'var(--color-text)',
                       border: 'none',
                       borderBottom: '1px solid var(--color-border)',
                       cursor: 'pointer',
                       textAlign: 'left',
-                      fontSize: 14,
+                      fontSize: 'var(--font-size-base)',
                     }}
                   >
                     All Categories
@@ -117,16 +102,17 @@ export function SettingsPage() {
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
+                      aria-label={`Filter by category: ${cat}`}
                       style={{
                         width: '100%',
-                        padding: '10px 16px',
+                        padding: 'var(--space-sm) var(--space-md)',
                         background: selectedCategory === cat ? 'var(--color-sidebar-active)' : 'var(--color-background)',
                         color: selectedCategory === cat ? 'white' : 'var(--color-text)',
                         border: 'none',
                         borderBottom: '1px solid var(--color-border)',
                         cursor: 'pointer',
                         textAlign: 'left',
-                        fontSize: 14,
+                        fontSize: 'var(--font-size-base)',
                         textTransform: 'capitalize',
                       }}
                     >
@@ -136,23 +122,14 @@ export function SettingsPage() {
                 </div>
               </div>
 
-              {/* Settings List */}
               <div style={{ flex: 1 }}>
                 {categorySettings.length === 0 ? (
-                  <div style={{
-                    padding: 48,
-                    textAlign: 'center',
-                    color: 'var(--color-text-secondary)',
-                    border: '1px dashed var(--color-border)',
-                    borderRadius: 'var(--radius)',
-                  }}>
-                    <p style={{ fontSize: 16, marginBottom: 8 }}>No settings found</p>
-                    <p style={{ fontSize: 14 }}>
-                      {selectedCategory ? 'No settings in this category' : 'No settings configured'}
-                    </p>
-                  </div>
+                  <EmptyState
+                    title="No settings found"
+                    description={selectedCategory ? 'No settings in this category' : 'No settings configured'}
+                  />
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                     {categorySettings.map((setting) => (
                       <SettingRow
                         key={`${setting.category}-${setting.key}`}
@@ -169,27 +146,20 @@ export function SettingsPage() {
         </>
       )}
 
-      {/* Feature Flags Tab */}
       {activeTab === 'feature-flags' && (
         <>
-          {flagsLoading && <LoadingSpinner />}
-          {flagsError && <ErrorMessage message={flagsError} />}
+          {flagsLoading && <LoadingSkeleton variant="list" rows={4} />}
+          {flagsError && <ErrorState message={flagsError} />}
 
           {!flagsLoading && !flagsError && (
             <>
               {featureFlags.length === 0 ? (
-                <div style={{
-                  padding: 48,
-                  textAlign: 'center',
-                  color: 'var(--color-text-secondary)',
-                  border: '1px dashed var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                }}>
-                  <p style={{ fontSize: 16, marginBottom: 8 }}>No feature flags found</p>
-                  <p style={{ fontSize: 14 }}>No feature flags configured</p>
-                </div>
+                <EmptyState
+                  title="No feature flags found"
+                  description="No feature flags configured"
+                />
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                   {featureFlags.map((flag) => (
                     <FlagRow
                       key={flag.key}
@@ -239,22 +209,22 @@ function SettingRow({ setting, onUpdate, updating }: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '16px',
+      padding: 'var(--space-md)',
       border: '1px solid var(--color-border)',
       borderRadius: 'var(--radius)',
     }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 500 }}>{setting.key}</div>
+        <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 500 }}>{setting.key}</div>
         {setting.description && (
-          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
             {setting.description}
           </div>
         )}
-        <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
           Type: {setting.data_type} {setting.is_readonly && '(read-only)'}
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
         {editing ? (
           <>
             <input
@@ -262,39 +232,41 @@ function SettingRow({ setting, onUpdate, updating }: {
               onChange={(e) => setEditValue(e.target.value)}
               style={{
                 width: 200,
-                padding: '6px 10px',
+                padding: 'var(--space-xs) var(--space-sm)',
                 border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius)',
                 background: 'var(--color-background)',
                 color: 'var(--color-text)',
-                fontSize: 14,
+                fontSize: 'var(--font-size-base)',
               }}
             />
             <button
               onClick={handleSave}
               disabled={updating}
+              aria-label={`Save ${setting.key}`}
               style={{
-                padding: '6px 12px',
+                padding: 'var(--space-xs) var(--space-sm)',
                 background: 'var(--color-sidebar-active)',
                 color: 'white',
                 border: 'none',
                 borderRadius: 'var(--radius)',
                 cursor: 'pointer',
-                fontSize: 12,
+                fontSize: 'var(--font-size-xs)',
               }}
             >
               Save
             </button>
             <button
               onClick={() => setEditing(false)}
+              aria-label={`Cancel editing ${setting.key}`}
               style={{
-                padding: '6px 12px',
+                padding: 'var(--space-xs) var(--space-sm)',
                 border: '1px solid var(--color-border)',
                 borderRadius: 'var(--radius)',
                 background: 'var(--color-background)',
                 color: 'var(--color-text)',
                 cursor: 'pointer',
-                fontSize: 12,
+                fontSize: 'var(--font-size-xs)',
               }}
             >
               Cancel
@@ -302,20 +274,21 @@ function SettingRow({ setting, onUpdate, updating }: {
           </>
         ) : (
           <>
-            <span style={{ fontSize: 14, minWidth: 100, textAlign: 'right' }}>
+            <span style={{ fontSize: 'var(--font-size-base)', minWidth: 100, textAlign: 'right' }}>
               {String(setting.value ?? '—')}
             </span>
             {!setting.is_readonly && (
               <button
                 onClick={() => { setEditValue(String(setting.value ?? '')); setEditing(true); }}
+                aria-label={`Edit ${setting.key}`}
                 style={{
-                  padding: '6px 12px',
+                  padding: 'var(--space-xs) var(--space-sm)',
                   border: '1px solid var(--color-border)',
                   borderRadius: 'var(--radius)',
                   background: 'var(--color-background)',
                   color: 'var(--color-text)',
                   cursor: 'pointer',
-                  fontSize: 12,
+                  fontSize: 'var(--font-size-xs)',
                 }}
               >
                 Edit
@@ -342,25 +315,24 @@ function FlagRow({ flag, onToggle, onUpdateRollout, updating }: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '16px',
+      padding: 'var(--space-md)',
       border: '1px solid var(--color-border)',
       borderRadius: 'var(--radius)',
     }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 500 }}>{flag.name}</div>
-        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+        <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 500 }}>{flag.name}</div>
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
           Key: {flag.key}
         </div>
         {flag.description && (
-          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
             {flag.description}
           </div>
         )}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {/* Rollout Percentage */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Rollout:</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Rollout:</span>
           {editingRollout ? (
             <>
               <input
@@ -371,12 +343,12 @@ function FlagRow({ flag, onToggle, onUpdateRollout, updating }: {
                 onChange={(e) => setRolloutValue(e.target.value)}
                 style={{
                   width: 60,
-                  padding: '4px 8px',
+                  padding: 'var(--space-xs) var(--space-sm)',
                   border: '1px solid var(--color-border)',
                   borderRadius: 'var(--radius)',
                   background: 'var(--color-background)',
                   color: 'var(--color-text)',
-                  fontSize: 12,
+                  fontSize: 'var(--font-size-xs)',
                 }}
               />
               <button
@@ -386,13 +358,13 @@ function FlagRow({ flag, onToggle, onUpdateRollout, updating }: {
                 }}
                 disabled={updating}
                 style={{
-                  padding: '4px 8px',
+                  padding: 'var(--space-xs) var(--space-sm)',
                   background: 'var(--color-sidebar-active)',
                   color: 'white',
                   border: 'none',
                   borderRadius: 'var(--radius)',
                   cursor: 'pointer',
-                  fontSize: 11,
+                  fontSize: 'var(--font-size-xs)',
                 }}
               >
                 Save
@@ -406,7 +378,7 @@ function FlagRow({ flag, onToggle, onUpdateRollout, updating }: {
                 border: 'none',
                 color: 'var(--color-sidebar-active)',
                 cursor: 'pointer',
-                fontSize: 12,
+                fontSize: 'var(--font-size-xs)',
                 padding: 0,
               }}
             >
@@ -415,22 +387,21 @@ function FlagRow({ flag, onToggle, onUpdateRollout, updating }: {
           )}
         </div>
 
-        {/* Enabled Toggle */}
         <button
           onClick={() => onToggle(flag.key, !flag.enabled)}
           disabled={updating}
           style={{
-            padding: '6px 12px',
-            background: flag.enabled ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-            color: flag.enabled ? '#22c55e' : '#ef4444',
-            border: `1px solid ${flag.enabled ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-            borderRadius: 'var(--radius)',
-            cursor: 'pointer',
-            fontSize: 12,
-            fontWeight: 500,
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: updating ? 'not-allowed' : 'pointer',
           }}
         >
-          {flag.enabled ? 'Enabled' : 'Disabled'}
+          <StatusBadge
+            status={flag.enabled ? 'Enabled' : 'Disabled'}
+            variant={flag.enabled ? 'success' : 'danger'}
+            size="sm"
+          />
         </button>
       </div>
     </div>

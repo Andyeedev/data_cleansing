@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserList, useDeleteUser } from '../hooks/useUsers';
-import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import {
+  ErrorState,
+  LoadingSkeleton,
+  EmptyState,
+  StatusBadge,
+  Pagination,
+} from '../components/shared';
 
 export function UsersPage() {
   const navigate = useNavigate();
@@ -34,27 +40,27 @@ export function UsersPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 16 }}>Users</h1>
-        <ErrorMessage message="You do not have permission to view this page. Required role: admin" />
+      <div style={{ padding: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Users</h1>
+        <ErrorState message="You do not have permission to view this page. Required role: admin" />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, margin: 0 }}>Users</h1>
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h1)', margin: 0 }}>Users</h1>
         <button
           onClick={() => navigate('/administration/users/new')}
           style={{
-            padding: '8px 16px',
+            padding: 'var(--space-sm) var(--space-md)',
             background: 'var(--color-sidebar-active)',
             color: 'white',
             border: 'none',
             borderRadius: 'var(--radius)',
             cursor: 'pointer',
-            fontSize: 14,
+            fontSize: 'var(--font-size-base)',
           }}
         >
           Add User
@@ -62,33 +68,35 @@ export function UsersPage() {
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-md)' }}>
         <input
           type="text"
           placeholder="Search users..."
+          aria-label="Search users"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           style={{
             flex: 1,
-            padding: '8px 12px',
+            padding: 'var(--space-sm) var(--space-md)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)',
             background: 'var(--color-background)',
             color: 'var(--color-text)',
-            fontSize: 14,
+            fontSize: 'var(--font-size-base)',
           }}
         />
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          aria-label="Filter by status"
           style={{
-            padding: '8px 12px',
+            padding: 'var(--space-sm) var(--space-md)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)',
             background: 'var(--color-background)',
             color: 'var(--color-text)',
-            fontSize: 14,
+            fontSize: 'var(--font-size-base)',
           }}
         >
           <option value="">All Status</option>
@@ -98,39 +106,31 @@ export function UsersPage() {
         </select>
       </div>
 
-      {loading && <LoadingSpinner />}
-      {error && <ErrorMessage message={error} />}
+      {loading && <LoadingSkeleton variant="table" rows={10} />}
+      {error && <ErrorState message={error} onRetry={refetch} />}
 
       {!loading && !error && data && (
         <>
           {data.users.length === 0 ? (
-            <div style={{
-              padding: 48,
-              textAlign: 'center',
-              color: 'var(--color-text-secondary)',
-              border: '1px dashed var(--color-border)',
-              borderRadius: 'var(--radius)',
-            }}>
-              <p style={{ fontSize: 16, marginBottom: 8 }}>No users found</p>
-              <p style={{ fontSize: 14 }}>
-                {search ? 'Try a different search term' : 'Create your first user to get started'}
-              </p>
-            </div>
+            <EmptyState
+              title="No users found"
+              description={search ? 'Try a different search term' : 'Create your first user to get started'}
+            />
           ) : (
             <div style={{
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius)',
               overflow: 'hidden',
             }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-base)' }}>
                 <thead>
                   <tr style={{ background: 'var(--color-background)' }}>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Name</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Email</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Department</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Status</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Last Login</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>Actions</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Name</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Email</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Department</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Status</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>Last Login</th>
+                    <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -139,7 +139,7 @@ export function UsersPage() {
                       key={user.id}
                       style={{ borderBottom: '1px solid var(--color-border)' }}
                     >
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
                         <button
                           onClick={() => navigate(`/administration/users/${user.id}`)}
                           style={{
@@ -147,7 +147,7 @@ export function UsersPage() {
                             border: 'none',
                             color: 'var(--color-sidebar-active)',
                             cursor: 'pointer',
-                            fontSize: 14,
+                            fontSize: 'var(--font-size-base)',
                             padding: 0,
                             textDecoration: 'underline',
                           }}
@@ -155,34 +155,26 @@ export function UsersPage() {
                           {user.display_name || `${user.first_name} ${user.last_name}`}
                         </button>
                       </td>
-                      <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>{user.email}</td>
-                      <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>{user.department || '—'}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 500,
-                          background: user.status === 'active' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                          color: user.status === 'active' ? '#22c55e' : '#ef4444',
-                        }}>
-                          {user.status}
-                        </span>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)' }}>{user.email}</td>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)' }}>{user.department || '—'}</td>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                        <StatusBadge status={user.status} size="sm" />
                       </td>
-                      <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)', fontSize: 13 }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
                         {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'}
                       </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'right' }}>
                         <button
                           onClick={() => navigate(`/administration/users/${user.id}`)}
+                          aria-label={`View ${user.display_name || user.email}`}
                           style={{
                             background: 'none',
                             border: '1px solid var(--color-border)',
                             borderRadius: 'var(--radius)',
-                            padding: '4px 8px',
+                            padding: 'var(--space-xs) var(--space-sm)',
                             cursor: 'pointer',
-                            fontSize: 12,
-                            marginRight: 8,
+                            fontSize: 'var(--font-size-xs)',
+                            marginRight: 'var(--space-sm)',
                             color: 'var(--color-text)',
                           }}
                         >
@@ -191,14 +183,15 @@ export function UsersPage() {
                         <button
                           onClick={() => handleDelete(user.id, user.display_name || user.email)}
                           disabled={deleting}
+                          aria-label={`Delete ${user.display_name || user.email}`}
                           style={{
                             background: 'none',
                             border: '1px solid rgba(239, 68, 68, 0.3)',
                             borderRadius: 'var(--radius)',
-                            padding: '4px 8px',
+                            padding: 'var(--space-xs) var(--space-sm)',
                             cursor: 'pointer',
-                            fontSize: 12,
-                            color: '#ef4444',
+                            fontSize: 'var(--font-size-xs)',
+                            color: 'var(--color-danger)',
                           }}
                         >
                           Delete
@@ -213,40 +206,13 @@ export function UsersPage() {
 
           {/* Pagination */}
           {data.total > 20 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: page === 1 ? 'not-allowed' : 'pointer',
-                  opacity: page === 1 ? 0.5 : 1,
-                }}
-              >
-                Previous
-              </button>
-              <span style={{ padding: '6px 12px', fontSize: 14, color: 'var(--color-text-secondary)' }}>
-                Page {page} of {Math.ceil(data.total / 20)}
-              </span>
-              <button
-                onClick={() => setPage(p => p + 1)}
-                disabled={page >= Math.ceil(data.total / 20)}
-                style={{
-                  padding: '6px 12px',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: page >= Math.ceil(data.total / 20) ? 'not-allowed' : 'pointer',
-                  opacity: page >= Math.ceil(data.total / 20) ? 0.5 : 1,
-                }}
-              >
-                Next
-              </button>
+            <div style={{ marginTop: 'var(--space-md)' }}>
+              <Pagination
+                page={page}
+                pageSize={20}
+                total={data.total}
+                onPageChange={setPage}
+              />
             </div>
           )}
         </>

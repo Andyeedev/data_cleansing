@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiGet, apiPut, apiDelete } from '../utils/apiClient';
-import type { Notification, NotificationListResponse, NotificationPreference, PreferenceUpdateRequest } from '../types/notifications';
+import type { NotificationListResponse, NotificationPreference, PreferenceUpdateRequest } from '../types/notifications';
 
 export function useNotificationList(params?: { page?: number; page_size?: number; is_read?: boolean; type?: string; read?: boolean }) {
   const [data, setData] = useState<NotificationListResponse | null>(null);
@@ -11,7 +11,8 @@ export function useNotificationList(params?: { page?: number; page_size?: number
     setLoading(true);
     setError(null);
     try {
-      const result = await apiGet<NotificationListResponse>('/notifications', params);
+      const apiParams = params ? { ...params, is_read: params.is_read !== undefined ? String(params.is_read) : undefined, read: params.read !== undefined ? String(params.read) : undefined } : undefined;
+      const result = await apiGet<NotificationListResponse>('/notifications', apiParams);
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
