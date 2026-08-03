@@ -9,6 +9,12 @@ from .registry import AdapterRegistry
 from .pool import ConnectionPoolManager
 from .models import TableInfo, ColumnInfo, ConnectionTestResult
 from .postgres import PostgresAdapter
+from .sqlserver import SQLServerAdapter
+from .mysql import MySQLAdapter
+from .oracle import OracleAdapter
+from .snowflake import SnowflakeAdapter
+from .bigquery import BigQueryAdapter
+from .databricks import DatabricksAdapter
 
 __all__ = [
     "ConnectionAdapter",
@@ -18,4 +24,10 @@ __all__ = [
     "ColumnInfo",
     "ConnectionTestResult",
     "PostgresAdapter",
+    "SQLServerAdapter",
+    "MySQLAdapter",
+    "OracleAdapter",
+    "SnowflakeAdapter",
+    "BigQueryAdapter",
+    "DatabricksAdapter",
 ]
