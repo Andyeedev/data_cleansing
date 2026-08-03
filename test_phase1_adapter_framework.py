@@ -30,19 +30,20 @@ def test_connection_adapter_interface():
 
 def test_adapter_registry():
     """Test AdapterRegistry functionality."""
-    
+
     # Check that AdapterRegistry exists
     assert AdapterRegistry.__name__ == "AdapterRegistry"
-    
+
     # Test registry methods
     assert hasattr(AdapterRegistry, 'register')
     assert hasattr(AdapterRegistry, 'get')
     assert hasattr(AdapterRegistry, 'supported_types')
     assert hasattr(AdapterRegistry, 'is_supported')
-    
-    # Test that registry is empty initially
-    assert AdapterRegistry.supported_types() == []
-    
+
+    # Test that registry has adapters registered (PostgresAdapter imported)
+    types = AdapterRegistry.supported_types()
+    assert "postgres" in types
+
     print("AdapterRegistry verified")
 
 def test_connection_pool_manager():
@@ -145,16 +146,41 @@ def run_all_tests():
     print("=" * 60)
     print("Phase 1.1 - Connection Adapter Framework Tests")
     print("=" * 60)
-    
+
     test_connection_adapter_interface()
     test_adapter_registry()
     test_connection_pool_manager()
     test_config_classes()
     test_data_models()
-    
+
+    print("=" * 60)
+    print("Phase 2 - All Adapters Migrated Tests")
+    print("=" * 60)
+
+    test_all_adapters_registered()
+
     print("=" * 60)
     print("All tests passed! [OK]")
     print("=" * 60)
+
+def test_all_adapters_registered():
+    """Test that all 7 adapters are registered."""
+    expected_adapters = [
+        "postgres",
+        "sqlserver",
+        "mysql",
+        "oracle",
+        "snowflake",
+        "bigquery",
+        "databricks",
+    ]
+
+    registered = AdapterRegistry.supported_types()
+
+    for adapter_type in expected_adapters:
+        assert adapter_type in registered, f"{adapter_type} not registered"
+
+    print(f"All 7 adapters registered: {registered}")
 
 if __name__ == "__main__":
     run_all_tests()
