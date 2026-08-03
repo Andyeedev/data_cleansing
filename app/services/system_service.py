@@ -136,11 +136,10 @@ class SystemService:
             user=creds["username"],
             password=creds["password"]
         )
-        from app.db.adapter_factory import get_adapter
-        adapter = get_adapter(db_type, conn)
-
-        from app.db.connection_factory import connection_factory
-        adapter = connection_factory(db_type, conn)
+        from app.adapters.registry import AdapterRegistry
+        adapter_class = AdapterRegistry.get(db_type)
+        adapter = adapter_class()
+        adapter.connect(config)
 
         tables = adapter.list_tables()
 

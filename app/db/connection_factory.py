@@ -13,32 +13,32 @@ def connection_factory(config):
     db_type = db_type.lower().strip()
 
     if db_type == "postgres":
-        from app.db.adapters.postgres_adapter import PostgresAdapter
-        return PostgresAdapter(config)
+        from app.adapters.postgres import PostgresAdapter
+        return PostgresAdapter()
 
     elif db_type == "mysql":
-        from app.db.adapters.mysql_adapter import MySQLAdapter
-        return MySQLAdapter(config)
+        from app.adapters.mysql import MySQLAdapter
+        return MySQLAdapter()
 
     elif db_type == "sqlserver":
-        from app.db.adapters.sqlserver_adapter import SQLServerAdapter
-        return SQLServerAdapter(config)
+        from app.adapters.sqlserver import SQLServerAdapter
+        return SQLServerAdapter()
 
     elif db_type == "snowflake":
-        from app.db.adapters.snowflake_adapter import SnowflakeAdapter
-        return SnowflakeAdapter(config)
+        from app.adapters.snowflake import SnowflakeAdapter
+        return SnowflakeAdapter()
 
     elif db_type == "bigquery":
-        from app.db.adapters.bigquery_adapter import BigQueryAdapter
-        return BigQueryAdapter(config)
+        from app.adapters.bigquery import BigQueryAdapter
+        return BigQueryAdapter()
 
     elif db_type == "oracle":
-        from app.db.adapters.oracle_adapter import OracleAdapter
-        return OracleAdapter(config)
+        from app.adapters.oracle import OracleAdapter
+        return OracleAdapter()
 
     elif db_type == "databricks":
-        from app.db.adapters.databricks_adapter import DatabricksAdapter
-        return DatabricksAdapter(config)
+        from app.adapters.databricks import DatabricksAdapter
+        return DatabricksAdapter()
 
     else:
         raise ValueError(f"Unsupported DB type: {db_type}")
