@@ -1,8 +1,9 @@
 # DEFINITION OF DONE
-## Phase 08 — Repository Reference Resolution
+## Phase 08 — Repository Reference Resolution & Frontend MVP Implementation
 
 **Generated:** 2026-07-24
-**Status:** PENDING APPROVAL
+**Last Updated:** 2026-07-31
+**Status:** PENDING APPROVAL — Phase 08A/B Complete
 
 ---
 
@@ -93,8 +94,27 @@ Defines the criteria that must be met for Phase 08 to be considered complete.
 | Integration Runbook updated | [x] | Document |
 | OpenCode Execution Guide updated | [x] | Document |
 | Architecture Decision Record created | [x] | ADR-08-001 |
+| 08AA Gap Analysis updated | [x] | 08AA_Frozen_Frontend_Gap_Analysis.md |
+| Phase 08 Table Inventory updated | [x] | Phase_08_Table_Inventory.md |
+| Phase 08 Evidence Package updated | [x] | Phase_08_Evidence_Package.md |
 
-### 9. Version Control
+### 9. Phase 08B — Frontend MVP
+
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| MigrationProjectsPage implemented | [x] | `src/routes/MigrationProjectsPage.tsx` |
+| MigrationDatasetsPage implemented | [x] | `src/routes/MigrationDatasetsPage.tsx` |
+| MigrationSchedulesPage implemented | [x] | `src/routes/MigrationSchedulesPage.tsx` |
+| MigrationOverviewPage implemented | [x] | `src/routes/MigrationOverviewPage.tsx` |
+| AccessDeniedPage exists and routed | [x] | `src/routes/AccessDeniedPage.tsx`, `/access-denied` |
+| ProtectedRoute redirect to `/access-denied` | [ ] | Currently shows inline message |
+| `v_batch_risk_index` view created | [ ] | BLOCKED — B-07 |
+| `migration_risk_scores` table created | [ ] | BLOCKED — B-07 |
+| Scheduler subsystem (DDL, API, frontend, tests) | [x] | 10 endpoints, 5/5 tests |
+| Theme consistency fixes | [x] | StatusBadge, hardcoded color removal |
+| `FAIL` mapping added to StatusBadge | [x] | `src/components/shared/StatusBadge.tsx` |
+
+### 10. Version Control
 
 | Criterion | Status | Evidence |
 |-----------|--------|----------|
@@ -160,4 +180,4 @@ cd app/frontend && npm test 2>&1 | grep -E "Tests:|Test Suites:"
 ---
 
 **Document Generated:** 2026-07-24
-**Status:** ✅ COMPLETE — 2026-07-27
+**Status:** ✅ COMPLETE — 2026-07-27 (Phase 08A/B)

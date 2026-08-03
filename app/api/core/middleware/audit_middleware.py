@@ -2,6 +2,8 @@ import time
 import logging
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from jose import jwt
+from app.api.core.auth.jwt_config import SECRET_KEY, ALGORITHM
 
 logger = logging.getLogger("audit")
 
@@ -12,13 +14,12 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
 
         user_id = None
         auth = request.headers.get("Authorization")
-        if auth and auth.startswith("Bearer "):
+        if auth and auth.startswith("Bearer ") and request.method != "OPTIONS":
             try:
-                from jose import jwt
-                from app.api.core.auth.jwt_config import SECRET_KEY, ALGORITHM
                 token = auth.split(" ")[1]
                 payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
                 user_id = payload.get("sub") or payload.get("user")
+                request.state.user = payload
             except Exception:
                 pass
 

@@ -8,8 +8,8 @@ class ExecutionHistoryService:
     def __init__(self):
         self.repository = ExecutionHistoryRepository()
 
-    def get_execution_history(self, page: int = 1, page_size: int = 20):
-        rows, total = self.repository.get_execution_history(page, page_size)
+    def get_execution_history(self, page: int = 1, page_size: int = 100, tenant_id: str = None, status: str = None, search: str = None, sort_by: str = 'batch_start_time', sort_dir: str = 'desc'):
+        rows, total = self.repository.get_execution_history(page, page_size, tenant_id, status, search, sort_by, sort_dir)
         items = [self._history_to_dict(r) for r in rows]
 
         return {
@@ -115,6 +115,16 @@ class ExecutionHistoryService:
             "control_executions": executions_list,
             "exceptions": exceptions_list,
             "governance": governance_dict
+        }
+
+    def get_batch_status_breakdown(self, tenant_id: str = None):
+        breakdown, total, today_breakdown = self.repository.get_batch_status_breakdown(tenant_id)
+        unscored = total - sum(breakdown.get(s, 0) for s in ['COMPLETED', 'RUNNING', 'FAILED', 'PENDING', 'PAUSED', 'CANCELLED'] if s in breakdown)
+        return {
+            "breakdown": breakdown,
+            "total": total,
+            "unscored": unscored,
+            "today_breakdown": today_breakdown
         }
 
     def _history_to_dict(self, row):

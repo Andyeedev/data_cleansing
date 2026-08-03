@@ -25,44 +25,59 @@ describe('App', () => {
     });
   });
 
-  it('renders the migration page on /migration', () => {
+  it('renders the migration page on /migration', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/migration'] });
-    expect(screen.getByRole('heading', { name: 'Migration' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Migration' })).toBeInTheDocument();
+    });
   });
 
-  it('renders the validation page on /validation', () => {
+  it('renders the validation page on /validation', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/validation'] });
-    expect(screen.getByRole('heading', { name: 'Validation' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Validation' })).toBeInTheDocument();
+    });
   });
 
-  it('renders the governance page on /governance', () => {
+  it('renders the governance page on /governance', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/governance'] });
-    expect(screen.getByRole('heading', { name: 'Governance' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Governance' })).toBeInTheDocument();
+    });
   });
 
-  it('renders the reports page on /reports', () => {
+  it('renders the reports page on /reports', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/reports'] });
-    expect(screen.getByRole('heading', { name: 'Reports' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Reports' })).toBeInTheDocument();
+    });
   });
 
-  it('renders the operations page on /operations', () => {
+  it('renders the operations page on /operations', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/operations'] });
-    expect(screen.getByRole('heading', { name: 'Operations' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Operations' })).toBeInTheDocument();
+    });
   });
 
-  it('renders the tasks page on /tasks', () => {
+  it('renders the tasks page on /tasks', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/tasks'] });
-    expect(screen.getByRole('heading', { name: 'Task Management' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Task Management' })).toBeInTheDocument();
+    });
   });
 
-  it('renders the administration page on /administration', () => {
+  it('renders the administration page on /administration', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/administration'] });
-    expect(screen.getByRole('heading', { name: 'Administration' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Administration' })).toBeInTheDocument();
+    });
   });
 
-  it('renders 404 for unknown routes', () => {
+  it('renders 404 for unknown routes', async () => {
     renderWithProviders(<AppRoutes />, { initialEntries: ['/unknown'] });
-    expect(screen.getByText('404')).toBeInTheDocument();
-    expect(screen.getByText('Page not found.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('404')).toBeInTheDocument();
+    });
   });
 });

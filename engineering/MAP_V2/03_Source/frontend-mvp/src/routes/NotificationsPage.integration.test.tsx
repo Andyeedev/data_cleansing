@@ -71,8 +71,8 @@ describe('NotificationsPage Integration', () => {
       expect(screen.getByText('Test Notification 1')).toBeInTheDocument();
     });
 
-    const typeFilter = screen.getByDisplayValue('All Types');
-    fireEvent.change(typeFilter, { target: { value: 'info' } });
+    const typeFilter = screen.getByRole('tab', { name: 'Info' });
+    fireEvent.click(typeFilter);
 
     await waitFor(() => {
       const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls;
@@ -101,8 +101,8 @@ describe('NotificationsPage Integration', () => {
       expect(screen.getByText('Test Notification 1')).toBeInTheDocument();
     });
 
-    const readFilter = screen.getByDisplayValue('All Status');
-    fireEvent.change(readFilter, { target: { value: 'unread' } });
+    const readFilter = screen.getByRole('tab', { name: 'Unread' });
+    fireEvent.click(readFilter);
 
     await waitFor(() => {
       const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls;

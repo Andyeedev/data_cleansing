@@ -19,15 +19,9 @@ class ExecutionControlResponse(BaseModel):
     status: str
 
 
-class ExecutionLifecycleEvent(BaseModel):
-    event_type: str
-    timestamp: Optional[str] = None
-    details: Optional[dict] = None
-
-
 class ExecutionLifecycleResponse(BaseModel):
     batch_id: str
-    events: list[ExecutionLifecycleEvent] = []
+    last_completed_control: Optional[str] = None
 
 
 class ExecutionProgressResponse(BaseModel):

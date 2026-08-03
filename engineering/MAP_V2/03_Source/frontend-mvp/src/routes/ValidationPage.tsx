@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { useWorkflowList } from '../hooks/useWorkflows';
 import { useRunExecution, usePollBatchStatus } from '../hooks/useExecution';
-import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import { StatusBadge } from '../components/shared/StatusBadge';
+import { ProgressBar } from '../components/shared/ProgressBar';
+import { EmptyState } from '../components/shared/EmptyState';
+import { ErrorState } from '../components/shared/ErrorState';
+import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import type { ExecutionRunResponse } from '../types/execution';
 
 export function ValidationPage() {
@@ -26,16 +30,6 @@ export function ValidationPage() {
     }
   };
 
-  const getStatusColor = (statusVal: string) => {
-    switch (statusVal?.toUpperCase()) {
-      case 'COMPLETED': return '#22c55e';
-      case 'RUNNING': return '#3b82f6';
-      case 'FAILED': return '#ef4444';
-      case 'NOT_FOUND': return '#f59e0b';
-      default: return 'var(--color-text-secondary)';
-    }
-  };
-
   const getProgressPercent = (completed: number, total: number) => {
     if (total === 0) return 0;
     return Math.round((completed / total) * 100);
@@ -43,9 +37,9 @@ export function ValidationPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 16 }}>Validation</h1>
-        <ErrorMessage message="You do not have permission to view this page. Required role: admin" />
+      <div style={{ padding: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Validation</h1>
+        <ErrorState message="You do not have permission to view this page. Required role: admin" />
       </div>
     );
   }
@@ -53,28 +47,28 @@ export function ValidationPage() {
   const workflows = workflowData?.workflows || [];
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Validation</h1>
-      <p style={{ color: 'var(--color-text-secondary)', marginBottom: 24 }}>
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-sm)' }}>Validation</h1>
+      <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-lg)' }}>
         Run pre-migration validation to check data integrity across source and target systems.
       </p>
 
-      {(runError || pollError) && <ErrorMessage message={runError || pollError || ''} />}
-      {workflowsError && <ErrorMessage message={workflowsError} />}
+      {(runError || pollError) && <ErrorState message={runError || pollError || ''} onRetry={() => setRunError(null)} />}
+      {workflowsError && <ErrorState message={workflowsError} />}
 
       <div style={{
         border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius)',
-        padding: 20,
-        marginBottom: 24,
+        borderRadius: 'var(--radius-md)',
+        padding: 'var(--space-lg)',
+        marginBottom: 'var(--space-lg)',
       }}>
-        <h3 style={{ fontSize: 16, marginBottom: 12 }}>Run Validation</h3>
-        <p style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+        <h3 style={{ fontSize: 'var(--font-size-h3)', marginBottom: 'var(--space-sm)' }}>Run Validation</h3>
+        <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-md)' }}>
           Execute validation rules against registered dataset mappings.
         </p>
 
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+        <div style={{ marginBottom: 'var(--space-md)' }}>
+          <label style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
             Project ID
           </label>
           <input
@@ -82,37 +76,39 @@ export function ValidationPage() {
             value={selectedWorkflowId}
             onChange={(e) => setSelectedWorkflowId(e.target.value)}
             placeholder="Enter project ID (or use default)"
+            aria-label="Project ID"
             style={{
-              padding: '8px 12px',
+              padding: 'var(--space-sm) var(--space-md)',
               border: '1px solid var(--color-border)',
               borderRadius: 'var(--radius)',
               background: 'var(--color-background)',
               color: 'var(--color-text)',
-              fontSize: 14,
+              fontSize: 'var(--font-size-base)',
               width: 300,
             }}
           />
         </div>
 
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
           <button
             onClick={handleRunValidation}
             disabled={running || polling}
+            aria-label={running ? 'Starting validation...' : polling ? 'Validation running...' : 'Start Validation'}
             style={{
-              padding: '10px 20px',
-              background: running || polling ? 'var(--color-background)' : 'rgba(34, 197, 94, 0.1)',
-              color: running || polling ? 'var(--color-text-secondary)' : '#22c55e',
+              padding: 'var(--space-sm) var(--space-lg)',
+              background: running || polling ? 'var(--color-bg-secondary)' : 'rgba(34, 197, 94, 0.1)',
+              color: running || polling ? 'var(--color-text-secondary)' : 'var(--color-success)',
               border: `1px solid ${running || polling ? 'var(--color-border)' : 'rgba(34, 197, 94, 0.3)'}`,
               borderRadius: 'var(--radius)',
               cursor: running || polling ? 'not-allowed' : 'pointer',
-              fontSize: 14,
+              fontSize: 'var(--font-size-base)',
               fontWeight: 500,
             }}
           >
             {running ? 'Starting...' : polling ? 'Validation Running...' : 'Start Validation'}
           </button>
           {lastRun && (
-            <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               Batch: {lastRun.batch_id.slice(0, 8)}...
             </span>
           )}
@@ -122,70 +118,44 @@ export function ValidationPage() {
       {status && (
         <div style={{
           border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius)',
-          padding: 20,
-          marginBottom: 24,
+          borderRadius: 'var(--radius-md)',
+          padding: 'var(--space-lg)',
+          marginBottom: 'var(--space-lg)',
         }}>
-          <h3 style={{ fontSize: 16, marginBottom: 12 }}>Validation Progress</h3>
+          <h3 style={{ fontSize: 'var(--font-size-h3)', marginBottom: 'var(--space-md)' }}>Validation Progress</h3>
 
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Progress</span>
-              <span style={{ fontSize: 13, fontWeight: 500 }}>
-                {getProgressPercent(status.completed_controls, status.total_controls)}%
-              </span>
-            </div>
-            <div style={{
-              height: 8,
-              background: 'var(--color-background)',
-              borderRadius: 4,
-              overflow: 'hidden',
-              border: '1px solid var(--color-border)',
-            }}>
-              <div style={{
-                height: '100%',
-                width: `${getProgressPercent(status.completed_controls, status.total_controls)}%`,
-                background: status.status === 'FAILED' ? '#ef4444' : '#3b82f6',
-                borderRadius: 4,
-                transition: 'width 0.3s ease',
-              }} />
-            </div>
-          </div>
+          <ProgressBar
+            value={getProgressPercent(status.completed_controls, status.total_controls)}
+            label="Progress"
+            showPercentage
+            color={status.status === 'FAILED' ? 'var(--color-danger)' : 'var(--color-primary)'}
+          />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
             <div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>Status</div>
-              <span style={{
-                padding: '4px 10px',
-                borderRadius: 12,
-                fontSize: 13,
-                fontWeight: 500,
-                background: `${getStatusColor(status.status)}15`,
-                color: getStatusColor(status.status),
-              }}>
-                {status.status}
-              </span>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Status</div>
+              <StatusBadge status={status.status} />
             </div>
             <div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>Total Controls</div>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>{status.total_controls}</div>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Total Controls</div>
+              <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 500 }}>{status.total_controls}</div>
             </div>
             <div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>Completed</div>
-              <div style={{ fontSize: 14, color: '#22c55e' }}>{status.completed_controls}</div>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Completed</div>
+              <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-success)' }}>{status.completed_controls}</div>
             </div>
             <div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>Failed</div>
-              <div style={{ fontSize: 14, color: status.failed_controls > 0 ? '#ef4444' : 'inherit' }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Failed</div>
+              <div style={{ fontSize: 'var(--font-size-base)', color: status.failed_controls > 0 ? 'var(--color-danger)' : 'inherit' }}>
                 {status.failed_controls}
               </div>
             </div>
           </div>
 
           {polling && (
-            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <LoadingSpinner />
-              <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+            <div style={{ marginTop: 'var(--space-sm)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+              <LoadingSkeleton rows={1} variant="text" height={14} width={120} />
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                 Polling for updates...
               </span>
             </div>
@@ -193,17 +163,20 @@ export function ValidationPage() {
         </div>
       )}
 
-      {workflowsLoading && <LoadingSpinner />}
+      {workflowsLoading && <LoadingSkeleton rows={3} variant="list" />}
+      {!workflowsLoading && workflows.length === 0 && (
+        <EmptyState title="No validation workflows" description="Create a workflow to get started." />
+      )}
       {!workflowsLoading && workflows.length > 0 && (
         <div style={{
           border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius)',
+          borderRadius: 'var(--radius-md)',
         }}>
           <div style={{
-            padding: '16px 20px',
+            padding: 'var(--space-md) var(--space-lg)',
             borderBottom: '1px solid var(--color-border)',
             fontWeight: 600,
-            fontSize: 16,
+            fontSize: 'var(--font-size-h4)',
           }}>
             Validation Workflows
           </div>
@@ -211,29 +184,20 @@ export function ValidationPage() {
             <div
               key={wf.id}
               style={{
-                padding: '12px 20px',
+                padding: 'var(--space-sm) var(--space-lg)',
                 borderBottom: idx < workflows.length - 1 ? '1px solid var(--color-border)' : 'none',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 16,
+                gap: 'var(--space-md)',
               }}
             >
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 500 }}>{wf.name}</div>
-                <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
                   {wf.type} &middot; {wf.status}
                 </div>
               </div>
-              <span style={{
-                padding: '4px 10px',
-                borderRadius: 12,
-                fontSize: 12,
-                fontWeight: 500,
-                background: wf.status === 'active' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                color: wf.status === 'active' ? '#22c55e' : '#f59e0b',
-              }}>
-                {wf.status}
-              </span>
+              <StatusBadge status={wf.status} />
             </div>
           ))}
         </div>

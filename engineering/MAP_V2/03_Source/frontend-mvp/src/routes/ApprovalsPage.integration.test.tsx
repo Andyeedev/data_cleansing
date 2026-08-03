@@ -138,19 +138,19 @@ describe('ApprovalsPage Integration', () => {
     renderWithProviders(<ApprovalsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Approval')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /create new approval/i })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Create Approval'));
+    fireEvent.click(screen.getByRole('button', { name: /create new approval/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Cancel')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Cancel'));
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
 
     await waitFor(() => {
-      expect(screen.queryByText('Cancel')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /cancel/i })).not.toBeInTheDocument();
     });
   });
 
@@ -171,16 +171,16 @@ describe('ApprovalsPage Integration', () => {
     renderWithProviders(<ApprovalsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Approval')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /create new approval/i })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Create Approval'));
+    fireEvent.click(screen.getByRole('button', { name: /create new approval/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Create')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^create$/i })).toBeInTheDocument();
     });
 
-    const createButton = screen.getByText('Create');
+    const createButton = screen.getByRole('button', { name: /^create$/i });
     expect(createButton).toBeDisabled();
   });
 

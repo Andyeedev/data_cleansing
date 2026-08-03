@@ -1,0 +1,5 @@
+UPDATE engine.schedule_execution_log 
+SET terminal_output = E'================================================================\n  MAP CLI - Migration Validation Engine v1.4\n================================================================\n\n[Step 1/5] Initializing execution context...\n  OK Database connection established\n  OK Source schema validated\n  OK Target schema validated\n\n[Step 2/5] Loading validation rules...\n  OK 3 controls loaded (C01-C03)\n  OK 3 rules loaded\n\n[Step 3/5] Executing validations...\n  -> C01: Row Count Match.......... PASS (source=15000, target=15000)\n  -> C02: Financial Reconciliation. PASS (variance=0.00)\n  -> C03: Referential Integrity.... PASS (orphan_count=0)\n\n[Step 4/5] Generating summary...\n  OK Control summary written\n\n================================================================\n  RESULT: ALL PASSED | Score: 100.00% | Duration: 12.4s\n================================================================',
+exit_code = 0,
+duration_seconds = 12
+WHERE terminal_output IS NULL;

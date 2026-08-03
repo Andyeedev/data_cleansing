@@ -217,8 +217,8 @@
   ✓  ReadFolder  app/api/core → Found 7 item(s).
   ✓  ReadFolder  app/api/core/security → Found 2 item(s).
   ✓  ReadFolder  app/governance → Found 2 item(s).
-  ✓  ReadFile  app\governance\decision_engine.py
-  ✓  ReadFile  app\governance\risk_scoring.py
+✓  ReadFile  app\governance\decision_engine.py
+   ✓  ReadFile  research\Archive\depreciated\risk_scoring.py
   ✓  ReadFile  app\execution_engine.py
    → Read lines 1-2000 of 2185 from app/execution_engine.py
   ✓  ReadFile  app\db\connection_factory.py

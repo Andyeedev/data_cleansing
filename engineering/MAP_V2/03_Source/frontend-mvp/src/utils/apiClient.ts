@@ -1,4 +1,6 @@
 const API_BASE = '/api/v1';
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000;
 
 interface ApiResponse<T> {
   success: boolean;
@@ -25,6 +27,70 @@ function getAuthToken(): string | null {
   );
 }
 
+function buildHeaders(additional?: Record<string, string>): HeadersInit {
+  const token = getAuthToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...additional,
+  };
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function request<T>(
+  url: string,
+  options: RequestInit,
+  retries = MAX_RETRIES
+): Promise<T> {
+  try {
+    const res = await fetch(url, options);
+
+    if (res.status === 401) {
+      throw { response: { status: 401, detail: 'Unauthorized' } };
+    }
+
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After');
+      const waitMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : RETRY_DELAY;
+      if (retries > 0) {
+        await sleep(waitMs);
+        return request<T>(url, options, retries - 1);
+      }
+    }
+
+    if (res.status >= 500 && retries > 0) {
+      await sleep(RETRY_DELAY * (MAX_RETRIES - retries + 1));
+      return request<T>(url, options, retries - 1);
+    }
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      const err: Error & { response?: any } = new Error(
+        body?.detail || body?.error || body?.message || `HTTP ${res.status}: ${res.statusText}`
+      );
+      err.response = { status: res.status, ...body };
+      throw err;
+    }
+
+    const json: ApiResponse<T> = await res.json();
+    if (!json.success) {
+      const err: Error & { response?: any } = new Error(json.error || json.message || 'Request failed');
+      err.response = { status: res.status, data: json };
+      throw err;
+    }
+
+    return json.data as T;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw error;
+  }
+}
+
 export async function apiGet<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
   const url = new URL(`${API_BASE}${path}`, window.location.origin);
   if (params) {
@@ -35,97 +101,33 @@ export async function apiGet<T>(path: string, params?: Record<string, string | n
     });
   }
 
-  const token = getAuthToken();
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
-  const res = await fetch(url.toString(), { headers });
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  }
-
-  const json: ApiResponse<T> = await res.json();
-  if (!json.success) {
-    throw new Error(json.error || 'Request failed');
-  }
-
-  return json.data as T;
+  return request<T>(url.toString(), {
+    method: 'GET',
+    headers: buildHeaders(),
+  });
 }
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
-  const token = getAuthToken();
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
-  const res = await fetch(`${API_BASE}${path}`, {
+  return request<T>(`${API_BASE}${path}`, {
     method: 'POST',
-    headers,
+    headers: buildHeaders(),
     body: body ? JSON.stringify(body) : undefined,
   });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  }
-
-  const json: ApiResponse<T> = await res.json();
-  if (!json.success) {
-    throw new Error(json.error || 'Request failed');
-  }
-
-  return json.data as T;
 }
 
 export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
-  const token = getAuthToken();
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
-  const res = await fetch(`${API_BASE}${path}`, {
+  return request<T>(`${API_BASE}${path}`, {
     method: 'PUT',
-    headers,
+    headers: buildHeaders(),
     body: body ? JSON.stringify(body) : undefined,
   });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  }
-
-  const json: ApiResponse<T> = await res.json();
-  if (!json.success) {
-    throw new Error(json.error || 'Request failed');
-  }
-
-  return json.data as T;
 }
 
 export async function apiDelete<T>(path: string): Promise<T> {
-  const token = getAuthToken();
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
-  const res = await fetch(`${API_BASE}${path}`, {
+  return request<T>(`${API_BASE}${path}`, {
     method: 'DELETE',
-    headers,
+    headers: buildHeaders(),
   });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  }
-
-  const json: ApiResponse<T> = await res.json();
-  if (!json.success) {
-    throw new Error(json.error || 'Request failed');
-  }
-
-  return json.data as T;
 }
 
 export type { ApiResponse, PaginatedData };

@@ -3,7 +3,6 @@ from app.api.core.auth.dependencies import get_current_user
 from app.api.models.responses import APIResponse
 from app.api.models.execution_control_models import (
     ExecutionControlResponse,
-    ExecutionLifecycleResponse,
     ExecutionProgressResponse
 )
 from app.services.execution_control_service import ExecutionControlService

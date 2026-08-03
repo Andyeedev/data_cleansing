@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 const API_BASE = '/api/v1';
 
@@ -27,11 +27,14 @@ export function useExecutionHistory() {
   const [items, setItems] = useState<ExecutionHistoryItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pageSizeRef = useRef(pageSize);
+  pageSizeRef.current = pageSize;
 
-  const fetchHistory = useCallback(async (pageNum: number = 1) => {
+  const fetchHistory = useCallback(async (pageNum: number = 1, tenantId?: string, newPageSize?: number, status?: string, search?: string, sortBy?: string, sortDir?: string) => {
+    const effectivePageSize = newPageSize ?? pageSizeRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -39,10 +42,24 @@ export function useExecutionHistory() {
       const headers: HeadersInit = {};
       if (token) headers.Authorization = `Bearer ${token}`;
       
-      const res = await fetch(
-        `${API_BASE}/execution/history?page=${pageNum}&page_size=${pageSize}`,
-        { headers }
-      );
+      let url = `${API_BASE}/execution/history?page=${pageNum}&page_size=${effectivePageSize}`;
+      if (tenantId) {
+        url += `&tenant_id=${tenantId}`;
+      }
+      if (status && status !== 'all') {
+        url += `&status=${status}`;
+      }
+      if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
+      }
+      if (sortBy) {
+        url += `&sort_by=${sortBy}`;
+      }
+      if (sortDir) {
+        url += `&sort_dir=${sortDir}`;
+      }
+      
+      const res = await fetch(url, { headers });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }
@@ -51,13 +68,16 @@ export function useExecutionHistory() {
         setItems(json.data.items);
         setTotal(json.data.total);
         setPage(json.data.page);
+        if (newPageSize !== undefined) {
+          setPageSize(newPageSize);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch history');
     } finally {
       setLoading(false);
     }
-  }, [pageSize]);
+  }, []);
 
-  return { items, total, page, pageSize, loading, error, fetchHistory, setPage };
+  return { items, total, page, pageSize, loading, error, fetchHistory, setPage, setPageSize };
 }

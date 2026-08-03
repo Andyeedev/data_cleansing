@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { MetadataNavItem } from '../../types/metadata';
 
@@ -10,7 +10,7 @@ interface DynamicNavigationProps {
 
 export function DynamicNavigation({ items, currentPath, depth = 0 }: DynamicNavigationProps) {
   return (
-    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+    <ul role={depth === 0 ? 'tree' : 'group'} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
       {items.map((item) => (
         <NavigationItem
           key={item.id}
@@ -38,39 +38,56 @@ function NavigationItem({
     (child) => currentPath.startsWith(child.path),
   );
   const [expanded, setExpanded] = useState(isChildActive);
+  const linkRef = useRef<HTMLAnchorElement>(null);
 
   const INDENT = 16;
   const paddingLeft = 16 + depth * INDENT;
 
-  function handleClick(e: React.MouseEvent) {
+  const handleClick = useCallback((e: React.MouseEvent) => {
     if (hasChildren) {
       e.preventDefault();
       setExpanded((prev) => !prev);
     }
-  }
+  }, [hasChildren]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (hasChildren) {
+        setExpanded((prev) => !prev);
+      }
+    }
+  }, [hasChildren]);
 
   return (
-    <li>
+    <li role="treeitem" aria-expanded={hasChildren ? expanded : undefined} aria-selected={isActive}>
       <Link
+        ref={linkRef}
         to={item.path}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        aria-current={isActive ? 'page' : undefined}
+        tabIndex={0}
         style={{
           display: 'flex',
           alignItems: 'center',
-          padding: `8px ${paddingLeft}px`,
+          padding: `var(--space-sm) ${paddingLeft}px`,
           color: isActive
             ? 'var(--color-sidebar-active)'
             : 'var(--color-sidebar-text)',
           background: isActive ? 'rgba(74, 144, 217, 0.1)' : 'transparent',
           borderRadius: 'var(--radius)',
           textDecoration: 'none',
-          fontSize: depth === 0 ? '14px' : '13px',
+          fontSize: depth === 0 ? 'var(--font-size-base)' : 'var(--font-size-sm)',
           fontWeight: depth === 0 ? 600 : 400,
         }}
       >
         <span style={{ flex: 1 }}>{item.label}</span>
         {hasChildren && (
-          <span style={{ fontSize: '12px', marginLeft: 4 }}>
+          <span
+            aria-hidden="true"
+            style={{ fontSize: 'var(--font-size-xs)', marginLeft: 'var(--space-xs)' }}
+          >
             {expanded ? '▾' : '▸'}
           </span>
         )}

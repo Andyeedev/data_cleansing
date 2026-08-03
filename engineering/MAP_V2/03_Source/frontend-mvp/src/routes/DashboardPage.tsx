@@ -2,12 +2,25 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiGet } from '../utils/apiClient';
 import { LoadingSpinner } from '../components/LoadingSpinner/LoadingSpinner';
+import { StatusBadge } from '../components/shared/StatusBadge';
+import { TenantFilter } from '../components/shared/TenantFilter';
+import { ExecutiveSummary } from '../components/Executive/ExecutiveSummary';
+import { ExecutiveKPI } from '../components/Executive/ExecutiveKPI';
+import { ExecutiveHealth } from '../components/Executive/ExecutiveHealth';
+import { ExecutiveActions } from '../components/Executive/ExecutiveActions';
 
 interface PortfolioSummary {
   total_systems: number;
   total_batches: number;
   total_controls: number;
   active_batches: number;
+}
+
+interface MigrationScoreEntry {
+  batch_id: string;
+  total_controls: number;
+  passed_controls: number;
+  pass_rate: number;
 }
 
 interface ActivityEntry {
@@ -24,6 +37,8 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
+  const [migrationScores, setMigrationScores] = useState<MigrationScoreEntry[]>([]);
+  const [selectedTenant, setSelectedTenant] = useState('');
 
   const isAdmin = userRoles.includes('admin');
   const isManager = userRoles.includes('manager');
@@ -33,120 +48,153 @@ export function DashboardPage() {
     let cancelled = false;
     setLoading(true);
 
+    const tenantParam = selectedTenant ? `?tenant_id=${selectedTenant}` : '';
+    const activityTenantParam = selectedTenant ? `&tenant_id=${selectedTenant}` : '';
+
     Promise.all([
-      apiGet<PortfolioSummary>('/dashboard/portfolio').catch(() => null),
-      isExecutive ? apiGet<{ entries: ActivityEntry[]; total: number }>('/dashboard/activity?limit=5').catch(() => null) : Promise.resolve(null),
+      apiGet<PortfolioSummary>(`/dashboard/portfolio${tenantParam}`).catch(() => null),
+      isExecutive ? apiGet<{ entries: ActivityEntry[]; total: number }>(`/dashboard/activity?limit=5${activityTenantParam}`).catch(() => null) : Promise.resolve(null),
+      apiGet<{ migration_scores: MigrationScoreEntry[] }>(`/execution/migration-score-summary${tenantParam}`).catch(() => null),
     ])
-      .then(([portfolioData, activityData]) => {
+      .then(([portfolioData, activityData, migrationData]) => {
         if (cancelled) return;
         if (portfolioData) setPortfolio(portfolioData);
         if (activityData) setActivity(activityData.entries || []);
+        if (migrationData) setMigrationScores(migrationData.migration_scores || []);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
 
     return () => { cancelled = true; };
-  }, [isExecutive]);
+  }, [isExecutive, selectedTenant]);
 
   if (loading) {
     return <LoadingSpinner />;
   }
 
+  // Calculate mock health score (in real app, this would come from API)
+  const healthScore = portfolio ? Math.min(100, Math.round(
+    ((portfolio.total_controls > 0 ? 85 : 50) + 
+     (portfolio.active_batches > 0 ? 90 : 60)) / 2
+  )) : 0;
+
   return (
-    <div style={{ padding: 32 }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, marginBottom: 4 }}>Dashboard</h1>
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <div style={{ marginBottom: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)', marginBottom: 'var(--space-xs)' }}>Dashboard</h1>
         <p style={{ color: 'var(--color-text-secondary)' }}>
           Migration overview and status.
         </p>
       </div>
 
       {isExecutive && (
-        <div style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 18, marginBottom: 16, color: 'var(--color-text-primary)' }}>
-            Executive Overview
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+          <div>
+            <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)' }}>
+              Executive Overview
+            </h2>
+          </div>
+          <div style={{ justifySelf: 'center' }}>
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          </div>
+          <div />
+        </div>
+      )}
+
+      {isExecutive && (
+        <ExecutiveSummary
+          completionPercent={portfolio ? Math.round((portfolio.total_controls / Math.max(portfolio.total_controls, 1)) * 100) : 0}
+          confidencePercent={healthScore}
+          totalSystems={portfolio?.total_systems ?? 0}
+          totalBatches={portfolio?.total_batches ?? 0}
+        />
+      )}
+
+      {isExecutive && (
+        <ExecutiveKPI
+          kpis={[
+            { label: 'Total Systems', value: portfolio?.total_systems ?? 0, icon: '🖥️' },
+            { label: 'Total Batches', value: portfolio?.total_batches ?? 0, icon: '📦' },
+            { label: 'Total Controls', value: portfolio?.total_controls ?? 0, icon: '✓' },
+            { label: 'Active Batches', value: portfolio?.active_batches ?? 0, icon: '⚡' },
+            { 
+              label: 'Completion Rate', 
+              value: `${portfolio ? Math.round((portfolio.total_controls / Math.max(portfolio.total_controls, 1)) * 100) : 0}%`,
+              trend: { value: 5, isPositive: true }
+            },
+          ]}
+        />
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'var(--space-lg)', marginBottom: 'var(--space-lg)' }}>
+        {isExecutive && (
+          <ExecutiveHealth score={healthScore} />
+        )}
+        <ExecutiveActions isAdmin={isAdmin} isManager={isManager} />
+      </div>
+
+      {migrationScores.length > 0 && (
+        <div style={{ marginBottom: 'var(--space-lg)' }}>
+          <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-md)' }}>
+            Migration Score Summary
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-            <div style={{ padding: 20, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: 12, marginBottom: 4 }}>Total Systems</div>
-              <div style={{ fontSize: 32, fontWeight: 700 }}>{portfolio?.total_systems ?? '—'}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-md)' }}>
+            <div style={{ padding: 'var(--space-md)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Total Batches</p>
+              <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)' }}>{migrationScores.length}</p>
             </div>
-            <div style={{ padding: 20, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: 12, marginBottom: 4 }}>Total Batches</div>
-              <div style={{ fontSize: 32, fontWeight: 700 }}>{portfolio?.total_batches ?? '—'}</div>
+            <div style={{ padding: 'var(--space-md)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Avg Pass Rate</p>
+              <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-success)' }}>
+                {migrationScores.length > 0
+                  ? (migrationScores.reduce((sum, m) => sum + m.pass_rate, 0) / migrationScores.length).toFixed(1)
+                  : 0}%
+              </p>
             </div>
-            <div style={{ padding: 20, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: 12, marginBottom: 4 }}>Total Controls</div>
-              <div style={{ fontSize: 32, fontWeight: 700 }}>{portfolio?.total_controls ?? '—'}</div>
+            <div style={{ padding: 'var(--space-md)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Fully Passed</p>
+              <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-success)' }}>
+                {migrationScores.filter(m => m.pass_rate === 100).length}
+              </p>
             </div>
-            <div style={{ padding: 20, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: 12, marginBottom: 4 }}>Active Batches</div>
-              <div style={{ fontSize: 32, fontWeight: 700, color: portfolio?.active_batches ? '#16a34a' : 'inherit' }}>
-                {portfolio?.active_batches ?? '—'}
-              </div>
+            <div style={{ padding: 'var(--space-md)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Needs Attention</p>
+              <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-danger)' }}>
+                {migrationScores.filter(m => m.pass_rate < 80).length}
+              </p>
             </div>
           </div>
         </div>
       )}
 
-      <div style={{ marginBottom: 32 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 16, color: 'var(--color-text-primary)' }}>
-          Quick Actions
-        </h2>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          {isAdmin && (
-            <a href="/systems" style={{ padding: '12px 24px', background: 'var(--color-primary)', color: 'white', borderRadius: 8, textDecoration: 'none', fontWeight: 500 }}>
-              Manage Systems
-            </a>
-          )}
-          {(isAdmin || isManager) && (
-            <a href="/migration" style={{ padding: '12px 24px', background: 'var(--color-secondary, #6366f1)', color: 'white', borderRadius: 8, textDecoration: 'none', fontWeight: 500 }}>
-              Start Migration
-            </a>
-          )}
-          <a href="/operations" style={{ padding: '12px 24px', background: 'var(--color-bg-secondary, #374151)', color: 'white', borderRadius: 8, textDecoration: 'none', fontWeight: 500 }}>
-            View Operations
-          </a>
-        </div>
-      </div>
-
       {isExecutive && (
         <div>
-          <h2 style={{ fontSize: 18, marginBottom: 16, color: 'var(--color-text-primary)' }}>
+          <h2 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-md)' }}>
             Recent Activity
           </h2>
-          <div style={{ padding: 16, background: 'var(--color-surface)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+          <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)' }}>
             {activity.length === 0 ? (
               <p style={{ color: 'var(--color-text-secondary)' }}>No recent activity.</p>
             ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Action</th>
-                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Control</th>
-                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Entity</th>
-                    <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--color-text-secondary)', fontWeight: 600 }}>Time</th>
+                    <th style={{ textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)', fontWeight: 600, fontSize: 'var(--font-size-xs)' }}>Action</th>
+                    <th style={{ textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)', fontWeight: 600, fontSize: 'var(--font-size-xs)' }}>Control</th>
+                    <th style={{ textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)', fontWeight: 600, fontSize: 'var(--font-size-xs)' }}>Entity</th>
+                    <th style={{ textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)', fontWeight: 600, fontSize: 'var(--font-size-xs)' }}>Time</th>
                   </tr>
                 </thead>
                 <tbody>
                   {activity.map((entry) => (
-                    <tr key={entry.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                      <td style={{ padding: '8px 12px' }}>
-                        <span style={{
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          background: entry.action === 'PASS' ? 'rgba(34,197,94,0.1)' : entry.action === 'FAIL' ? 'rgba(239,68,68,0.1)' : 'rgba(99,102,241,0.1)',
-                          color: entry.action === 'PASS' ? '#16a34a' : entry.action === 'FAIL' ? '#ef4444' : '#6366f1',
-                        }}>
-                          {entry.action}
-                        </span>
+                    <tr key={entry.id} style={{ borderBottom: '1px solid var(--color-border)', transition: 'background var(--duration-fast) ease', cursor: 'default' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                        <StatusBadge status={entry.action} size="sm" />
                       </td>
-                      <td style={{ padding: '8px 12px', fontFamily: 'monospace' }}>{entry.entity_type}</td>
-                      <td style={{ padding: '8px 12px' }}>{entry.entity_id}</td>
-                      <td style={{ padding: '8px 12px', color: 'var(--color-text-secondary)' }}>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{entry.entity_type}</td>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{entry.entity_id}</td>
+                      <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text-secondary)' }}>
                         {new Date(entry.timestamp).toLocaleString()}
                       </td>
                     </tr>

@@ -127,9 +127,9 @@ describe('RolesPage Integration', () => {
     renderWithProviders(<RolesPage />, { initialRole: 'admin' });
 
     await waitFor(() => {
-      expect(screen.getByText('Previous')).toBeInTheDocument();
-      expect(screen.getByText('Next')).toBeInTheDocument();
-      expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Previous page' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Next page' })).toBeInTheDocument();
+      expect(screen.getByText('25 items')).toBeInTheDocument();
     });
   });
 
@@ -153,7 +153,7 @@ describe('RolesPage Integration', () => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
-    const nextButton = screen.getByText('Next');
+    const nextButton = screen.getByRole('button', { name: 'Next page' });
     fireEvent.click(nextButton);
 
     await waitFor(() => {

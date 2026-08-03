@@ -1,9 +1,13 @@
-from fastapi import Header, HTTPException, Depends
+from fastapi import Header, HTTPException, Depends, Request
 from jose import jwt, JWTError
 from app.api.core.auth.jwt_config import SECRET_KEY, ALGORITHM
 
 
-def get_current_user(authorization: str = Header(None)):
+def get_current_user(request: Request, authorization: str = Header(None)):
+    cached = getattr(request.state, 'user', None)
+    if cached:
+        return cached
+
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing token")
 
@@ -20,7 +24,13 @@ def get_current_user(authorization: str = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-def get_current_user_with_tenant(authorization: str = Header(None)):
+def get_current_user_with_tenant(request: Request, authorization: str = Header(None)):
+    cached = getattr(request.state, 'user', None)
+    if cached:
+        if not cached.get("tenant_id"):
+            raise HTTPException(status_code=403, detail="No tenant context")
+        return cached
+
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing token")
 

@@ -84,12 +84,64 @@ class ValidationReportService:
                 "calculated_at": None
             }
 
+        score = float(risk[3]) if risk[3] else 0
+        risk_level = risk[6] if risk[6] else "LOW"
+
         return {
             "batch_id": str(risk[0]),
-            "risk_score": float(risk[1]) if risk[1] else None,
-            "risk_level": risk[2],
-            "calculated_at": str(risk[3]) if risk[3] else None
+            "risk_score": score,
+            "risk_level": risk_level,
+            "calculated_at": None
         }
+
+    def get_all_risk_scores(self, tenant_id: str = None):
+        rows = self.repository.get_all_risk_scores(tenant_id)
+        results = []
+        for r in rows:
+            results.append({
+                "batch_id": str(r[0]),
+                "risk_index": float(r[1]) if r[1] is not None else 0,
+                "risk_level": r[2] if r[2] else "LOW",
+                "total_rules": int(r[3]) if r[3] is not None else 0,
+                "risk_points": int(r[4]) if r[4] is not None else 0,
+                "failure_rate_percent": float(r[5]) if r[5] is not None else 0,
+                "pass_rate_percent": float(r[6]) if r[6] is not None else 0,
+            })
+        return {"risk_scores": results, "total": len(results)}
+
+    def get_migration_score_summary(self, tenant_id: str = None):
+        rows = self.repository.get_migration_score_summary(tenant_id)
+        results = []
+        for r in rows:
+            results.append({
+                "batch_id": str(r[0]),
+                "total_controls": int(r[1]) if r[1] is not None else 0,
+                "passed_controls": int(r[2]) if r[2] is not None else 0,
+                "pass_rate": float(r[3]) if r[3] is not None else 0,
+            })
+        return {"migration_scores": results, "total": len(results)}
+
+    def get_unscored_batches(self, tenant_id: str = None):
+        rows = self.repository.get_unscored_batches(tenant_id)
+        results = []
+        for r in rows:
+            results.append({
+                "batch_id": str(r[0]),
+                "batch_status": r[1] if r[1] else "UNKNOWN",
+                "project_id": str(r[2]) if r[2] else None,
+            })
+        return {"unscored_batches": results, "total": len(results)}
+
+    def get_orphaned_batches(self, tenant_id: str = None):
+        rows = self.repository.get_orphaned_batches(tenant_id)
+        results = []
+        for r in rows:
+            results.append({
+                "batch_id": str(r[0]),
+                "batch_status": r[1] if r[1] else "ORPHANED",
+                "project_id": str(r[2]) if r[2] else None,
+            })
+        return {"orphaned_batches": results, "total": len(results)}
 
     def get_compliance_checks(self, batch_id: str):
         exceptions = self.repository.get_exceptions(batch_id)

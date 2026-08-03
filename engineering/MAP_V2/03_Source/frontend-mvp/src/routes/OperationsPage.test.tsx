@@ -31,10 +31,58 @@ describe('OperationsPage', () => {
           json: async () => ({ success: true, data: { alerts: [], total: 0 } }),
         });
       }
+      if (url.includes('status=FAILED')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              items: [{
+                batch_id: 'failed-batch-1',
+                project_id: 'proj-1',
+                batch_status: 'FAILED',
+                total_controls: 50,
+                completed_controls: 48,
+                failed_controls: 2,
+                batch_start_time: '2026-08-01T10:00:00Z',
+                batch_end_time: '2026-08-01T11:00:00Z',
+              }],
+              total: 1,
+              page: 1,
+              page_size: 20,
+            },
+          }),
+        });
+      }
       if (url.includes('/api/v1/execution/history')) {
         return Promise.resolve({
           ok: true,
           json: async () => ({ success: true, data: { items: [], total: 0, page: 1, page_size: 20 } }),
+        });
+      }
+      if (url.includes('/api/v1/execution/failed-batch-1/audit')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              batch_id: 'failed-batch-1',
+              control_executions: [{
+                id: 'exec-1',
+                batch_id: 'failed-batch-1',
+                control_id: 'ctrl-1',
+                rule_id: 'rule-1',
+                entity_name: 'table.users',
+                execution_status: 'FAIL',
+                delta_value: 5,
+                execution_time_seconds: 0.123,
+                severity_level: 'ERROR',
+                created_at: '2026-08-01T10:30:00Z',
+              }],
+              exceptions: [],
+              governance: null,
+            },
+          }),
         });
       }
       return Promise.resolve({ ok: true, json: async () => ({}) });
@@ -92,5 +140,40 @@ describe('OperationsPage', () => {
     await waitFor(() => {
       expect(screen.getByText('System Health Details')).toBeInTheDocument();
     });
+  });
+
+  it('renders failures tab', async () => {
+    renderWithProviders(<OperationsPage />);
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: /failures/i })).toBeInTheDocument();
+    });
+  });
+
+  it('renders failed batch in failures tab', async () => {
+    renderWithProviders(<OperationsPage />);
+    await waitFor(() => {
+      screen.getByRole('tab', { name: /failures/i }).click();
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/proj-1/)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/2 failed/)).toBeInTheDocument();
+  });
+
+  it('expands failed batch to show control executions', async () => {
+    renderWithProviders(<OperationsPage />);
+    await waitFor(() => {
+      screen.getByRole('tab', { name: /failures/i }).click();
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/proj-1/)).toBeInTheDocument();
+    });
+    const batchRow = screen.getByText(/proj-1/).closest('div');
+    if (batchRow) batchRow.click();
+    await waitFor(() => {
+      expect(screen.getAllByText('FAIL')[0]).toBeInTheDocument();
+    });
+    expect(screen.getByText('ctrl-1')).toBeInTheDocument();
+    expect(screen.getByText('table.users')).toBeInTheDocument();
   });
 });

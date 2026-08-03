@@ -137,10 +137,10 @@ describe('CalendarPage Integration', () => {
     renderWithProviders(<CalendarPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Event')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Create new event' })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Create Event'));
+    fireEvent.click(screen.getByRole('button', { name: 'Create new event' }));
 
     await waitFor(() => {
       expect(screen.getByText('Cancel')).toBeInTheDocument();
@@ -170,10 +170,10 @@ describe('CalendarPage Integration', () => {
     renderWithProviders(<CalendarPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Create Event')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Create new event' })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Create Event'));
+    fireEvent.click(screen.getByRole('button', { name: 'Create new event' }));
 
     await waitFor(() => {
       expect(screen.getByText('Create')).toBeInTheDocument();

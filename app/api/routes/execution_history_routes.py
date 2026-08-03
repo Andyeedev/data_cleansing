@@ -14,14 +14,31 @@ router = APIRouter(prefix="/api/v1/execution", tags=["Execution History"])
 execution_history_service = ExecutionHistoryService()
 
 
-@router.get("/history", response_model=APIResponse)
-def get_execution_history(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+@router.get("/history/status-breakdown", response_model=APIResponse)
+def get_batch_status_breakdown(
+    tenant_id: str = Query(None),
     current_user=Depends(get_current_user)
 ):
     try:
-        result = execution_history_service.get_execution_history(page, page_size)
+        result = execution_history_service.get_batch_status_breakdown(tenant_id)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/history", response_model=APIResponse)
+def get_execution_history(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=100),
+    tenant_id: str = Query(None),
+    status: str = Query(None),
+    search: str = Query(None),
+    sort_by: str = Query('batch_start_time'),
+    sort_dir: str = Query('desc'),
+    current_user=Depends(get_current_user)
+):
+    try:
+        result = execution_history_service.get_execution_history(page, page_size, tenant_id, status, search, sort_by, sort_dir)
         return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

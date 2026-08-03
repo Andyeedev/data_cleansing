@@ -1,118 +1,124 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Shell } from './components/Shell/Shell';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './routes/LoginPage';
-import { HomePage } from './routes/HomePage';
-import { DashboardPage } from './routes/DashboardPage';
-import { MigrationPage } from './routes/MigrationPage';
-import { DiscoveryPage } from './routes/DiscoveryPage';
-import { MappingPage } from './routes/MappingPage';
-import { ValidationPage } from './routes/ValidationPage';
-import { ValidationResultsPage } from './routes/ValidationResultsPage';
-import { ExecutionHistoryPage } from './routes/ExecutionHistoryPage';
-import { GovernancePage } from './routes/GovernancePage';
-import { ReportsPage } from './routes/ReportsPage';
-import { OperationsPage } from './routes/OperationsPage';
-import { TaskManagementPage } from './routes/TaskManagementPage';
-import { TaskDetailPage } from './routes/TaskDetailPage';
-import { WorkflowsPage } from './routes/WorkflowsPage';
-import { NotificationsPage } from './routes/NotificationsPage';
-import { CalendarPage } from './routes/CalendarPage';
-import { ApprovalsPage } from './routes/ApprovalsPage';
-import { ApprovalDetailPage } from './routes/ApprovalDetailPage';
-import { SystemsPage } from './routes/SystemsPage';
-import { SystemDetailPage } from './routes/SystemDetailPage';
-import { AdministrationPage } from './routes/AdministrationPage';
-import { UsersPage } from './routes/UsersPage';
-import { UserDetailPage } from './routes/UserDetailPage';
-import { RolesPage } from './routes/RolesPage';
-import { RoleDetailPage } from './routes/RoleDetailPage';
-import { SettingsPage } from './routes/SettingsPage';
-import { NotFoundPage } from './routes/NotFoundPage';
+import { LoadingSpinner } from './components/LoadingSpinner/LoadingSpinner';
+
+const DashboardPage = lazy(() => import('./routes/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const MigrationPage = lazy(() => import('./routes/MigrationPage').then(m => ({ default: m.MigrationPage })));
+const DiscoveryPage = lazy(() => import('./routes/DiscoveryPage').then(m => ({ default: m.DiscoveryPage })));
+const MappingPage = lazy(() => import('./routes/MappingPage').then(m => ({ default: m.MappingPage })));
+const ValidationPage = lazy(() => import('./routes/ValidationPage').then(m => ({ default: m.ValidationPage })));
+const ValidationResultsPage = lazy(() => import('./routes/ValidationResultsPage').then(m => ({ default: m.ValidationResultsPage })));
+const ExecutionHistoryPage = lazy(() => import('./routes/ExecutionHistoryPage').then(m => ({ default: m.ExecutionHistoryPage })));
+const GovernancePage = lazy(() => import('./routes/GovernancePage').then(m => ({ default: m.GovernancePage })));
+const ReportsPage = lazy(() => import('./routes/ReportsPage').then(m => ({ default: m.ReportsPage })));
+const OperationsPage = lazy(() => import('./routes/OperationsPage').then(m => ({ default: m.OperationsPage })));
+const TaskManagementPage = lazy(() => import('./routes/TaskManagementPage').then(m => ({ default: m.TaskManagementPage })));
+const TaskDetailPage = lazy(() => import('./routes/TaskDetailPage').then(m => ({ default: m.TaskDetailPage })));
+const WorkflowsPage = lazy(() => import('./routes/WorkflowsPage').then(m => ({ default: m.WorkflowsPage })));
+const NotificationsPage = lazy(() => import('./routes/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const SystemsPage = lazy(() => import('./routes/SystemsPage').then(m => ({ default: m.SystemsPage })));
+const SystemDetailPage = lazy(() => import('./routes/SystemDetailPage').then(m => ({ default: m.SystemDetailPage })));
+const AdministrationPage = lazy(() => import('./routes/AdministrationPage').then(m => ({ default: m.AdministrationPage })));
+const UsersPage = lazy(() => import('./routes/UsersPage').then(m => ({ default: m.UsersPage })));
+const UserDetailPage = lazy(() => import('./routes/UserDetailPage').then(m => ({ default: m.UserDetailPage })));
+const RolesPage = lazy(() => import('./routes/RolesPage').then(m => ({ default: m.RolesPage })));
+const RoleDetailPage = lazy(() => import('./routes/RoleDetailPage').then(m => ({ default: m.RoleDetailPage })));
+const SettingsPage = lazy(() => import('./routes/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const NotFoundPage = lazy(() => import('./routes/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+const AccessDeniedPage = lazy(() => import('./routes/AccessDeniedPage').then(m => ({ default: m.AccessDeniedPage })));
+const MigrationProjectsPage = lazy(() => import('./routes/MigrationProjectsPage').then(m => ({ default: m.MigrationProjectsPage })));
+const MigrationDatasetsPage = lazy(() => import('./routes/MigrationDatasetsPage').then(m => ({ default: m.MigrationDatasetsPage })));
+const MigrationSchedulesPage = lazy(() => import('./routes/MigrationSchedulesPage').then(m => ({ default: m.MigrationSchedulesPage })));
+const MigrationOverviewPage = lazy(() => import('./routes/MigrationOverviewPage').then(m => ({ default: m.MigrationOverviewPage })));
 
 export function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
+    <Suspense fallback={<LoadingSpinner />}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/access-denied" element={<AccessDeniedPage />} />
 
-      <Route element={<ProtectedRoute><Shell /></ProtectedRoute>}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route element={<ProtectedRoute><Shell /></ProtectedRoute>}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
 
-        <Route path="/migration" element={<MigrationPage />} />
-        <Route path="/migration/projects" element={<MigrationPage />} />
-        <Route path="/migration/connections" element={<SystemsPage />} />
-        <Route path="/migration/connections/new" element={<SystemsPage />} />
-        <Route path="/migration/connections/:id" element={<SystemDetailPage />} />
-        <Route path="/migration/discovery" element={<DiscoveryPage />} />
-        <Route path="/migration/mappings" element={<MappingPage />} />
-        <Route path="/migration/column-mappings" element={<MappingPage />} />
-        <Route path="/migration/execution" element={<MigrationPage />} />
-        <Route path="/migration/history" element={<MigrationPage />} />
-        <Route path="/migration/reports" element={<ReportsPage />} />
-        <Route path="/migration/workspace" element={<MigrationPage />} />
+          <Route path="/migration" element={<MigrationPage />} />
+          <Route path="/migration/overview" element={<MigrationOverviewPage />} />
+          <Route path="/migration/projects" element={<MigrationProjectsPage />} />
+          <Route path="/migration/datasets" element={<MigrationDatasetsPage />} />
+          <Route path="/migration/schedules" element={<MigrationSchedulesPage />} />
+          <Route path="/migration/connections" element={<SystemsPage />} />
+          <Route path="/migration/connections/new" element={<SystemsPage />} />
+          <Route path="/migration/connections/:id" element={<SystemDetailPage />} />
+          <Route path="/migration/discovery" element={<DiscoveryPage />} />
+          <Route path="/migration/mappings" element={<MappingPage />} />
+          <Route path="/migration/column-mappings" element={<MappingPage />} />
+          <Route path="/migration/execution" element={<MigrationPage />} />
+          <Route path="/migration/reports" element={<ReportsPage />} />
+          <Route path="/migration/workspace" element={<MigrationPage />} />
 
-        <Route path="/validation" element={<ValidationPage />} />
-        <Route path="/validation/rules" element={<ValidationPage />} />
-        <Route path="/validation/rule-discovery" element={<ValidationPage />} />
-        <Route path="/validation/results/:batchId" element={<ValidationResultsPage />} />
-        <Route path="/validation/history" element={<ExecutionHistoryPage />} />
-        <Route path="/validation/queue" element={<ValidationPage />} />
-        <Route path="/validation/controls" element={<ValidationPage />} />
+          <Route path="/validation" element={<ValidationPage />} />
+          <Route path="/validation/rules" element={<ValidationPage />} />
+          <Route path="/validation/rule-discovery" element={<ValidationPage />} />
+          <Route path="/validation/results/:batchId" element={<ValidationResultsPage />} />
+          <Route path="/validation/history" element={<ExecutionHistoryPage />} />
+          <Route path="/validation/queue" element={<ValidationPage />} />
+          <Route path="/validation/controls" element={<ValidationPage />} />
 
-        <Route path="/governance" element={<GovernancePage />} />
-        <Route path="/governance/overview" element={<GovernancePage />} />
-        <Route path="/governance/compliance" element={<GovernancePage />} />
-        <Route path="/governance/controls" element={<GovernancePage />} />
-        <Route path="/governance/exceptions" element={<GovernancePage />} />
-        <Route path="/governance/risk" element={<GovernancePage />} />
-        <Route path="/governance/audit" element={<GovernancePage />} />
-        <Route path="/governance/approvals" element={<GovernancePage />} />
+          <Route path="/governance" element={<GovernancePage />} />
+          <Route path="/governance/overview" element={<GovernancePage />} />
+          <Route path="/governance/compliance" element={<GovernancePage />} />
+          <Route path="/governance/controls" element={<GovernancePage />} />
+          <Route path="/governance/exceptions" element={<GovernancePage />} />
+          <Route path="/governance/risk" element={<GovernancePage />} />
+          <Route path="/governance/audit" element={<GovernancePage />} />
+          <Route path="/governance/approvals" element={<GovernancePage />} />
 
-        <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/reports/executive" element={<ReportsPage />} />
-        <Route path="/reports/operational" element={<ReportsPage />} />
-        <Route path="/reports/migration" element={<ReportsPage />} />
-        <Route path="/reports/validation" element={<ReportsPage />} />
-        <Route path="/reports/governance" element={<ReportsPage />} />
-        <Route path="/reports/audit" element={<ReportsPage />} />
-        <Route path="/reports/templates" element={<ReportsPage />} />
-        <Route path="/reports/distribution" element={<ReportsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/reports/executive" element={<ReportsPage />} />
+          <Route path="/reports/operational" element={<ReportsPage />} />
+          <Route path="/reports/migration" element={<ReportsPage />} />
+          <Route path="/reports/validation" element={<ReportsPage />} />
+          <Route path="/reports/governance" element={<ReportsPage />} />
+          <Route path="/reports/audit" element={<ReportsPage />} />
+          <Route path="/reports/templates" element={<ReportsPage />} />
+          <Route path="/reports/distribution" element={<ReportsPage />} />
 
-        <Route path="/operations" element={<OperationsPage />} />
-        <Route path="/operations/monitoring" element={<OperationsPage />} />
-        <Route path="/operations/alerts" element={<OperationsPage />} />
-        <Route path="/operations/schedules" element={<OperationsPage />} />
-        <Route path="/operations/retry" element={<OperationsPage />} />
-        <Route path="/operations/health" element={<OperationsPage />} />
+          <Route path="/operations" element={<OperationsPage />} />
+          <Route path="/operations/monitoring" element={<OperationsPage />} />
+          <Route path="/operations/alerts" element={<OperationsPage />} />
+          <Route path="/operations/schedules" element={<OperationsPage />} />
+          <Route path="/operations/retry" element={<OperationsPage />} />
+          <Route path="/operations/health" element={<OperationsPage />} />
 
-        <Route path="/tasks" element={<TaskManagementPage />} />
-        <Route path="/tasks/dashboard" element={<TaskManagementPage />} />
-        <Route path="/tasks/my" element={<TaskManagementPage />} />
-        <Route path="/tasks/:id" element={<TaskDetailPage />} />
+          <Route path="/tasks" element={<TaskManagementPage />} />
+          <Route path="/tasks/dashboard" element={<TaskManagementPage />} />
+          <Route path="/tasks/my" element={<TaskManagementPage />} />
+          <Route path="/tasks/:id" element={<TaskDetailPage />} />
 
-        <Route path="/workflows" element={<WorkflowsPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/approvals" element={<ApprovalsPage />} />
-        <Route path="/approvals/:id" element={<ApprovalDetailPage />} />
+          <Route path="/workflows" element={<WorkflowsPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
 
-        <Route path="/administration" element={<AdministrationPage />} />
-        <Route path="/administration/users" element={<UsersPage />} />
-        <Route path="/administration/users/new" element={<UserDetailPage />} />
-        <Route path="/administration/users/:id" element={<UserDetailPage />} />
-        <Route path="/administration/roles" element={<RolesPage />} />
-        <Route path="/administration/roles/new" element={<RoleDetailPage />} />
-        <Route path="/administration/roles/:id" element={<RoleDetailPage />} />
-        <Route path="/administration/tenants" element={<AdministrationPage />} />
-        <Route path="/administration/settings" element={<SettingsPage />} />
-        <Route path="/administration/feature-flags" element={<SettingsPage />} />
-        <Route path="/administration/security" element={<AdministrationPage />} />
-        <Route path="/administration/notifications" element={<AdministrationPage />} />
-        <Route path="/administration/maintenance" element={<AdministrationPage />} />
+          <Route path="/administration" element={<AdministrationPage />} />
+          <Route path="/administration/users" element={<UsersPage />} />
+          <Route path="/administration/users/new" element={<UserDetailPage />} />
+          <Route path="/administration/users/:id" element={<UserDetailPage />} />
+          <Route path="/administration/roles" element={<RolesPage />} />
+          <Route path="/administration/roles/new" element={<RoleDetailPage />} />
+          <Route path="/administration/roles/:id" element={<RoleDetailPage />} />
+          <Route path="/administration/tenants" element={<AdministrationPage />} />
+          <Route path="/administration/settings" element={<SettingsPage />} />
+          <Route path="/administration/feature-flags" element={<SettingsPage />} />
+          <Route path="/administration/security" element={<AdministrationPage />} />
+          <Route path="/administration/notifications" element={<AdministrationPage />} />
+          <Route path="/administration/maintenance" element={<AdministrationPage />} />
 
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }

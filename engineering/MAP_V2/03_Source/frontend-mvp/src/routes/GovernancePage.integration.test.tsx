@@ -42,18 +42,6 @@ const mockCompliance = {
   failed_controls: 15,
 };
 
-const mockExceptions = [
-  {
-    id: '1',
-    entity_type: 'migration_batch',
-    entity_id: 'batch-003',
-    reason: 'Temporary override for testing',
-    status: 'OPEN',
-    requested_by: 'user@test.com',
-    created_at: '2026-07-20T08:00:00Z',
-  },
-];
-
 describe('GovernancePage Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();

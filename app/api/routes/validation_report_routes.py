@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.api.core.auth.dependencies import get_current_user
 from app.api.models.responses import APIResponse
 from app.api.models.validation_report_models import (
@@ -12,6 +12,30 @@ from app.services.validation_report_service import ValidationReportService
 router = APIRouter(prefix="/api/v1/execution", tags=["Validation Report"])
 
 validation_report_service = ValidationReportService()
+
+
+@router.get("/unscored-batches", response_model=APIResponse)
+def get_unscored_batches(
+    tenant_id: str = Query(None),
+    current_user=Depends(get_current_user)
+):
+    try:
+        result = validation_report_service.get_unscored_batches(tenant_id)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/orphaned-batches", response_model=APIResponse)
+def get_orphaned_batches(
+    tenant_id: str = Query(None),
+    current_user=Depends(get_current_user)
+):
+    try:
+        result = validation_report_service.get_orphaned_batches(tenant_id)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{batch_id}/report", response_model=APIResponse)
@@ -42,6 +66,30 @@ def get_governance_decision(
         return APIResponse(success=True, data=decision)
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/risk-scores", response_model=APIResponse)
+def get_all_risk_scores(
+    tenant_id: str = Query(None),
+    current_user=Depends(get_current_user)
+):
+    try:
+        result = validation_report_service.get_all_risk_scores(tenant_id)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/migration-score-summary", response_model=APIResponse)
+def get_migration_score_summary(
+    tenant_id: str = Query(None),
+    current_user=Depends(get_current_user)
+):
+    try:
+        result = validation_report_service.get_migration_score_summary(tenant_id)
+        return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

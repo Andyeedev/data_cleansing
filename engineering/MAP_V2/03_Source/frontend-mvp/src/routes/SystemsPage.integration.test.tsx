@@ -115,7 +115,7 @@ describe('SystemsPage Integration', () => {
       expect(screen.getByText('Source DB')).toBeInTheDocument();
     });
 
-    const testButtons = screen.getAllByText('Test');
+    const testButtons = screen.getAllByRole('button', { name: 'Test' });
     fireEvent.click(testButtons[0]);
 
     await waitFor(() => {

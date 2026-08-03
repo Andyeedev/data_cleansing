@@ -1,34 +1,92 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MigrationPage } from './MigrationPage';
 import { renderWithProviders } from '../test-utils';
 
+function createMockFetch(historyData?: unknown) {
+  return vi.fn(async (url: string) => {
+    const urlStr = String(url);
+    if (urlStr.includes('tenants')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      };
+    }
+    if (urlStr.includes('status-breakdown')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: { breakdown: { COMPLETED: 0, RUNNING: 0, FAILED: 0 }, total: 0, unscored: 0 } }),
+      };
+    }
+    if (urlStr.includes('/execution/history')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: historyData ?? { items: [], total: 0, page: 1, page_size: 20 } }),
+      };
+    }
+    if (urlStr.includes('/execution/risk-scores')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: { items: [], total: 0, page: 1, page_size: 20 } }),
+      };
+    }
+    if (urlStr.includes('/execution') || urlStr.includes('/migration/run')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: {} }),
+      };
+    }
+    if (urlStr.includes('/auth/me')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: { id: '1', email: 'admin@test.com', name: 'admin', roles: ['admin'], permissions: ['read', 'write', 'delete', 'admin'] } }),
+      };
+    }
+    if (urlStr.includes('/migration/projects/overview')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: { total_projects: 0, total_batches: 0, total_controls: 0, completed_controls: 0, total_datasets: 0, active_projects: 0, active_batches: 0, health_score: 100, recent_activity: [], top_projects: [] } }),
+      };
+    }
+    if (urlStr.includes('/migration/projects')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: { items: [], total: 0 } }),
+      };
+    }
+    if (urlStr.includes('/dashboard/')) {
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: { items: [], total: 0 } }),
+      };
+    }
+    return {
+      ok: true,
+      json: async () => ({ success: true, data: historyData ?? { items: [], total: 0, page: 1, page_size: 20 } }),
+    };
+  });
+}
+
 describe('MigrationPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.fetch = vi.fn();
   });
 
   it('shows permission error for non-admin users', () => {
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />, { initialRole: 'viewer' });
     expect(screen.getByText(/You do not have permission/)).toBeInTheDocument();
   });
 
   it('renders page title and description', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { items: [], total: 0, page: 1, page_size: 20 } }),
-    });
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />);
     expect(screen.getByText('Migration')).toBeInTheDocument();
     expect(screen.getByText(/Execute migration runs/)).toBeInTheDocument();
   });
 
   it('renders execution and history tabs', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { items: [], total: 0, page: 1, page_size: 20 } }),
-    });
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />);
     await waitFor(() => {
       expect(screen.getByRole('tab', { name: 'Execution' })).toBeInTheDocument();
@@ -37,32 +95,38 @@ describe('MigrationPage', () => {
   });
 
   it('renders start migration button in execution tab', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { items: [], total: 0, page: 1, page_size: 20 } }),
-    });
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />);
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Start Migration' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Start Migration/i })).toBeInTheDocument();
     });
   });
 
-  it('renders project ID input field', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { items: [], total: 0, page: 1, page_size: 20 } }),
-    });
+  it('renders stop all button', async () => {
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />);
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/Enter project ID/)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Stop All/i })).toBeInTheDocument();
+    });
+  });
+
+  it('opens confirmation modal when start migration clicked', async () => {
+    global.fetch = createMockFetch();
+    renderWithProviders(<MigrationPage />);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Start Migration/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Start Migration/i }));
+    await waitFor(() => {
+      expect(screen.getByText('Start Migration')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/Enter project ID/i)).toBeInTheDocument();
+      expect(screen.getByText('Full Validation (Recommended)')).toBeInTheDocument();
+      expect(screen.getByText('Quick Health Check')).toBeInTheDocument();
     });
   });
 
   it('shows empty state when no execution history', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { items: [], total: 0, page: 1, page_size: 20 } }),
-    });
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />);
 
     await waitFor(() => {
@@ -93,10 +157,7 @@ describe('MigrationPage', () => {
       page_size: 20,
     };
 
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: mockHistory }),
-    });
+    global.fetch = createMockFetch(mockHistory);
     renderWithProviders(<MigrationPage />);
 
     await waitFor(() => {
@@ -105,12 +166,18 @@ describe('MigrationPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Execution History (1 total)')).toBeInTheDocument();
-      expect(screen.getByText('COMPLETED')).toBeInTheDocument();
+      expect(screen.getAllByText('COMPLETED').length).toBeGreaterThan(0);
     });
   });
 
   it('renders error state on API failure', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('HTTP 500'));
+    global.fetch = vi.fn(async () => {
+      const urlStr = '';
+      if (urlStr.includes('tenants') || urlStr.includes('status-breakdown')) {
+        return { ok: true, json: async () => ({ success: true, data: [] }) };
+      }
+      throw new Error('HTTP 500');
+    });
     renderWithProviders(<MigrationPage />);
 
     await waitFor(() => {

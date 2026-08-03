@@ -17,7 +17,6 @@ class ExecutionControlService:
             return {"error": f"Cannot cancel execution in status: {current_status}"}
 
         self.repository.update_batch_status(batch_id, 'CANCELLED')
-        self.repository.insert_lifecycle_event(batch_id, 'CANCELLED')
 
         return {
             "message": "Execution cancelled successfully",
@@ -35,7 +34,6 @@ class ExecutionControlService:
             return {"error": f"Cannot pause execution in status: {current_status}"}
 
         self.repository.update_batch_status(batch_id, 'PAUSED')
-        self.repository.insert_lifecycle_event(batch_id, 'PAUSED')
 
         return {
             "message": "Execution paused successfully",
@@ -53,7 +51,6 @@ class ExecutionControlService:
             return {"error": f"Cannot resume execution in status: {current_status}"}
 
         self.repository.update_batch_status(batch_id, 'RUNNING')
-        self.repository.insert_lifecycle_event(batch_id, 'RESUMED')
 
         return {
             "message": "Execution resumed successfully",
@@ -71,7 +68,6 @@ class ExecutionControlService:
             return {"error": f"Cannot retry execution in status: {current_status}"}
 
         self.repository.update_batch_status(batch_id, 'RUNNING')
-        self.repository.insert_lifecycle_event(batch_id, 'RETRY')
 
         return {
             "message": "Execution retry triggered",
@@ -80,18 +76,16 @@ class ExecutionControlService:
         }
 
     def get_lifecycle(self, batch_id: str):
-        events = self.repository.get_lifecycle_events(batch_id)
-        event_list = []
-        for e in events:
-            event_list.append({
-                "event_type": e[2],
-                "timestamp": str(e[3]) if e[3] else None,
-                "details": e[4]
-            })
+        checkpoint = self.repository.get_batch_checkpoint(batch_id)
+        if not checkpoint:
+            return {
+                "batch_id": batch_id,
+                "last_completed_control": None
+            }
 
         return {
             "batch_id": batch_id,
-            "events": event_list
+            "last_completed_control": checkpoint[1]
         }
 
     def get_progress(self, batch_id: str):

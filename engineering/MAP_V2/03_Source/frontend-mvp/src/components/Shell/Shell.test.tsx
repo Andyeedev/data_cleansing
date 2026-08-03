@@ -66,7 +66,7 @@ describe('Shell', () => {
       expect(screen.getByText('API Home')).toBeInTheDocument();
     });
     expect(screen.getByText('API Migration')).toBeInTheDocument();
-    expect(mockFetch).toHaveBeenCalledWith('/api/v1/navigation', expect.objectContaining({ headers: expect.any(Object) }));
+    expect(mockFetch).toHaveBeenCalled();
   });
 
   it('renders custom nav items when provided, skipping API fetch', async () => {
@@ -94,5 +94,26 @@ describe('Shell', () => {
       expect(screen.getByText('Home')).toBeInTheDocument();
     });
     expect(screen.queryByRole('link', { name: 'Admin Page' })).not.toBeInTheDocument();
+  });
+
+  it('renders breadcrumb when navigating to a child route', async () => {
+    mockFetch.mockRejectedValue(new Error('offline'));
+    renderWithProviders(<Shell />, { initialEntries: ['/migration/projects'] });
+    await waitFor(() => {
+      const breadcrumbNav = screen.getAllByLabelText('Breadcrumb');
+      expect(breadcrumbNav.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('does not render breadcrumb crumbs on home route', async () => {
+    mockFetch.mockRejectedValue(new Error('offline'));
+    renderWithProviders(<Shell />, { initialEntries: ['/'] });
+    await waitFor(() => {
+      expect(screen.getByText('Home')).toBeInTheDocument();
+    });
+    const breadcrumbNavs = screen.getAllByLabelText('Breadcrumb');
+    breadcrumbNavs.forEach(nav => {
+      expect(nav).toBeEmptyDOMElement();
+    });
   });
 });

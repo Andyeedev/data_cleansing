@@ -20,10 +20,8 @@ from app.api.routes import (
     role_routes,
     workflow_routes,
     task_routes,
-    calendar_routes,
     notification_routes,
     settings_routes,
-    approval_routes,
     navigation_routes,
     discovery_routes,
     rule_execution_routes,
@@ -33,7 +31,10 @@ from app.api.routes import (
     execution_control_routes,
     monitoring_routes,
     governance_routes,
-    dashboard_routes
+    dashboard_routes,
+    migration_project_routes,
+    migration_dataset_routes,
+    schedule_routes
 )
 
 logger = logging.getLogger(__name__)
@@ -162,8 +163,6 @@ app.include_router(user_routes.router)
 app.include_router(role_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(task_routes.router)
-app.include_router(approval_routes.router)
-app.include_router(calendar_routes.router)
 app.include_router(notification_routes.router)
 app.include_router(settings_routes.router)
 app.include_router(navigation_routes.router)
@@ -176,6 +175,9 @@ app.include_router(execution_control_routes.router)
 app.include_router(monitoring_routes.router)
 app.include_router(governance_routes.router)
 app.include_router(dashboard_routes.router)
+app.include_router(migration_project_routes.router)
+app.include_router(migration_dataset_routes.router)
+app.include_router(schedule_routes.router)
 
 
 # =========================

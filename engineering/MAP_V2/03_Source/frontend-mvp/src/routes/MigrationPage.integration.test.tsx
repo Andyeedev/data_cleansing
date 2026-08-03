@@ -26,32 +26,59 @@ const mockHistory = [
   },
 ];
 
+function createMockFetch(historyData?: unknown) {
+  return vi.fn(async (url: string) => {
+    const urlStr = String(url);
+    if (urlStr.includes('tenants')) {
+      return { ok: true, json: async () => ({ success: true, data: [] }) };
+    }
+    if (urlStr.includes('status-breakdown')) {
+      return { ok: true, json: async () => ({ success: true, data: { breakdown: { COMPLETED: 0, RUNNING: 0, FAILED: 0 }, total: 0, unscored: 0 } }) };
+    }
+    if (urlStr.includes('/execution/history')) {
+      return { ok: true, json: async () => ({ success: true, data: historyData ?? { items: [], total: 0, page: 1, page_size: 20 } }) };
+    }
+    if (urlStr.includes('/execution/risk-scores')) {
+      return { ok: true, json: async () => ({ success: true, data: { items: [], total: 0, page: 1, page_size: 20 } }) };
+    }
+    if (urlStr.includes('/execution')) {
+      return { ok: true, json: async () => ({ success: true, data: {} }) };
+    }
+    if (urlStr.includes('/auth/me')) {
+      return { ok: true, json: async () => ({ success: true, data: { id: '1', email: 'admin@test.com', name: 'admin', roles: ['admin'], permissions: ['read', 'write', 'delete', 'admin'] } }) };
+    }
+    if (urlStr.includes('/migration/projects/overview')) {
+      return { ok: true, json: async () => ({ success: true, data: { total_projects: 0, total_batches: 0, total_controls: 0, completed_controls: 0, total_datasets: 0, active_projects: 0, active_batches: 0, health_score: 100, recent_activity: [], top_projects: [] } }) };
+    }
+    if (urlStr.includes('/migration/projects')) {
+      return { ok: true, json: async () => ({ success: true, data: { items: [], total: 0 } }) };
+    }
+    if (urlStr.includes('/dashboard/')) {
+      return { ok: true, json: async () => ({ success: true, data: { items: [], total: 0 } }) };
+    }
+    return { ok: true, json: async () => ({ success: true, data: historyData ?? { items: [], total: 0, page: 1, page_size: 20 } }) };
+  });
+}
+
 describe('MigrationPage Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.fetch = vi.fn();
   });
 
-  it('renders execution tab by default without fetching history', async () => {
+  it('renders execution tab by default with start button and dashboard cards', async () => {
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />, { initialRole: 'admin' });
 
     await waitFor(() => {
       expect(screen.getByRole('tab', { name: /execution/i })).toHaveAttribute('aria-selected', 'true');
       expect(screen.getByRole('tab', { name: /history/i })).toHaveAttribute('aria-selected', 'false');
+      expect(screen.getByRole('button', { name: /start migration/i })).toBeInTheDocument();
+      expect(screen.getByText('Execution Overview')).toBeInTheDocument();
     });
-
-    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('fetches execution history when history tab is clicked', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: { items: mockHistory, total: 2, page: 1, page_size: 20 },
-      }),
-    });
-
+    global.fetch = createMockFetch({ items: mockHistory, total: 2, page: 1, page_size: 20 });
     renderWithProviders(<MigrationPage />, { initialRole: 'admin' });
 
     await waitFor(() => {
@@ -69,14 +96,7 @@ describe('MigrationPage Integration', () => {
   });
 
   it('displays execution history entries after switching to History tab', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: { items: mockHistory, total: 2, page: 1, page_size: 20 },
-      }),
-    });
-
+    global.fetch = createMockFetch({ items: mockHistory, total: 2, page: 1, page_size: 20 });
     renderWithProviders(<MigrationPage />, { initialRole: 'admin' });
 
     await waitFor(() => {
@@ -87,21 +107,27 @@ describe('MigrationPage Integration', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Execution History (2 total)')).toBeInTheDocument();
-      expect(screen.getByText('COMPLETED')).toBeInTheDocument();
-      expect(screen.getByText('RUNNING')).toBeInTheDocument();
     });
+    expect(screen.getAllByText('COMPLETED').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('RUNNING').length).toBeGreaterThan(0);
   });
 
-  it('execution tab shows start button and project input', async () => {
+  it('execution tab shows start button and overview cards', async () => {
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />, { initialRole: 'admin' });
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /start migration/i })).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/project id/i)).toBeInTheDocument();
+      expect(screen.getByText('Execution Overview')).toBeInTheDocument();
+      expect(screen.getByText('Running')).toBeInTheDocument();
+      expect(screen.getByText('Completed Today')).toBeInTheDocument();
+      expect(screen.getByText('Failed Today')).toBeInTheDocument();
+      expect(screen.getByText('Scheduled Today')).toBeInTheDocument();
     });
   });
 
   it('shows permission error for viewer role', async () => {
+    global.fetch = createMockFetch();
     renderWithProviders(<MigrationPage />, { initialRole: 'viewer' });
 
     await waitFor(() => {
@@ -110,14 +136,7 @@ describe('MigrationPage Integration', () => {
   });
 
   it('tab switching works correctly', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: { items: mockHistory, total: 2, page: 1, page_size: 20 },
-      }),
-    });
-
+    global.fetch = createMockFetch({ items: mockHistory, total: 2, page: 1, page_size: 20 });
     renderWithProviders(<MigrationPage />, { initialRole: 'admin' });
 
     await waitFor(() => {

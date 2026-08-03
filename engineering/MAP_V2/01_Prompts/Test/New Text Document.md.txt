@@ -1,0 +1,150 @@
+Workstream_08_Commercial_Strategy
+This is the obvious candidate. It likely contains high-level commercial concepts but may not have been fully expanded.
+FounderHub / early SaaS documents
+The original School SMS / SaaS work almost certainly discussed:
+Subscription tiers
+Pricing
+Billing
+Payment providers
+Feature flags
+Tenant licensing
+Portal / Administration workstreams
+Particularly:
+Subscription UI
+Tenant Management
+System Settings
+Feature Flags
+These often reference commercial behaviour indirectly.
+Architecture documents
+Search for terms such as:
+subscription
+billing
+payment
+licence
+license
+commercial
+pricing
+feature flag
+entitlement
+quota
+plan
+My recommendation
+
+Don't recreate any commercial architecture yet.
+
+Instead, create a Commercial Policy Discovery & Reconciliation exercise, exactly like we're doing for the frontend.
+
+The output would answer:
+
+What commercial capabilities already exist?
+Which documents define them?
+Which database tables already support them?
+Which APIs already exist?
+Which UI already exists?
+What is MAP CLI aware of (probably nothing)?
+What belongs to the Platform versus the MAP Product?
+What is missing?
+
+I suspect you'll discover that 70–80% of the commercial architecture has already been designed, just scattered across multiple documents. The exercise would consolidate it into a single authoritative commercial architecture rather than rewriting it.
+
+
+Phase 08.5 — Frontend Architecture & Capability Reconciliation
+
+Purpose:
+
+Establish the authoritative relationship between the frozen frontend, MAP CLI capabilities, and existing Workstream UI policies before Phase 09 implementation.
+
+Step 1 — Inventory Existing Frontend Policies
+
+Review:
+
+01_Prompts/
+ ├── Workstream_01_Platform_Foundation
+ ├── Workstream_02_Portal_Framework
+ ├── Workstream_03_Presentation_Engine
+ ├── Workstream_05_Frontend
+ ├── Workstream_06_Frontend
+ └── Workstream_07_AI_Provider_Integration
+
+Do not rewrite them.
+
+Classify each as:
+
+Category	Action
+Already implemented in frozen frontend	Restore/reuse
+Exists in prompts but missing in frozen frontend	Future enhancement
+Exists but duplicates MAP CLI capability	Merge/remove duplication
+Platform capability	Keep separate from MAP CLI
+Not required for MVP	Defer
+Step 2 — Create a Capability Mapping Matrix
+
+Example:
+
+Workstream	Capability	Frozen UI	MAP CLI	Decision
+WS01	Login/Auth	✅ Exists	Required	Restore
+WS01	Theme System	✅ Exists	Platform	Restore
+WS02	Migration Portal	✅ Exists	Core MAP CLI	Restore
+WS02	Governance Portal	✅ Exists	Core MAP CLI	Restore
+WS03	Report Centre	Partial	MAP CLI reports	Review
+WS05	Workflow	Partial	Not CLI core	Future platform
+WS06	Tenant Management	Partial	Platform	Future
+WS06	Subscription	Partial	Commercial	Future
+WS07	AI Providers	Not MVP	Future	Defer
+
+
+Step 3 — Establish Three Product Layers
+
+This is the key missing separation:
+
+Layer 1 — MAP CLI Product Core
+
+Must represent actual CLI capability:
+
+Migration
+Validation
+Rules
+Controls
+Reconciliation
+Exceptions
+Governance
+Reporting
+Risk
+Layer 2 — MAP Platform
+
+Reusable SaaS capabilities:
+
+Authentication
+Users
+Roles
+Tenants
+Notifications
+Calendar
+Themes
+Subscriptions
+Layer 3 — Future Enhancements
+AI assistant
+AI recommendations
+AI providers
+Advanced workflow automation
+Step 4 — Phase 09 Should Then Become Clear
+
+After reconciliation:
+
+Phase 09 = Frontend Restoration
+
+Not:
+
+Build frontend
+
+But:
+
+Restore frozen enterprise frontend using validated Workstream policies and connect to Phase 08 backend APIs.
+
+Your instinct is correct:
+
+The frozen frontend should be the UI baseline.
+The Workstream prompts are the design policies.
+MAP CLI is the business capability authority.
+Phase 08.5 is the missing bridge.
+
+I would not create 25_UI_UX_Architecture.md yet. If Phase 08.5 discovers that the UI rules are scattered, then create a consolidated document that references the original workstreams rather than replacing them.

@@ -3,6 +3,7 @@ import { Layout } from '../Layout/Layout';
 import { DynamicNavigation } from '../Navigation/DynamicNavigation';
 import { Breadcrumb } from '../Breadcrumb/Breadcrumb';
 import { filterByPermissions } from '../../utils/filterByPermissions';
+import { apiGet } from '../../utils/apiClient';
 import type { MetadataNavItem } from '../../types/metadata';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -13,12 +14,13 @@ const DEFAULT_NAV: MetadataNavItem[] = [
   ]},
   { id: 'migration', label: 'Migration', path: '/migration', children: [
     { id: 'projects', label: 'Projects', path: '/migration/projects' },
+    { id: 'datasets', label: 'Datasets', path: '/migration/datasets' },
+    { id: 'schedules', label: 'Schedules', path: '/migration/schedules' },
     { id: 'connections', label: 'Connections', path: '/migration/connections' },
     { id: 'discovery', label: 'Discovery', path: '/migration/discovery' },
     { id: 'mappings', label: 'Mappings', path: '/migration/mappings' },
     { id: 'column-mappings', label: 'Column Mappings', path: '/migration/column-mappings' },
     { id: 'execution', label: 'Execution', path: '/migration/execution' },
-    { id: 'history', label: 'History', path: '/migration/history' },
   ]},
   { id: 'validation', label: 'Validation', path: '/validation', children: [
     { id: 'rules', label: 'Rules', path: '/validation/rules' },
@@ -39,8 +41,6 @@ const DEFAULT_NAV: MetadataNavItem[] = [
   { id: 'administration', label: 'Administration', path: '/administration', requiredRoles: ['admin'] },
 ];
 
-const NAV_API_URL = '/api/v1/navigation';
-
 interface ShellProps {
   navItems?: MetadataNavItem[];
   userRoles?: string[];
@@ -54,26 +54,19 @@ export function Shell({ navItems: overrideNavItems, userRoles: propRoles }: Shel
     overrideNavItems ?? DEFAULT_NAV,
   );
   const [loading, setLoading] = useState(false);
+  const [navError, setNavError] = useState<string | null>(null);
 
   useEffect(() => {
     if (overrideNavItems) return;
 
-    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
-    const headers: HeadersInit = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    fetch(NAV_API_URL, { headers })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((json) => {
-        if (json.success && Array.isArray(json.data)) {
-          setRawNavItems(json.data);
+    apiGet<MetadataNavItem[]>('/navigation')
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setRawNavItems(data);
         }
       })
       .catch(() => {
-        // API unavailable — keep DEFAULT_NAV
+        setNavError('Navigation unavailable');
       })
       .finally(() => setLoading(false));
   }, [overrideNavItems]);
@@ -82,7 +75,16 @@ export function Shell({ navItems: overrideNavItems, userRoles: propRoles }: Shel
 
   return (
     <Layout
-      sidebar={<DynamicNavigation items={navItems} currentPath={location.pathname} />}
+      sidebar={
+        <nav aria-label="Main navigation" role="navigation">
+          {navError && (
+            <div role="alert" style={{ padding: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-warning)' }}>
+              {navError}
+            </div>
+          )}
+          <DynamicNavigation items={navItems} currentPath={location.pathname} />
+        </nav>
+      }
       breadcrumb={<Breadcrumb navItems={navItems} />}
       loading={loading}
     >

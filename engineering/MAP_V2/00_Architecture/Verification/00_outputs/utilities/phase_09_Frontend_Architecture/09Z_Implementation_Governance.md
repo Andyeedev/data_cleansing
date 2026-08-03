@@ -548,3 +548,41 @@ Every PR must include verification of the following:
 | Future Modules | `09G_Future_Modules_Output.md` | featureFlags, ReportsPage (now functional), MappingPage, FeatureFlagGuard, DynamicNavigation filtering |
 | Current Inventory | `09Y_Current_Application_Inventory.md` | All existing pages, components, hooks, services, contexts, types |
 | Implementation Governance | `09Z_Implementation_Governance.md` | All implementation rules, standards, and verification requirements |
+
+---
+
+## 15. Rule 19 — No Frontend Restoration From Old Schema
+
+The old frontend table names are historical references only. They must NOT be used in any implementation, SQL query, repository code, or documentation going forward.
+
+### Prohibited Table Names
+
+| Old Table Name | Status | Must Use Instead | Authoritative Source |
+|----------------|--------|------------------|---------------------|
+| `engine.audit_log` | Replaced | `engine.migration_control_execution` | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `Backend Readiness` tab |
+| `engine.approvals` | Replaced | `engine.migration_release_decision` | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `Backend Readiness` tab |
+| `engine.exceptions` | Replaced | `engine.migration_control_exceptions` | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `Backend Readiness` tab |
+| `engine.systems` | Replaced | `core.system_registry` | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `Backend Readiness` tab |
+| `engine.controls` | Replaced | `engine.control_registry` | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `Backend Readiness` tab |
+| `engine.migration_batch_lifecycle` | Does not exist | `engine.batch_execution_checkpoint` (partial) | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `SQL Views & Relevance` tab; `09_Cross_Reference_Index.md` → B-06 |
+| `engine.migration_risk_scores` | DDL never executed | `engine.v_batch_risk_index` (proposed view) | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `SQL Views & Relevance` tab; `09_Cross_Reference_Index.md` → B-07 |
+| `engine.unified_scores` | Invalid — no Python INSERT, no MAP CLI writer | `engine.v_batch_risk_index` (risk) / `engine.v_dataset_risk_index` (entity) | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `SQL Views & Relevance` tab; `09_Risk_Score_Decision.md` → Decision 1 |
+| `audit.audit_events` | Replaced | `engine.migration_control_execution` | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `Backend Readiness` tab |
+| `platform.approval_requests` | 0 rows, no MAP CLI writer | `engine.migration_release_decision` (for release gate decisions) | `08AA_Frozen_Frontend_Gap_Analysis.xlsx` → `Backend Readiness` tab |
+
+### Rule 19 Constraints
+
+- ❌ **Do not** write SQL queries referencing any old table name listed above.
+- ❌ **Do not** create or execute DDL for any old table name listed above.
+- ❌ **Do not** reference any old table name in a repository, service, or API route that writes or reads data.
+- ✅ **Do** use the authoritative replacement tables/views documented in the Phase 08 Table Inventory and the Data Lineage Report.
+- ✅ **Do** verify every table reference against the frozen lineage (DL-xxx) before implementation.
+- ✅ **Do** report any encounter with an old table name immediately so it can be documented as deprecated.
+
+### Rationale
+
+The old schema was a transitional state during earlier phases. MAP CLI now writes exclusively to the authoritative tables listed above. Restoring from the old schema would create incorrect data mappings, violate RULE 18 (every frontend feature must trace to exactly one authoritative MAP CLI table), and introduce the same table-name drift that Phase 09.1 was created to correct.
+
+### Blocked Items Cross-Reference
+
+All blocked items (B-06, B-07, FB-07, FB-08) and their resolutions are indexed in `09_Cross_Reference_Index.md`. This is the single entry point for finding the resolution, authoritative Excel source, and supporting Phase 09 research documents for any blocked table or view.

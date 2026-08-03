@@ -145,6 +145,50 @@ Additionally, `engine.tenants` DDL exists but was never executed, and duplicates
 
 ---
 
+## ADR-08-002: Scheduler Subsystem Design
+
+**Generated:** 2026-07-31
+**Status:** APPROVED
+**Deciders:** User (Architect)
+
+### Context
+
+The MVP needs a migration schedule management subsystem that allows users to create, edit, delete, and trigger scheduled MAP CLI executions. The frozen frontend has a Scheduler portal but uses mock data. The MVP must connect to real backend data.
+
+### Decision
+
+Two-table design over single-table JSON approach:
+
+1. `engine.migration_schedules` — schedule definition (17 columns including recurrence JSONB)
+2. `engine.schedule_execution_log` — execution history (11 columns including terminal_output)
+
+The `platform.calendar_events` table is reused with a FK link to `engine.migration_schedules`.
+
+### Rationale
+
+- Two-table design provides better queryability, filtering, and reporting than a single JSON column
+- `recurrence` column uses JSONB for flexible cron expression storage
+- `terminal_output` stores subprocess stdout/stderr for UI display
+- MAP CLI command: `python -m app.main run --config config.yaml`
+- Role-based filtering: Super Admin sees all tenants/projects; Tenant Admin sees only their tenant's projects
+- When schedule is OFF, all action buttons (Run/Edit/Delete/View Output) are disabled
+
+### Evidence
+
+- DDL: `sql/schema/03_schedule_schema.sql`
+- Seed data: `sql/demo/03_seed_schedules.sql`
+- Backend: `app/repositories/schedule_repository.py`, `app/services/schedule_service.py`, `app/services/schedule_runner.py`, `app/api/routes/schedule_routes.py`
+- Frontend: `src/routes/MigrationSchedulesPage.tsx` (Option C design)
+- Tests: `src/routes/MigrationSchedulesPage.test.tsx` (5/5 passing)
+
+### Consequences
+
+- Positive: Full CRUD with real data, terminal output capture, calendar event linkage
+- Negative: Two tables to maintain instead of one
+- Risk: Subprocess execution may have security implications (validated with project/mapping checks)
+
+---
+
 ## Authority
 
 These mappings are authoritative and supersede any previous Phase 08 documentation.

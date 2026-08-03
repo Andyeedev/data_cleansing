@@ -22,7 +22,7 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   if (requiredRoles && user) {
     const hasRequiredRole = requiredRoles.some((role) => user.roles.includes(role));
     if (!hasRequiredRole) {
-      return <Navigate to="/login" replace />;
+      return <Navigate to="/access-denied" state={{ from: location }} replace />;
     }
   }
 

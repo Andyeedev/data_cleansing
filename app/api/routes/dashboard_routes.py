@@ -17,10 +17,11 @@ def _require_admin(current_user=Depends(get_current_user)):
 
 @router.get("/portfolio", response_model=APIResponse)
 def get_portfolio(
+    tenant_id: str = Query(None),
     current_user=Depends(_require_admin)
 ):
     try:
-        result = dashboard_service.get_portfolio_summary()
+        result = dashboard_service.get_portfolio_summary(tenant_id)
         return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -28,10 +29,11 @@ def get_portfolio(
 
 @router.get("/kpis", response_model=APIResponse)
 def get_kpis(
+    tenant_id: str = Query(None),
     current_user=Depends(_require_admin)
 ):
     try:
-        result = dashboard_service.get_kpis()
+        result = dashboard_service.get_kpis(tenant_id)
         return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -40,10 +42,11 @@ def get_kpis(
 @router.get("/activity", response_model=APIResponse)
 def get_activity(
     limit: int = Query(10, ge=1, le=50),
+    tenant_id: str = Query(None),
     current_user=Depends(_require_admin)
 ):
     try:
-        result = dashboard_service.get_activity(limit)
+        result = dashboard_service.get_activity(limit, tenant_id)
         return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

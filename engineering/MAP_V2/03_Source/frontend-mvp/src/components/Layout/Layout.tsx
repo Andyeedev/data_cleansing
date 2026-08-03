@@ -1,6 +1,9 @@
+import { useState, useRef, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../ThemeToggle';
 import { RoleSwitcher } from '../RoleSwitcher/RoleSwitcher';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { LoadingSpinner } from '../LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../../context/AuthContext';
 
 interface LayoutProps {
@@ -12,95 +15,113 @@ interface LayoutProps {
 
 export function Layout({ sidebar, children, breadcrumb, loading }: LayoutProps) {
   const { logout } = useAuth();
-  
-  const handleLogout = async () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      await logout();
-      window.location.href = '/login';
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!loading) {
+      mainRef.current?.focus();
     }
+  }, [loading]);
+
+  const handleLogout = async () => {
+    setShowLogoutConfirm(false);
+    await logout();
+    window.location.href = '/login';
   };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       <aside
         data-testid="sidebar"
+        role="complementary"
+        aria-label="Sidebar"
         style={{
           width: 'var(--sidebar-width)',
           background: 'var(--color-sidebar)',
           color: 'var(--color-sidebar-text)',
-          padding: 16,
+          padding: 'var(--space-md)',
           flexShrink: 0,
           overflowY: 'auto',
         }}
       >
-        <div style={{ marginBottom: 24, fontWeight: 600, fontSize: 18, color: 'white' }}>
+        <div style={{ marginBottom: 'var(--space-lg)', fontWeight: 600, fontSize: 'var(--font-size-h3)', color: 'white' }}>
           MAP Nexus
         </div>
         {sidebar}
       </aside>
+
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <header
           data-testid="header"
+          role="banner"
+          aria-label="Header"
           style={{
             height: 'var(--header-height)',
             background: 'var(--color-header-bg)',
-            borderBottom: '1px solid var(--color-header-border)',
+            borderBottom: 'var(--border-width) solid var(--color-header-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
-            padding: '0 24px',
+            padding: '0 var(--space-lg)',
           }}
         >
           <RoleSwitcher />
           <ThemeToggle />
           <button
-            onClick={handleLogout}
-            style={{ 
-              marginLeft: 16, 
-              padding: '8px 16px', 
-              background: 'var(--color-error)', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: 4, 
+            onClick={() => setShowLogoutConfirm(true)}
+            style={{
+              marginLeft: 'var(--space-md)',
+              padding: 'var(--space-sm) var(--space-md)',
+              background: 'var(--color-danger)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 'var(--radius)',
               cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 600
+              fontSize: 'var(--font-size-base)',
+              fontWeight: 600,
             }}
           >
             Logout
           </button>
         </header>
+
         {breadcrumb && (
-          <div style={{ padding: '0 24px', borderBottom: '1px solid var(--color-border)' }}>
+          <nav aria-label="Breadcrumb" style={{ padding: '0 var(--space-lg)', borderBottom: 'var(--border-width) solid var(--color-border)' }}>
             {breadcrumb}
-          </div>
+          </nav>
         )}
+
         <main
+          id="main-content"
+          ref={mainRef}
           data-testid="content"
+          role="main"
+          tabIndex={-1}
           style={{
             flex: 1,
-            padding: 24,
+            padding: 'var(--space-lg)',
             background: 'var(--color-bg)',
+            outline: 'none',
           }}
         >
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  border: '3px solid var(--color-border)',
-                  borderTopColor: 'var(--color-sidebar-active)',
-                  borderRadius: '50%',
-                  animation: 'spin 0.8s linear infinite',
-                }}
-              />
-            </div>
-          ) : (
-            children
-          )}
+          {loading ? <LoadingSpinner /> : children}
         </main>
       </div>
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        title="Confirm Logout"
+        message="Are you sure you want to log out?"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+        variant="warning"
+        confirmLabel="Log Out"
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 # PHASE 08 EVIDENCE PACKAGE
-## Repository Reference Resolution — Final Verification
+## Repository Reference Resolution & Frontend MVP Implementation — Final Verification
 
 **Generated:** 2026-07-27
-**Status:** COMPLETE — Ready for Sign-Off
+**Last Updated:** 2026-07-31
+**Status:** COMPLETE — Phase 08A/B Done, Phase 08C In Progress
 
 ---
 
@@ -16,6 +17,9 @@
 | No silent exception handling | ✅ Confirmed | grep verification |
 | No unresolved repository references | ✅ Confirmed | grep verification |
 | Dashboard duplication bug fixed | ✅ Confirmed | UI verification |
+| Scheduler subsystem implemented | ✅ Complete | 10 API endpoints, 5/5 tests passing |
+| Theme consistency fixes applied | ✅ Complete | TypeScript compiles clean |
+| AccessDeniedPage exists and routed | ✅ Confirmed | `src/routes/AccessDeniedPage.tsx`, `/access-denied` route |
 
 ---
 
@@ -77,7 +81,54 @@
 
 ---
 
-## 6. Runtime Verification Results
+## 6. Frontend MVP — Phase 08B Implementation Evidence
+
+### Migration Sub-Pages
+| Page | File | Status |
+|------|------|--------|
+| MigrationProjectsPage | `src/routes/MigrationProjectsPage.tsx` | ✅ Implemented |
+| MigrationDatasetsPage | `src/routes/MigrationDatasetsPage.tsx` | ✅ Implemented |
+| MigrationSchedulesPage | `src/routes/MigrationSchedulesPage.tsx` | ✅ Implemented |
+| MigrationOverviewPage | `src/routes/MigrationOverviewPage.tsx` | ✅ Implemented |
+
+### Scheduler Subsystem
+| Component | Status | Evidence |
+|-----------|--------|----------|
+| `engine.migration_schedules` table | ✅ Created | `sql/schema/03_schedule_schema.sql` |
+| `engine.schedule_execution_log` table | ✅ Created | `sql/schema/03_schedule_schema.sql` |
+| Seed data (4 schedules, 4 events, 12 logs) | ✅ Loaded | `sql/demo/03_seed_schedules.sql` |
+| `schedule_repository.py` | ✅ Implemented | Queries for list, stats, logs, calendar events |
+| `schedule_service.py` | ✅ Implemented | CRUD + toggle + stats + project/mapping validation |
+| `schedule_runner.py` | ✅ Implemented | MAP CLI subprocess runner with encoding fix + cwd fix |
+| `schedule_routes.py` | ✅ Implemented | 10 endpoints (CRUD, stats, logs, calendar, run) |
+| `MigrationSchedulesPage.tsx` | ✅ Implemented | Option C design, 5/5 tests passing |
+| Terminal output fix | ✅ Fixed | `encoding="utf-8", errors="replace"` + absolute cwd |
+| View Output button disabled when OFF | ✅ Fixed | Component-level `isScheduleEnabled` + disabled style |
+| Project validation on schedule creation | ✅ Fixed | Checks datasets/column mappings exist |
+| Run validation on schedule execution | ✅ Fixed | Checks project has datasets/column mappings |
+
+### Theme Consistency Fixes
+| Fix | File | Status |
+|-----|------|--------|
+| Added `FAIL` mapping to StatusBadge | `src/components/shared/StatusBadge.tsx` | ✅ Done |
+| Replaced hardcoded status badge colors with StatusBadge | `src/routes/DashboardPage.tsx` | ✅ Done |
+| Replaced hardcoded status badge colors with StatusBadge | `src/routes/MigrationOverviewPage.tsx` | ✅ Done |
+| Added h1 fontWeight to DashboardPage | `src/routes/DashboardPage.tsx` | ✅ Done |
+| Fixed table padding/font-size (DashboardPage) | `src/routes/DashboardPage.tsx` | ✅ Done |
+| Fixed table padding/font-size (MigrationDatasetsPage) | `src/routes/MigrationDatasetsPage.tsx` | ✅ Done |
+| Added button transition (MigrationDatasetsPage) | `src/routes/MigrationDatasetsPage.tsx` | ✅ Done |
+| Removed unused `statusBadgeStyle` (MigrationOverviewPage) | `src/routes/MigrationOverviewPage.tsx` | ✅ Done |
+
+### AccessDeniedPage
+| Item | Status | Evidence |
+|------|--------|----------|
+| `AccessDeniedPage.tsx` exists | ✅ | `src/routes/AccessDeniedPage.tsx` |
+| Routed at `/access-denied` | ✅ | `AppRoutes.tsx` |
+| ProtectedRoute redirect to `/access-denied` | ❌ | Currently shows inline message |
+
+---
+
+## 7. Runtime Verification Results
 
 | Endpoint | Status | Row Count | Sample Data |
 |----------|--------|-----------|-------------|
@@ -89,16 +140,17 @@
 
 ---
 
-## 7. Blocked Items (Not Implemented per RULE 18/19)
+## 8. Blocked Items (Not Implemented per RULE 18/19)
 
 | Blocker | Table | Status |
 |---------|-------|--------|
 | B-06 | `engine.migration_batch_lifecycle` | BLOCKED — does not exist |
 | B-07 | `engine.migration_risk_scores` | BLOCKED — no Python INSERT traceable |
+| B-07 | `v_batch_risk_index` view | BLOCKED — view does not exist |
 
 ---
 
-## 8. Sign-Off
+## 9. Sign-Off
 
 | Role | Name | Date | Status |
 |------|------|------|--------|
@@ -110,4 +162,4 @@
 ---
 
 **Document Generated:** 2026-07-27
-**Phase 08 Status:** COMPLETE
+**Phase 08 Status:** COMPLETE — Phase 08A/B Done
