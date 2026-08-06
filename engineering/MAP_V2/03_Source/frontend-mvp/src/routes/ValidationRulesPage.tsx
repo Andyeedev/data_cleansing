@@ -30,14 +30,12 @@ const SEVERITY_COLORS: Record<string, string> = {
 export function ValidationRulesPage() {
   const { userRoles } = useAuth();
   const { data, loading, error, refetch } = useRules();
-  const { updateRule, deleteRule, loading: mutationLoading } = useRuleMutations();
+  const { updateRule, loading: mutationLoading } = useRuleMutations();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
   const [severityFilter, setSeverityFilter] = useState<FilterSeverity>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [localChanges, setLocalChanges] = useState<Record<string, Partial<RuleRegistryItem>>>({});
-  const [confirmModal, setConfirmModal] = useState<{ open: boolean; ruleId?: string; ruleName?: string }>({ open: false });
-  const [confirmText, setConfirmText] = useState('');
 
   if (!userRoles.includes('admin')) {
     return (
@@ -113,29 +111,6 @@ export function ValidationRulesPage() {
     setLocalChanges({});
     refetch();
   };
-
-  const handleDeleteClick = (ruleId: string, ruleName: string) => {
-    setConfirmModal({ open: true, ruleId, ruleName });
-    setConfirmText('');
-  };
-
-  const handleConfirmDelete = async () => {
-    if (confirmModal.ruleId) {
-      const success = await deleteRule(confirmModal.ruleId);
-      if (success) {
-        setConfirmModal({ open: false });
-        setConfirmText('');
-        refetch();
-      }
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setConfirmModal({ open: false });
-    setConfirmText('');
-  };
-
-  const isConfirmValid = confirmText === confirmModal.ruleName;
 
   const thStyle: React.CSSProperties = { textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 1 };
   const tdStyle: React.CSSProperties = { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-sm)', borderBottom: '1px solid var(--color-border)' };
@@ -293,45 +268,6 @@ export function ValidationRulesPage() {
             </div>
           )}
         </>
-      )}
-
-      {confirmModal.open && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(2px)' }}>
-          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '24px', maxWidth: 500, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', border: '1px solid #e5e7eb', position: 'relative', zIndex: 10000 }}>
-            <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#dc2626', fontWeight: 700, margin: '0 0 16px 0' }}>
-              Delete Rule
-            </h3>
-            <div style={{ padding: '16px', background: '#fef2f2', borderRadius: '8px', border: '2px solid #dc2626', marginBottom: '20px' }}>
-              <p style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#1f2937', lineHeight: 1.5 }}>
-                You are about to delete rule <strong style={{ color: '#dc2626' }}>{confirmModal.ruleId}</strong>.
-              </p>
-              <p style={{ fontSize: '14px', margin: 0, fontWeight: 700, color: '#dc2626', lineHeight: 1.5 }}>
-                This action cannot be undone.
-              </p>
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#4b5563', fontWeight: 500 }}>
-                Type "{confirmModal.ruleName}" to confirm:
-              </label>
-              <input
-                type="text"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                style={{ width: '100%', padding: '12px', border: '2px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#f9fafb', color: '#1f2937', boxSizing: 'border-box', outline: 'none' }}
-                placeholder={confirmModal.ruleName}
-                autoFocus
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button onClick={handleCancelDelete} style={{ padding: '10px 20px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}>
-                Cancel
-              </button>
-              <button onClick={handleConfirmDelete} disabled={!isConfirmValid || mutationLoading} style={{ padding: '10px 20px', background: isConfirmValid ? '#dc2626' : '#e5e7eb', color: isConfirmValid ? '#ffffff' : '#9ca3af', border: 'none', borderRadius: '6px', cursor: isConfirmValid ? 'pointer' : 'not-allowed', fontSize: '14px', fontWeight: 500, opacity: isConfirmValid ? 1 : 0.7 }}>
-                {mutationLoading ? 'Deleting...' : 'Delete Rule'}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

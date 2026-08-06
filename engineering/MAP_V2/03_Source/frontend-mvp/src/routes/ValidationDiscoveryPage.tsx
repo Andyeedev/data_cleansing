@@ -26,13 +26,6 @@ interface TreeNode {
   rule?: RuleRegistryItem;
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: 'var(--color-danger)',
-  HIGH: 'var(--color-warning)',
-  MEDIUM: 'var(--color-info)',
-  LOW: 'var(--color-success)',
-};
-
 export function ValidationDiscoveryPage() {
   const { userRoles } = useAuth();
   const { data, loading, error, refetch } = useRules();
@@ -162,7 +155,6 @@ export function ValidationDiscoveryPage() {
   }, []);
 
   const enabledCount = data?.rules?.filter((r) => r.enabled_flag).length || 0;
-  const disabledCount = data?.rules?.filter((r) => !r.enabled_flag).length || 0;
   const criticalCount = data?.rules?.filter((r) => r.severity_level === 'CRITICAL').length || 0;
   const controlCount = new Set(data?.rules?.map((r) => r.control_id)).size || 0;
 
@@ -357,7 +349,7 @@ export function ValidationDiscoveryPage() {
       )}
 
       <Modal
-        isOpen={detailModalRule !== null}
+        open={detailModalRule !== null}
         onClose={() => setDetailModalRule(null)}
         title="Rule Details"
       >
