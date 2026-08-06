@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRules, useRuleMutations } from '../hooks/useRules';
+import { apiPost } from '../utils/apiClient';
 import { PageHeader } from '../components/PageHeader/PageHeader';
 import { MetricCard } from '../components/shared/MetricCard';
 import { StatusBadge } from '../components/shared/StatusBadge';
@@ -8,6 +9,7 @@ import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
+import { TenantFilter } from '../components/shared/TenantFilter';
 import type { RuleRegistryItem, RuleRegistryUpdateRequest } from '../types/rules';
 
 type FilterStatus = 'all' | 'enabled' | 'disabled';
@@ -16,6 +18,12 @@ type FilterSeverity = 'all' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 interface ControlGroup {
   control_id: string;
   rules: RuleRegistryItem[];
+}
+
+interface ValidationIssue {
+  rule_id: string;
+  issue: string;
+  severity: 'error' | 'warning';
 }
 
 const PAGE_SIZE = 50;
@@ -28,7 +36,8 @@ const SEVERITY_COLORS: Record<string, string> = {
 };
 
 export function ValidationRulesPage() {
-  const { userRoles } = useAuth();
+  const { userRoles, tenantId: userTenantId } = useAuth();
+  const [selectedTenant, setSelectedTenant] = useState<string>(userTenantId || '');
   const { data, loading, error, refetch } = useRules();
   const { updateRule, loading: mutationLoading } = useRuleMutations();
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +45,11 @@ export function ValidationRulesPage() {
   const [severityFilter, setSeverityFilter] = useState<FilterSeverity>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [localChanges, setLocalChanges] = useState<Record<string, Partial<RuleRegistryItem>>>({});
+  const [validationIssues, setValidationIssues] = useState<ValidationIssue[] | null>(null);
+  const [validating, setValidating] = useState(false);
+  const [autoDiscovering, setAutoDiscovering] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{ open: boolean; type: 'delete' | 'enableAll' | 'disableAll'; control_id?: string; rule_id?: string; rule_name?: string; count?: number }>({ open: false, type: 'delete' });
+  const [confirmText, setConfirmText] = useState('');
 
   if (!userRoles.includes('admin')) {
     return (
@@ -89,11 +103,14 @@ export function ValidationRulesPage() {
     return Array.from(groupMap.values()).sort((a, b) => a.control_id.localeCompare(b.control_id));
   }, [filteredRules]);
 
+  const unmappedRules = useMemo(() => {
+    return mergedRules.filter((r) => !r.control_id);
+  }, [mergedRules]);
+
   const totalPages = Math.ceil(controlGroups.length / PAGE_SIZE);
   const paginatedGroups = controlGroups.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const enabledCount = mergedRules.filter((r) => r.enabled_flag).length;
-  const disabledCount = mergedRules.filter((r) => !r.enabled_flag).length;
   const criticalCount = mergedRules.filter((r) => r.severity_level === 'CRITICAL').length;
 
   const handleEnabledChange = (ruleId: string, enabled: boolean) => {
@@ -112,6 +129,88 @@ export function ValidationRulesPage() {
     refetch();
   };
 
+  const handleValidate = async () => {
+    setValidating(true);
+    try {
+      const issues: ValidationIssue[] = [];
+      for (const rule of mergedRules) {
+        if (!rule.rule_name) {
+          issues.push({ rule_id: rule.rule_id, issue: 'Missing rule name', severity: 'error' });
+        }
+        if (!rule.severity_level) {
+          issues.push({ rule_id: rule.rule_id, issue: 'Missing severity level', severity: 'warning' });
+        }
+        if (!rule.sql_template_file) {
+          issues.push({ rule_id: rule.rule_id, issue: 'No SQL template configured', severity: 'warning' });
+        }
+        if (!rule.control_id) {
+          issues.push({ rule_id: rule.rule_id, issue: 'No control assigned', severity: 'error' });
+        }
+      }
+      setValidationIssues(issues);
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Rule ID', 'Rule Name', 'Control', 'Severity', 'Status', 'SQL Template', 'Created At'];
+    const rows = filteredRules.map((rule) => [
+      rule.rule_id, rule.rule_name || '', rule.control_id || '', rule.severity_level || '',
+      rule.enabled_flag ? 'Enabled' : 'Disabled', rule.sql_template_file || '', rule.created_at || ''
+    ]);
+    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'validation-rules-export.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleAutoDiscover = async () => {
+    setAutoDiscovering(true);
+    try {
+      await apiPost('/rules/discover', {});
+      refetch();
+    } catch {
+    } finally {
+      setAutoDiscovering(false);
+    }
+  };
+
+  const handleEnableAllInGroup = (controlId: string) => {
+    setConfirmModal({ open: true, type: 'enableAll', control_id: controlId });
+    setConfirmText('');
+  };
+
+  const handleDisableAllInGroup = (controlId: string) => {
+    setConfirmModal({ open: true, type: 'disableAll', control_id: controlId });
+    setConfirmText('');
+  };
+
+  const handleConfirmGroupAction = async () => {
+    if (!confirmModal.control_id) return;
+    const group = controlGroups.find((g) => g.control_id === confirmModal.control_id);
+    if (!group) return;
+
+    const enable = confirmModal.type === 'enableAll';
+    for (const rule of group.rules) {
+      await updateRule(rule.rule_id, { enabled_flag: enable } as RuleRegistryUpdateRequest);
+    }
+    setConfirmModal({ open: false, type: 'delete' });
+    setConfirmText('');
+    refetch();
+  };
+
+  const handleCancelGroupAction = () => {
+    setConfirmModal({ open: false, type: 'delete' });
+    setConfirmText('');
+  };
+
+  const isGroupConfirmValid = confirmModal.type === 'enableAll'
+    ? confirmText.toLowerCase() === 'enable all'
+    : confirmText.toLowerCase() === 'disable all';
+
   const thStyle: React.CSSProperties = { textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 1 };
   const tdStyle: React.CSSProperties = { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-sm)', borderBottom: '1px solid var(--color-border)' };
   const inputStyle: React.CSSProperties = { width: '100%', padding: '4px 8px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-xs)', background: 'var(--color-background)', color: 'var(--color-text)', boxSizing: 'border-box' };
@@ -124,11 +223,18 @@ export function ValidationRulesPage() {
         description="Manage validation rules grouped by control — rules define what to check, controls group related rules"
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+            <button onClick={handleAutoDiscover} disabled={autoDiscovering} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: autoDiscovering ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: autoDiscovering ? 0.5 : 1 }}>
+              {autoDiscovering ? 'Discovering...' : 'Auto-Discover'}
+            </button>
+            <button onClick={handleValidate} disabled={validating} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: validating ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)' }}>
+              {validating ? 'Validating...' : 'Validate'}
+            </button>
             <button onClick={handleSave} disabled={mutationLoading || Object.keys(localChanges).length === 0} style={{ padding: 'var(--space-sm) var(--space-md)', background: Object.keys(localChanges).length > 0 ? 'var(--color-success)' : 'var(--color-bg-secondary)', color: Object.keys(localChanges).length > 0 ? '#fff' : 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: mutationLoading ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: mutationLoading || Object.keys(localChanges).length === 0 ? 0.5 : 1 }}>
               {mutationLoading ? 'Saving...' : `Save${Object.keys(localChanges).length > 0 ? ` (${Object.keys(localChanges).length})` : ''}`}
             </button>
-            <button onClick={refetch} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
-              Refresh
+            <button onClick={handleExportCSV} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
+              Export CSV
             </button>
           </div>
         }
@@ -141,8 +247,8 @@ export function ValidationRulesPage() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
             <MetricCard title="Total Rules" value={mergedRules.length} />
+            <MetricCard title="Controls" value={controlGroups.length} />
             <MetricCard title="Enabled" value={enabledCount} color="var(--color-success)" />
-            <MetricCard title="Disabled" value={disabledCount} color="var(--color-warning)" />
             <MetricCard title="Critical" value={criticalCount} color="var(--color-danger)" />
           </div>
 
@@ -157,8 +263,46 @@ export function ValidationRulesPage() {
           </div>
 
           <div style={{ padding: 'var(--space-sm) var(--space-md)', marginBottom: 'var(--space-md)', background: 'rgba(var(--color-info-rgb, 59,130,246), 0.08)', borderRadius: 'var(--radius)', border: '1px solid rgba(var(--color-info-rgb, 59,130,246), 0.2)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-            <strong style={{ color: 'var(--color-info)' }}>Validation Rules</strong> define what to check during migration. <strong>Controls</strong> group related rules (e.g., C01 = Record Completeness). Rules are auto-discovered from column metadata or manually configured.
+            <strong style={{ color: 'var(--color-info)' }}>Validation Rules</strong> define what to check during migration. <strong>Controls</strong> group related rules (e.g., C01 = Record Completeness). Use <strong>Auto-Discover</strong> to generate rules from column metadata.
           </div>
+
+          {validationIssues && validationIssues.length > 0 && (
+            <div style={{ padding: 'var(--space-md)', marginBottom: 'var(--space-md)', background: 'rgba(var(--color-warning-rgb, 245,158,11), 0.1)', borderRadius: 'var(--radius)', border: '1px solid var(--color-warning)' }}>
+              <div style={{ fontWeight: 600, color: 'var(--color-warning)', marginBottom: 'var(--space-sm)' }}>
+                Validation found {validationIssues.length} issue(s)
+              </div>
+              {validationIssues.slice(0, 10).map((issue, i) => (
+                <div key={i} style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: '2px' }}>
+                  <StatusBadge status={issue.severity === 'error' ? 'Error' : 'Warning'} size="sm" variant={issue.severity === 'error' ? 'danger' : 'warning'} />
+                  <span style={{ marginLeft: 'var(--space-xs)' }}>{issue.rule_id}: {issue.issue}</span>
+                </div>
+              ))}
+              {validationIssues.length > 10 && (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
+                  ...and {validationIssues.length - 10} more issues
+                </div>
+              )}
+            </div>
+          )}
+
+          {validationIssues !== null && validationIssues.length === 0 && (
+            <div style={{ padding: 'var(--space-md)', marginBottom: 'var(--space-md)', background: 'rgba(var(--color-success-rgb, 34,197,94), 0.1)', borderRadius: 'var(--radius)', border: '1px solid var(--color-success)' }}>
+              <div style={{ fontWeight: 600, color: 'var(--color-success)' }}>
+                All rules passed validation
+              </div>
+            </div>
+          )}
+
+          {unmappedRules.length > 0 && (
+            <div style={{ marginBottom: 'var(--space-md)', padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>Rules Without Control ({unmappedRules.length})</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-xs)' }}>
+                {unmappedRules.map((rule) => (
+                  <span key={rule.rule_id} style={{ padding: '2px 8px', background: 'rgba(var(--color-danger-rgb, 239,68,68), 0.1)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}>{rule.rule_id}</span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 200 }}>
@@ -197,15 +341,29 @@ export function ValidationRulesPage() {
                     <React.Fragment key={group.control_id}>
                       <tr>
                         <td colSpan={5} style={groupHeaderStyle}>
-                          <span style={{ color: 'var(--color-primary)' }}>Control: {group.control_id}</span>
-                          <span style={{ marginLeft: 'var(--space-sm)', color: 'var(--color-text-secondary)', fontWeight: 400 }}>({group.rules.length} rules)</span>
-                          <span style={{ marginLeft: 'var(--space-sm)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+                            <span style={{ color: 'var(--color-primary)' }}>Control: {group.control_id}</span>
+                            <span style={{ color: 'var(--color-text-secondary)', fontWeight: 400 }}>({group.rules.length} rules)</span>
                             <StatusBadge
                               status={group.rules.some((r) => r.enabled_flag) ? 'Active' : 'Inactive'}
                               size="sm"
                               variant={group.rules.some((r) => r.enabled_flag) ? 'success' : 'warning'}
                             />
-                          </span>
+                            <div style={{ marginLeft: 'auto', display: 'flex', gap: 'var(--space-xs)' }}>
+                              <button
+                                onClick={() => handleEnableAllInGroup(group.control_id)}
+                                style={{ padding: '2px 8px', background: 'transparent', color: 'var(--color-success)', border: '1px solid var(--color-success)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)' }}
+                              >
+                                Enable All
+                              </button>
+                              <button
+                                onClick={() => handleDisableAllInGroup(group.control_id)}
+                                style={{ padding: '2px 8px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid var(--color-danger)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)' }}
+                              >
+                                Disable All
+                              </button>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                       {group.rules.map((rule, idx) => {
@@ -268,6 +426,53 @@ export function ValidationRulesPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmModal.open && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(2px)' }}>
+          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '24px', maxWidth: 500, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', border: '1px solid #e5e7eb', position: 'relative', zIndex: 10000 }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#dc2626', fontWeight: 700, margin: '0 0 16px 0' }}>
+              {confirmModal.type === 'enableAll' ? 'Enable All Rules' : 'Disable All Rules'}
+            </h3>
+            <div style={{ padding: '16px', background: '#fef2f2', borderRadius: '8px', border: '2px solid #dc2626', marginBottom: '20px' }}>
+              <p style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#1f2937', lineHeight: 1.5 }}>
+                You are about to {confirmModal.type === 'enableAll' ? 'enable' : 'disable'} <strong style={{ color: '#dc2626' }}>{confirmModal.count || 0} rule(s)</strong> in control <strong style={{ color: '#1f2937' }}>{confirmModal.control_id}</strong>.
+              </p>
+              <p style={{ fontSize: '14px', margin: 0, fontWeight: 700, color: '#dc2626', lineHeight: 1.5 }}>
+                This will affect all rules in this control group.
+              </p>
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#4b5563', fontWeight: 500 }}>
+                Type "{confirmModal.type === 'enableAll' ? 'enable all' : 'disable all'}" to confirm:
+              </label>
+              <input
+                type="text"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                style={{ width: '100%', padding: '12px', border: '2px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#f9fafb', color: '#1f2937', boxSizing: 'border-box', outline: 'none' }}
+                placeholder={confirmModal.type === 'enableAll' ? 'enable all' : 'disable all'}
+                autoFocus
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleCancelGroupAction}
+                style={{ padding: '10px 20px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmGroupAction}
+                disabled={!isGroupConfirmValid || mutationLoading}
+                style={{ padding: '10px 20px', background: isGroupConfirmValid ? '#dc2626' : '#e5e7eb', color: isGroupConfirmValid ? '#ffffff' : '#9ca3af', border: 'none', borderRadius: '6px', cursor: isGroupConfirmValid ? 'pointer' : 'not-allowed', fontSize: '14px', fontWeight: 500, opacity: isGroupConfirmValid ? 1 : 0.7 }}
+              >
+                {mutationLoading ? 'Updating...' : confirmModal.type === 'enableAll' ? 'Enable All' : 'Disable All'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
