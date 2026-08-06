@@ -30,6 +30,12 @@ const SettingsPage = lazy(() => import('./routes/SettingsPage').then(m => ({ def
 const NotFoundPage = lazy(() => import('./routes/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const AccessDeniedPage = lazy(() => import('./routes/AccessDeniedPage').then(m => ({ default: m.AccessDeniedPage })));
 const MigrationProjectsPage = lazy(() => import('./routes/MigrationProjectsPage').then(m => ({ default: m.MigrationProjectsPage })));
+const ConnectionDiagnosticsPage = lazy(() => import('./routes/ConnectionDiagnosticsPage').then(m => ({ default: m.ConnectionDiagnosticsPage })));
+const DiscoveryTreeTablePage = lazy(() => import('./routes/DiscoveryTreeTablePage').then(m => ({ default: m.DiscoveryTreeTablePage })));
+const MappingSpreadsheetPage = lazy(() => import('./routes/MappingSpreadsheetPage').then(m => ({ default: m.MappingSpreadsheetPage })));
+const ValidationDashboardPage = lazy(() => import('./routes/ValidationDashboardPage').then(m => ({ default: m.ValidationDashboardPage })));
+const ValidationRulesPage = lazy(() => import('./routes/ValidationRulesPage').then(m => ({ default: m.ValidationRulesPage })));
+const MigrationTimelinePage = lazy(() => import('./routes/MigrationTimelinePage').then(m => ({ default: m.MigrationTimelinePage })));
 const MigrationDatasetsPage = lazy(() => import('./routes/MigrationDatasetsPage').then(m => ({ default: m.MigrationDatasetsPage })));
 const MigrationSchedulesPage = lazy(() => import('./routes/MigrationSchedulesPage').then(m => ({ default: m.MigrationSchedulesPage })));
 const MigrationOverviewPage = lazy(() => import('./routes/MigrationOverviewPage').then(m => ({ default: m.MigrationOverviewPage })));
@@ -53,7 +59,12 @@ export function AppRoutes() {
           <Route path="/migration/connections" element={<SystemsPage />} />
           <Route path="/migration/connections/new" element={<SystemsPage />} />
           <Route path="/migration/connections/:id" element={<SystemDetailPage />} />
+          <Route path="/migration/connections/diagnostics" element={<ConnectionDiagnosticsPage />} />
+          <Route path="/migration/mappings/spreadsheet" element={<MappingSpreadsheetPage />} />
+          <Route path="/validation/dashboard" element={<ValidationDashboardPage />} />
+          <Route path="/migration/timeline" element={<MigrationTimelinePage />} />
           <Route path="/migration/discovery" element={<DiscoveryPage />} />
+          <Route path="/migration/discovery/tree" element={<DiscoveryTreeTablePage />} />
           <Route path="/migration/mappings" element={<MappingPage />} />
           <Route path="/migration/column-mappings" element={<MappingPage />} />
           <Route path="/migration/execution" element={<MigrationPage />} />
@@ -61,8 +72,9 @@ export function AppRoutes() {
           <Route path="/migration/workspace" element={<MigrationPage />} />
 
           <Route path="/validation" element={<ValidationPage />} />
-          <Route path="/validation/rules" element={<ValidationPage />} />
+          <Route path="/validation/rules" element={<ValidationRulesPage />} />
           <Route path="/validation/rule-discovery" element={<ValidationPage />} />
+          <Route path="/validation/results" element={<ValidationResultsPage />} />
           <Route path="/validation/results/:batchId" element={<ValidationResultsPage />} />
           <Route path="/validation/history" element={<ExecutionHistoryPage />} />
           <Route path="/validation/queue" element={<ValidationPage />} />
