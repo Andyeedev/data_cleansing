@@ -39,11 +39,26 @@
 - [ ] Files to modify approved
 - [ ] New files approved
 
+## Recommendation
+
+Approve the minimum-change proposal for Task 11.1 only.
+
+Task 11.4 remains blocked until:
+- Task 11.2 assessment is complete
+- Task 11.3 assessment is complete
+- All required implementation approvals are granted
+
+**Reason:** Rules integration may discover dependencies on Controls or Discovery. The Rules page may need:
+```
+Rule
+ └── Control
+        └── Discovery Mapping
+```
+Do not implement Rules UI before understanding the Control model.
+
 ## Next Task
 
-Blocked pending approval of minimum-change proposal.
-
-Upon approval, proceed to Task 11.4 (Rules Integration).
+**Task 11.2 — Controls Assessment** (next in sequence)
 
 ---
 

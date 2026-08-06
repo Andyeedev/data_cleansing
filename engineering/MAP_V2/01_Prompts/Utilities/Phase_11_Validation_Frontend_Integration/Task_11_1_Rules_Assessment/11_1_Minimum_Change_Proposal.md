@@ -57,7 +57,12 @@
 
 **Status:** Awaiting Approval
 
-**Next Action:** Upon approval, proceed to Task 11.4 implementation.
+**Next Action:** Upon approval of Task 11.1 minimum-change proposal, continue to Task 11.2 (Controls Assessment).
+
+Task 11.4 implementation remains blocked until:
+- Task 11.2 assessment is complete
+- Task 11.3 assessment is complete
+- All required implementation approvals are granted
 
 ---
 
