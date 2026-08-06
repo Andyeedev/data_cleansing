@@ -7,6 +7,18 @@ import type {
   RuleRegistryUpdateRequest
 } from '../types/rules';
 
+export interface RuleUsageItem extends RuleRegistryItem {
+  mapping_count: number;
+  last_execution: string | null;
+  last_status: 'pass' | 'fail' | 'error' | null;
+  total_executions: number;
+}
+
+export interface RuleUsageStatsResponse {
+  rules: RuleUsageItem[];
+  total: number;
+}
+
 export function useRules() {
   const [data, setData] = useState<RuleRegistryListResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,4 +134,26 @@ export function useRuleMutations() {
   }, []);
 
   return { createRule, updateRule, deleteRule, loading, error };
+}
+
+export function useRuleUsageStats() {
+  const [data, setData] = useState<RuleUsageStatsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiGet<RuleUsageStatsResponse>('/rules/usage-stats');
+      setData(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch rule usage stats');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+  return { data, loading, error, refetch: fetchData };
 }

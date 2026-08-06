@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useRules } from '../hooks/useRules';
+import { useRuleUsageStats } from '../hooks/useRules';
+import { apiPost } from '../utils/apiClient';
 import { MetricCard } from '../components/shared/MetricCard';
 import { StatusBadge } from '../components/shared/StatusBadge';
 import { EmptyState } from '../components/shared/EmptyState';
@@ -7,43 +8,25 @@ import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
 import { TenantFilter } from '../components/shared/TenantFilter';
-import type { RuleRegistryItem } from '../types/rules';
+import type { RuleUsageItem } from '../hooks/useRules';
 
 type FilterMapping = 'all' | 'mapped' | 'unmapped';
-type SortField = 'rule_id' | 'rule_name' | 'control_id' | 'severity_level' | 'mapping_count';
+type SortField = 'rule_id' | 'rule_name' | 'control_id' | 'severity_level' | 'mapping_count' | 'total_executions';
 type SortDir = 'asc' | 'desc';
-
-interface RuleUsageItem extends RuleRegistryItem {
-  mapping_count: number;
-  last_execution: string | null;
-  last_status: 'pass' | 'fail' | 'error' | null;
-  total_executions: number;
-}
 
 export function RuleMappingsUsageTab() {
   const [selectedTenant, setSelectedTenant] = useState<string>('');
-  const { data, loading, error, refetch } = useRules();
+  const { data, loading, error, refetch } = useRuleUsageStats();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMapping, setFilterMapping] = useState<FilterMapping>('all');
   const [filterSeverity, setFilterSeverity] = useState<'all' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'>('all');
   const [sortField, setSortField] = useState<SortField>('control_id');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-
-  const [ruleUsageData] = useState<Record<string, { mapping_count: number; last_execution: string | null; last_status: 'pass' | 'fail' | 'error' | null; total_executions: number }>>({});
-
-  const enrichedRules = useMemo((): RuleUsageItem[] => {
-    if (!data?.rules) return [];
-    return data.rules.map((rule) => ({
-      ...rule,
-      mapping_count: ruleUsageData[rule.rule_id]?.mapping_count ?? 0,
-      last_execution: ruleUsageData[rule.rule_id]?.last_execution ?? null,
-      last_status: ruleUsageData[rule.rule_id]?.last_status ?? null,
-      total_executions: ruleUsageData[rule.rule_id]?.total_executions ?? 0,
-    }));
-  }, [data?.rules, ruleUsageData]);
+  const [autoDiscovering, setAutoDiscovering] = useState(false);
 
   const filteredRules = useMemo(() => {
-    let result = enrichedRules;
+    if (!data?.rules) return [];
+    let result = data.rules;
     if (filterMapping === 'mapped') {
       result = result.filter((r) => r.mapping_count > 0);
     } else if (filterMapping === 'unmapped') {
@@ -72,12 +55,23 @@ export function RuleMappingsUsageTab() {
       return 0;
     });
     return result;
-  }, [enrichedRules, filterMapping, filterSeverity, searchQuery, sortField, sortDir]);
+  }, [data?.rules, filterMapping, filterSeverity, searchQuery, sortField, sortDir]);
 
-  const totalRules = enrichedRules.length;
-  const mappedRules = enrichedRules.filter((r) => r.mapping_count > 0).length;
-  const unmappedRules = enrichedRules.filter((r) => r.mapping_count === 0).length;
-  const totalMappings = enrichedRules.reduce((sum, r) => sum + r.mapping_count, 0);
+  const totalRules = data?.total ?? 0;
+  const mappedRules = data?.rules?.filter((r) => r.mapping_count > 0).length ?? 0;
+  const unmappedRules = data?.rules?.filter((r) => r.mapping_count === 0).length ?? 0;
+  const totalMappings = data?.rules?.reduce((sum, r) => sum + r.mapping_count, 0) ?? 0;
+
+  const handleAutoDiscover = async () => {
+    setAutoDiscovering(true);
+    try {
+      await apiPost('/rules/discover', {});
+      refetch();
+    } catch {
+    } finally {
+      setAutoDiscovering(false);
+    }
+  };
 
   const thStyle: React.CSSProperties = { textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', cursor: 'pointer', userSelect: 'none', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)' };
   const tdStyle: React.CSSProperties = { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-sm)', borderBottom: '1px solid var(--color-border)' };
@@ -93,6 +87,9 @@ export function RuleMappingsUsageTab() {
 
       <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', marginBottom: 'var(--space-md)', flexWrap: 'wrap' }}>
         <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+        <button onClick={handleAutoDiscover} disabled={autoDiscovering} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: autoDiscovering ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: autoDiscovering ? 0.5 : 1 }}>
+          {autoDiscovering ? 'Discovering...' : 'Auto-Discover'}
+        </button>
         <button onClick={refetch} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
           Refresh
         </button>
@@ -113,7 +110,7 @@ export function RuleMappingsUsageTab() {
                 {unmappedRules} rule(s) not mapped to any dataset
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                These rules will not execute during migration. Use <strong>Auto-Discover</strong> on the Rule Definitions tab to bind rules to datasets based on column metadata.
+                These rules will not execute during migration. Use <strong>Auto-Discover</strong> to bind rules to datasets based on column metadata.
               </div>
             </div>
           )}
@@ -159,11 +156,14 @@ export function RuleMappingsUsageTab() {
                       Mappings {sortField === 'mapping_count' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
                     </th>
                     <th style={thStyle}>Status</th>
+                    <th style={thStyle} onClick={() => { setSortField('total_executions'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
+                      Executions {sortField === 'total_executions' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
+                    </th>
                     <th style={thStyle}>Last Execution</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRules.map((rule, idx) => {
+                  {filteredRules.map((rule: RuleUsageItem, idx: number) => {
                     const rowBg = idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)';
                     const isUnmapped = rule.mapping_count === 0;
                     return (
@@ -187,6 +187,9 @@ export function RuleMappingsUsageTab() {
                             size="sm"
                             variant={rule.enabled_flag ? 'success' : 'warning'}
                           />
+                        </td>
+                        <td style={tdStyle}>
+                          <span style={{ fontWeight: 600 }}>{rule.total_executions}</span>
                         </td>
                         <td style={{ ...tdStyle, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                           {rule.last_execution ? (

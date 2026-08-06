@@ -39,6 +39,10 @@ class RuleRegistryService:
     def get_rule_count(self) -> int:
         return self.repository.get_rule_count()
 
+    def get_rule_usage_stats(self) -> List[dict]:
+        rows = self.repository.get_rule_usage_stats()
+        return [self._rule_usage_to_dict(r) for r in rows]
+
     def _rule_to_dict(self, row) -> dict:
         return {
             "rule_id": row[0],
@@ -48,4 +52,19 @@ class RuleRegistryService:
             "severity_level": row[4],
             "enabled_flag": row[5],
             "created_at": str(row[6]) if row[6] else None
+        }
+
+    def _rule_usage_to_dict(self, row) -> dict:
+        return {
+            "rule_id": row[0],
+            "control_id": row[1],
+            "rule_name": row[2],
+            "sql_template_file": row[3],
+            "severity_level": row[4],
+            "enabled_flag": row[5],
+            "created_at": str(row[6]) if row[6] else None,
+            "mapping_count": row[7],
+            "last_execution": str(row[8]) if row[8] else None,
+            "last_status": row[9],
+            "total_executions": row[10]
         }

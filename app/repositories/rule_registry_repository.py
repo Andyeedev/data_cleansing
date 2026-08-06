@@ -97,3 +97,37 @@ class RuleRegistryRepository:
         query = "SELECT COUNT(*) FROM engine.rule_registry"
         rows = self.db.execute(query)
         return rows[0][0] if rows else 0
+
+    def get_rule_usage_stats(self) -> List:
+        query = """
+            SELECT
+                r.rule_id,
+                r.control_id,
+                r.rule_name,
+                r.sql_template_file,
+                r.severity_level,
+                r.enabled_flag,
+                r.created_at,
+                COALESCE(m.mapping_count, 0) AS mapping_count,
+                e.last_execution,
+                e.last_status,
+                COALESCE(e.total_executions, 0) AS total_executions
+            FROM engine.rule_registry r
+            LEFT JOIN (
+                SELECT rule_id, COUNT(*) AS mapping_count
+                FROM core.rule_dataset_mapping
+                WHERE is_active = TRUE
+                GROUP BY rule_id
+            ) m ON r.rule_id = m.rule_id
+            LEFT JOIN (
+                SELECT
+                    rule_id,
+                    MAX(executed_at) AS last_execution,
+                    (ARRAY_AGG(execution_status ORDER BY executed_at DESC))[1] AS last_status,
+                    COUNT(*) AS total_executions
+                FROM engine.migration_control_execution
+                GROUP BY rule_id
+            ) e ON r.rule_id = e.rule_id
+            ORDER BY r.control_id, r.rule_id
+        """
+        return self.db.execute(query)

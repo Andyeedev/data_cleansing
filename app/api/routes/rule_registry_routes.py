@@ -31,6 +31,20 @@ def list_rules(
 
 
 # =========================
+# GET RULE USAGE STATS
+# =========================
+@router.get("/usage-stats", response_model=APIResponse)
+def get_rule_usage_stats(
+    current_user=Depends(get_current_user)
+):
+    try:
+        stats = rule_registry_service.get_rule_usage_stats()
+        return APIResponse(success=True, data={"rules": stats, "total": len(stats)})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================
 # GET RULE BY ID
 # =========================
 @router.get("/{rule_id}", response_model=APIResponse)
