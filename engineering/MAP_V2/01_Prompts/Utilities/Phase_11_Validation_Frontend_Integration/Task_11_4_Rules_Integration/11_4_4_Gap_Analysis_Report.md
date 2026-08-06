@@ -112,16 +112,18 @@
 
 ---
 
-## 5. Recommended Fix Priority
+## 5. Implementation Status
 
-### Phase A — Validation → Rules (Before proceeding to Task 11.6)
-| # | Fix | Effort |
-|---|-----|--------|
-| A1 | Add TenantFilter to page header | LOW |
-| A2 | Add Validate button that checks rule configurations | MEDIUM |
-| A3 | Add Export CSV button | LOW |
-| A4 | Add confirmation modal for future destructive actions | LOW |
-| A5 | Add unmapped rules section (rules without controls) | LOW |
+### Phase A — Validation → Rules (COMPLETED)
+| # | Fix | Status | Commit |
+|---|-----|--------|--------|
+| A1 | Add TenantFilter to page header | **DONE** | `0a3cf5ae` |
+| A2 | Add Validate button that checks rule configurations | **DONE** | `0a3cf5ae` |
+| A3 | Add Export CSV button | **DONE** | `0a3cf5ae` |
+| A4 | Add confirmation modal for destructive actions | **DONE** | `0a3cf5ae` |
+| A5 | Add unmapped rules section (rules without controls) | **DONE** | `0a3cf5ae` |
+| A6 | Add auto-generate rules from column metadata | **DONE** | `0a3cf5ae` |
+| A7 | Add per-control-group bulk actions | **DONE** | `0a3cf5ae` |
 
 ### Phase B — Validation → Discovery (Before Task 11.6)
 | # | Fix | Effort |
