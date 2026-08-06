@@ -122,8 +122,8 @@ class RuleRegistryRepository:
             LEFT JOIN (
                 SELECT
                     rule_id,
-                    MAX(executed_at) AS last_execution,
-                    (ARRAY_AGG(execution_status ORDER BY executed_at DESC))[1] AS last_status,
+                    MAX(created_at) AS last_execution,
+                    (ARRAY_AGG(execution_status ORDER BY created_at DESC))[1] AS last_status,
                     COUNT(*) AS total_executions
                 FROM engine.migration_control_execution
                 GROUP BY rule_id
