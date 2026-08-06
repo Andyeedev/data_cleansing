@@ -31,7 +31,14 @@ export function useRules() {
       const result = await apiGet<RuleRegistryListResponse>('/rules');
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch rules');
+      const status = (err as any)?.response?.status;
+      setError(
+        status === 401
+          ? 'Unauthorized - please log in'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to fetch rules'
+      );
     } finally {
       setLoading(false);
     }
@@ -54,7 +61,14 @@ export function useRuleById(ruleId: string | null) {
       const result = await apiGet<RuleRegistryItem>(`/rules/${ruleId}`);
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch rule');
+      const status = (err as any)?.response?.status;
+      setError(
+        status === 401
+          ? 'Unauthorized - please log in'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to fetch rule'
+      );
     } finally {
       setLoading(false);
     }
@@ -77,7 +91,14 @@ export function useRulesByControl(controlId: string | null) {
       const result = await apiGet<RuleRegistryListResponse>(`/rules/control/${controlId}`);
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch rules');
+      const status = (err as any)?.response?.status;
+      setError(
+        status === 401
+          ? 'Unauthorized - please log in'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to fetch rules'
+      );
     } finally {
       setLoading(false);
     }
@@ -148,7 +169,14 @@ export function useRuleUsageStats() {
       const result = await apiGet<RuleUsageStatsResponse>('/rules/usage-stats');
       setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch rule usage stats');
+      const status = (err as any)?.response?.status;
+      setError(
+        status === 401
+          ? 'Unauthorized - please log in'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to fetch rule usage stats'
+      );
     } finally {
       setLoading(false);
     }
