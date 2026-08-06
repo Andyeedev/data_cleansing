@@ -35,6 +35,7 @@ const DiscoveryTreeTablePage = lazy(() => import('./routes/DiscoveryTreeTablePag
 const MappingSpreadsheetPage = lazy(() => import('./routes/MappingSpreadsheetPage').then(m => ({ default: m.MappingSpreadsheetPage })));
 const ValidationDashboardPage = lazy(() => import('./routes/ValidationDashboardPage').then(m => ({ default: m.ValidationDashboardPage })));
 const ValidationRulesPage = lazy(() => import('./routes/ValidationRulesPage').then(m => ({ default: m.ValidationRulesPage })));
+const ValidationDiscoveryPage = lazy(() => import('./routes/ValidationDiscoveryPage').then(m => ({ default: m.ValidationDiscoveryPage })));
 const MigrationTimelinePage = lazy(() => import('./routes/MigrationTimelinePage').then(m => ({ default: m.MigrationTimelinePage })));
 const MigrationDatasetsPage = lazy(() => import('./routes/MigrationDatasetsPage').then(m => ({ default: m.MigrationDatasetsPage })));
 const MigrationSchedulesPage = lazy(() => import('./routes/MigrationSchedulesPage').then(m => ({ default: m.MigrationSchedulesPage })));
@@ -73,7 +74,7 @@ export function AppRoutes() {
 
           <Route path="/validation" element={<ValidationPage />} />
           <Route path="/validation/rules" element={<ValidationRulesPage />} />
-          <Route path="/validation/rule-discovery" element={<ValidationPage />} />
+          <Route path="/validation/rule-discovery" element={<ValidationDiscoveryPage />} />
           <Route path="/validation/results" element={<ValidationResultsPage />} />
           <Route path="/validation/results/:batchId" element={<ValidationResultsPage />} />
           <Route path="/validation/history" element={<ExecutionHistoryPage />} />
