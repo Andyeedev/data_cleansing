@@ -36,12 +36,13 @@ class TableCandidate:
 class MatchingConfig:
     exact_name_weight: float = 1.0
     suffix_pattern_weight: float = 0.95
-    column_name_weight: float = 0.4
-    datatype_weight: float = 0.3
+    column_name_weight: float = 0.5
+    datatype_weight: float = 0.2
     key_match_weight: float = 0.2
     fk_match_weight: float = 0.1
     auto_approve_threshold: float = 90.0
     min_confidence_threshold: float = 40.0
+    min_column_similarity: float = 0.3
 
 
 DEFAULT_MATCHING_CONFIG = MatchingConfig()

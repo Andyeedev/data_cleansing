@@ -1,5 +1,5 @@
 from app.db.connection import get_db_connection
-from app.repositories.discovery_repository import DiscoveryRepository
+from app.db.repositories.discovery_repository import DiscoveryRepository
 from app.services.dataset_discovery_service import DatasetDiscoveryService
 
 

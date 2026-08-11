@@ -9,17 +9,26 @@ class DiscoveryRepository:
 
     def get_summary(self, tenant_id=None):
         """Aggregate counts for discovery summary from dataset_mappings."""
-        rows = self.db.execute("""
+        if tenant_id:
+            systems_clause = "WHERE sr.tenant_id = %s"
+            mappings_clause = "WHERE p.tenant_id = %s"
+            params = (tenant_id, tenant_id, tenant_id, tenant_id)
+        else:
+            systems_clause = ""
+            mappings_clause = ""
+            params = ()
+        query = f"""
             SELECT
-                (SELECT COUNT(DISTINCT sr.system_id) FROM core.system_registry sr WHERE sr.tenant_id = %s) as total_systems,
+                (SELECT COUNT(DISTINCT sr.system_id) FROM core.system_registry sr {systems_clause}) as total_systems,
                 (SELECT COUNT(DISTINCT dm.source_schema) FROM core.dataset_mappings dm
-                 INNER JOIN core.projects p ON dm.project_id = p.project_id WHERE p.tenant_id = %s) as total_schemas,
+                 INNER JOIN core.projects p ON dm.project_id = p.project_id {mappings_clause}) as total_schemas,
                 (SELECT COUNT(DISTINCT dm.mapping_id) FROM core.dataset_mappings dm
-                 INNER JOIN core.projects p ON dm.project_id = p.project_id WHERE p.tenant_id = %s) as total_tables,
+                 INNER JOIN core.projects p ON dm.project_id = p.project_id {mappings_clause}) as total_tables,
                 (SELECT COUNT(DISTINCT dm.mapping_id) FROM core.dataset_mappings dm
-                 INNER JOIN core.projects p ON dm.project_id = p.project_id WHERE p.tenant_id = %s
+                 INNER JOIN core.projects p ON dm.project_id = p.project_id {mappings_clause}
                  AND dm.target_table IS NOT NULL) as matched_tables
-        """, (tenant_id, tenant_id, tenant_id, tenant_id))
+        """
+        rows = self.db.execute(query, params)
         if not rows:
             return {"total_systems": 0, "total_schemas": 0, "total_tables": 0, "matched_tables": 0, "match_rate_percent": 0}
         row = rows[0]
@@ -34,36 +43,61 @@ class DiscoveryRepository:
         }
 
     def get_tree(self, tenant_id=None):
-        """Build hierarchical tree from dataset_mappings."""
-        rows = self.db.execute("""
+        """Build hierarchical tree: system > schema > table"""
+        if tenant_id:
+            where_clause = "WHERE p.tenant_id = %s"
+            params = (tenant_id,)
+        else:
+            where_clause = ""
+            params = ()
+        rows = self.db.execute(f"""
             SELECT dm.mapping_id, dm.source_schema, dm.source_table, dm.target_schema, dm.target_table
             FROM core.dataset_mappings dm
             INNER JOIN core.projects p ON dm.project_id = p.project_id
-            WHERE p.tenant_id = %s
+            {where_clause}
             ORDER BY dm.source_schema, dm.source_table
-        """, (tenant_id,))
-        children = []
+        """, params)
+        schemas = {}
         for row in rows:
-            children.append({
-                "id": row[0],
-                "name": f"{row[1]}.{row[2]}",
+            mapping_id, schema_name, table_name, tgt_schema, tgt_table = row
+            schema_key = schema_name or "default"
+            if schema_key not in schemas:
+                schemas[schema_key] = []
+            schemas[schema_key].append({
+                "id": mapping_id,
+                "name": table_name,
                 "type": "table",
-                "status": "matched" if row[4] else "unmatched_source",
-                "target_table": f"{row[3]}.{row[4]}" if row[4] else None,
-                "confidence": 100 if row[4] else 0,
+                "status": "matched" if tgt_table else "unmatched_source",
+                "target_table": f"{tgt_schema}.{tgt_table}" if tgt_table else None,
+                "confidence": 100 if tgt_table else 0,
                 "columns": []
             })
-        return [{"id": "source", "name": "Source", "type": "system", "status": "matched", "children": children}] if children else []
+        schema_nodes = []
+        for schema_name, tables in schemas.items():
+            schema_nodes.append({
+                "id": f"schema:{schema_name}",
+                "name": schema_name,
+                "type": "schema",
+                "status": "matched",
+                "columns": tables
+            })
+        return [{"id": "source", "name": "Source", "type": "system", "status": "matched", "columns": schema_nodes}] if schema_nodes else []
 
     def get_tables(self, tenant_id=None):
         """Flat table list from dataset_mappings."""
-        rows = self.db.execute("""
+        if tenant_id:
+            where_clause = "WHERE p.tenant_id = %s"
+            params = (tenant_id,)
+        else:
+            where_clause = ""
+            params = ()
+        rows = self.db.execute(f"""
             SELECT dm.source_table, dm.target_table, dm.source_schema
             FROM core.dataset_mappings dm
             INNER JOIN core.projects p ON dm.project_id = p.project_id
-            WHERE p.tenant_id = %s
+            {where_clause}
             ORDER BY dm.source_table
-        """, (tenant_id,))
+        """, params)
         return [{
             "source_table": row[0],
             "target_table": row[1],

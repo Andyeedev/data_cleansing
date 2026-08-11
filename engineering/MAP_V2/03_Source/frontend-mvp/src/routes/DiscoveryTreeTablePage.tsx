@@ -40,8 +40,7 @@ export function DiscoveryTreeTablePage() {
   const { projects } = useMigrationProjects(undefined, selectedTenant || undefined);
 
   const hasSystems = systems && systems.length > 0;
-  const hasMappings = summary && summary.total_tables > 0;
-  const showAutoDiscovery = hasSystems && !hasMappings;
+  const showAutoDiscovery = hasSystems;
   const primaryProject = projects && projects.length > 0 ? projects[0] : null;
 
   const loading = summaryLoading || treeLoading || tableLoading;

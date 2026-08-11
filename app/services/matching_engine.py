@@ -37,8 +37,17 @@ class MatchingEngine:
           tgt_schema, tgt_name, tgt_cols,
         )
 
-        if candidate.confidence >= self.config.min_confidence_threshold:
-          candidates.append(candidate)
+        if candidate.confidence < self.config.min_confidence_threshold:
+          continue
+
+        is_exact_or_suffix = (
+          candidate.match_reason.startswith("Exact name match") or
+          candidate.match_reason.startswith("Suffix pattern match")
+        )
+        if not is_exact_or_suffix and candidate.details.column_similarity < self.config.min_column_similarity:
+          continue
+
+        candidates.append(candidate)
 
     candidates.sort(key=lambda c: c.confidence, reverse=True)
     return candidates
