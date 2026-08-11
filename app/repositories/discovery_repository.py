@@ -3,8 +3,8 @@ from app.db.connection import get_db_connection
 
 class DiscoveryRepository:
 
-    def __init__(self):
-        self.db = get_db_connection()
+    def __init__(self, db=None):
+        self.db = db or get_db_connection()
 
     def get_mappings_by_batch(self, batch_id: str):
         query = """
