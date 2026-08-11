@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { apiGet } from '../utils/apiClient';
+import { apiGet, apiPost } from '../utils/apiClient';
 import type { DiscoverySummary, SchemaNode, DiscoveryTableRow } from '../types/discovery';
 
 export function useDiscoverySummary(tenantId?: string) {
@@ -78,4 +78,13 @@ export function useDiscoveryTables(tenantId?: string) {
   }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };
+}
+
+export async function triggerDiscovery(projectId: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const result = await apiPost<{ status: string; message: string }>('/discovery/current', { project_id: projectId });
+    return { success: true, message: result.message || 'Discovery triggered successfully' };
+  } catch (err) {
+    return { success: false, message: err instanceof Error ? err.message : 'Failed to trigger discovery' };
+  }
 }

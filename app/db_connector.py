@@ -71,6 +71,9 @@ class PooledDBConnector:
             except Exception:
                 return None
 
+    def cursor(self):
+        return self.conn.cursor()
+
     def close(self):
         """Return the connection to the pool."""
         if not self._returned and PooledDBConnector._pool is not None:

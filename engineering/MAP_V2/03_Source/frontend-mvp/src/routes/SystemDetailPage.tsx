@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSystemDetail, useUpdateSystem, useDeleteSystem, useTestConnection } from '../hooks/useSystems';
 import { LoadingSkeleton, ErrorState, StatusBadge, ConfirmDialog } from '../components/shared';
 import { SystemFormModal, type SystemFormData } from '../components/SystemFormModal';
@@ -11,8 +11,10 @@ export function SystemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { userRoles } = useAuth();
+  const [searchParams] = useSearchParams();
+  const tenantId = searchParams.get('tenant_id') || undefined;
 
-  const { data: system, loading, error, refetch } = useSystemDetail(id ?? null);
+  const { data: system, loading, error, refetch } = useSystemDetail(id ?? null, tenantId);
   const { update } = useUpdateSystem();
   const { remove } = useDeleteSystem();
   const { testConnection, loading: testing } = useTestConnection();
@@ -47,7 +49,7 @@ export function SystemDetailPage() {
   }
 
   const handleTest = async () => {
-    const result = await testConnection(system.system_id);
+    const result = await testConnection(system.system_id, tenantId);
     if (result) setTestResult(result);
   };
 
@@ -57,7 +59,7 @@ export function SystemDetailPage() {
       system_role: data.system_role,
       database_type: data.database_type,
       connection_config: data.connection_config,
-    });
+    }, tenantId);
     if (ok) {
       setEditOpen(false);
       refetch();
@@ -65,7 +67,7 @@ export function SystemDetailPage() {
   };
 
   const handleDelete = async () => {
-    const ok = await remove(system.system_id);
+    const ok = await remove(system.system_id, tenantId);
     if (ok) navigate('/migration/connections');
   };
 

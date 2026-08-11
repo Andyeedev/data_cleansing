@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useDiscoverySummary, useDiscoveryTree, useDiscoveryTables } from '../hooks/useDiscovery';
+import { useDiscoverySummary, useDiscoveryTree, useDiscoveryTables, triggerDiscovery } from '../hooks/useDiscovery';
+import { useSystemList } from '../hooks/useSystems';
+import { useMigrationProjects } from '../hooks/useMigration';
 import { SplitPane } from '../components/shared/SplitPane';
 import { PageHeader } from '../components/PageHeader/PageHeader';
 import { MetricCard } from '../components/shared/MetricCard';
@@ -34,6 +36,13 @@ export function DiscoveryTreeTablePage() {
   const { data: summary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useDiscoverySummary(selectedTenant || undefined);
   const { data: treeData, loading: treeLoading, error: treeError, refetch: refetchTree } = useDiscoveryTree(selectedTenant || undefined);
   const { data: tableData, loading: tableLoading, error: tableError, refetch: refetchTables } = useDiscoveryTables(selectedTenant || undefined);
+  const { data: systems } = useSystemList(selectedTenant || undefined);
+  const { projects } = useMigrationProjects(undefined, selectedTenant || undefined);
+
+  const hasSystems = systems && systems.length > 0;
+  const hasMappings = summary && summary.total_tables > 0;
+  const showAutoDiscovery = hasSystems && !hasMappings;
+  const primaryProject = projects && projects.length > 0 ? projects[0] : null;
 
   const loading = summaryLoading || treeLoading || tableLoading;
   const error = summaryError || treeError || tableError;
@@ -92,6 +101,18 @@ export function DiscoveryTreeTablePage() {
       }
     }
   }, [treeData]);
+
+  const handleAutoDiscovery = async () => {
+    if (!primaryProject) return;
+    const result = await triggerDiscovery(primaryProject.project_id);
+    if (result.success) {
+      setTimeout(() => {
+        refetchSummary();
+        refetchTree();
+        refetchTables();
+      }, 2000);
+    }
+  };
 
   const filteredTableData = useMemo(() => {
     let result = tableData;
@@ -158,6 +179,11 @@ export function DiscoveryTreeTablePage() {
         description="Schema discovery and matching results"
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
+            {showAutoDiscovery && primaryProject && (
+              <button onClick={handleAutoDiscovery} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'rgba(34, 197, 94, 0.1)', color: 'var(--color-success)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>
+                Auto Discovery
+              </button>
+            )}
             <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
             <button onClick={() => { refetchSummary(); refetchTree(); refetchTables(); }} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
               Refresh

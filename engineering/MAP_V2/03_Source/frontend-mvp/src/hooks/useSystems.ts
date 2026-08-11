@@ -28,7 +28,7 @@ export function useSystemList(tenantId?: string) {
   return { data, loading, error, refetch: fetchSystems };
 }
 
-export function useSystemDetail(systemId: string | null) {
+export function useSystemDetail(systemId: string | null, tenantId?: string) {
   const [data, setData] = useState<SystemDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,11 +38,12 @@ export function useSystemDetail(systemId: string | null) {
 
     setLoading(true);
     setError(null);
-    apiGet<SystemDetail>(`/systems/${systemId}`)
+    const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+    apiGet<SystemDetail>(`/systems/${systemId}${qs}`)
       .then(setData)
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to fetch system'))
       .finally(() => setLoading(false));
-  }, [systemId]);
+  }, [systemId, tenantId]);
 
   return { data, loading, error };
 }
@@ -51,11 +52,12 @@ export function useTestConnection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const testConnection = useCallback(async (systemId: string): Promise<TestConnectionResponse | null> => {
+  const testConnection = useCallback(async (systemId: string, tenantId?: string): Promise<TestConnectionResponse | null> => {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiGet<TestConnectionResponse>(`/systems/${systemId}/test`);
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      const result = await apiGet<TestConnectionResponse>(`/systems/${systemId}/test${qs}`);
       return result;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to test connection');
@@ -93,11 +95,12 @@ export function useUpdateSystem() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const update = useCallback(async (systemId: string, payload: UpdateSystemRequest): Promise<boolean> => {
+  const update = useCallback(async (systemId: string, payload: UpdateSystemRequest, tenantId?: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
-      await apiPut(`/systems/${systemId}`, payload);
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      await apiPut(`/systems/${systemId}${qs}`, payload);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update system');

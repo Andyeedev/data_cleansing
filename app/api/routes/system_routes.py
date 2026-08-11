@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
 
@@ -38,10 +38,14 @@ class UpdateSystemRequest(BaseModel):
 # =========================
 @router.get("")
 @router.get("/")
-def list_systems(current_user=Depends(get_current_user_with_tenant)):
-    tenant_id = current_user.get("tenant_id")
+def list_systems(tenant_id: str = Query(None), current_user=Depends(get_current_user_with_tenant)):
+    # Support empty string or "all" to return systems across all tenants (admin only)
+    if not tenant_id or tenant_id == 'all':
+        effective_tenant = None
+    else:
+        effective_tenant = tenant_id
     db = get_db_connection()
-    data = SystemService(db.conn).list_systems(tenant_id=tenant_id)
+    data = SystemService(db.conn).list_systems(tenant_id=effective_tenant)
     return {"success": True, "data": data}
 
 
@@ -49,10 +53,10 @@ def list_systems(current_user=Depends(get_current_user_with_tenant)):
 # GET ONE
 # =========================
 @router.get("/{system_id}")
-def get_system(system_id: str, current_user=Depends(get_current_user_with_tenant)):
-    tenant_id = current_user.get("tenant_id")
+def get_system(system_id: str, tenant_id: str = Query(None), current_user=Depends(get_current_user_with_tenant)):
+    effective_tenant = tenant_id if tenant_id else current_user.get("tenant_id")
     db = get_db_connection()
-    data = SystemService(db.conn).get_system(system_id, tenant_id=tenant_id)
+    data = SystemService(db.conn).get_system(system_id, tenant_id=effective_tenant)
     return {"success": True, "data": data}
 
 
@@ -79,10 +83,10 @@ def create_system(
 # TEST CONNECTION
 # =========================
 @router.get("/{system_id}/test")
-def test_connection(system_id: str, current_user=Depends(get_current_user_with_tenant)):
-    tenant_id = current_user.get("tenant_id")
+def test_connection(system_id: str, tenant_id: str = Query(None), current_user=Depends(get_current_user_with_tenant)):
+    effective_tenant = tenant_id or current_user.get("tenant_id")
     db = get_db_connection()
-    data = SystemService(db.conn).test_connection(system_id, tenant_id=tenant_id)
+    data = SystemService(db.conn).test_connection(system_id, tenant_id=effective_tenant)
     return {"success": True, "data": data}
 
 

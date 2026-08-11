@@ -43,7 +43,7 @@ export function SystemsPage() {
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleTestConnection = async (systemId: string) => {
-    const result = await testConnection(systemId);
+    const result = await testConnection(systemId, selectedTenant || undefined);
     setTestResults((prev) => ({ ...prev, [systemId]: result }));
   };
 
@@ -72,7 +72,7 @@ export function SystemsPage() {
       system_role: data.system_role,
       database_type: data.database_type,
       connection_config: data.connection_config,
-    });
+    }, selectedTenant || undefined);
     if (ok) refetch();
   };
 
@@ -227,7 +227,7 @@ export function SystemsPage() {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 500, marginBottom: 'var(--space-xs)' }}>
                           <a
-                            href={`/migration/connections/${system.system_id}`}
+                            href={`/migration/connections/${system.system_id}${selectedTenant ? `?tenant_id=${encodeURIComponent(selectedTenant)}` : ''}`}
                             style={{ color: 'var(--color-text)', textDecoration: 'none' }}
                             onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
                             onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
@@ -281,7 +281,8 @@ export function SystemsPage() {
                         </a>
                         <button
                           onClick={async () => {
-                            const detail = await apiGet<SystemDetail>(`/systems/${system.system_id}`);
+                            const qs = selectedTenant ? `?tenant_id=${encodeURIComponent(selectedTenant)}` : '';
+                            const detail = await apiGet<SystemDetail>(`/systems/${system.system_id}${qs}`);
                             setEditingSystem(detail);
                             setFormOpen(true);
                           }}
