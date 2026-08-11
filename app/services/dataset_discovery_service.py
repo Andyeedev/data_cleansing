@@ -137,9 +137,40 @@ class DatasetDiscoveryService:
         print(f"Created mapping: {table['source_table']} -> {table['target_table']}")
 
         if mapping_id:
+            self._save_columns(mapping_id, source_columns, target_columns)
             self._bind_default_rules(mapping_id)
 
         return mapping_id
+
+    def _save_columns(self, mapping_id, source_columns, target_columns):
+        """Save column details to dataset_columns table."""
+        col_insert = """
+        INSERT INTO core.dataset_columns (mapping_id, column_name, column_position, data_type, column_side, is_nullable, is_primary_key)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT DO NOTHING
+        """
+        if source_columns:
+            for idx, col in enumerate(source_columns, 1):
+                self.engine_db.execute(col_insert, (
+                    mapping_id,
+                    col.column_name,
+                    idx,
+                    col.data_type,
+                    'SOURCE',
+                    getattr(col, 'is_nullable', True),
+                    getattr(col, 'is_primary_key', False),
+                ))
+        if target_columns:
+            for idx, col in enumerate(target_columns, 1):
+                self.engine_db.execute(col_insert, (
+                    mapping_id,
+                    col.column_name,
+                    idx,
+                    col.data_type,
+                    'TARGET',
+                    getattr(col, 'is_nullable', True),
+                    getattr(col, 'is_primary_key', False),
+                ))
 
     def _get_system(self, role):
         query = """
