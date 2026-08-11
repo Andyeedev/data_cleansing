@@ -1,6 +1,8 @@
 from app.adapters.sqlserver import SQLServerAdapter
 from app.config import SQLServerConfig
 from app.services.credential_service import CredentialService
+from app.services.matching_engine import MatchingEngine
+from app.types.matching import DEFAULT_MATCHING_CONFIG
 import json
 
 
@@ -9,6 +11,7 @@ class DatasetDiscoveryService:
     def __init__(self, engine_db, project_id):
         self.engine_db = engine_db
         self.project_id = project_id
+        self.matching_engine = MatchingEngine(DEFAULT_MATCHING_CONFIG)
 
     def discover(self):
 
@@ -30,9 +33,23 @@ class DatasetDiscoveryService:
         print("Discovered source tables:", source_tables)
         print("Discovered target tables:", target_tables)
 
-        matched = self._match_tables(source_tables, target_tables)
+        source_columns = self._fetch_all_columns(source_adapter, source_tables)
+        target_columns = self._fetch_all_columns(target_adapter, target_tables)
 
-        for table in matched:
+        candidates = self.matching_engine.find_candidates(
+            [self._table_to_dict(t) for t in source_tables],
+            [self._table_to_dict(t) for t in target_tables],
+            source_columns,
+            target_columns,
+        )
+
+        for candidate in candidates:
+            table = {
+                "source_schema": candidate.source_schema,
+                "source_table": candidate.source_table,
+                "target_schema": candidate.target_schema,
+                "target_table": candidate.target_table,
+            }
             self._create_mapping(
                 source_system["system_id"],
                 target_system["system_id"],
@@ -41,7 +58,31 @@ class DatasetDiscoveryService:
                 target_adapter,
             )
 
-        print("Dataset discovery completed successfully.")
+        print(f"Dataset discovery completed. {len(candidates)} candidates found.")
+
+    def _table_to_dict(self, table):
+        return {
+            "table_name": table.table_name,
+            "schema_name": table.schema_name,
+        }
+
+    def _fetch_all_columns(self, adapter, tables):
+        columns = {}
+        for table in tables:
+            if not table.table_name:
+                continue
+            key = f"{table.schema_name}.{table.table_name}"
+            cols = adapter.list_columns(table.schema_name, table.table_name)
+            columns[key] = [
+                {
+                    "column_name": c.column_name,
+                    "data_type": c.data_type,
+                    "is_primary_key": getattr(c, "is_primary_key", False),
+                    "is_foreign_key": getattr(c, "is_foreign_key", False),
+                }
+                for c in (cols or [])
+            ]
+        return columns
 
     def _build_sqlserver_config(self, system):
         config = system["connection_config"]
@@ -59,29 +100,6 @@ class DatasetDiscoveryService:
             password=creds.get("password", ""),
             encrypt=True,
         )
-
-    def _match_tables(self, source_tables, target_tables):
-        matched = []
-
-        target_lookup = {t.table_name: t for t in target_tables if t.table_name}
-
-        for source_table in source_tables:
-            if not source_table.table_name:
-                continue
-            if source_table.table_name.endswith("_source"):
-                base_name = source_table.table_name.replace("_source", "")
-                target_name = base_name + "_target"
-
-                if target_name in target_lookup:
-                    matched.append({
-                        "source_schema": source_table.schema_name,
-                        "source_table": source_table.table_name,
-                        "target_schema": target_lookup[target_name].schema_name,
-                        "target_table": target_name,
-                    })
-
-        print("Matched tables:", matched)
-        return matched
 
     def _create_mapping(self, source_system_id, target_system_id, table, source_adapter, target_adapter):
 
