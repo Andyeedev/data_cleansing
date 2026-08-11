@@ -25,13 +25,14 @@ class UpdateCredentialRequest(BaseModel):
 # =========================
 # LIST
 # =========================
+@router.get("")
 @router.get("/")
 def list_credentials(current_user=Depends(get_current_user)):
     try:
         db = get_db_connection()
         service = CredentialService(db.conn)
-        return service.list_credentials()
-
+        data = service.list_credentials()
+        return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -47,13 +48,12 @@ def create_credential(
     try:
         db = get_db_connection()
         service = CredentialService(db.conn)
-
-        return service.create_credential(
+        result = service.create_credential(
             system_id=payload.system_id,
             username=payload.username,
             password=payload.password
         )
-
+        return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -70,13 +70,12 @@ def update_credential(
     try:
         db = get_db_connection()
         service = CredentialService(db.conn)
-
-        return service.update_credential(
+        result = service.update_credential(
             credential_id=credential_id,
             username=payload.username,
             password=payload.password
         )
-
+        return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -92,8 +91,7 @@ def delete_credential(
     try:
         db = get_db_connection()
         service = CredentialService(db.conn)
-
-        return service.delete_credential(credential_id)
-
+        result = service.delete_credential(credential_id)
+        return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

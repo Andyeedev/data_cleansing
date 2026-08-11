@@ -87,53 +87,7 @@ class AutoRuleDiscovery:
     # RULE INFERENCE
     # -----------------------------------------------------
 
-    def _infer_rules_legacy_not_working(self, columns):
-
-        rules = set()
-
-        for column in columns:
-
-            # _column_name = column[0]
-            inferred_role = column[1]
-            data_type = column[2]
-
-            # Primary key detection
-            if inferred_role == "PRIMARY_KEY":
-                rules.add("C01_ROWCOUNT")
-                rules.add("C03_REFERENTIAL")
-
-            # Numeric column detection
-            if inferred_role == "NUMERIC_METRIC":
-                rules.add("C02_BALANCE_RECON")
-
-            # Date column detection
-            # if data_type and "date" in data_type.lower():
-            if data_type and isinstance(data_type, str) and "date" in data_type.lower():
-                rules.add("C05_NULL_CHECK")
-
-            # Duplicate detection for primary keys
-            if inferred_role == "PRIMARY_KEY":
-                rules.add("C07_DUPLICATE_DETECTION")
-
-            # if inferred_role == "AUDIT_COLUMN":
-            #    rules.add("C08_DATA_DRIFT_DETECTION")
-
-            if inferred_role == "FOREIGN_KEY":
-                rules.add("C08_DATA_DRIFT")
-
-            if inferred_role == "FOREIGN_KEY":
-                rules.add("C09_REFERENTIAL_COVERAGE")
-
-            if inferred_role == "TABLE":
-                rules.add("C010_SCHEMA_DRIFT")
-
-        # Always run structural checks
-        rules.add("C04_COLUMN_COUNT")
-        rules.add("C06_DATA_TYPE_MATCH")
-
-        return list(rules)
-
-    def _infer_rules_legacy_2(self, columns):
+    def _infer_rules(self, columns):
 
         rules = set()
 
@@ -165,64 +119,6 @@ class AutoRuleDiscovery:
         rules.add("C010_SCHEMA_DRIFT")
 
         return list(rules)
-
-    def _infer_rules(self, columns):
-
-        rules = set()
-
-        for column in columns:
-
-            # _column_name = column[0]
-            inferred_role = column[1]
-            data_type = column[2]
-
-            if inferred_role == "PRIMARY_KEY":
-                rules.add("C01_ROWCOUNT")
-                rules.add("C03_REFERENTIAL")
-                rules.add("C07_DUPLICATE_DETECTION")
-
-            if inferred_role == "NUMERIC_METRIC":
-                rules.add("C02_BALANCE_RECON")
-                rules.add("C08_DATA_DRIFT")
-
-            if inferred_role == "FOREIGN_KEY":
-                rules.add("C09_REFERENTIAL_COVERAGE")
-
-            # if data_type and "date" in data_type.lower():
-            if data_type and isinstance(data_type, str) and "date" in data_type.lower():
-                rules.add("C05_NULL_CHECK")
-
-        rules.add("C04_COLUMN_COUNT")
-        rules.add("C06_DATA_TYPE_MATCH")
-        rules.add("C010_SCHEMA_DRIFT")
-
-        return list(rules)
-
-    # -----------------------------------------------------
-    # RULE REGISTRATION
-    # -----------------------------------------------------
-
-    def _register_rule_legacy(self, rule_id, mapping_id):
-
-        check_query = """
-        SELECT 1
-        FROM core.rule_dataset_mapping
-        WHERE rule_id = %s
-        AND mapping_id = %s
-        """
-
-        exists = self.engine_db.execute(check_query, (rule_id, mapping_id))
-
-        if exists:
-            return
-
-        insert_query = """
-        INSERT INTO core.rule_dataset_mapping
-        (rule_id, mapping_id, is_active)
-        VALUES (%s, %s, TRUE)
-        """
-
-        self.engine_db.execute(insert_query, (rule_id, mapping_id))
 
     # -----------------------------------------------------
     # NEW: IMPROVED RULE REGISTRATION WITH ENABLED CHECK
@@ -262,27 +158,6 @@ class AutoRuleDiscovery:
         """
 
         self.engine_db.execute(insert_query, (rule_id, mapping_id))
-
-    def _detect_foreign_keys_legacy(self, schema, table):
-
-        query = """
-        SELECT
-            kcu.column_name
-        FROM information_schema.table_constraints tc
-        JOIN information_schema.key_column_usage kcu
-        ON tc.constraint_name = kcu.constraint_name
-        WHERE tc.constraint_type = 'FOREIGN KEY'
-        AND tc.table_schema = %s
-        AND tc.table_name = %s
-        """
-
-        # rows = self.engine_db.execute(query, (schema, table))
-
-        # For FK detection, we need to query the source database,
-        # not the engine metadata database
-        rows = self.source_db.execute(query, (schema, table))
-
-        return [r[0] for r in rows]
 
     def _detect_foreign_keys(self, schema, table, source_db):
 

@@ -12,4 +12,5 @@ export { ConfirmDialog } from './ConfirmDialog';
 export { ToastContainer, toastService } from './Toast';
 export type { ToastItem } from './Toast';
 export { TabBar } from './TabBar';
+export { SplitPane } from './SplitPane';
 export { TenantFilter } from './TenantFilter';

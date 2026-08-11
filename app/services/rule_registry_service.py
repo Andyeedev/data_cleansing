@@ -43,6 +43,22 @@ class RuleRegistryService:
         rows = self.repository.get_rule_usage_stats()
         return [self._rule_usage_to_dict(r) for r in rows]
 
+    def get_tenants(self):
+        rows = self.repository.get_unique_tenants()
+        return [{"tenant_id": str(r[0]), "tenant_name": r[1] or str(r[0])[:8]} for r in rows]
+
+    def get_mappings_for_rule(self, rule_id: str) -> List[dict]:
+        rows = self.repository.get_mappings_for_rule(rule_id)
+        return [
+            {
+                "mapping_id": str(row[0]),
+                "dataset_name": f"{row[2]}.{row[3]}" if row[2] else row[1],
+                "is_active": row[4],
+                "created_at": str(row[5]) if row[5] else None,
+            }
+            for row in rows
+        ]
+
     def _rule_to_dict(self, row) -> dict:
         return {
             "rule_id": row[0],
@@ -51,7 +67,8 @@ class RuleRegistryService:
             "sql_template_file": row[3],
             "severity_level": row[4],
             "enabled_flag": row[5],
-            "created_at": str(row[6]) if row[6] else None
+            "created_at": str(row[6]) if row[6] else None,
+            "tenant_id": str(row[7]) if row[7] else None
         }
 
     def _rule_usage_to_dict(self, row) -> dict:
@@ -66,5 +83,6 @@ class RuleRegistryService:
             "mapping_count": row[7],
             "last_execution": str(row[8]) if row[8] else None,
             "last_status": row[9],
-            "total_executions": row[10]
+            "total_executions": row[10],
+            "tenant_id": str(row[11]) if row[11] else None,
         }

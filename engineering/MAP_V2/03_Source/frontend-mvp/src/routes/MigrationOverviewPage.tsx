@@ -202,15 +202,6 @@ function formatTimeAgo(dateStr: string): string {
 }
 
 // Styles
-const selectStyle: React.CSSProperties = {
-  padding: 'var(--space-sm) var(--space-md)',
-  background: 'var(--color-bg-secondary)',
-  color: 'var(--color-text)',
-  border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius)',
-  fontSize: 'var(--font-size-sm)',
-};
-
 const refreshButtonStyle: React.CSSProperties = {
   padding: 'var(--space-sm) var(--space-md)',
   background: 'var(--color-bg-secondary)',

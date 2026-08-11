@@ -5,6 +5,7 @@ export interface User {
   avatar?: string;
   roles: string[];
   permissions: string[];
+  tenantId?: string;
 }
 
 export interface LoginCredentials {
@@ -23,6 +24,7 @@ export interface AuthState {
 export interface AuthContextType extends AuthState {
   userRoles: string[];
   currentUser?: User | null;
+  tenantId?: string;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   switchRole: (role: string) => void;

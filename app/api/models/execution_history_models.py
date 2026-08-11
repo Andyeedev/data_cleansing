@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 class ExecutionHistoryItem(BaseModel):
     batch_id: str
+    batch_name: Optional[str] = None
     project_id: Optional[str] = None
     batch_status: Optional[str] = None
     total_controls: Optional[int] = None
@@ -15,6 +16,7 @@ class ExecutionHistoryItem(BaseModel):
 
 class ExecutionHistoryDetail(BaseModel):
     batch_id: str
+    batch_name: Optional[str] = None
     project_id: Optional[str] = None
     batch_status: Optional[str] = None
     total_controls: Optional[int] = None
@@ -28,6 +30,7 @@ class ExecutionHistoryDetail(BaseModel):
 class ReExecuteResponse(BaseModel):
     message: str
     batch_id: str
+    batch_name: Optional[str] = None
     project_id: Optional[str] = None
     status: str
 

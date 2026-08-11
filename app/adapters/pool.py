@@ -6,13 +6,16 @@ This module provides connection pooling management for database adapters.
 
 from typing import Dict, Any, Optional, List
 
+from app.adapters.registry import AdapterRegistry
+
 
 class ConnectionPool:
     """Simple connection pool implementation."""
 
-    def __init__(self, adapter_class: type, config: Any, min_connections: int, max_connections: int):
+    def __init__(self, adapter_class: type, config: Any, db_type: str, min_connections: int, max_connections: int):
         self.adapter_class = adapter_class
         self.config = config
+        self.db_type = db_type
         self.min_connections = min_connections
         self.max_connections = max_connections
         self._available_connections: List[Any] = []
@@ -39,7 +42,6 @@ class ConnectionPool:
 
     def close(self):
         """Close all connections in the pool."""
-        # Close all available and active connections
         for connection in self._available_connections + self._active_connections:
             if hasattr(connection, 'close'):
                 connection.close()
@@ -57,16 +59,58 @@ class ConnectionPool:
         }
 
     def _create_connection(self):
-        """Create a new connection."""
-        # This would normally create a real database connection
-        # For now, return a mock connection
-        class MockConnection:
-            def close(self):
-                pass
+        """Create a new connection based on database type."""
+        config = self.config
+        username = getattr(config, "username", None) or getattr(config, "user", None)
+        password = getattr(config, "password", None)
 
-        connection = MockConnection()
-        self._active_connections.append(connection)
-        return connection
+        if self.db_type == "postgres":
+            import psycopg2
+            conn = psycopg2.connect(
+                host=config.host,
+                port=config.port,
+                database=config.database,
+                user=username,
+                password=password,
+                sslmode=getattr(config, "ssl_mode", "prefer"),
+            )
+            conn.autocommit = True
+        elif self.db_type == "sqlserver":
+            import pyodbc
+            host = getattr(config, "host", "")
+            port = getattr(config, "port", 1433)
+            database = getattr(config, "database", "")
+            driver = "ODBC Driver 17 for SQL Server"
+            if "\\" in host:
+                server = host
+            elif port:
+                server = f"{host},{port}"
+            else:
+                server = host
+            conn_str = (
+                f"DRIVER={{{driver}}};"
+                f"SERVER={server};"
+                f"DATABASE={database};"
+                f"UID={username};"
+                f"PWD={password};"
+                "TrustServerCertificate=yes;"
+            )
+            conn = pyodbc.connect(conn_str, autocommit=True)
+        elif self.db_type == "mysql":
+            import psycopg2
+            conn = psycopg2.connect(
+                host=config.host,
+                port=config.port,
+                database=config.database,
+                user=username,
+                password=password,
+            )
+            conn.autocommit = True
+        else:
+            raise ValueError(f"Unsupported db_type for pool: {self.db_type}")
+
+        self._active_connections.append(conn)
+        return conn
 
 
 class ConnectionPoolManager:
@@ -84,6 +128,7 @@ class ConnectionPoolManager:
             self._pools[pool_key] = ConnectionPool(
                 adapter_class=adapter_class,
                 config=config,
+                db_type=db_type,
                 min_connections=1,
                 max_connections=20
             )

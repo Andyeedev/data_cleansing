@@ -1,0 +1,36 @@
+# Phase 12: Database Setup — Terminal Commands
+
+# ==========================================
+# Option A: Reset (Drop + Recreate + Reseed)
+# Use this if tables exist and you want a clean start
+# ==========================================
+
+# PostgreSQL Reset
+psql -h postgres-flexible-map-test.postgres.database.azure.com -U mapadmin@postgres-flexible-map-test -d postgres -f azure-test-data/sql/reset/reset_postgresql.sql
+
+# Azure SQL Reset
+sqlcmd -S azure-sql-map-test.database.windows.net -U mapadmin -d map_test_db -P "!!@@2016retsooR2016@!" -i azure-test-data/sql/reset/reset_azure.sql
+
+
+# ==========================================
+# Option B: Fresh Setup (if tables don't exist)
+# ==========================================
+
+# Azure SQL
+sqlcmd -S azure-sql-map-test.database.windows.net -U mapadmin -d map_test_db -P "!!@@2016retsooR2016@!" -i azure-test-data/sql/baseline/01_create_tables_azure.sql
+sqlcmd -S azure-sql-map-test.database.windows.net -U mapadmin -d map_test_db -P "!!@@2016retsooR2016@!" -i azure-test-data/sql/baseline/02_insert_data_azure.sql
+
+# PostgreSQL
+psql -h postgres-flexible-map-test.postgres.database.azure.com -U mapadmin@postgres-flexible-map-test -d postgres -f azure-test-data/sql/baseline/01_create_tables.sql
+psql -h postgres-flexible-map-test.postgres.database.azure.com -U mapadmin@postgres-flexible-map-test -d postgres -f azure-test-data/sql/baseline/02_insert_data.sql
+
+
+# ==========================================
+# Verification
+# ==========================================
+
+# Azure SQL
+sqlcmd -S azure-sql-map-test.database.windows.net -U mapadmin -d map_test_db -P "!!@@2016retsooR2016@!" -Q "SELECT count(*) FROM customers"
+
+# PostgreSQL
+psql -h postgres-flexible-map-test.postgres.database.azure.com -U mapadmin@postgres-flexible-map-test -d postgres -c "SELECT count(*) FROM customers;"

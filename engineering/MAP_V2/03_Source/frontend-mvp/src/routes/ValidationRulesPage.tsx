@@ -14,6 +14,7 @@ const TABS = [
 export function ValidationRulesPage() {
   const { userRoles } = useAuth();
   const [activeTab, setActiveTab] = useState('mappings');
+  const [selectedTenant, setSelectedTenant] = useState<string>('');
 
   if (!userRoles.includes('admin')) {
     return (
@@ -34,7 +35,7 @@ export function ValidationRulesPage() {
       <TabBar tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
-        {activeTab === 'mappings' && <RuleMappingsUsageTab />}
+        {activeTab === 'mappings' && <RuleMappingsUsageTab selectedTenant={selectedTenant} onTenantChange={setSelectedTenant} />}
         {activeTab === 'definitions' && <RuleDefinitionsTab />}
       </div>
     </div>

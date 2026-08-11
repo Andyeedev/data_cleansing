@@ -4,7 +4,7 @@ from datetime import datetime
 from app.adapters.registry import AdapterRegistry
 from app.adapters.models import TableInfo, ColumnInfo
 from app.services.discovery.discovery_service import DiscoveryService
-from app.db.repositories.mapping_repository import MappingRepository
+from app.services.mapping.mapping_repository import MappingRepository
 
 
 class MappingService:

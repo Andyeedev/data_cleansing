@@ -3,6 +3,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SystemsPage } from './SystemsPage';
 import { renderWithProviders } from '../test-utils';
 
+vi.mock('../components/shared/TenantFilter', () => ({
+  TenantFilter: ({ selectedTenant, onChange }: { selectedTenant: string; onChange: (v: string) => void }) => (
+    <select data-testid="tenant-filter" value={selectedTenant} onChange={(e) => onChange(e.target.value)}>
+      <option value="">All Tenants</option>
+      <option value="tenant-1">Test Tenant</option>
+    </select>
+  ),
+}));
+
 const mockSystems = [
   {
     system_id: '1',
@@ -39,8 +48,8 @@ describe('SystemsPage Integration', () => {
 
     await waitFor(() => {
       const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls;
-      expect(calls.length).toBeGreaterThanOrEqual(1);
-      expect(calls[0][0]).toContain('/api/v1/systems');
+      expect(calls.length).toBeGreaterThanOrEqual(2);
+      expect(calls.some((c: unknown[]) => String(c[0]).includes('/api/v1/systems'))).toBe(true);
     });
   });
 
@@ -98,6 +107,13 @@ describe('SystemsPage Integration', () => {
         ok: true,
         json: async () => ({
           success: true,
+          data: { total_systems: 2, healthy_systems: 2, unhealthy_systems: 0, overall_health_percent: 100 },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
           data: mockSystems,
         }),
       })
@@ -105,7 +121,7 @@ describe('SystemsPage Integration', () => {
         ok: true,
         json: async () => ({
           success: true,
-          data: { status: 'success', message: 'Source DB connected' },
+          data: { status: 'success', message: 'Source DB connected', latency_ms: 12 },
         }),
       });
 
@@ -115,11 +131,11 @@ describe('SystemsPage Integration', () => {
       expect(screen.getByText('Source DB')).toBeInTheDocument();
     });
 
-    const testButtons = screen.getAllByRole('button', { name: 'Test' });
+    const testButtons = screen.getAllByRole('button', { name: /Test/i });
     fireEvent.click(testButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('Connected')).toBeInTheDocument();
+      expect(screen.getByText('Source DB connected')).toBeInTheDocument();
     });
   });
 });

@@ -51,8 +51,6 @@ export function MigrationDatasetsPage() {
               <tr>
                 <th style={thStyle}>Table Name</th>
                 <th style={thStyle}>Schema</th>
-                <th style={thStyle}>Project</th>
-                <th style={thStyle}>System</th>
                 <th style={thStyle}>Discovered</th>
                 <th style={thStyle}>Last Seen</th>
               </tr>
@@ -65,8 +63,6 @@ export function MigrationDatasetsPage() {
                     <div style={datasetIdStyle}>{dataset.dataset_id}</div>
                   </td>
                   <td style={tdStyle}>{dataset.schema_name}</td>
-                  <td style={tdStyle}>{dataset.project_name || '-'}</td>
-                  <td style={tdStyle}>{dataset.system_name || '-'}</td>
                   <td style={tdStyle}>
                     {new Date(dataset.discovered_at).toLocaleDateString()}
                   </td>

@@ -6,6 +6,7 @@ export interface RuleRegistryItem {
   severity_level: string | null;
   enabled_flag: boolean | null;
   created_at: string | null;
+  tenant_id?: string | null;
 }
 
 export interface RuleRegistryListResponse {

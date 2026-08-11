@@ -60,8 +60,8 @@ describe('SystemDetailPage', () => {
     );
 
     renderSystemDetailPage();
-    const spinner = document.querySelector('[style*="animation: spin"]');
-    expect(spinner).toBeInTheDocument();
+    const skeleton = document.querySelector('[role="status"][aria-label="Loading"]');
+    expect(skeleton).toBeInTheDocument();
   });
 
   it('renders system details after loading', async () => {

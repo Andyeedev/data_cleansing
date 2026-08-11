@@ -10,17 +10,19 @@ router = APIRouter(prefix="/api/v1/execution", tags=["Execution"])
 def run_execution(
     project_id: str,
     background_tasks: BackgroundTasks,
+    batch_name: str = None,
     current_user=Depends(get_current_user)
 ):
     # Generate batch_id immediately so we can return it to the user
     batch_id = str(uuid.uuid4())
 
     # Run engine in background
-    background_tasks.add_task(ExecutionService().run, project_id, batch_id)
+    background_tasks.add_task(ExecutionService().run, project_id, batch_id, batch_name)
 
     return {
         "message": "Migration execution triggered successfully in background",
         "batch_id": batch_id,
+        "batch_name": batch_name,
         "project_id": project_id,
         "status_url": f"/execution/status/{batch_id}"
     }

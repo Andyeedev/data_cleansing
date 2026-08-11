@@ -91,7 +91,7 @@ export function GovernancePage() {
   const [riskScores, setRiskScores] = useState<RiskEntry[]>([]);
   const [unscoredBatches, setUnscoredBatches] = useState<UnscoredBatch[]>([]);
   const [orphanedBatches, setOrphanedBatches] = useState<UnscoredBatch[]>([]);
-  const [totalBatches, setTotalBatches] = useState(0);
+  const [_totalBatches, setTotalBatches] = useState(0);
   const [unscoredExpanded, setUnscoredExpanded] = useState(false);
   const [orphanedExpanded, setOrphanedExpanded] = useState(false);
   const [loading, setLoading] = useState(false);

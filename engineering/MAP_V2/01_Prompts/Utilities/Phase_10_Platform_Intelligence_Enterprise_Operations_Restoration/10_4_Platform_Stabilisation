@@ -1,0 +1,12 @@
+The objective is:
+
+Remove dead code.
+Register missing routes.
+Fix broken imports.
+Route unreachable pages.
+Remove duplicate implementations.
+Standardise encryption.
+Standardise JWT.
+Make every existing component reachable.
+
+Only after the platform is stable would I move on to implementing the remaining Connection/Discovery/Mapping functionality.

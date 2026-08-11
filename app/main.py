@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from app.config_loader import load_config
-from .api.main import app  # noqa: F401
 from .execution_engine import ExecutionEngine
 from .audit_export import AuditExporter
 from .db_connector import DBConnector
@@ -13,9 +12,9 @@ from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def run_engine(config_path, resume_batch=None, recovery=False):
+def run_engine(config_path, resume_batch=None, recovery=False, batch_name=None):
     config = load_config(config_path)
-    engine = ExecutionEngine(config=config, batch_id=resume_batch)
+    engine = ExecutionEngine(config=config, batch_id=resume_batch, batch_name=batch_name)
     engine.recovery_mode = recovery
     logger.info(f"Starting execution batch: {engine.batch_id}")
     engine.run()
@@ -35,39 +34,5 @@ def export_audit(config_path, batch_id):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="FS Migration Validation Engine")
-    subparsers = parser.add_subparsers(dest="command")
-
-    # RUN COMMAND
-    run_parser = subparsers.add_parser("run")
-    run_parser.add_argument("--config", required=True)
-    run_parser.add_argument("--resume-batch", required=False)
-    run_parser.add_argument("--recovery", action="store_true",
-                            help="Run only failed controls from previous batch")
-
-    # DISCOVER COMMAND
-    discover_parser = subparsers.add_parser("discover")
-    discover_parser.add_argument("--config", required=True)
-
-    # EXPORT COMMAND
-    export_parser = subparsers.add_parser("export")
-    export_parser.add_argument("--config", required=True)
-    export_parser.add_argument("--batch-id", required=True)
-
-    args = parser.parse_args()
-
-    if args.command == "run":
-        run_engine(args.config, args.resume_batch, args.recovery)
-
-    elif args.command == "discover":
-        config = load_config(args.config)
-        engine_db = DBConnector(config["engine_db"])
-        service = DatasetDiscoveryService(engine_db, config["project_id"])
-        service.discover()
-        logger.info("Dataset discovery completed successfully.")
-
-    elif args.command == "export":
-        export_audit(args.config, args.batch_id)
-
-    else:
-        parser.print_help()
+    from app.__main__ import main
+    main()

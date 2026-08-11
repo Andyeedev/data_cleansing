@@ -4,11 +4,13 @@ from pydantic import BaseModel
 
 class ExecutionStartRequest(BaseModel):
     project_id: str
+    batch_name: Optional[str] = None
 
 
 class ExecutionStartResponse(BaseModel):
     message: str
     batch_id: str
+    batch_name: Optional[str] = None
     project_id: str
     status: str
 

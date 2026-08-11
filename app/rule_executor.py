@@ -30,15 +30,6 @@ class RuleExecutor:
         self.slow_threshold = config.get("slow_threshold", .5)
         self.very_slow_threshold = config.get("very_slow_threshold", 2)
 
-    def __init__legacy_1(self, engine_db, source_db, target_db, batch_id, project_id, control_id,
-                         config=None):
-        self.engine_db = engine_db
-        self.source_db = source_db
-        self.target_db = target_db
-        self.batch_id = batch_id
-        self.project_id = project_id
-        self.control_id = control_id
-
     # ---------------------------------------------------------
     # PUBLIC ENTRY
     # ---------------------------------------------------------
@@ -242,23 +233,6 @@ class RuleExecutor:
     # PARAMETER BUILDER
     # ---------------------------------------------------------
 
-    def _build_parameters_legacy_1(self, entity):
-
-        mapping_id = entity[0]
-
-        primary_key = self._infer_primary_key(mapping_id)
-        numeric_column = self._infer_numeric_column(mapping_id)
-
-        return {
-            "mapping_id": mapping_id,
-            "source_schema": entity[2],
-            "source_table": entity[3],
-            "target_schema": entity[4],
-            "target_table": entity[5],
-            "primary_key_column": primary_key,
-            "numeric_column": numeric_column
-        }
-
     def _build_parameters(self, entity):
 
         mapping_id = entity[0]
@@ -312,54 +286,6 @@ class RuleExecutor:
             passed,
             failed,
             errors
-        ))
-
-    def _log_rule_execution_legacy(self, rule_id, entity, status, delta, execution_time, severity):
-
-        query = """
-        INSERT INTO engine.migration_control_execution
-        (batch_id, control_id, rule_id, entity_name,
-         execution_status, delta_value, execution_time_seconds,
-         severity_level, mapping_id)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """
-
-        self.engine_db.execute(query, (
-            self.batch_id,
-            self.control_id,
-            rule_id,
-            entity[1],
-            status,
-            delta,
-            execution_time,
-            severity,
-            entity[0]
-        ))
-
-    def _log_rule_execution_legacy_2(self, rule_id, entity, status, delta, execution_time,
-                                     severity, start_time, end_time):
-
-        query = """
-        INSERT INTO engine.migration_control_execution
-        (batch_id, control_id, rule_id, entity_name,
-        execution_status, delta_value, execution_time_seconds,
-        severity_level, mapping_id,
-        rule_start_time, rule_end_time)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """
-
-        self.engine_db.execute(query, (
-            self.batch_id,
-            self.control_id,
-            rule_id,
-            entity[1],
-            status,
-            delta,
-            execution_time,
-            severity,
-            entity[0],
-            start_time,
-            end_time
         ))
 
     def _log_rule_execution(self, rule_id, entity, status, delta, execution_time,

@@ -35,7 +35,10 @@ from app.api.routes import (
     migration_project_routes,
     migration_dataset_routes,
     schedule_routes,
-    rule_registry_routes
+    rule_registry_routes,
+    rule_discovery_routes,
+    control_routes,
+    mapping_routes
 )
 
 logger = logging.getLogger(__name__)
@@ -180,6 +183,9 @@ app.include_router(migration_project_routes.router)
 app.include_router(migration_dataset_routes.router)
 app.include_router(schedule_routes.router)
 app.include_router(rule_registry_routes.router)
+app.include_router(rule_discovery_routes.router)
+app.include_router(control_routes.router)
+app.include_router(mapping_routes.router)
 
 
 # =========================

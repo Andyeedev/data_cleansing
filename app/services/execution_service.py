@@ -61,7 +61,7 @@ class ExecutionService:
             "project_id": project_id
         }
 
-    def run(self, project_id, batch_id=None):
+    def run(self, project_id, batch_id=None, batch_name=None):
 
         # ✅ REAL DB CONNECTION (NOT dict)
         engine_db = get_db_connection()
@@ -72,12 +72,13 @@ class ExecutionService:
         }
 
         # If batch_id is passed, the engine will use it (important for tracking)
-        engine = ExecutionEngine(config=config, batch_id=batch_id)
+        engine = ExecutionEngine(config=config, batch_id=batch_id, batch_name=batch_name)
         engine.run()
 
         return {
             "status": "triggered",
             "batch_id": engine.batch_id,
+            "batch_name": batch_name,
             "project_id": project_id
         }
 

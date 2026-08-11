@@ -119,9 +119,9 @@ export function MigrationSchedulesPage() {
     }
   };
 
-  const handleCreateSchedule = async (input: ScheduleCreateInput) => {
+  const handleCreateSchedule = async (input: ScheduleCreateInput | ScheduleUpdateInput) => {
     try {
-      await createSchedule(input);
+      await createSchedule(input as ScheduleCreateInput);
       showToast('Schedule created');
       setShowCreateModal(false);
       refreshAll();

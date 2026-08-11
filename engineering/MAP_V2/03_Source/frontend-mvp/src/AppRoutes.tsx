@@ -36,6 +36,7 @@ const MappingSpreadsheetPage = lazy(() => import('./routes/MappingSpreadsheetPag
 const ValidationDashboardPage = lazy(() => import('./routes/ValidationDashboardPage').then(m => ({ default: m.ValidationDashboardPage })));
 const ValidationRulesPage = lazy(() => import('./routes/ValidationRulesPage').then(m => ({ default: m.ValidationRulesPage })));
 const ValidationDiscoveryPage = lazy(() => import('./routes/ValidationDiscoveryPage').then(m => ({ default: m.ValidationDiscoveryPage })));
+const ControlsPage = lazy(() => import('./routes/ControlsPage').then(m => ({ default: m.ControlsPage })));
 const MigrationTimelinePage = lazy(() => import('./routes/MigrationTimelinePage').then(m => ({ default: m.MigrationTimelinePage })));
 const MigrationDatasetsPage = lazy(() => import('./routes/MigrationDatasetsPage').then(m => ({ default: m.MigrationDatasetsPage })));
 const MigrationSchedulesPage = lazy(() => import('./routes/MigrationSchedulesPage').then(m => ({ default: m.MigrationSchedulesPage })));
@@ -79,7 +80,7 @@ export function AppRoutes() {
           <Route path="/validation/results/:batchId" element={<ValidationResultsPage />} />
           <Route path="/validation/history" element={<ExecutionHistoryPage />} />
           <Route path="/validation/queue" element={<ValidationPage />} />
-          <Route path="/validation/controls" element={<ValidationPage />} />
+          <Route path="/validation/controls" element={<ControlsPage />} />
 
           <Route path="/governance" element={<GovernancePage />} />
           <Route path="/governance/overview" element={<GovernancePage />} />

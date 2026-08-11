@@ -1,4 +1,4 @@
-import jwt
+from jose import jwt
 import datetime
 from .jwt_config import SECRET_KEY, ALGORITHM
 

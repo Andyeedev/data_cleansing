@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.api.core.auth.dependencies import get_current_user
 from app.api.models.responses import APIResponse
@@ -9,6 +9,7 @@ from app.api.models.rule_registry_models import (
     RuleRegistryListResponse
 )
 from app.services.rule_registry_service import RuleRegistryService
+from app.api.models.rule_registry_models import RuleDatasetMappingResponse
 
 router = APIRouter(prefix="/api/v1/rules", tags=["Rule Registry"])
 
@@ -31,6 +32,20 @@ def list_rules(
 
 
 # =========================
+# GET TENANTS FOR FILTERING
+# =========================
+@router.get("/tenants", response_model=APIResponse)
+def get_tenants(
+    current_user=Depends(get_current_user)
+):
+    try:
+        tenants = rule_registry_service.get_tenants()
+        return APIResponse(success=True, data=tenants)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================
 # GET RULE USAGE STATS
 # =========================
 @router.get("/usage-stats", response_model=APIResponse)
@@ -40,6 +55,21 @@ def get_rule_usage_stats(
     try:
         stats = rule_registry_service.get_rule_usage_stats()
         return APIResponse(success=True, data={"rules": stats, "total": len(stats)})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================
+# GET MAPPINGS FOR A RULE
+# =========================
+@router.get("/{rule_id}/mappings", response_model=APIResponse)
+def get_rule_mappings(
+    rule_id: str,
+    current_user=Depends(get_current_user)
+):
+    try:
+        mappings = rule_registry_service.get_mappings_for_rule(rule_id)
+        return APIResponse(success=True, data={"mappings": mappings, "total": len(mappings)})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

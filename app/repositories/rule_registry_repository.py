@@ -10,15 +10,25 @@ class RuleRegistryRepository:
     def get_all_rules(self) -> List:
         query = """
             SELECT
-                rule_id,
-                control_id,
-                rule_name,
-                sql_template_file,
-                severity_level,
-                enabled_flag,
-                created_at
-            FROM engine.rule_registry
-            ORDER BY control_id, rule_id
+                r.rule_id,
+                r.control_id,
+                r.rule_name,
+                r.sql_template_file,
+                r.severity_level,
+                r.enabled_flag,
+                r.created_at,
+                t.tenant_id
+            FROM engine.rule_registry r
+            LEFT JOIN (
+                SELECT DISTINCT
+                    rdm.rule_id,
+                    p.tenant_id
+                FROM core.rule_dataset_mapping rdm
+                JOIN core.dataset_mappings dm ON rdm.mapping_id = dm.mapping_id
+                JOIN core.projects p ON dm.project_id::text = p.project_id::text
+                WHERE rdm.is_active = TRUE
+            ) t ON r.rule_id = t.rule_id
+            ORDER BY r.control_id, r.rule_id
         """
         return self.db.execute(query)
 
@@ -111,7 +121,8 @@ class RuleRegistryRepository:
                 COALESCE(m.mapping_count, 0) AS mapping_count,
                 e.last_execution,
                 e.last_status,
-                COALESCE(e.total_executions, 0) AS total_executions
+                COALESCE(e.total_executions, 0) AS total_executions,
+                t.tenant_id
             FROM engine.rule_registry r
             LEFT JOIN (
                 SELECT rule_id, COUNT(*) AS mapping_count
@@ -128,6 +139,39 @@ class RuleRegistryRepository:
                 FROM engine.migration_control_execution
                 GROUP BY rule_id
             ) e ON r.rule_id = e.rule_id
+            LEFT JOIN (
+                SELECT DISTINCT
+                    rdm.rule_id,
+                    p.tenant_id
+                FROM core.rule_dataset_mapping rdm
+                JOIN core.dataset_mappings dm ON rdm.mapping_id = dm.mapping_id
+                JOIN core.projects p ON dm.project_id::text = p.project_id::text
+                WHERE rdm.is_active = TRUE
+            ) t ON r.rule_id = t.rule_id
             ORDER BY r.control_id, r.rule_id
         """
         return self.db.execute(query)
+
+    def get_unique_tenants(self):
+        query = """
+            SELECT tenant_id, tenant_name
+            FROM core.tenants
+            ORDER BY tenant_name
+        """
+        return self.db.execute(query)
+
+    def get_mappings_for_rule(self, rule_id: str):
+        query = """
+            SELECT
+                rdm.id AS mapping_id,
+                rdm.mapping_id AS dataset_mapping_id,
+                dm.source_schema,
+                dm.source_table,
+                rdm.is_active,
+                rdm.created_at
+            FROM core.rule_dataset_mapping rdm
+            LEFT JOIN core.dataset_mappings dm ON rdm.mapping_id = dm.mapping_id
+            WHERE rdm.rule_id = %s
+            ORDER BY rdm.created_at DESC
+        """
+        return self.db.execute(query, (rule_id,))

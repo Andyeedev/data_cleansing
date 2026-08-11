@@ -7,12 +7,34 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
 function getInitialAuthState(): AuthState {
   try {
     const token = localStorage.getItem('access_token');
     const userStr = localStorage.getItem('map_nexus_user');
     if (token && userStr) {
       const user = JSON.parse(userStr);
+      const payload = decodeJwtPayload(token);
+      if (payload?.tenant_id && !user.tenantId) {
+        user.tenantId = payload.tenant_id as string;
+        localStorage.setItem('map_nexus_user', JSON.stringify(user));
+      }
       return { user, token, isAuthenticated: true, isLoading: false };
     }
   } catch {
@@ -47,12 +69,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const { access_token } = await response.json();
 
+    const payload = decodeJwtPayload(access_token);
     const user: User = {
       id: '1',
       email: credentials.email,
       name: credentials.email.split('@')[0],
       roles: ['admin'],
       permissions: ['read', 'write', 'delete', 'admin'],
+      tenantId: (payload?.tenant_id as string) || undefined,
     };
 
     localStorage.setItem('access_token', access_token);
@@ -78,9 +102,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const userRoles = state.user?.roles ?? [];
+  const tenantId = state.user?.tenantId;
 
   return (
-    <AuthContext.Provider value={{ ...state, userRoles, login, logout, switchRole }}>
+    <AuthContext.Provider value={{ ...state, userRoles, tenantId, login, logout, switchRole }}>
       {children}
     </AuthContext.Provider>
   );

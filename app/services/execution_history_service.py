@@ -117,14 +117,15 @@ class ExecutionHistoryService:
             "governance": governance_dict
         }
 
-    def get_batch_status_breakdown(self, tenant_id: str = None):
-        breakdown, total, today_breakdown = self.repository.get_batch_status_breakdown(tenant_id)
+    def get_batch_status_breakdown(self, tenant_id: str = None, time_range: str = "today"):
+        breakdown, total, today_breakdown = self.repository.get_batch_status_breakdown(tenant_id, time_range)
         unscored = total - sum(breakdown.get(s, 0) for s in ['COMPLETED', 'RUNNING', 'FAILED', 'PENDING', 'PAUSED', 'CANCELLED'] if s in breakdown)
         return {
             "breakdown": breakdown,
             "total": total,
             "unscored": unscored,
-            "today_breakdown": today_breakdown
+            "today_breakdown": today_breakdown,
+            "time_range": time_range
         }
 
     def _history_to_dict(self, row):

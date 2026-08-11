@@ -24,9 +24,11 @@ const DEFAULT_NAV: MetadataNavItem[] = [
   ]},
   { id: 'validation', label: 'Validation', path: '/validation', children: [
     { id: 'rules', label: 'Rules', path: '/validation/rules' },
+    { id: 'rule-discovery', label: 'Rule Discovery', path: '/validation/rule-discovery' },
+    { id: 'controls', label: 'Controls', path: '/validation/controls' },
     { id: 'results', label: 'Results', path: '/validation/results' },
     { id: 'queue', label: 'Queue', path: '/validation/queue' },
-    { id: 'controls', label: 'Controls', path: '/validation/controls' },
+    { id: 'validation-dashboard', label: 'Validation Dashboard', path: '/validation/dashboard' },
   ]},
   { id: 'governance', label: 'Governance', path: '/governance', children: [
     { id: 'approvals', label: 'Approvals', path: '/governance/approvals', requiredRoles: ['admin', 'compliance-officer', 'manager'] },

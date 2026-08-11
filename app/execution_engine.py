@@ -23,12 +23,15 @@ audit_logger = get_audit_logger()
 
 class ExecutionEngine:
 
-    def __init__(self, config, batch_id=None):
+    def __init__(self, config, batch_id=None, batch_name=None):
 
         self.config = config
 
         # ✅ FIX: auto-generate batch_id if not provided
         self.batch_id = batch_id or str(uuid.uuid4())
+
+        # ✅ batch_name (auto-generated if not provided)
+        self.batch_name = batch_name
 
         # ✅ project_id
         self.project_id = config.get("project_id")
@@ -250,7 +253,7 @@ class ExecutionEngine:
                 # -----------------------------------------------------
                 # Batch Registration (IDEMPOTENCY GUARD FIRST)
                 # -----------------------------------------------------
-                should_run = self._register_batch(len(controls))
+                should_run = self._register_batch(len(controls), self.batch_name)
 
                 if should_run is False:
                     logger.debug(f"Skipping execution for batch {self.batch_id}")
@@ -516,23 +519,6 @@ class ExecutionEngine:
     # ---------------------------------------------------------
     # CONTROL EXECUTION
     # ---------------------------------------------------------
-
-    def _execute_control(self, control_id):
-
-        # -----------------------------------------------------
-        # TRACE COMPLETE
-        # -----------------------------------------------------
-        duration = round((time.time() - start_time), 2)
-
-        self._trace_control_end(
-            control_id,
-            status="SUCCESS",
-            duration=duration
-        )
-
-        logger.info(
-            f"⏱ CONTROL COMPLETE | {control_id} | duration={duration}s"
-        )
 
     def _execute_control(self, control_id):
 
@@ -1090,7 +1076,7 @@ class ExecutionEngine:
                 if self.retry_delay_seconds > 0:
                     time.sleep(self.retry_delay_seconds)
 
-    def _register_batch(self, total_controls):
+    def _register_batch(self, total_controls, batch_name=None):
 
         existing = self.engine_db.fetch_all("""
             SELECT batch_status
@@ -1108,18 +1094,28 @@ class ExecutionEngine:
                 logger.warning(f"Batch {self.batch_id} already completed — skipping execution")
                 return False
 
+        # Auto-generate batch_name if not provided
+        if not batch_name:
+            project_row = self.engine_db.fetch_all("""
+                SELECT project_name FROM core.projects WHERE project_id::text = %s
+            """, (self.project_id,))
+            project_name = project_row[0]["project_name"] if project_row else "Batch"
+            from datetime import datetime
+            batch_name = f"{project_name} - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+
         # Insert new batch as RUNNING
         self.engine_db.execute("""
             INSERT INTO engine.migration_batch_registry (
                 batch_id,
                 project_id,
+                batch_name,
                 batch_start_time,
                 batch_status,
                 total_controls,
                 completed_controls,
                 failed_controls
             )
-            VALUES (%s, %s, NOW(), 'RUNNING', %s, 0, 0)
-        """, (self.batch_id, self.project_id, total_controls))
+            VALUES (%s, %s, %s, NOW(), 'RUNNING', %s, 0, 0)
+        """, (self.batch_id, self.project_id, batch_name, total_controls))
 
         return True

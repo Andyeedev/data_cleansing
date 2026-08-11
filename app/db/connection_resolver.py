@@ -5,71 +5,9 @@ logger = get_logger(__name__)
 
 
 class ConnectionResolver:
-    def __init___legacy(self, engine_db, schema="core"):
-        self.engine_db = engine_db
-        self.schema = schema   # ✅ THIS IS THE FIX
-
     def __init__(self, engine_db, schema="core"):
         self.engine_db = engine_db
-        self.schema = schema   # ✅ THIS IS THE FIX
-
-    def get_connections_legacy(self, project_id: str):
-        """
-        Returns:
-            {
-                "SOURCE": adapter,
-                "TARGET": adapter
-            }
-        """
-
-        systems = self._load_systems(project_id)
-
-        connections = {}
-
-        for system in systems:
-            role = system["system_role"]
-            adapter = self._build_adapter(system)
-
-            if adapter is None:
-                raise RuntimeError(f"Failed to build adapter for {role}")
-
-            connections[role] = adapter
-
-        return connections
-
-    def get_connections_legacy_2(self, project_id: str):
-        """
-        Returns:
-            {
-                "SOURCE": adapter,
-                "TARGET": adapter
-            }
-        """
-
-        systems = self._load_systems(project_id)
-
-        connections = {}
-
-        for system in systems:
-
-            # ✅ NEW: skip inactive systems
-            if not system.get("is_active", True):
-                logger.info(f"⏭️ Skipping inactive system: {system['system_role']}")
-                continue
-
-            role = system["system_role"]
-
-            try:
-                adapter = self._build_adapter(system)
-
-                if adapter:
-                    connections[role] = adapter
-
-            except NotImplementedError as e:
-                logger.warning(f"⚠️ Skipping unsupported system {role}: {str(e)}")
-                continue
-
-        return connections
+        self.schema = schema
 
     def get_connections(self, project_id: str):
 
@@ -94,11 +32,10 @@ class ConnectionResolver:
                 if not adapter:
                     continue
 
-                # ✅ NEW: support multiple per role
                 connections.setdefault(role, {})
                 connections[role][system["system_id"]] = adapter
 
-            except NotImplementedError as e:
+            except (NotImplementedError, ModuleNotFoundError, ImportError) as e:
                 logger.warning(f"⚠️ Skipping unsupported system {role}: {str(e)}")
                 continue
 
@@ -131,80 +68,10 @@ class ConnectionResolver:
                 "connection_config": r[3],
                 "credential_id": r[4],
                 "is_active": r[5],
-                "schema_name": r[6],   # ✅ NEW
+                "schema_name": r[6],
             })
 
         return systems
-
-    def _build_adapter_legacy(self, system):
-        from app.db.connection_factory import connection_factory
-
-        logger.info(f"Building adapter for {system['system_role']}")
-
-        config = system["connection_config"].copy()
-
-        db_type = system.get("database_type") or system.get("db_type") or system.get("type")
-
-        if not db_type:
-            raise RuntimeError(f"❌ Missing database_type for system: {system}")
-
-        db_type = db_type.lower().strip()
-
-        # ✅ HARD STOP FOR DISABLED TYPES (extra safety)
-        # if db_type == "sqlserver":
-        #    logger.warning(f"⏭️ SQL Server disabled — skipping {system['system_role']}")
-        #    return None
-
-        config["type"] = db_type
-
-        creds = self._get_credentials(system["credential_id"])
-        config["user"] = creds["username"]
-        config["password"] = creds["password"]
-
-        logger.info(f"DB TYPE: {config.get('type')}")
-        logger.info(f"HOST: {config.get('host')}")
-        logger.info(f"DATABASE: {config.get('database')}")
-
-        return connection_factory(config)
-
-    def _build_adapter_legacy_2(self, system):
-
-        from app.db.connection_factory import connection_factory
-
-        logger.info(f"Building adapter for {system['system_role']}")
-
-        config = system["connection_config"].copy()
-
-        db_type = system.get("database_type") or system.get("db_type") or system.get("type")
-
-        if not db_type:
-            raise RuntimeError(f"❌ Missing database_type for system: {system}")
-
-        db_type = db_type.lower().strip()
-
-        # ✅ HARD STOP FOR DISABLED TYPES
-        if db_type == "sqlserver":
-            logger.warning(f"⏭️ SQL Server disabled — skipping {system['system_role']}")
-            return None
-
-        config["type"] = db_type
-
-        creds = self._get_credentials(system["credential_id"])
-        config["user"] = creds["username"]
-        config["password"] = creds["password"]
-
-        logger.info(f"DB TYPE: {config.get('type')}")
-        logger.info(f"HOST: {config.get('host')}")
-        logger.info(f"DATABASE: {config.get('database')}")
-
-        adapter = connection_factory(config)
-
-        # ✅ CORRECT PLACE FOR YOUR NEW LOG
-        logger.info(
-            f"✅ Adapter created | ROLE={system['system_role']} | TYPE={config['type']}"
-        )
-
-        return adapter
 
     def _build_adapter(self, system):
 
@@ -284,7 +151,6 @@ class ConnectionResolver:
         logger.debug(f"KEY ID: {key_id}")
         logger.debug(f"RAW TYPE: {type(encrypted_password)}")
 
-        # 🔐 Decrypt password
         encryption_manager = EncryptionManager()
         decrypted_password = encryption_manager.decrypt(encrypted_password)
 
@@ -292,13 +158,3 @@ class ConnectionResolver:
             "username": username,
             "password": decrypted_password
         }
-
-    def _get_encryption_key(self, key_id):
-        import os
-
-        key = os.getenv("FERNET_KEY")
-
-        if not key:
-            raise RuntimeError("❌ FERNET_KEY not set in environment")
-
-        return key

@@ -1,6 +1,6 @@
 import uuid
 import logging
-from app.api.core.security.encryption import EncryptionManager
+from app.api.core.encryption_manager import EncryptionManager
 from app.db.repositories.credential_repository import CredentialRepository
 
 logger = logging.getLogger(__name__)

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migration Timeline - Design Comparison</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
+    .design-section { margin-bottom: 40px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
+    .design-header { background: #1a1a2e; color: white; padding: 16px 24px; font-size: 18px; font-weight: 600; }
+    .design-body { padding: 24px; }
+
+    /* Shared Metrics */
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .metric { padding: 16px; border-radius: 8px; text-align: center; }
+    .metric-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
+    .metric-value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .metric-blue { background: #dbeafe; color: #1e40af; }
+    .metric-green { background: #dcfce7; color: #166534; }
+    .metric-red { background: #fee2e2; color: #991b1b; }
+    .metric-yellow { background: #fef3c7; color: #92400e; }
+
+    /* Search Bar */
+    .search-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+    .search-input { flex: 1; padding: 10px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+    .filter-select { padding: 10px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; background: white; }
+
+    /* ========== DESIGN A: Minimal Timeline ========== */
+    .date-group { margin-bottom: 24px; }
+    .date-label { font-size: 14px; font-weight: 600; color: #374151; padding: 8px 16px; background: #f3f4f6; border-radius: 6px; display: inline-block; margin-bottom: 12px; }
+    .timeline-card { padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; border-left: 4px solid; margin-bottom: 8px; }
+    .timeline-card.completed { border-left-color: #22c55e; }
+    .timeline-card.failed { border-left-color: #ef4444; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .card-header-left { display: flex; align-items: center; gap: 10px; }
+    .status-icon { font-size: 18px; }
+    .batch-id { font-weight: 600; font-size: 14px; color: #111827; }
+    .project-name { font-size: 13px; color: #6b7280; }
+    .card-meta { display: flex; gap: 16px; font-size: 13px; color: #6b7280; margin-top: 8px; }
+    .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .btn-sm { padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-secondary { background: white; color: #374151; border: 1px solid #d1d5db; }
+    .error-box { margin-top: 8px; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; font-size: 12px; color: #991b1b; max-height: 40px; overflow: hidden; }
+
+    /* ========== DESIGN B: Table Style ========== */
+    .timeline-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .timeline-table th { text-align: left; padding: 12px; background: #f9fafb; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; }
+    .timeline-table td { padding: 12px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+    .timeline-table tr:hover { background: #f9fafb; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+    .status-completed { background: #dcfce7; color: #166534; }
+    .status-failed { background: #fee2e2; color: #991b1b; }
+    .status-running { background: #dbeafe; color: #1e40af; }
+    .table-actions { display: flex; gap: 4px; }
+    .btn-icon { width: 28px; height: 28px; border-radius: 4px; border: 1px solid #d1d5db; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+    /* ========== DESIGN C: Visual Progress ========== */
+    .visual-event { padding: 16px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 12px; }
+    .visual-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .visual-time { font-size: 13px; color: #6b7280; }
+    .progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+    .progress-fill { height: 100%; border-radius: 4px; }
+    .progress-complete { background: linear-gradient(90deg, #22c55e, #16a34a); width: 100%; }
+    .progress-partial { background: linear-gradient(90deg, #f59e0b, #d97706); width: 45%; }
+    .progress-failed { background: linear-gradient(90deg, #ef4444, #dc2626); width: 15%; }
+    .visual-details { display: flex; gap: 16px; font-size: 13px; color: #6b7280; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- ==================== DESIGN A ==================== -->
+<div class="design-section">
+  <div class="design-header">Design A: Minimal Timeline (Current + Polish)</div>
+  <div class="design-body">
+    <div class="metrics">
+      <div class="metric metric-blue"><div class="metric-label">Running</div><div class="metric-value">0</div></div>
+      <div class="metric metric-green"><div class="metric-label">Completed Today</div><div class="metric-value">2</div></div>
+      <div class="metric metric-red"><div class="metric-label">Failed (All Time)</div><div class="metric-value">17</div></div>
+      <div class="metric metric-yellow"><div class="metric-label">Scheduled</div><div class="metric-value">0</div></div>
+    </div>
+    <div class="search-bar">
+      <input class="search-input" placeholder="🔍 Search by batch ID or project..." />
+      <select class="filter-select"><option>All Statuses</option><option>Running</option><option>Completed</option><option>Failed</option></select>
+    </div>
+
+    <div class="date-group">
+      <div class="date-label">August 5, 2026</div>
+      <div class="timeline-card completed">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="status-icon">✅</span>
+            <div><div class="batch-id">8989f171-a590</div><div class="project-name">Data Migration Alpha · Triggered by: scheduled</div></div>
+          </div>
+          <span class="status-badge status-completed">Completed</span>
+        </div>
+        <div class="card-meta">
+          <span>Duration: 45s</span>
+          <span>Aug 5, 2026 10:30 AM</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-sm btn-primary">View Details</button>
+          <button class="btn-sm btn-secondary">View Logs</button>
+        </div>
+      </div>
+      <div class="timeline-card failed">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="status-icon">❌</span>
+            <div><div class="batch-id">542f13cd-1676</div><div class="project-name">Client2 Data Transfer · Triggered by: manual</div></div>
+          </div>
+          <span class="status-badge status-failed">Failed</span>
+        </div>
+        <div class="card-meta">
+          <span>Duration: 0s</span>
+          <span>Aug 5, 2026 10:31 AM</span>
+        </div>
+        <div class="error-box">psycopg2.OperationalError: connection to server failed: Connection refused</div>
+        <div class="card-actions">
+          <button class="btn-sm btn-primary">View Details</button>
+          <button class="btn-sm btn-secondary">Retry</button>
+          <button class="btn-sm btn-secondary">View Logs</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="date-group">
+      <div class="date-label">August 4, 2026</div>
+      <div class="timeline-card completed">
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="status-icon">✅</span>
+            <div><div class="batch-id">b11f2aec-7358</div><div class="project-name">Data Migration Beta · Triggered by: scheduled</div></div>
+          </div>
+          <span class="status-badge status-completed">Completed</span>
+        </div>
+        <div class="card-meta">
+          <span>Duration: 120s</span>
+          <span>Aug 4, 2026 2:22 PM</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn-sm btn-primary">View Details</button>
+          <button class="btn-sm btn-secondary">View Logs</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DESIGN B ==================== -->
+<div class="design-section">
+  <div class="design-header">Design B: Table-Style Timeline</div>
+  <div class="design-body">
+    <div class="metrics">
+      <div class="metric metric-blue"><div class="metric-label">Running</div><div class="metric-value">0</div></div>
+      <div class="metric metric-green"><div class="metric-label">Completed Today</div><div class="metric-value">2</div></div>
+      <div class="metric metric-red"><div class="metric-label">Failed (All Time)</div><div class="metric-value">17</div></div>
+      <div class="metric metric-yellow"><div class="metric-label">Scheduled</div><div class="metric-value">0</div></div>
+    </div>
+    <div class="search-bar">
+      <input class="search-input" placeholder="🔍 Search by batch ID or project..." />
+      <select class="filter-select"><option>All Statuses</option><option>Running</option><option>Completed</option><option>Failed</option></select>
+    </div>
+    <table class="timeline-table">
+      <thead>
+        <tr>
+          <th>Date / Time</th>
+          <th>Status</th>
+          <th>Batch ID</th>
+          <th>Project</th>
+          <th>Triggered By</th>
+          <th>Duration</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Aug 5, 10:30 AM</td>
+          <td><span class="status-badge status-completed">✅ Completed</span></td>
+          <td style="font-family: monospace; font-size: 13px;">8989f171-a590</td>
+          <td>Data Migration Alpha</td>
+          <td>scheduled</td>
+          <td>45s</td>
+          <td><div class="table-actions"><button class="btn-icon" title="Details">👁</button><button class="btn-icon" title="Logs">📋</button></div></td>
+        </tr>
+        <tr>
+          <td>Aug 5, 10:31 AM</td>
+          <td><span class="status-badge status-failed">❌ Failed</span></td>
+          <td style="font-family: monospace; font-size: 13px;">542f13cd-1676</td>
+          <td>Client2 Data Transfer</td>
+          <td>manual</td>
+          <td>0s</td>
+          <td><div class="table-actions"><button class="btn-icon" title="Details">👁</button><button class="btn-icon" title="Retry">🔄</button><button class="btn-icon" title="Logs">📋</button></div></td>
+        </tr>
+        <tr>
+          <td>Aug 4, 2:22 PM</td>
+          <td><span class="status-badge status-completed">✅ Completed</span></td>
+          <td style="font-family: monospace; font-size: 13px;">b11f2aec-7358</td>
+          <td>Data Migration Beta</td>
+          <td>scheduled</td>
+          <td>120s</td>
+          <td><div class="table-actions"><button class="btn-icon" title="Details">👁</button><button class="btn-icon" title="Logs">📋</button></div></td>
+        </tr>
+        <tr>
+          <td>Aug 4, 2:25 PM</td>
+          <td><span class="status-badge status-completed">✅ Completed</span></td>
+          <td style="font-family: monospace; font-size: 13px;">0741c44f-26b6</td>
+          <td>Legacy Migration Program</td>
+          <td>scheduled</td>
+          <td>89s</td>
+          <td><div class="table-actions"><button class="btn-icon" title="Details">👁</button><button class="btn-icon" title="Logs">📋</button></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== DESIGN C ==================== -->
+<div class="design-section">
+  <div class="design-header">Design C: Visual Timeline with Progress Bars</div>
+  <div class="design-body">
+    <div class="metrics">
+      <div class="metric metric-blue"><div class="metric-label">Running</div><div class="metric-value">0</div></div>
+      <div class="metric metric-green"><div class="metric-label">Completed Today</div><div class="metric-value">2</div></div>
+      <div class="metric metric-red"><div class="metric-label">Failed (All Time)</div><div class="metric-value">17</div></div>
+      <div class="metric metric-yellow"><div class="metric-label">Scheduled</div><div class="metric-value">0</div></div>
+    </div>
+    <div class="search-bar">
+      <input class="search-input" placeholder="🔍 Search by batch ID or project..." />
+      <select class="filter-select"><option>All Statuses</option><option>Running</option><option>Completed</option><option>Failed</option></select>
+    </div>
+
+    <div class="date-group">
+      <div class="date-label">═════════════════ August 5, 2026 ═════════════════</div>
+
+      <div class="visual-event">
+        <div class="visual-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="status-badge status-completed">✅ COMPLETED</span>
+            <strong>Data Migration Alpha</strong>
+          </div>
+          <span class="visual-time">10:30 AM</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill progress-complete"></div></div>
+        <div class="visual-details">
+          <span>Duration: 45s</span>
+          <span>Batch: 8989f171-a590</span>
+          <span>Triggered: scheduled</span>
+        </div>
+      </div>
+
+      <div class="visual-event">
+        <div class="visual-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="status-badge status-failed">❌ FAILED</span>
+            <strong>Client2 Data Transfer</strong>
+          </div>
+          <span class="visual-time">10:31 AM</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill progress-failed"></div></div>
+        <div class="visual-details">
+          <span>Duration: 0s</span>
+          <span>Batch: 542f13cd-1676</span>
+          <span>Triggered: manual</span>
+        </div>
+        <div class="error-box" style="margin-top:8px; padding:8px 12px; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; font-size:12px; color:#991b1b;">⚠ Connection refused on port 5432</div>
+      </div>
+    </div>
+
+    <div class="date-group">
+      <div class="date-label">═════════════════ August 4, 2026 ═════════════════</div>
+
+      <div class="visual-event">
+        <div class="visual-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="status-badge status-completed">✅ COMPLETED</span>
+            <strong>Data Migration Beta</strong>
+          </div>
+          <span class="visual-time">2:22 PM</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill progress-complete"></div></div>
+        <div class="visual-details">
+          <span>Duration: 120s</span>
+          <span>Batch: b11f2aec-7358</span>
+          <span>Triggered: scheduled</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

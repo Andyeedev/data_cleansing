@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { apiGet, apiPost } from '../utils/apiClient';
 import { TabBar } from '../components/shared/TabBar';
 import { StatusBadge } from '../components/shared/StatusBadge';
-import { ProgressBar } from '../components/shared/ProgressBar';
 import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
@@ -35,7 +34,7 @@ const STATUS_OPTIONS = ['all', 'COMPLETED', 'RUNNING', 'FAILED'];
 
 export function MigrationPage() {
   const { userRoles } = useAuth();
-  const { items: historyItems, total, page, pageSize, loading: historyLoading, error: historyError, fetchHistory } = useExecutionHistory();
+  const { items: historyItems, total, page: _page, pageSize, loading: historyLoading, error: historyError, fetchHistory } = useExecutionHistory();
   const { tenants: allTenants, loading: tenantsLoading } = useMigrationTenants();
   const [confirmTenantIdInternal, setConfirmTenantId] = useState('');
   const { projects: tenantProjects } = useMigrationProjects(undefined, confirmTenantIdInternal);
@@ -73,7 +72,7 @@ export function MigrationPage() {
     const statusParam = statusFilter === 'all' ? undefined : statusFilter;
     const sortDirParam = historySortDir === 'asc' ? 'asc' : 'desc';
     fetchHistory(serverPage, selectedTenant || undefined, historyPageSize, statusParam, debouncedSearch || undefined, historySort, sortDirParam);
-    const statusBreakdownParam = selectedTenant ? `?tenant_id=${selectedTenant}` : '';
+    const statusBreakdownParam = selectedTenant ? `?tenant_id=${selectedTenant}&time_range=week` : `?time_range=week`;
     apiGet<StatusBreakdown>(`/execution/history/status-breakdown${statusBreakdownParam}`)
       .then((data) => setStatusBreakdown(data))
       .catch(() => setStatusBreakdown(null));
@@ -121,11 +120,6 @@ export function MigrationPage() {
     } finally {
       setRunning(false);
     }
-  };
-
-  const getProgressPercent = (completed: number, totalControls: number) => {
-    if (totalControls === 0) return 0;
-    return Math.round((completed / totalControls) * 100);
   };
 
   if (!userRoles.includes('admin')) {
@@ -207,29 +201,57 @@ export function MigrationPage() {
             }}>
               <h3 style={{ fontSize: 'var(--font-size-h3)', marginBottom: 'var(--space-md)' }}>Execution Overview</h3>
 
-              <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', marginBottom: 'var(--space-lg)' }}>
-                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 120, flex: 1, minHeight: 80 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Running</p>
+              <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', marginBottom: 'var(--space-md)' }}>
+                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 100, flex: 1, minHeight: 70 }}>
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Running Today</p>
                   <p style={{ fontSize: 'var(--font-size-h2)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-warning)' }}>
                     {todayBreakdown.running || 0}
                   </p>
                 </div>
-                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 120, flex: 1, minHeight: 80 }}>
+                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 100, flex: 1, minHeight: 70 }}>
                   <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Completed Today</p>
                   <p style={{ fontSize: 'var(--font-size-h2)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-success)' }}>
                     {todayBreakdown.completed || 0}
                   </p>
                 </div>
-                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 120, flex: 1, minHeight: 80 }}>
+                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 100, flex: 1, minHeight: 70 }}>
                   <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Failed Today</p>
                   <p style={{ fontSize: 'var(--font-size-h2)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-danger)' }}>
                     {todayBreakdown.failed || 0}
                   </p>
                 </div>
-                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 120, flex: 1, minHeight: 80 }}>
+                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 100, flex: 1, minHeight: 70 }}>
                   <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Scheduled Today</p>
                   <p style={{ fontSize: 'var(--font-size-h2)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-info)' }}>
                     {todayBreakdown.scheduled || 0}
+                  </p>
+                </div>
+              </div>
+
+              <h4 style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-sm)' }}>Last 7 Days</h4>
+              <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', marginBottom: 'var(--space-lg)' }}>
+                <div style={{ padding: 'var(--space-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', minWidth: 90, flex: 1 }}>
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Running</p>
+                  <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, color: 'var(--color-warning)' }}>
+                    {breakdown.RUNNING || 0}
+                  </p>
+                </div>
+                <div style={{ padding: 'var(--space-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', minWidth: 90, flex: 1 }}>
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Completed</p>
+                  <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, color: 'var(--color-success)' }}>
+                    {breakdown.COMPLETED || 0}
+                  </p>
+                </div>
+                <div style={{ padding: 'var(--space-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', minWidth: 90, flex: 1 }}>
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Failed</p>
+                  <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, color: 'var(--color-danger)' }}>
+                    {breakdown.FAILED || 0}
+                  </p>
+                </div>
+                <div style={{ padding: 'var(--space-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', minWidth: 90, flex: 1 }}>
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Total</p>
+                  <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, color: 'var(--color-info)' }}>
+                    {statusBreakdown.total || 0}
                   </p>
                 </div>
               </div>
@@ -307,7 +329,6 @@ export function MigrationPage() {
             open={showConfirmModal}
             onClose={() => setShowConfirmModal(false)}
             title="Start Migration"
-            size="md"
           >
             <div style={{ fontSize: 'var(--font-size-sm)' }}>
               <div style={{ marginBottom: 'var(--space-md)' }}>
@@ -390,7 +411,7 @@ export function MigrationPage() {
                   Current Status:
                 </p>
                 <p style={{ fontSize: 'var(--font-size-sm)' }}>
-                  • {todayBreakdown.running || 0} Running | {todayBreakdown.completed || 0} Completed Today | {todayBreakdown.failed || 0} Failed Today
+                  • {breakdown.RUNNING || 0} Running (7d) | {breakdown.COMPLETED || 0} Completed (7d) | {breakdown.FAILED || 0} Failed (7d)
                 </p>
                 <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
                   Estimated time: ~5 minutes

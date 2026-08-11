@@ -17,10 +17,11 @@ execution_history_service = ExecutionHistoryService()
 @router.get("/history/status-breakdown", response_model=APIResponse)
 def get_batch_status_breakdown(
     tenant_id: str = Query(None),
+    time_range: str = Query("today", description="Time range: today, week, all"),
     current_user=Depends(get_current_user)
 ):
     try:
-        result = execution_history_service.get_batch_status_breakdown(tenant_id)
+        result = execution_history_service.get_batch_status_breakdown(tenant_id, time_range)
         return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

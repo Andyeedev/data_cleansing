@@ -12,6 +12,19 @@ from ..config import ConnectionConfig
 class ConnectionAdapter(ABC):
     """Abstract base class for all database adapters."""
 
+    @property
+    def config(self) -> Dict[str, Any]:
+        """Backward-compatible config access - returns dict from _config dataclass."""
+        if not hasattr(self, '_config') or self._config is None:
+            return {}
+        from dataclasses import asdict
+        d = asdict(self._config)
+        # Inject 'type' key from the class name for backward compat (e.g. PostgresAdapter → postgres)
+        if 'type' not in d:
+            cls_name = type(self).__name__
+            d['type'] = cls_name.replace('Adapter', '').lower()
+        return d
+
     @abstractmethod
     def connect(self, config: ConnectionConfig) -> None:
         """Establish connection to the database."""

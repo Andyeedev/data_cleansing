@@ -1,0 +1,48 @@
+The only thing I'd add is a governance gate.
+
+Every work package must follow this workflow:
+
+Phase X.Y.Z Workflow
+
+Gate 1 – Assessment
+
+Current implementation
+Existing integrations
+Files affected
+Reuse opportunities
+Stop → Await approval
+
+Gate 2 – Implementation Plan
+
+Exact files to change
+Exact files to create
+Database changes
+API changes
+Frontend changes
+Risks
+Stop → Await approval
+
+Gate 3 – Implementation
+
+Implement only the approved scope.
+
+Gate 4 – Verification
+
+Backend
+Frontend
+MAP CLI
+Database
+Tests
+
+Gate 5 – Completion Report
+
+What changed
+What remains
+New baseline
+For the frontend
+
+Your process of requesting 3 layout recommendations and selecting one was a good one. I'd keep that exactly as it is.
+
+The only rule I'd add is:
+
+No frontend implementation begins until a layout has been approved by the project owner. The implementation must follow the approved layout and must not introduce redesigns without explicit approval.

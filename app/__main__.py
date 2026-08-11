@@ -15,6 +15,7 @@ def main():
     run_parser = subparsers.add_parser("run")
     run_parser.add_argument("--config", required=True)
     run_parser.add_argument("--resume-batch", required=False)
+    run_parser.add_argument("--batch-name", required=False, help="Optional batch name (auto-generated if not provided)")
     run_parser.add_argument("--recovery", action="store_true")
 
     discover_parser = subparsers.add_parser("discover")
@@ -27,7 +28,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "run":
-        run_engine(args.config, args.resume_batch, args.recovery)
+        run_engine(args.config, args.resume_batch, args.recovery, args.batch_name)
     elif args.command == "discover":
         config = load_config(args.config)
         engine_db = DBConnector(config["engine_db"])

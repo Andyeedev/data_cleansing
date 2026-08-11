@@ -29,6 +29,7 @@ class ExecutionHistoryRepository:
             query = """
                 SELECT
                     b.batch_id,
+                    b.batch_name,
                     b.project_id,
                     b.batch_status,
                     b.total_controls,
@@ -47,9 +48,9 @@ class ExecutionHistoryRepository:
                 params.append(status)
 
             if search:
-                query += f" AND (b.batch_id::text ILIKE %s OR b.batch_status ILIKE %s OR b.project_id::text ILIKE %s)"
+                query += f" AND (b.batch_id::text ILIKE %s OR b.batch_name ILIKE %s OR b.batch_status ILIKE %s OR b.project_id::text ILIKE %s)"
                 search_term = f"%{search}%"
-                params.extend([search_term, search_term, search_term])
+                params.extend([search_term, search_term, search_term, search_term])
 
             count_query = """
                 SELECT COUNT(*)
@@ -69,6 +70,7 @@ class ExecutionHistoryRepository:
             query = """
                 SELECT
                     batch_id,
+                    batch_name,
                     project_id,
                     batch_status,
                     total_controls,
@@ -86,9 +88,9 @@ class ExecutionHistoryRepository:
                 params.append(status)
 
             if search:
-                query += f" AND (batch_id::text ILIKE %s OR batch_status ILIKE %s OR project_id::text ILIKE %s)"
+                query += f" AND (batch_id::text ILIKE %s OR batch_name ILIKE %s OR batch_status ILIKE %s OR project_id::text ILIKE %s)"
                 search_term = f"%{search}%"
-                params.extend([search_term, search_term, search_term])
+                params.extend([search_term, search_term, search_term, search_term])
 
             count_query = "SELECT COUNT(*) FROM engine.migration_batch_registry WHERE 1=1"
             count_params = []
@@ -96,9 +98,9 @@ class ExecutionHistoryRepository:
                 count_query += " AND batch_status = %s"
                 count_params.append(status)
             if search:
-                count_query += f" AND (batch_id::text ILIKE %s OR batch_status ILIKE %s OR project_id::text ILIKE %s)"
+                count_query += f" AND (batch_id::text ILIKE %s OR batch_name ILIKE %s OR batch_status ILIKE %s OR project_id::text ILIKE %s)"
                 search_term = f"%{search}%"
-                count_params.extend([search_term, search_term, search_term])
+                count_params.extend([search_term, search_term, search_term, search_term])
 
         query += f" ORDER BY {sort_by} {sort_dir} NULLS LAST LIMIT %s OFFSET %s"
         params.extend([page_size, offset])
@@ -114,6 +116,7 @@ class ExecutionHistoryRepository:
         query = """
             SELECT
                 batch_id,
+                batch_name,
                 project_id,
                 batch_status,
                 total_controls,
@@ -196,25 +199,35 @@ class ExecutionHistoryRepository:
         rows = self.db.execute(query, (batch_id,))
         return rows[0] if rows else None
 
-    def get_batch_status_breakdown(self, tenant_id: str = None):
+    def get_batch_status_breakdown(self, tenant_id: str = None, time_range: str = "today"):
+        # Determine date filter based on time_range
+        if time_range == "today":
+            date_clause = " AND batch_start_time >= CURRENT_DATE"
+        elif time_range == "week":
+            date_clause = " AND batch_start_time >= CURRENT_DATE - INTERVAL '7 days'"
+        else:
+            date_clause = ""
+
         if tenant_id:
-            query = """
+            query = f"""
                 SELECT b.batch_status, COUNT(*) as count
                 FROM engine.migration_batch_registry b
                 JOIN core.projects p ON b.project_id = p.project_id::text
-                WHERE p.tenant_id::text = %s
+                WHERE p.tenant_id::text = %s{date_clause}
                 GROUP BY b.batch_status
                 ORDER BY b.batch_status
             """
             rows = self.db.execute(query, (tenant_id,))
         else:
-            query = """
+            query = f"""
                 SELECT batch_status, COUNT(*) as count
                 FROM engine.migration_batch_registry
+                WHERE 1=1{date_clause}
                 GROUP BY batch_status
                 ORDER BY batch_status
             """
             rows = self.db.execute(query)
+
         breakdown = {}
         total = 0
         for row in rows:

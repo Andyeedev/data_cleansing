@@ -5,48 +5,6 @@ class MappingResolver:
         self.project_id = project_id
         self.logger = logger
 
-    def resolve_legacy_20260501(self, source_ids, target_ids):
-
-        resolved = []
-        skipped = []
-
-        for s_id in source_ids:
-            for t_id in target_ids:
-
-                mappings = self._get_manual_mappings(s_id, t_id)
-
-                if mappings:
-                    resolved.append((s_id, t_id))
-                else:
-                    skipped.append((s_id, t_id))
-
-        return resolved, skipped
-
-    def resolve_legacy_20260504(self, source_ids, target_ids):
-
-        resolved = []
-        skipped = []
-
-        for s_id in source_ids:
-            for t_id in target_ids:
-
-                raw_mappings = self._get_manual_mappings(s_id, t_id)
-
-                if raw_mappings:
-
-                    # -------------------------------------------------
-                    # CONTRACT STANDARDIZATION (v3.2)
-                    # Always return structured mappings
-                    # -------------------------------------------------
-                    mappings = self._build_mapping_contract(raw_mappings)
-
-                    resolved.append((s_id, t_id, mappings))
-
-                else:
-                    skipped.append((s_id, t_id))
-
-        return resolved, skipped
-
     def resolve(self, source_ids, target_ids):
 
         resolved = []

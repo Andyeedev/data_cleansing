@@ -22,7 +22,7 @@ const defaultActions: ActionItem[] = [
   { label: 'Reports', path: '/reports', color: '#8b5cf6', icon: '📈' },
 ];
 
-export function ExecutiveActions({ isAdmin, isManager }: ExecutiveActionsProps) {
+export function ExecutiveActions({ isAdmin, isManager: _isManager }: ExecutiveActionsProps) {
   const actions = defaultActions.filter(action => {
     if (action.adminOnly && !isAdmin) return false;
     return true;

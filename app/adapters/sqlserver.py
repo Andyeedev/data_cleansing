@@ -66,7 +66,7 @@ class SQLServerAdapter(ConnectionAdapter):
         query = """
             SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE
             FROM INFORMATION_SCHEMA.TABLES
-            WHERE TABLE_SCHEMA = %s
+            WHERE TABLE_SCHEMA = ?
         """
         rows = self.fetch_all(query, (target_schema,))
 
@@ -87,7 +87,7 @@ class SQLServerAdapter(ConnectionAdapter):
         query = """
             SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_DEFAULT
             FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
             ORDER BY ORDINAL_POSITION
         """
         rows = self.fetch_all(query, (schema, table))
@@ -123,7 +123,12 @@ class SQLServerAdapter(ConnectionAdapter):
             latency_ms = int((time.time() - start_time) * 1000)
 
             version_result = self.fetch_all("SELECT @@VERSION")
-            server_version = version_result[0]["@@VERSION"] if version_result else None
+            # Handle column name variations - get first column value
+            if version_result:
+                first_row = version_result[0]
+                server_version = list(first_row.values())[0] if first_row else None
+            else:
+                server_version = None
 
             capabilities = self._get_capabilities()
 

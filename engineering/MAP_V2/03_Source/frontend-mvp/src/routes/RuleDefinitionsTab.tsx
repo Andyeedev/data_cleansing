@@ -56,8 +56,11 @@ export function RuleDefinitionsTab() {
     });
   }, [data?.rules, localChanges]);
 
-  const filteredRules = useMemo(() => {
+   const filteredRules = useMemo(() => {
     let result = mergedRules;
+    if (selectedTenant) {
+      result = result.filter((r) => r.tenant_id === selectedTenant);
+    }
     if (statusFilter !== 'all') {
       result = result.filter((r) => {
         if (statusFilter === 'enabled') return r.enabled_flag;
@@ -77,7 +80,7 @@ export function RuleDefinitionsTab() {
       );
     }
     return result;
-  }, [mergedRules, statusFilter, severityFilter, searchQuery]);
+  }, [mergedRules, selectedTenant, statusFilter, severityFilter, searchQuery]);
 
   const controlGroups = useMemo(() => {
     const groupMap = new Map<string, ControlGroup>();
