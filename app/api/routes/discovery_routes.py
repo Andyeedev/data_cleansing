@@ -20,6 +20,49 @@ discovery_service = DiscoveryService()
 # =========================
 # SUMMARY
 # =========================
+@router.get("/test-summary/{tenant_id}")
+def test_summary(tenant_id: str):
+    """Direct test endpoint - no auth, no repository"""
+    try:
+        db = get_db_connection()
+        rows = db.execute("""
+            SELECT
+                (SELECT COUNT(DISTINCT sr.system_id) FROM core.system_registry sr WHERE sr.tenant_id = %s) as total_systems,
+                (SELECT COUNT(DISTINCT dm.source_schema) FROM core.dataset_mappings dm
+                 INNER JOIN core.projects p ON dm.project_id = p.project_id WHERE p.tenant_id = %s) as total_schemas,
+                (SELECT COUNT(DISTINCT dm.mapping_id) FROM core.dataset_mappings dm
+                 INNER JOIN core.projects p ON dm.project_id = p.project_id WHERE p.tenant_id = %s) as total_tables,
+                (SELECT COUNT(DISTINCT dm.mapping_id) FROM core.dataset_mappings dm
+                 INNER JOIN core.projects p ON dm.project_id = p.project_id WHERE p.tenant_id = %s
+                 AND dm.target_table IS NOT NULL) as matched_tables
+        """, (tenant_id, tenant_id, tenant_id, tenant_id))
+        return {"success": True, "tenant_id": tenant_id, "rows": rows, "raw": str(rows)}
+    except Exception as e:
+        return {"success": False, "error": str(e), "type": type(e).__name__}
+
+@router.get("/test-repo/{tenant_id}")
+def test_repo(tenant_id: str):
+    """Test using repository"""
+    try:
+        db = get_db_connection()
+        repo = DiscoveryRepository(db)
+        result = repo.get_summary(tenant_id=tenant_id)
+        return {"success": True, "result": result}
+    except Exception as e:
+        return {"success": False, "error": str(e), "type": type(e).__name__}
+
+@router.get("/test-repo2/{tenant_id}")
+def test_repo2(tenant_id: str):
+    """Test repository step by step"""
+    try:
+        db = get_db_connection()
+        repo = DiscoveryRepository(db)
+        import inspect
+        source = inspect.getsource(repo.get_summary)
+        return {"success": True, "method_source": source[:500]}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 @router.get("/summary")
 @router.get("/summary/")
 def get_summary(
