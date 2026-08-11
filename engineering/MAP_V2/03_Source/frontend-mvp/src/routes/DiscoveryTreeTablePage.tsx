@@ -101,15 +101,31 @@ export function DiscoveryTreeTablePage() {
     }
   }, [treeData]);
 
+  const [discovering, setDiscovering] = useState(false);
+  const [discoveryStatus, setDiscoveryStatus] = useState<string | null>(null);
+
   const handleAutoDiscovery = async () => {
-    if (!primaryProject) return;
-    const result = await triggerDiscovery(primaryProject.project_id);
-    if (result.success) {
-      setTimeout(() => {
-        refetchSummary();
-        refetchTree();
-        refetchTables();
-      }, 2000);
+    if (!primaryProject || discovering) return;
+    setDiscovering(true);
+    setDiscoveryStatus('Starting discovery...');
+    try {
+      const result = await triggerDiscovery(primaryProject.project_id);
+      if (result.success) {
+        setDiscoveryStatus('Discovering tables and matching...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setDiscoveryStatus('Fetching results...');
+        await Promise.all([refetchSummary(), refetchTree(), refetchTables()]);
+        setDiscoveryStatus('Discovery complete!');
+        setTimeout(() => setDiscoveryStatus(null), 2000);
+      } else {
+        setDiscoveryStatus('Discovery failed: ' + result.message);
+        setTimeout(() => setDiscoveryStatus(null), 3000);
+      }
+    } catch (err) {
+      setDiscoveryStatus('Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      setTimeout(() => setDiscoveryStatus(null), 3000);
+    } finally {
+      setDiscovering(false);
     }
   };
 
@@ -178,10 +194,17 @@ export function DiscoveryTreeTablePage() {
         description="Schema discovery and matching results"
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-            {showAutoDiscovery && primaryProject && (
-              <button onClick={handleAutoDiscovery} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'rgba(34, 197, 94, 0.1)', color: 'var(--color-success)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>
-                Auto Discovery
-              </button>
+            {primaryProject && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+                <button onClick={handleAutoDiscovery} disabled={discovering} style={{ padding: 'var(--space-sm) var(--space-md)', background: discovering ? 'var(--color-bg-secondary)' : 'rgba(34, 197, 94, 0.1)', color: discovering ? 'var(--color-text-secondary)' : 'var(--color-success)', border: `1px solid ${discovering ? 'var(--color-border)' : 'rgba(34, 197, 94, 0.3)'}`, borderRadius: 'var(--radius)', cursor: discovering ? 'wait' : 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>
+                  {discovering ? '⏳ Discovering...' : 'Auto Discovery'}
+                </button>
+                {discoveryStatus && (
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: discoveryStatus.includes('failed') || discoveryStatus.includes('Error') ? 'var(--color-danger)' : 'var(--color-success)' }}>
+                    {discoveryStatus}
+                  </span>
+                )}
+              </div>
             )}
             <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
             <button onClick={() => { refetchSummary(); refetchTree(); refetchTables(); }} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>

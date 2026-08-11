@@ -43,7 +43,7 @@ class DiscoveryRepository:
         }
 
     def get_tree(self, tenant_id=None, all_tenants=False):
-        """Build hierarchical tree: source system and target system as separate nodes."""
+        """Build hierarchical tree: source system and target system as separate nodes with real names."""
         if tenant_id:
             where_clause = "WHERE p.tenant_id = %s"
             params = (tenant_id,)
@@ -52,24 +52,29 @@ class DiscoveryRepository:
             params = ()
         rows = self.db.execute(f"""
             SELECT dm.mapping_id, dm.source_system_id, dm.target_system_id,
-                   dm.source_schema, dm.source_table, dm.target_schema, dm.target_table
+                   dm.source_schema, dm.source_table, dm.target_schema, dm.target_table,
+                   sr_src.system_name as src_system_name, sr_tgt.system_name as tgt_system_name
             FROM core.dataset_mappings dm
             INNER JOIN core.projects p ON dm.project_id = p.project_id
+            LEFT JOIN core.system_registry sr_src ON sr_src.system_id = dm.source_system_id
+            LEFT JOIN core.system_registry sr_tgt ON sr_tgt.system_id = dm.target_system_id
             {where_clause}
             ORDER BY dm.source_schema, dm.source_table
         """, params)
 
         source_schemas = {}
         target_schemas = {}
-        source_system_ids = set()
-        target_system_ids = set()
+        source_system_name = "Source"
+        target_system_name = "Target"
 
         for row in rows:
-            mapping_id, src_sys_id, tgt_sys_id, src_schema, src_table, tgt_schema, tgt_table = row
+            mapping_id, src_sys_id, tgt_sys_id, src_schema, src_table, tgt_schema, tgt_table, src_sys_name, tgt_sys_name = row
             src_schema_key = src_schema or "default"
             tgt_schema_key = tgt_schema or "default"
-            source_system_ids.add(str(src_sys_id))
-            target_system_ids.add(str(tgt_sys_id))
+            if src_sys_name:
+                source_system_name = src_sys_name
+            if tgt_sys_name:
+                target_system_name = tgt_sys_name
 
             if src_schema_key not in source_schemas:
                 source_schemas[src_schema_key] = []
@@ -109,7 +114,7 @@ class DiscoveryRepository:
         if source_schema_nodes:
             result.append({
                 "id": "source",
-                "name": "Source",
+                "name": source_system_name,
                 "type": "system",
                 "status": "matched",
                 "columns": source_schema_nodes
@@ -127,7 +132,7 @@ class DiscoveryRepository:
         if target_schema_nodes:
             result.append({
                 "id": "target",
-                "name": "Target",
+                "name": target_system_name,
                 "type": "system",
                 "status": "matched",
                 "columns": target_schema_nodes
