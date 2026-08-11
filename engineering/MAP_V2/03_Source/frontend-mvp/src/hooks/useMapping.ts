@@ -11,7 +11,7 @@ export function useMappingSummary(tenantId?: string) {
     setLoading(true);
     setError(null);
     try {
-      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '?all_tenants=true';
       const result = await apiGet<MappingSummary>(`/mappings/summary${qs}`);
       setData(result);
     } catch (err) {
@@ -34,7 +34,7 @@ export function useMappingColumns(tenantId?: string) {
     setLoading(true);
     setError(null);
     try {
-      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '?all_tenants=true';
       const result = await apiGet<MappingRow[]>(`/mappings/columns${qs}`);
       setData(result);
     } catch (err) {
@@ -57,7 +57,7 @@ export function useMappingSchema(tenantId?: string) {
     setLoading(true);
     setError(null);
     try {
-      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '?all_tenants=true';
       const result = await apiGet<MappingSchemaEntry[]>(`/mappings/schema${qs}`);
       setData(result);
     } catch (err) {
@@ -146,7 +146,7 @@ export function useMappingColumnsWithPending(tenantId?: string) {
     setLoading(true);
     setError(null);
     try {
-      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '?all_tenants=true';
       const result = await apiGet<MappingRow[]>(`/mappings/columns/all${qs}`);
       setData(result);
     } catch (err) {

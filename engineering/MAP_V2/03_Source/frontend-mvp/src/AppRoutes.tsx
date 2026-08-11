@@ -67,8 +67,8 @@ export function AppRoutes() {
           <Route path="/migration/timeline" element={<MigrationTimelinePage />} />
           <Route path="/migration/discovery" element={<DiscoveryPage />} />
           <Route path="/migration/discovery/tree" element={<DiscoveryTreeTablePage />} />
-          <Route path="/migration/mappings" element={<MappingPage />} />
-          <Route path="/migration/column-mappings" element={<MappingPage />} />
+          <Route path="/migration/mappings" element={<Navigate to="/migration/mappings/spreadsheet" replace />} />
+          <Route path="/migration/column-mappings" element={<Navigate to="/migration/mappings/spreadsheet" replace />} />
           <Route path="/migration/execution" element={<MigrationPage />} />
           <Route path="/migration/reports" element={<ReportsPage />} />
           <Route path="/migration/workspace" element={<MigrationPage />} />

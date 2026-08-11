@@ -15,9 +15,12 @@ router = APIRouter(prefix="/api/v1/mappings", tags=["mappings"])
 # =========================
 @router.get("/summary")
 @router.get("/summary/")
-def get_mapping_summary(current_user=Depends(get_current_user_with_tenant)):
+def get_mapping_summary(
+    current_user=Depends(get_current_user_with_tenant),
+    all_tenants: bool = False
+):
     try:
-        tenant_id = current_user.get("tenant_id")
+        tenant_id = None if all_tenants else current_user.get("tenant_id")
         db = get_db_connection()
         repo = MappingRepository(db)
         data = repo.get_summary(tenant_id=tenant_id)
@@ -31,9 +34,12 @@ def get_mapping_summary(current_user=Depends(get_current_user_with_tenant)):
 # =========================
 @router.get("/schema")
 @router.get("/schema/")
-def get_mapping_schema(current_user=Depends(get_current_user_with_tenant)):
+def get_mapping_schema(
+    current_user=Depends(get_current_user_with_tenant),
+    all_tenants: bool = False
+):
     try:
-        tenant_id = current_user.get("tenant_id")
+        tenant_id = None if all_tenants else current_user.get("tenant_id")
         db = get_db_connection()
         repo = MappingRepository(db)
         data = repo.get_schema(tenant_id=tenant_id)
@@ -47,9 +53,12 @@ def get_mapping_schema(current_user=Depends(get_current_user_with_tenant)):
 # =========================
 @router.get("/columns")
 @router.get("/columns/")
-def get_all_columns(current_user=Depends(get_current_user_with_tenant)):
+def get_all_columns(
+    current_user=Depends(get_current_user_with_tenant),
+    all_tenants: bool = False
+):
     try:
-        tenant_id = current_user.get("tenant_id")
+        tenant_id = None if all_tenants else current_user.get("tenant_id")
         db = get_db_connection()
         repo = MappingRepository(db)
         data = repo.get_all_columns(tenant_id=tenant_id)
@@ -127,10 +136,13 @@ def validate_all(current_user=Depends(get_current_user_with_tenant)):
 # =========================
 @router.get("/columns/all")
 @router.get("/columns/all/")
-def get_all_columns_with_pending(current_user=Depends(get_current_user_with_tenant)):
+def get_all_columns_with_pending(
+    current_user=Depends(get_current_user_with_tenant),
+    all_tenants: bool = False
+):
     """Get all column mappings including empty table pairs from dataset_mappings."""
     try:
-        tenant_id = current_user.get("tenant_id")
+        tenant_id = None if all_tenants else current_user.get("tenant_id")
         db = get_db_connection()
         repo = MappingRepository(db)
         data = repo.get_all_columns_with_pending(tenant_id=tenant_id)

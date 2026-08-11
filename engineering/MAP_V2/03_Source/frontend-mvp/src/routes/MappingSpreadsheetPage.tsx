@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useMappingSummary, useMappingColumnsWithPending, useAutoMap, useSaveMappings, useValidateMapping, useClearPairMapping, useClearAllMappings } from '../hooks/useMapping';
 import { PageHeader } from '../components/PageHeader/PageHeader';
@@ -9,6 +9,7 @@ import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
 import { TenantFilter } from '../components/shared/TenantFilter';
+import { SplitPane } from '../components/shared/SplitPane';
 import type { MappingRow, TransformType } from '../types/mapping';
 import { TRANSFORM_OPTIONS } from '../types/mapping';
 
@@ -49,6 +50,8 @@ export function MappingSpreadsheetPage() {
   // REF 1: Confirmation modal state
   const [confirmModal, setConfirmModal] = useState<{ open: boolean; type: 'pair' | 'all'; mappingId?: string; tableName?: string; count: number } | { open: boolean; type: null; count: 0 }>({ open: false, type: null, count: 0 });
   const [confirmText, setConfirmText] = useState('');
+  const [selectedGroup, setSelectedGroup] = useState<TableGroup | null>(null);
+  const [expandedTreeNodes, setExpandedTreeNodes] = useState<Record<string, boolean>>({});
 
   const { data: summary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useMappingSummary(selectedTenant || undefined);
   const { data: columns, loading: columnsLoading, error: columnsError, refetch: refetchColumns } = useMappingColumnsWithPending(selectedTenant || undefined);
@@ -60,6 +63,11 @@ export function MappingSpreadsheetPage() {
 
   const loading = summaryLoading || columnsLoading;
   const error = summaryError || columnsError;
+
+  const handleRefresh = useCallback(() => {
+    refetchSummary();
+    refetchColumns();
+  }, [refetchSummary, refetchColumns]);
 
   const mergedColumns = useMemo(() => {
     if (!columns) return [];
@@ -231,6 +239,9 @@ export function MappingSpreadsheetPage() {
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
             <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+            <button onClick={handleRefresh} disabled={loading} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: loading ? 0.5 : 1 }}>
+              Refresh
+            </button>
             <button onClick={handleAutoMap} disabled={autoMapping} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: autoMapping ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: autoMapping ? 0.5 : 1 }}>
               {autoMapping ? 'Mapping...' : 'Auto Map'}
             </button>

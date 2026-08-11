@@ -18,8 +18,9 @@ const DEFAULT_NAV: MetadataNavItem[] = [
     { id: 'schedules', label: 'Schedules', path: '/migration/schedules' },
     { id: 'connections', label: 'Connections', path: '/migration/connections' },
     { id: 'discovery', label: 'Discovery', path: '/migration/discovery' },
-    { id: 'mappings', label: 'Mappings', path: '/migration/mappings' },
-    { id: 'column-mappings', label: 'Column Mappings', path: '/migration/column-mappings' },
+    { id: 'discovery-tree', label: 'Discovery Tree', path: '/migration/discovery/tree' },
+    { id: 'mappings', label: 'Mappings', path: '/migration/mappings/spreadsheet' },
+    { id: 'column-mappings', label: 'Column Mappings', path: '/migration/mappings/spreadsheet' },
     { id: 'execution', label: 'Execution', path: '/migration/execution' },
   ]},
   { id: 'validation', label: 'Validation', path: '/validation', children: [
