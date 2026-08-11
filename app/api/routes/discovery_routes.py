@@ -17,6 +17,13 @@ router = APIRouter(prefix="/api/v1/discovery", tags=["Discovery"])
 discovery_service = DiscoveryService()
 
 
+def _resolve_tenant(tenant_id, all_tenants, current_user):
+    """Resolve which tenant to query. all_tenants=True means no filter."""
+    if all_tenants:
+        return None
+    return tenant_id or current_user.get("tenant_id")
+
+
 # =========================
 # SUMMARY
 # =========================
@@ -24,10 +31,11 @@ discovery_service = DiscoveryService()
 @router.get("/summary/")
 def get_summary(
     current_user=Depends(get_current_user_with_tenant),
-    tenant_id: Optional[str] = Query(None, description="Override tenant ID")
+    tenant_id: Optional[str] = Query(None, description="Override tenant ID"),
+    all_tenants: bool = Query(False, description="Show all tenants")
 ):
     try:
-        effective_tenant = tenant_id or current_user.get("tenant_id")
+        effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
         db = get_db_connection()
         repo = DiscoveryRepository(db)
         data = repo.get_summary(tenant_id=effective_tenant)
@@ -43,10 +51,11 @@ def get_summary(
 @router.get("/tree/")
 def get_tree(
     current_user=Depends(get_current_user_with_tenant),
-    tenant_id: Optional[str] = Query(None, description="Override tenant ID")
+    tenant_id: Optional[str] = Query(None, description="Override tenant ID"),
+    all_tenants: bool = Query(False, description="Show all tenants")
 ):
     try:
-        effective_tenant = tenant_id or current_user.get("tenant_id")
+        effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
         db = get_db_connection()
         repo = DiscoveryRepository(db)
         data = repo.get_tree(tenant_id=effective_tenant)
@@ -62,10 +71,11 @@ def get_tree(
 @router.get("/tables/")
 def get_tables(
     current_user=Depends(get_current_user_with_tenant),
-    tenant_id: Optional[str] = Query(None, description="Override tenant ID")
+    tenant_id: Optional[str] = Query(None, description="Override tenant ID"),
+    all_tenants: bool = Query(False, description="Show all tenants")
 ):
     try:
-        effective_tenant = tenant_id or current_user.get("tenant_id")
+        effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
         db = get_db_connection()
         repo = DiscoveryRepository(db)
         data = repo.get_tables(tenant_id=effective_tenant)

@@ -11,7 +11,7 @@ export function useDiscoverySummary(tenantId?: string) {
     setLoading(true);
     setError(null);
     try {
-      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '?all_tenants=true';
       const result = await apiGet<DiscoverySummary>(`/discovery/summary${qs}`);
       setData(result);
     } catch (err) {
@@ -37,7 +37,7 @@ export function useDiscoveryTree(tenantId?: string) {
     setLoading(true);
     setError(null);
     try {
-      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '?all_tenants=true';
       const result = await apiGet<SchemaNode[]>(`/discovery/tree${qs}`);
       setData(result);
     } catch (err) {
@@ -63,7 +63,7 @@ export function useDiscoveryTables(tenantId?: string) {
     setLoading(true);
     setError(null);
     try {
-      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '?all_tenants=true';
       const result = await apiGet<DiscoveryTableRow[]>(`/discovery/tables${qs}`);
       setData(result);
     } catch (err) {
