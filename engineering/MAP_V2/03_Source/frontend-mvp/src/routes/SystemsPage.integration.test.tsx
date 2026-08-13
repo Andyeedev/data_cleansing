@@ -121,7 +121,7 @@ describe('SystemsPage Integration', () => {
         ok: true,
         json: async () => ({
           success: true,
-          data: { status: 'success', message: 'Source DB connected', latency_ms: 12 },
+          data: { success: true, message: 'Source DB connected', latency_ms: 12 },
         }),
       });
 

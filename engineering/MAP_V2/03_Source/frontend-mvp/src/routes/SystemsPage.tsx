@@ -243,7 +243,7 @@ export function SystemsPage() {
                       <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
                         {testResult && (
                           <StatusBadge
-                            status={testResult.status === 'success' ? 'ACTIVE' : 'FAILED'}
+                            status={testResult.success ? 'ACTIVE' : 'FAILED'}
                             size="sm"
                           />
                         )}
@@ -339,7 +339,7 @@ export function SystemsPage() {
                         fontSize: 'var(--font-size-xs)',
                       }}>
                         <div style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Test Result:</div>
-                        <div style={{ color: testResult.status === 'success' ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                        <div style={{ color: testResult.success ? 'var(--color-success)' : 'var(--color-danger)' }}>
                           {testResult.message}
                         </div>
                         {testResult.latency_ms !== undefined && (

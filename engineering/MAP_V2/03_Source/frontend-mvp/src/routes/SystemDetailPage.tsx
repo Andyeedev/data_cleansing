@@ -214,11 +214,11 @@ export function SystemDetailPage() {
             style={{
               padding: 'var(--space-md)',
               borderRadius: 'var(--radius)',
-              background: testResult.status === 'success' ? 'var(--color-success-bg)' : 'var(--color-error-bg)',
+              background: testResult.success ? 'var(--color-success-bg)' : 'var(--color-error-bg)',
               marginTop: 'var(--space-md)',
             }}
           >
-            <div style={{ fontWeight: 500, color: testResult.status === 'success' ? 'var(--color-success)' : 'var(--color-danger)' }}>
+              <div style={{ fontWeight: 500, color: testResult.success ? 'var(--color-success)' : 'var(--color-danger)' }}>
               {testResult.message}
             </div>
             {testResult.latency_ms !== undefined && (

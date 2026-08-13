@@ -10,7 +10,7 @@ interface ConnectionTestPanelProps {
 }
 
 interface ConnectionTestResult {
-  status: 'success' | 'failed';
+  success: boolean;
   message: string;
   latency_ms?: number;
   server_version?: string;
@@ -44,7 +44,7 @@ export function ConnectionTestPanel({
         ...prev,
         {
           timestamp: new Date().toISOString(),
-          success: res.status === 'success',
+          success: res.success,
           latency_ms: res.latency_ms ?? 0,
           message: res.message,
         },
@@ -52,7 +52,7 @@ export function ConnectionTestPanel({
       onTestComplete?.(res);
     } catch (error) {
       setResult({
-        status: 'failed',
+        success: false,
         message: String(error),
       });
     } finally {
@@ -86,7 +86,7 @@ export function ConnectionTestPanel({
           style={{
             padding: '12px',
             borderRadius: '6px',
-            backgroundColor: result.status === 'success' ? 'var(--color-success-bg)' : 'var(--color-error-bg)',
+            backgroundColor: result.success ? 'var(--color-success-bg)' : 'var(--color-error-bg)',
           }}
         >
           <p style={{ margin: 0 }}>{result.message}</p>

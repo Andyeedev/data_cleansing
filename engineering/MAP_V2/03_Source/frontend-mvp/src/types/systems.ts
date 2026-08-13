@@ -21,7 +21,7 @@ export interface SystemDetail extends System {
 }
 
 export interface TestConnectionResponse {
-  status: 'success' | 'failed';
+  success: boolean;
   message: string;
   latency_ms?: number;
   server_version?: string;
