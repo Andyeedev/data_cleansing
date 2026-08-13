@@ -69,3 +69,31 @@ def test_sqlserver_connection_string_includes_encrypt_and_timeout(fake_pyodbc):
     assert fake_pyodbc.calls[0].timeout == 30, (
         f"expected login timeout 30, got {fake_pyodbc.calls[0].timeout}"
     )
+
+
+def test_onprem_sqlserver_connection_string_has_no_forced_encrypt(fake_pyodbc):
+    from app.config import SQLServerConfig
+    from app.adapters.pool import ConnectionPoolManager
+
+    cfg = SQLServerConfig(
+        host="onprem-sql.corp.local",
+        port=1433,
+        database="appdb",
+        username="testuser",
+        password="testpass",
+    )
+
+    mgr = ConnectionPoolManager()
+    mgr.get_connection(system_id="onprem", config=cfg, db_type="sqlserver")
+
+    assert fake_pyodbc.calls, "pyodbc.connect was never called"
+    conn_str = fake_pyodbc.calls[0].conn_str
+    assert "Encrypt=yes" not in conn_str, (
+        f"on-prem must not force Encrypt: {conn_str}"
+    )
+    assert "TrustServerCertificate=yes" not in conn_str, (
+        f"on-prem must not force TrustServerCertificate: {conn_str}"
+    )
+    assert fake_pyodbc.calls[0].timeout == 30, (
+        f"expected login timeout 30, got {fake_pyodbc.calls[0].timeout}"
+    )

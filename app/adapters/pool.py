@@ -93,9 +93,11 @@ class ConnectionPool:
                 f"DATABASE={database};"
                 f"UID={username};"
                 f"PWD={password};"
-                "Encrypt=yes;"
-                "TrustServerCertificate=yes;"
             )
+            # Azure SQL Database requires encrypted connections; on-prem SQL
+            # Server typically does not, so only force encryption for Azure.
+            if host.endswith(".database.windows.net"):
+                conn_str += "Encrypt=yes;TrustServerCertificate=yes;"
             conn = pyodbc.connect(conn_str, autocommit=True, timeout=30)
         elif self.db_type == "mysql":
             import psycopg2
