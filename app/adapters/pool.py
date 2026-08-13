@@ -96,7 +96,7 @@ class ConnectionPool:
                 "Encrypt=yes;"
                 "TrustServerCertificate=yes;"
             )
-            conn = pyodbc.connect(conn_str, autocommit=True)
+            conn = pyodbc.connect(conn_str, autocommit=True, timeout=30)
         elif self.db_type == "mysql":
             import psycopg2
             conn = psycopg2.connect(
