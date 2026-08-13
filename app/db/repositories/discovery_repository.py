@@ -223,6 +223,32 @@ class DiscoveryRepository:
                 })
         return diff
 
+    def soft_delete_all_discovery(self, tenant_id: str = None) -> int:
+        """Soft delete discovery dataset mappings (set is_active = false), optionally scoped to a tenant."""
+        if tenant_id:
+            update_query = """
+                UPDATE core.dataset_mappings
+                SET is_active = false
+                WHERE mapping_id IN (
+                    SELECT dm.mapping_id FROM core.dataset_mappings dm
+                    INNER JOIN core.projects p ON dm.project_id = p.project_id
+                    WHERE p.tenant_id = %s
+                ) AND is_active = true
+            """
+            params = (tenant_id,)
+        else:
+            update_query = """
+                UPDATE core.dataset_mappings
+                SET is_active = false
+                WHERE is_active = true
+            """
+            params = ()
+        with self.db.conn.cursor() as cur:
+            cur.execute(update_query, params)
+            count = cur.rowcount
+        self.db.conn.commit()
+        return count
+
     async def save_discovery_result(self, result: dict) -> None:
         """Save discovery result to metadata."""
         query = """

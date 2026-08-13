@@ -88,3 +88,25 @@ export async function triggerDiscovery(projectId: string): Promise<{ success: bo
     return { success: false, message: err instanceof Error ? err.message : 'Failed to trigger discovery' };
   }
 }
+
+export function useClearAllDiscovery() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const clearAll = useCallback(async (tenantId?: string): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      await apiPost(`/discovery/clear-all${qs}`, {});
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Clear all failed');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return { clearAll, loading, error };
+}

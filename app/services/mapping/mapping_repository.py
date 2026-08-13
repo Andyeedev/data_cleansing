@@ -22,7 +22,7 @@ class MappingRepository:
                 FROM core.column_mappings cm
                 JOIN core.dataset_mappings dm ON dm.mapping_id = cm.mapping_id
                 JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
-                WHERE sr.tenant_id = %s
+                WHERE sr.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
             )
             SELECT
                 (SELECT COUNT(*) FROM mapped_tables) AS tables_mapped,
@@ -36,10 +36,10 @@ class MappingRepository:
             query = """
             SELECT
                 (SELECT COUNT(*) FROM core.dataset_mappings WHERE is_active = true) AS tables_mapped,
-                (SELECT COUNT(*) FROM core.column_mappings) AS columns_mapped,
-                (SELECT COUNT(*) FROM core.column_mappings WHERE match_status = 'AUTO_MATCHED') AS auto_matched,
-                (SELECT COUNT(*) FROM core.column_mappings WHERE match_status = 'MANUAL') AS manual_matched,
-                (SELECT COUNT(*) FROM core.column_mappings WHERE match_status = 'REVIEW_REQUIRED') AS review_needed
+                (SELECT COUNT(*) FROM core.column_mappings WHERE is_active IS NULL OR is_active = true) AS columns_mapped,
+                (SELECT COUNT(*) FROM core.column_mappings WHERE (is_active IS NULL OR is_active = true) AND match_status = 'AUTO_MATCHED') AS auto_matched,
+                (SELECT COUNT(*) FROM core.column_mappings WHERE (is_active IS NULL OR is_active = true) AND match_status = 'MANUAL') AS manual_matched,
+                (SELECT COUNT(*) FROM core.column_mappings WHERE (is_active IS NULL OR is_active = true) AND match_status = 'REVIEW_REQUIRED') AS review_needed
             """
             params = None
 
@@ -111,7 +111,7 @@ class MappingRepository:
             JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
             LEFT JOIN core.dataset_columns src_col ON src_col.column_id = cm.source_column_id
             LEFT JOIN core.dataset_columns tgt_col ON tgt_col.column_id = cm.target_column_id
-            WHERE sr.tenant_id = %s
+            WHERE sr.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
             ORDER BY dm.source_table, src_col.column_position
             """
             params = (tenant_id,)
@@ -132,6 +132,7 @@ class MappingRepository:
             JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
             LEFT JOIN core.dataset_columns src_col ON src_col.column_id = cm.source_column_id
             LEFT JOIN core.dataset_columns tgt_col ON tgt_col.column_id = cm.target_column_id
+            WHERE cm.is_active IS NULL OR cm.is_active = true
             ORDER BY dm.source_table, src_col.column_position
             """
             params = None
@@ -183,8 +184,15 @@ class MappingRepository:
         query = """
             INSERT INTO core.column_mappings
             (mapping_id, source_column_id, target_column_id,
-             confidence_score, match_status, match_reason, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, NOW())
+             confidence_score, match_status, match_reason, is_active, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, true, NOW())
+            ON CONFLICT (mapping_id, source_column_id) DO UPDATE SET
+                target_column_id = EXCLUDED.target_column_id,
+                confidence_score = EXCLUDED.confidence_score,
+                match_status = EXCLUDED.match_status,
+                match_reason = EXCLUDED.match_reason,
+                is_active = true,
+                updated_at = NOW()
             RETURNING column_mapping_id
         """
         with self.db.conn.cursor() as cur:
@@ -294,27 +302,54 @@ class MappingRepository:
         self.db.conn.commit()
         return count
 
-    def soft_delete_all_column_mappings(self, user_email: str) -> int:
-        """Soft delete ALL column mappings (set is_active = false)."""
-        audit_query = """
-            INSERT INTO core.column_mapping_audit
-            (column_mapping_id, mapping_id, action, source_column, target_column, performed_by, performed_at)
-            SELECT column_mapping_id, mapping_id, 'SOFT_DELETE_ALL',
-                   (SELECT column_name FROM core.dataset_columns WHERE column_id = cm.source_column_id),
-                   (SELECT column_name FROM core.dataset_columns WHERE column_id = cm.target_column_id),
-                   %s, NOW()
-            FROM core.column_mappings cm
-            WHERE cm.is_active IS NULL OR cm.is_active = true
-        """
-        update_query = """
-            UPDATE core.column_mappings 
-            SET is_active = false, updated_at = NOW()
-            WHERE is_active IS NULL OR is_active = true
-        """
-        with self.db.conn.cursor() as cur:
-            cur.execute(audit_query, (user_email,))
-            cur.execute(update_query)
-            count = cur.rowcount
+    def soft_delete_all_column_mappings(self, user_email: str, tenant_id: str = None) -> int:
+        """Soft delete column mappings (set is_active = false), optionally scoped to a tenant."""
+        if tenant_id:
+            audit_query = """
+                INSERT INTO core.column_mapping_audit
+                (column_mapping_id, mapping_id, action, source_column, target_column, performed_by, performed_at)
+                SELECT cm.column_mapping_id, cm.mapping_id, 'SOFT_DELETE_ALL',
+                       (SELECT column_name FROM core.dataset_columns WHERE column_id = cm.source_column_id),
+                       (SELECT column_name FROM core.dataset_columns WHERE column_id = cm.target_column_id),
+                       %s, NOW()
+                FROM core.column_mappings cm
+                JOIN core.dataset_mappings dm ON dm.mapping_id = cm.mapping_id
+                JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
+                WHERE sr.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
+            """
+            update_query = """
+                UPDATE core.column_mappings 
+                SET is_active = false, updated_at = NOW()
+                WHERE mapping_id IN (
+                    SELECT dm.mapping_id FROM core.dataset_mappings dm
+                    JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
+                    WHERE sr.tenant_id = %s
+                ) AND (is_active IS NULL OR is_active = true)
+            """
+            with self.db.conn.cursor() as cur:
+                cur.execute(audit_query, (user_email, tenant_id))
+                cur.execute(update_query, (tenant_id,))
+                count = cur.rowcount
+        else:
+            audit_query = """
+                INSERT INTO core.column_mapping_audit
+                (column_mapping_id, mapping_id, action, source_column, target_column, performed_by, performed_at)
+                SELECT column_mapping_id, mapping_id, 'SOFT_DELETE_ALL',
+                       (SELECT column_name FROM core.dataset_columns WHERE column_id = cm.source_column_id),
+                       (SELECT column_name FROM core.dataset_columns WHERE column_id = cm.target_column_id),
+                       %s, NOW()
+                FROM core.column_mappings cm
+                WHERE cm.is_active IS NULL OR cm.is_active = true
+            """
+            update_query = """
+                UPDATE core.column_mappings 
+                SET is_active = false, updated_at = NOW()
+                WHERE is_active IS NULL OR is_active = true
+            """
+            with self.db.conn.cursor() as cur:
+                cur.execute(audit_query, (user_email,))
+                cur.execute(update_query)
+                count = cur.rowcount
         self.db.conn.commit()
         return count
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from typing import List, Optional
 from datetime import datetime
 
@@ -10,6 +10,13 @@ from app.api.core.auth.dependencies import get_current_user_with_tenant
 router = APIRouter(prefix="/api/v1/mappings", tags=["mappings"])
 
 
+def _resolve_tenant(tenant_id, all_tenants, current_user):
+    """Resolve which tenant to query. all_tenants=True means no filter."""
+    if all_tenants:
+        return None
+    return tenant_id or current_user.get("tenant_id")
+
+
 # =========================
 # SUMMARY
 # =========================
@@ -17,13 +24,14 @@ router = APIRouter(prefix="/api/v1/mappings", tags=["mappings"])
 @router.get("/summary/")
 def get_mapping_summary(
     current_user=Depends(get_current_user_with_tenant),
-    all_tenants: bool = False
+    tenant_id: Optional[str] = Query(None, description="Override tenant ID"),
+    all_tenants: bool = Query(False, description="Show all tenants")
 ):
     try:
-        tenant_id = None if all_tenants else current_user.get("tenant_id")
+        effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
         db = get_db_connection()
         repo = MappingRepository(db)
-        data = repo.get_summary(tenant_id=tenant_id)
+        data = repo.get_summary(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -36,13 +44,14 @@ def get_mapping_summary(
 @router.get("/schema/")
 def get_mapping_schema(
     current_user=Depends(get_current_user_with_tenant),
-    all_tenants: bool = False
+    tenant_id: Optional[str] = Query(None, description="Override tenant ID"),
+    all_tenants: bool = Query(False, description="Show all tenants")
 ):
     try:
-        tenant_id = None if all_tenants else current_user.get("tenant_id")
+        effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
         db = get_db_connection()
         repo = MappingRepository(db)
-        data = repo.get_schema(tenant_id=tenant_id)
+        data = repo.get_schema(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -55,13 +64,14 @@ def get_mapping_schema(
 @router.get("/columns/")
 def get_all_columns(
     current_user=Depends(get_current_user_with_tenant),
-    all_tenants: bool = False
+    tenant_id: Optional[str] = Query(None, description="Override tenant ID"),
+    all_tenants: bool = Query(False, description="Show all tenants")
 ):
     try:
-        tenant_id = None if all_tenants else current_user.get("tenant_id")
+        effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
         db = get_db_connection()
         repo = MappingRepository(db)
-        data = repo.get_all_columns(tenant_id=tenant_id)
+        data = repo.get_all_columns(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -72,12 +82,17 @@ def get_all_columns(
 # =========================
 @router.post("/auto-map")
 @router.post("/auto-map/")
-def auto_map(current_user=Depends(get_current_user_with_tenant)):
+async def auto_map(
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: Optional[str] = Query(None, description="Override tenant ID"),
+    all_tenants: bool = Query(False, description="Show all tenants")
+):
     try:
+        effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
         db = get_db_connection()
-        repo = MappingRepository(db)
-        data = repo.get_all_columns(tenant_id=current_user.get("tenant_id"))
-        return {"success": True, "data": {"mapped": len(data), "message": "Auto-map completed"}}
+        service = MappingService(db)
+        result = await service.auto_map(tenant_id=effective_tenant)
+        return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -138,14 +153,15 @@ def validate_all(current_user=Depends(get_current_user_with_tenant)):
 @router.get("/columns/all/")
 def get_all_columns_with_pending(
     current_user=Depends(get_current_user_with_tenant),
-    all_tenants: bool = False
+    tenant_id: Optional[str] = Query(None, description="Override tenant ID"),
+    all_tenants: bool = Query(False, description="Show all tenants")
 ):
     """Get all column mappings including empty table pairs from dataset_mappings."""
     try:
-        tenant_id = None if all_tenants else current_user.get("tenant_id")
+        effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
         db = get_db_connection()
         repo = MappingRepository(db)
-        data = repo.get_all_columns_with_pending(tenant_id=tenant_id)
+        data = repo.get_all_columns_with_pending(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -190,23 +206,23 @@ def clear_pair_mapping(
 @router.post("/clear-all")
 @router.post("/clear-all/")
 def clear_all_mappings(
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: Optional[str] = Query(None, description="Tenant ID to clear (required)"),
 ):
-    """Soft delete ALL column mappings."""
+    """Soft delete column mappings for a specific tenant."""
     try:
+        if not tenant_id:
+            raise HTTPException(status_code=400, detail="tenant_id is required. Select a tenant before clearing.")
+        
         db = get_db_connection()
         repo = MappingRepository(db)
         user_email = current_user.get("user", current_user.get("email", "unknown"))
         
-        # Count before delete
-        count_before = repo.get_total_active_column_mappings()
-        
-        # Soft delete
-        deleted = repo.soft_delete_all_column_mappings(user_email)
+        deleted = repo.soft_delete_all_column_mappings(user_email, tenant_id=tenant_id)
         
         return {"success": True, "data": {
             "deleted_count": deleted,
-            "message": f"Soft deleted all {deleted} column mappings"
+            "message": f"Soft deleted {deleted} column mappings for tenant"
         }}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -75,11 +75,12 @@ export function useAutoMap() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const autoMap = useCallback(async (): Promise<boolean> => {
+  const autoMap = useCallback(async (tenantId?: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
-      await apiPost('/mappings/auto-map', {});
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      await apiPost(`/mappings/auto-map${qs}`, {});
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Auto-map failed');
@@ -188,11 +189,12 @@ export function useClearAllMappings() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const clearAll = useCallback(async (): Promise<boolean> => {
+  const clearAll = useCallback(async (tenantId?: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
-      await apiPost('/mappings/clear-all', {});
+      const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
+      await apiPost(`/mappings/clear-all${qs}`, {});
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Clear all failed');

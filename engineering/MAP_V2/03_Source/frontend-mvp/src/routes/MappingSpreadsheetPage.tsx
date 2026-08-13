@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useMappingSummary, useMappingColumnsWithPending, useAutoMap, useSaveMappings, useValidateMapping, useClearPairMapping, useClearAllMappings } from '../hooks/useMapping';
 import { PageHeader } from '../components/PageHeader/PageHeader';
@@ -9,11 +9,13 @@ import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
 import { TenantFilter } from '../components/shared/TenantFilter';
-import { SplitPane } from '../components/shared/SplitPane';
+import { Pagination } from '../components/shared/Pagination';
 import type { MappingRow, TransformType } from '../types/mapping';
 import { TRANSFORM_OPTIONS } from '../types/mapping';
 
 type FilterStatus = 'all' | 'matched' | 'unmapped_source' | 'modified' | 'pending';
+type SortField = 'source_table' | 'source_column' | 'target_column' | 'match_status' | 'confidence_score';
+type SortDir = 'asc' | 'desc';
 
 const TRANSFORM_COLORS: Record<string, string> = {
   none: 'var(--color-text-secondary)',
@@ -36,7 +38,7 @@ interface TableGroup {
   columns: MappingRow[];
 }
 
-const PAGE_SIZE = 50;
+const PAGE_SIZES = [10, 25, 50, 100];
 
 export function MappingSpreadsheetPage() {
   const { userRoles, tenantId: userTenantId } = useAuth();
@@ -44,14 +46,25 @@ export function MappingSpreadsheetPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [localChanges, setLocalChanges] = useState<Record<string, Partial<MappingRow>>>({});
   const [validationResult, setValidationResult] = useState<{ valid: boolean; issues: unknown[]; type_mismatches: number } | null>(null);
-  
+
+  // Sorting
+  const [sortField, setSortField] = useState<SortField>('source_table');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  // Collapse/expand
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  // Progress tracking
+  const [autoMapProgress, setAutoMapProgress] = useState<{ active: boolean; message: string }>({ active: false, message: '' });
+  const [clearProgress, setClearProgress] = useState<{ active: boolean; message: string }>({ active: false, message: '' });
+  const progressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // REF 1: Confirmation modal state
   const [confirmModal, setConfirmModal] = useState<{ open: boolean; type: 'pair' | 'all'; mappingId?: string; tableName?: string; count: number } | { open: boolean; type: null; count: 0 }>({ open: false, type: null, count: 0 });
   const [confirmText, setConfirmText] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<TableGroup | null>(null);
-  const [expandedTreeNodes, setExpandedTreeNodes] = useState<Record<string, boolean>>({});
 
   const { data: summary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useMappingSummary(selectedTenant || undefined);
   const { data: columns, loading: columnsLoading, error: columnsError, refetch: refetchColumns } = useMappingColumnsWithPending(selectedTenant || undefined);
@@ -64,15 +77,28 @@ export function MappingSpreadsheetPage() {
   const loading = summaryLoading || columnsLoading;
   const error = summaryError || columnsError;
 
+  // Unique row key generator (handles PENDING rows with null column_mapping_id)
+  const getRowKey = (col: MappingRow) => col.column_mapping_id || `pending_${col.mapping_id}_${col.source_column}`;
+
+  // Cleanup progress timer on unmount
+  useEffect(() => {
+    return () => {
+      if (progressTimerRef.current) clearTimeout(progressTimerRef.current);
+    };
+  }, []);
+
   const handleRefresh = useCallback(() => {
+    const scrollY = window.scrollY;
     refetchSummary();
     refetchColumns();
+    requestAnimationFrame(() => window.scrollTo(0, scrollY));
   }, [refetchSummary, refetchColumns]);
 
   const mergedColumns = useMemo(() => {
     if (!columns) return [];
     return columns.map((col) => {
-      const change = localChanges[col.column_mapping_id];
+      const key = getRowKey(col);
+      const change = localChanges[key];
       return change ? { ...col, ...change } : col;
     });
   }, [columns, localChanges]);
@@ -100,9 +126,27 @@ export function MappingSpreadsheetPage() {
     return result;
   }, [mergedColumns, statusFilter, searchQuery]);
 
+  // Sorting
+  const sortedColumns = useMemo(() => {
+    const sorted = [...filteredColumns];
+    sorted.sort((a, b) => {
+      let aVal = '';
+      let bVal = '';
+      switch (sortField) {
+        case 'source_table': aVal = a.source_table; bVal = b.source_table; break;
+        case 'source_column': aVal = a.source_column; bVal = b.source_column; break;
+        case 'target_column': aVal = a.target_column || ''; bVal = b.target_column || ''; break;
+        case 'match_status': aVal = a.match_status; bVal = b.match_status; break;
+        case 'confidence_score': return ((a.confidence_score || 0) - (b.confidence_score || 0)) * (sortDir === 'asc' ? 1 : -1);
+      }
+      return aVal.localeCompare(bVal) * (sortDir === 'asc' ? 1 : -1);
+    });
+    return sorted;
+  }, [filteredColumns, sortField, sortDir]);
+
   const tableGroups = useMemo(() => {
     const groupMap = new Map<string, TableGroup>();
-    for (const col of filteredColumns) {
+    for (const col of sortedColumns) {
       const key = `${col.source_table}→${col.target_table || '(unmapped)'}`;
       if (!groupMap.has(key)) {
         groupMap.set(key, {
@@ -117,43 +161,145 @@ export function MappingSpreadsheetPage() {
       groupMap.get(key)!.columns.push(col);
     }
     return Array.from(groupMap.values());
-  }, [filteredColumns]);
+  }, [sortedColumns]);
 
-  const totalPages = Math.ceil(tableGroups.length / PAGE_SIZE);
-  const paginatedGroups = tableGroups.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const totalPages = Math.ceil(tableGroups.length / pageSize);
+  const paginatedGroups = tableGroups.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalRows = filteredColumns.length;
 
   const unmappedSource = useMemo(() => {
     if (!mergedColumns) return [];
     return mergedColumns.filter((c) => !c.target_column).map((c) => `${c.source_table}.${c.source_column}`);
   }, [mergedColumns]);
 
+  // =========================
+  // Sorting handler
+  // =========================
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <span style={{ opacity: 0.3, fontSize: '10px' }}>{'\u2195'}</span>;
+    return <span style={{ fontSize: '10px' }}>{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>;
+  };
+
+  // =========================
+  // Collapse/expand
+  // =========================
+  const toggleGroupCollapse = (key: string) => {
+    setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // =========================
+  // Individual row toggle (map/unmap)
+  // =========================
+  const handleToggleRow = (col: MappingRow) => {
+    const key = getRowKey(col);
+    if (col.match_status === 'PENDING' || !col.target_column) {
+      setLocalChanges((prev) => ({
+        ...prev,
+        [key]: {
+          target_column: col.source_column,
+          match_status: 'MANUAL',
+        },
+      }));
+    } else {
+      setLocalChanges((prev) => ({
+        ...prev,
+        [key]: {
+          target_column: null,
+          match_status: 'PENDING',
+        },
+      }));
+    }
+  };
+
   const handleTransformChange = (colId: string, transform: TransformType) => {
     setLocalChanges((prev) => ({ ...prev, [colId]: { ...prev[colId], transformation: transform } }));
   };
 
-  const handleTargetChange = (colId: string, targetCol: string) => {
-    setLocalChanges((prev) => ({ ...prev, [colId]: { ...prev[colId], target_column: targetCol, match_status: 'MANUAL' } }));
-  };
-
+  // =========================
+  // Auto Map with progress simulation
+  // =========================
   const handleAutoMap = async () => {
-    const ok = await autoMap();
+    if (!selectedTenant) return;
+    const scrollY = window.scrollY;
+    setAutoMapProgress({ active: true, message: 'Analyzing source columns...' });
+
+    progressTimerRef.current = setTimeout(() => {
+      setAutoMapProgress({ active: true, message: 'Matching target columns...' });
+    }, 1000);
+
+    const ok = await autoMap(selectedTenant);
+
+    if (progressTimerRef.current) clearTimeout(progressTimerRef.current);
+    setAutoMapProgress({ active: true, message: 'Saving column mappings...' });
+
     if (ok) {
       setLocalChanges({});
-      refetchColumns();
-      refetchSummary();
+      await refetchColumns();
+      await refetchSummary();
+      setAutoMapProgress({ active: true, message: 'Complete!' });
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
+      setTimeout(() => setAutoMapProgress({ active: false, message: '' }), 800);
+    } else {
+      setAutoMapProgress({ active: false, message: '' });
+    }
+  };
+
+  // =========================
+  // Clear All with progress simulation
+  // =========================
+  const handleConfirmClear = async () => {
+    const scrollY = window.scrollY;
+    if (confirmModal.type === 'pair' && confirmModal.mappingId) {
+      const ok = await clearPair(confirmModal.mappingId);
+      if (ok) {
+        setConfirmModal({ open: false, type: null, count: 0 });
+        await refetchColumns();
+        await refetchSummary();
+        requestAnimationFrame(() => window.scrollTo(0, scrollY));
+      }
+    } else if (confirmModal.type === 'all') {
+      setConfirmModal({ open: false, type: null, count: 0 });
+      setClearProgress({ active: true, message: 'Removing column mappings...' });
+
+      const ok = await clearAll(selectedTenant || undefined);
+
+      setClearProgress({ active: true, message: 'Refreshing data...' });
+      if (ok) {
+        await refetchColumns();
+        await refetchSummary();
+        setClearProgress({ active: true, message: 'Complete!' });
+        requestAnimationFrame(() => window.scrollTo(0, scrollY));
+        setTimeout(() => setClearProgress({ active: false, message: '' }), 800);
+      } else {
+        setClearProgress({ active: false, message: '' });
+      }
     }
   };
 
   const handleSave = async () => {
-    const changedRows = Object.entries(localChanges).map(([id, change]) => ({
-      column_mapping_id: id,
-      ...change,
-    }));
-    const ok = await save(changedRows);
+    const scrollY = window.scrollY;
+    const changedRows = Object.entries(localChanges)
+      .filter(([id]) => !id.startsWith('pending_'))
+      .map(([id, change]) => ({
+        column_mapping_id: id,
+        ...change,
+      }));
+    const ok = await save(changedRows.length > 0 ? changedRows : []);
     if (ok) {
       setLocalChanges({});
-      refetchColumns();
-      refetchSummary();
+      await refetchColumns();
+      await refetchSummary();
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
     }
   };
 
@@ -190,30 +336,12 @@ export function MappingSpreadsheetPage() {
     setConfirmText('');
   };
 
-  const handleConfirmClear = async () => {
-    if (confirmModal.type === 'pair' && confirmModal.mappingId) {
-      const ok = await clearPair(confirmModal.mappingId);
-      if (ok) {
-        setConfirmModal({ open: false, type: null, count: 0 });
-        refetchColumns();
-        refetchSummary();
-      }
-    } else if (confirmModal.type === 'all') {
-      const ok = await clearAll();
-      if (ok) {
-        setConfirmModal({ open: false, type: null, count: 0 });
-        refetchColumns();
-        refetchSummary();
-      }
-    }
-  };
-
   const handleCancelClear = () => {
     setConfirmModal({ open: false, type: null, count: 0 });
     setConfirmText('');
   };
 
-  const isConfirmValid = confirmModal.type === 'all' 
+  const isConfirmValid = confirmModal.type === 'all'
     ? confirmText.toLowerCase() === 'clear all'
     : confirmText === confirmModal.tableName;
 
@@ -226,10 +354,14 @@ export function MappingSpreadsheetPage() {
     );
   }
 
-  const thStyle: React.CSSProperties = { textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 1 };
+  const thStyle: React.CSSProperties = { textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 1, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' };
   const tdStyle: React.CSSProperties = { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-sm)', borderBottom: '1px solid var(--color-border)' };
   const inputStyle: React.CSSProperties = { width: '100%', padding: '4px 8px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-xs)', background: 'var(--color-background)', color: 'var(--color-text)', boxSizing: 'border-box' };
-  const groupHeaderStyle: React.CSSProperties = { padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--color-text)' };
+  const groupHeaderStyle: React.CSSProperties = { padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--color-text)', cursor: 'pointer' };
+
+  const isBusy = autoMapping || clearingPair || clearingAll;
+  const progressActive = autoMapProgress.active || clearProgress.active;
+  const progressMessage = autoMapProgress.active ? autoMapProgress.message : clearProgress.active ? clearProgress.message : '';
 
   return (
     <div style={{ padding: 'var(--space-lg)' }}>
@@ -237,12 +369,12 @@ export function MappingSpreadsheetPage() {
         title="Migration Mappings"
         description="Committed column relationships for data migration — these are actual mappings stored in the database, not potential matches from discovery"
         actions={
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
             <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
-            <button onClick={handleRefresh} disabled={loading} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: loading ? 0.5 : 1 }}>
+            <button onClick={handleRefresh} disabled={loading || isBusy} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: loading || isBusy ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: loading || isBusy ? 0.5 : 1 }}>
               Refresh
             </button>
-            <button onClick={handleAutoMap} disabled={autoMapping} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: autoMapping ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: autoMapping ? 0.5 : 1 }}>
+            <button onClick={handleAutoMap} disabled={autoMapping || !selectedTenant} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: autoMapping || !selectedTenant ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: autoMapping || !selectedTenant ? 0.5 : 1 }}>
               {autoMapping ? 'Mapping...' : 'Auto Map'}
             </button>
             <button onClick={handleSave} disabled={saving || Object.keys(localChanges).length === 0} style={{ padding: 'var(--space-sm) var(--space-md)', background: Object.keys(localChanges).length > 0 ? 'var(--color-success)' : 'var(--color-bg-secondary)', color: Object.keys(localChanges).length > 0 ? '#fff' : 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: saving ? 0.5 : 1 }}>
@@ -251,12 +383,22 @@ export function MappingSpreadsheetPage() {
             <button onClick={handleExportCSV} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
               Export CSV
             </button>
-            <button onClick={handleClearAllClick} disabled={clearingAll || columns?.filter(c => c.match_status !== 'PENDING').length === 0} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-danger)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: clearingAll ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: clearingAll || columns?.filter(c => c.match_status !== 'PENDING').length === 0 ? 0.5 : 1 }}>
+            <button onClick={handleClearAllClick} disabled={!selectedTenant || clearingAll || columns?.filter(c => c.match_status !== 'PENDING').length === 0} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-danger)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: !selectedTenant || clearingAll ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: !selectedTenant || clearingAll || columns?.filter(c => c.match_status !== 'PENDING').length === 0 ? 0.5 : 1 }}>
               {clearingAll ? 'Clearing...' : 'Clear All'}
             </button>
           </div>
         }
       />
+
+      {/* ========================= Progress Bar ========================= */}
+      {progressActive && (
+        <div style={{ marginBottom: 'var(--space-md)', padding: 'var(--space-sm) var(--space-md)', background: 'rgba(var(--color-info-rgb, 59,130,246), 0.08)', borderRadius: 'var(--radius)', border: '1px solid rgba(var(--color-info-rgb, 59,130,246), 0.2)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+          <div style={{ width: 16, height: 16, border: '2px solid var(--color-info)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-info)', fontWeight: 500 }}>{progressMessage}</span>
+        </div>
+      )}
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {error && <ErrorState message={error} onRetry={() => { refetchSummary(); refetchColumns(); }} />}
       {loading && <LoadingSkeleton rows={4} variant="card" />}
@@ -280,7 +422,7 @@ export function MappingSpreadsheetPage() {
           </div>
 
           <div style={{ padding: 'var(--space-sm) var(--space-md)', marginBottom: 'var(--space-md)', background: 'rgba(var(--color-info-rgb, 59,130,246), 0.08)', borderRadius: 'var(--radius)', border: '1px solid rgba(var(--color-info-rgb, 59,130,246), 0.2)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-            <strong style={{ color: 'var(--color-info)' }}>Migration Mappings</strong> show actual column relationships stored in the database. <strong>Discovery</strong> shows potential matches found by heuristic. Use <strong>Auto Map</strong> to populate mappings from discovery results.
+            <strong style={{ color: 'var(--color-info)' }}>Migration Mappings</strong> show actual column relationships stored in the database. Click a row to toggle mapping. Use <strong>Auto Map</strong> to populate from discovery results.
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -306,7 +448,7 @@ export function MappingSpreadsheetPage() {
               </div>
               {(validationResult.issues as Array<{ source_column: string; target_column: string; source_type: string; target_type: string }>).slice(0, 5).map((issue, i) => (
                 <div key={i} style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                  {issue.source_column} ({issue.source_type}) \u2192 {issue.target_column} ({issue.target_type})
+                  {issue.source_column} ({issue.source_type}) {'\u2192'} {issue.target_column} ({issue.target_type})
                 </div>
               ))}
             </div>
@@ -319,91 +461,130 @@ export function MappingSpreadsheetPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
                 <thead>
                   <tr>
-                    <th style={thStyle}>Source</th>
+                    <th style={thStyle} onClick={() => handleSort('source_table')}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>{'\u25B6'} Source</span>
+                        <SortIcon field="source_table" />
+                      </span>
+                    </th>
                     <th style={thStyle}>Type</th>
                     <th style={thStyle}>Transform</th>
                     <th style={thStyle}>Rule</th>
-                    <th style={thStyle}>Target</th>
+                    <th style={thStyle} onClick={() => handleSort('target_column')}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>Target</span>
+                        <SortIcon field="target_column" />
+                      </span>
+                    </th>
                     <th style={thStyle}>Type</th>
-                    <th style={thStyle}>Status</th>
+                    <th style={thStyle} onClick={() => handleSort('match_status')}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>Status</span>
+                        <SortIcon field="match_status" />
+                      </span>
+                    </th>
+                    <th style={{ ...thStyle, cursor: 'default', width: 40, textAlign: 'center' }}>{'\u2713'}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedGroups.map((group) => (
-                    <React.Fragment key={group.key}>
-                      <tr>
-                        <td colSpan={7} style={groupHeaderStyle}>
-                          <span style={{ color: 'var(--color-primary)' }}>{group.source_schema}.{group.source_table}</span>
-                          <span style={{ margin: '0 var(--space-sm)', color: 'var(--color-text-secondary)' }}>\u2192</span>
-                          <span style={{ color: 'var(--color-success)' }}>{group.target_schema}.{group.target_table}</span>
-                          <span style={{ marginLeft: 'var(--space-sm)', color: 'var(--color-text-secondary)', fontWeight: 400 }}>({group.columns.length} columns)</span>
-                          <span style={{ marginLeft: 'var(--space-sm)' }}>
-                            <StatusBadge
-                              status={group.columns.length > 0 ? 'Active' : 'Empty'}
-                              size="sm"
-                              variant={group.columns.length > 0 ? 'success' : 'warning'}
-                            />
-                          </span>
-                          {group.columns.length > 0 && (
-                            <button
-                              onClick={() => handleClearPairClick(group.columns[0].mapping_id, group.source_table, group.columns.length)}
-                              disabled={clearingPair}
-                              style={{ marginLeft: 'var(--space-sm)', padding: '2px 8px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid var(--color-danger)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)', opacity: clearingPair ? 0.5 : 1 }}
-                            >
-                              Clear
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                      {group.columns.map((col, idx) => {
-                        const isChanged = !!localChanges[col.column_mapping_id];
-                        const rowBg = idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)';
-                        const transform = col.transformation || 'none';
-                        return (
-                          <tr key={col.column_mapping_id} style={{ background: isChanged ? 'rgba(var(--color-primary-rgb, 59,130,246), 0.05)' : rowBg }}>
-                            <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 500 }}>{col.source_column}</td>
-                            <td style={{ ...tdStyle, color: 'var(--color-text-secondary)' }}>{col.source_data_type || '\u2014'}</td>
-                            <td style={tdStyle}>
-                              <select value={transform} onChange={(e) => handleTransformChange(col.column_mapping_id, e.target.value as TransformType)} style={{ ...inputStyle, width: 110, color: TRANSFORM_COLORS[transform] || 'var(--color-text)' }}>
-                                {TRANSFORM_OPTIONS.map((opt) => (
-                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                              </select>
-                            </td>
-                            <td style={tdStyle}>
-                              <input style={{ ...inputStyle, width: 100 }} placeholder="rule..." value={localChanges[col.column_mapping_id]?.transformation || ''} onChange={(e) => handleTransformChange(col.column_mapping_id, e.target.value)} />
-                            </td>
-                            <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 500 }}>{col.target_column || '\u2014'}</td>
-                            <td style={{ ...tdStyle, color: 'var(--color-text-secondary)' }}>{col.target_data_type || '\u2014'}</td>
-                            <td style={tdStyle}>
+                  {paginatedGroups.map((group) => {
+                    const isCollapsed = collapsedGroups[group.key] || false;
+                    const mappedCount = group.columns.filter(c => c.target_column).length;
+                    return (
+                      <React.Fragment key={group.key}>
+                        <tr onClick={() => toggleGroupCollapse(group.key)} style={{ cursor: 'pointer' }}>
+                          <td colSpan={8} style={groupHeaderStyle}>
+                            <span style={{ marginRight: 'var(--space-sm)', fontSize: '10px' }}>{isCollapsed ? '\u25B6' : '\u25BC'}</span>
+                            <span style={{ color: 'var(--color-primary)' }}>{group.source_schema}.{group.source_table}</span>
+                            <span style={{ margin: '0 var(--space-sm)', color: 'var(--color-text-secondary)' }}>{'\u2192'}</span>
+                            <span style={{ color: 'var(--color-success)' }}>{group.target_schema}.{group.target_table}</span>
+                            <span style={{ marginLeft: 'var(--space-sm)', color: 'var(--color-text-secondary)', fontWeight: 400 }}>
+                              ({mappedCount}/{group.columns.length} mapped)
+                            </span>
+                            <span style={{ marginLeft: 'var(--space-sm)' }}>
                               <StatusBadge
-                                status={col.match_status === 'AUTO_MATCHED' ? 'Matched' : col.match_status === 'MANUAL' ? 'Manual' : col.match_status === 'REVIEW_REQUIRED' ? 'Review' : 'Unmapped'}
+                                status={mappedCount === group.columns.length ? 'Active' : mappedCount > 0 ? 'Partial' : 'Empty'}
                                 size="sm"
-                                variant={col.match_status === 'AUTO_MATCHED' ? 'success' : col.match_status === 'MANUAL' ? 'info' : col.match_status === 'REVIEW_REQUIRED' ? 'warning' : 'danger'}
+                                variant={mappedCount === group.columns.length ? 'success' : mappedCount > 0 ? 'warning' : 'danger'}
                               />
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </React.Fragment>
-                  ))}
+                            </span>
+                            {mappedCount > 0 && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleClearPairClick(group.columns[0].mapping_id, group.source_table, mappedCount); }}
+                                disabled={clearingPair}
+                                style={{ marginLeft: 'var(--space-sm)', padding: '2px 8px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid var(--color-danger)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)', opacity: clearingPair ? 0.5 : 1 }}
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                        {!isCollapsed && group.columns.map((col, idx) => {
+                          const rowKey = getRowKey(col);
+                          const isChanged = !!localChanges[rowKey];
+                          const rowBg = idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)';
+                          const transform = col.transformation || 'none';
+                          const isMapped = !!col.target_column;
+                          return (
+                            <tr key={rowKey} onClick={() => handleToggleRow(col)} style={{ background: isChanged ? 'rgba(var(--color-primary-rgb, 59,130,246), 0.05)' : rowBg, cursor: 'pointer' }} title={isMapped ? 'Click to unmap' : 'Click to map'}>
+                              <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 500 }}>{col.source_column}</td>
+                              <td style={{ ...tdStyle, color: 'var(--color-text-secondary)' }}>{col.source_data_type || '\u2014'}</td>
+                              <td style={tdStyle} onClick={(e) => e.stopPropagation()}>
+                                <select value={transform} onChange={(e) => handleTransformChange(rowKey, e.target.value as TransformType)} style={{ ...inputStyle, width: 110, color: TRANSFORM_COLORS[transform] || 'var(--color-text)' }}>
+                                  {TRANSFORM_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td style={tdStyle} onClick={(e) => e.stopPropagation()}>
+                                <input style={{ ...inputStyle, width: 100 }} placeholder="rule..." value={localChanges[rowKey]?.transformation || ''} onChange={(e) => handleTransformChange(rowKey, e.target.value)} />
+                              </td>
+                              <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 500 }}>{col.target_column || '\u2014'}</td>
+                              <td style={{ ...tdStyle, color: 'var(--color-text-secondary)' }}>{col.target_data_type || '\u2014'}</td>
+                              <td style={tdStyle} onClick={(e) => e.stopPropagation()}>
+                               <StatusBadge
+                                 status={col.match_status === 'AUTO_MATCHED' ? 'Matched' : col.match_status === 'MANUAL' ? 'Manual' : col.match_status === 'REVIEW_REQUIRED' ? 'Review' : 'Unmapped'}
+                                 size="sm"
+                                 variant={col.match_status === 'AUTO_MATCHED' ? 'success' : col.match_status === 'MANUAL' ? 'info' : col.match_status === 'REVIEW_REQUIRED' ? 'warning' : 'danger'}
+                                 onClick={() => handleToggleRow(col)}
+                                 aria-label={col.match_status === 'AUTO_MATCHED' ? 'Matched' : col.match_status === 'MANUAL' ? 'Manual' : col.match_status === 'REVIEW_REQUIRED' ? 'Review' : 'Unmapped'}
+                               />
+                              </td>
+                              <td style={{ ...tdStyle, textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                                <span style={{ fontSize: 'var(--font-size-xs)', color: isMapped ? 'var(--color-success)' : 'var(--color-text-secondary)' }}>
+                                  {isMapped ? '\u2713' : '\u2717'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
 
-          {totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)' }}>
-              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                {tableGroups.length} table pair(s) \u2022 Page {currentPage}/{totalPages}
+          {/* ========================= Pagination Footer ========================= */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: 'var(--space-md)', gap: 'var(--space-lg)', flexWrap: 'wrap' }}>
+            <Pagination page={currentPage} pageSize={pageSize} total={tableGroups.length} onPageChange={setCurrentPage} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                {totalRows} column(s) across {tableGroups.length} table pair(s)
               </span>
-              <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-                <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: currentPage === 1 ? 0.5 : 1 }}>Prev</button>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{currentPage}/{totalPages}</span>
-                <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: currentPage === totalPages ? 0.5 : 1 }}>Next</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Page size:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+                  style={{ padding: '2px 6px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-xs)', background: 'var(--color-background)', color: 'var(--color-text)' }}
+                >
+                  {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
             </div>
-          )}
+          </div>
 
           {unmappedSource.length > 0 && (
             <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)' }}>
@@ -423,9 +604,9 @@ export function MappingSpreadsheetPage() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(2px)' }}>
           <div style={{ background: '#ffffff', borderRadius: '8px', padding: '24px', maxWidth: 500, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', border: '1px solid #e5e7eb', position: 'relative', zIndex: 10000 }}>
             <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#dc2626', fontWeight: 700, margin: '0 0 16px 0' }}>
-              ⚠️ Warning: Remove Column Mappings
+              {'\u26A0\uFE0F'} Warning: Remove Column Mappings
             </h3>
-            
+
             <div style={{ padding: '16px', background: '#fef2f2', borderRadius: '8px', border: '2px solid #dc2626', marginBottom: '20px' }}>
               <p style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#1f2937', lineHeight: 1.5 }}>
                 You are about to remove <strong style={{ color: '#dc2626' }}>{confirmModal.count} column mapping(s)</strong>.
@@ -445,7 +626,7 @@ export function MappingSpreadsheetPage() {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#4b5563', fontWeight: 500 }}>
-                {confirmModal.type === 'all' 
+                {confirmModal.type === 'all'
                   ? 'Type "clear all" to confirm:'
                   : `Type "${confirmModal.tableName}" to confirm:`}
               </label>

@@ -84,6 +84,30 @@ def get_tables(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/clear-all")
+@router.post("/clear-all/")
+def clear_all_discovery(
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: Optional[str] = Query(None, description="Tenant ID to clear (required)"),
+):
+    """Soft delete discovery dataset mappings for a specific tenant."""
+    try:
+        if not tenant_id:
+            raise HTTPException(status_code=400, detail="tenant_id is required. Select a tenant before clearing.")
+
+        db = get_db_connection()
+        repo = DiscoveryRepository(db)
+
+        deleted = repo.soft_delete_all_discovery(tenant_id=tenant_id)
+
+        return {"success": True, "data": {
+            "deleted_count": deleted,
+            "message": f"Soft deleted {deleted} dataset mappings for tenant"
+        }}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{batch_id}/datasets", response_model=APIResponse)
 def get_discovery_datasets(
     batch_id: str,

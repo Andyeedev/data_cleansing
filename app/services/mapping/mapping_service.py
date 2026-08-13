@@ -1,9 +1,6 @@
 from typing import List, Optional
-from datetime import datetime
 
-from app.adapters.registry import AdapterRegistry
-from app.adapters.models import TableInfo, ColumnInfo
-from app.services.discovery.discovery_service import DiscoveryService
+from app.adapters.models import ColumnInfo
 from app.services.mapping.mapping_repository import MappingRepository
 
 
@@ -12,75 +9,84 @@ class MappingService:
 
     def __init__(self, db):
         self.db = db
-        self.discovery_service = DiscoveryService(db)
         self.mapping_repo = MappingRepository(db)
 
-    async def auto_map(self, project_id: str) -> dict:
-        """Automatically create mappings based on discovery results."""
-        discovery = await self.discovery_service.discover(project_id)
-        mappings = []
+    async def auto_map(self, project_id: str = None, tenant_id: str = None) -> dict:
+        """Automatically create column_mappings from existing dataset_mappings and dataset_columns."""
+        query = """
+            SELECT dm.mapping_id, dm.source_table, dm.target_table
+            FROM core.dataset_mappings dm
+        """
+        params = []
 
-        for dataset in discovery.get("datasets", []):
-            for match in dataset.get("matched_tables", []):
-                dataset_mapping = await self.create_dataset_mapping(
-                    project_id=project_id,
-                    source_system=dataset["source_system"],
-                    target_system=dataset["target_system"],
-                    source_table=match["source"],
-                    target_table=match["target"],
-                )
+        if project_id:
+            query += " WHERE dm.project_id = %s AND dm.is_active = true"
+            params.append(project_id)
+        elif tenant_id:
+            query += """
+                JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
+                WHERE sr.tenant_id = %s AND dm.is_active = true
+            """
+            params.append(tenant_id)
+        else:
+            query += " WHERE dm.is_active = true"
 
-                column_mappings = await self.auto_map_columns(
-                    dataset_mapping["mapping_id"],
-                    match["source"],
-                    match["target"],
-                )
+        with self.db.conn.cursor() as cur:
+            cur.execute(query, tuple(params))
+            dataset_mappings = cur.fetchall()
 
-                mappings.append({
-                    "dataset_mapping": dataset_mapping,
-                    "column_mappings": column_mappings,
-                })
+        total_created = 0
+        results = []
+
+        for mapping_id, source_table, target_table in dataset_mappings:
+            column_mappings = await self.auto_map_columns(mapping_id)
+
+            for cm in column_mappings:
+                source_col_id = self._get_column_id(mapping_id, cm["source_column"], "SOURCE")
+                target_col_id = self._get_column_id(mapping_id, cm["target_column"], "TARGET")
+
+                if source_col_id and target_col_id:
+                    self.mapping_repo.save_column_mapping({
+                        "mapping_id": mapping_id,
+                        "source_column_id": source_col_id,
+                        "target_column_id": target_col_id,
+                        "confidence_score": cm.get("confidence", 1.0),
+                        "match_status": "AUTO_MATCHED",
+                        "match_reason": f"Name match: {cm['source_column']} -> {cm['target_column']} ({cm.get('match_type', 'exact')})",
+                    })
+                    total_created += 1
+
+            results.append({
+                "mapping_id": str(mapping_id),
+                "source_table": source_table,
+                "target_table": target_table,
+                "columns_mapped": len(column_mappings),
+            })
 
         return {
-            "project_id": project_id,
-            "mappings": mappings,
-            "total_mappings": len(mappings),
+            "total_mappings": len(dataset_mappings),
+            "total_columns_mapped": total_created,
+            "details": results,
         }
 
-    async def create_dataset_mapping(
-        self,
-        project_id: str,
-        source_system: dict,
-        target_system: dict,
-        source_table: TableInfo,
-        target_table: TableInfo,
-    ) -> dict:
-        """Create a dataset-level mapping."""
-        mapping = {
-            "project_id": project_id,
-            "source_system_id": source_system.get("system_id"),
-            "target_system_id": target_system.get("system_id"),
-            "source_table": source_table.table_name,
-            "target_table": target_table.table_name,
-            "source_schema": source_table.schema_name,
-            "target_schema": target_table.schema_name,
-            "confidence": 1.0,
-            "match_type": "exact",
-            "created_at": datetime.utcnow().isoformat(),
-        }
-
-        mapping_id = await self.mapping_repo.save_dataset_mapping(mapping)
-        return {**mapping, "mapping_id": mapping_id}
+    def _get_column_id(self, mapping_id: str, column_name: str, side: str) -> Optional[str]:
+        """Get column_id from dataset_columns."""
+        query = """
+            SELECT column_id FROM core.dataset_columns
+            WHERE mapping_id = %s AND column_name = %s AND column_side = %s
+        """
+        with self.db.conn.cursor() as cur:
+            cur.execute(query, (mapping_id, column_name, side))
+            row = cur.fetchone()
+        return str(row[0]) if row else None
 
     async def auto_map_columns(
         self,
         mapping_id: str,
-        source_table: TableInfo,
-        target_table: TableInfo,
     ) -> List[dict]:
         """Automatically map columns based on name and type similarity."""
-        source_columns = await self._get_source_columns(mapping_id, source_table)
-        target_columns = await self._get_target_columns(mapping_id, target_table)
+        source_columns = await self._get_source_columns(mapping_id)
+        target_columns = await self._get_target_columns(mapping_id)
 
         column_mappings = []
 
@@ -120,16 +126,50 @@ class MappingService:
         return column_mappings
 
     async def _get_source_columns(
-        self, mapping_id: str, source_table: TableInfo
+        self, mapping_id: str
     ) -> List[ColumnInfo]:
-        """Get source columns for a mapping."""
-        return []
+        """Get source columns for a mapping from dataset_columns."""
+        query = """
+            SELECT column_name, data_type, is_nullable, is_primary_key
+            FROM core.dataset_columns
+            WHERE mapping_id = %s AND column_side = 'SOURCE'
+            ORDER BY column_position
+        """
+        with self.db.conn.cursor() as cur:
+            cur.execute(query, (mapping_id,))
+            rows = cur.fetchall()
+        return [
+            ColumnInfo(
+                column_name=r[0],
+                data_type=r[1] or "text",
+                is_nullable=r[2] if r[2] is not None else True,
+                is_primary_key=r[3] or False,
+            )
+            for r in rows
+        ]
 
     async def _get_target_columns(
-        self, mapping_id: str, target_table: TableInfo
+        self, mapping_id: str
     ) -> List[ColumnInfo]:
-        """Get target columns for a mapping."""
-        return []
+        """Get target columns for a mapping from dataset_columns."""
+        query = """
+            SELECT column_name, data_type, is_nullable, is_primary_key
+            FROM core.dataset_columns
+            WHERE mapping_id = %s AND column_side = 'TARGET'
+            ORDER BY column_position
+        """
+        with self.db.conn.cursor() as cur:
+            cur.execute(query, (mapping_id,))
+            rows = cur.fetchall()
+        return [
+            ColumnInfo(
+                column_name=r[0],
+                data_type=r[1] or "text",
+                is_nullable=r[2] if r[2] is not None else True,
+                is_primary_key=r[3] or False,
+            )
+            for r in rows
+        ]
 
     def _fuzzy_match_column(
         self, source_col: ColumnInfo, target_columns: List[ColumnInfo]
