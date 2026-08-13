@@ -7,12 +7,17 @@
 
 ---
 
-## 1. Symptom
-- `Migration → Connections → Test` fails for the Cert Tenant systems
-  (`SQL-Cert-Source`, `SQL-Cert-Target`), both pointing at the **public** Azure SQL FQDN
-  `sql-certification-test.database.windows.net:1433`.
-- All connections worked until the engine's egress IP changed again.
-- Adding the "new" IP in the Azure Portal firewall **still does not restore connectivity**.
+## 1. Symptom / Environment
+Two distinct connection paths exist:
+1. **Default Tenant → on-prem SQL Server** — works as expected (stable/internal egress).
+2. **Cert Tenant → Azure SQL Database** (`SQL-Cert-Source`, `SQL-Cert-Target` → public FQDN
+   `sql-certification-test.database.windows.net:1433`) — **fails every time the engine's egress IP
+   changes**. Adding the "new" IP in the Azure Portal firewall still does not restore connectivity.
+
+- The **engine is NOT on-prem**; it is hosted in a cloud/Paas environment whose outbound (egress) IP
+  rotates. The Azure SQL connection therefore breaks on each IP change.
+- **Hard requirement:** no IP-dependent solution is acceptable — including for future client
+  environments that may have unstable egress IPs.
 
 ## 2. Why "ping" is not the signal
 Azure SQL Database does **not** answer ICMP/ping. A failed ping is expected and meaningless.
@@ -41,19 +46,26 @@ is **temporary by nature**. This is the outstanding Phase 12 task:
 4. **Rule not saved / region mismatch.** Confirm the rule is on the correct SQL Server and has
    propagated (usually immediate).
 
-## 5. Permanent solution — stop depending on a changing client IP
-| # | Option | When appropriate | Permanence | Notes |
-|---|---|---|---|---|
-| A | **Private Endpoint** for Azure SQL | Engine runs in Azure (same/peered VNet) | ✅ Permanent | Enterprise standard. Removes public-IP dependency. Requires VNet + **private DNS zone `privatelink.database.windows.net`**. Connection then uses the private FQDN; `host` in `connection_config` may need the private DNS name. |
-| B | **VNet Service Endpoint** + virtual network rule | Engine in Azure VNet | ✅ Permanent | Add the engine subnet as a virtual network rule on the SQL server; no IP allowlist needed. |
-| C | **"Allow Azure services and resources to access this server"** | Engine in Azure, low-security tolerance | ✅ Permanent (broad) | One toggle; allows all Azure traffic. Convenient but not least-privilege — avoid for prod. |
-| D | **Static egress public IP** (NAT Gateway / reserved IP) | Engine **outside** Azure or behind dynamic NAT | ✅ Permanent | Provision a fixed outbound public IP and allow-list *that* IP. Adding dynamic IPs (current approach) is futile. |
+## 5. Permanent solution — eliminate client-IP dependency entirely
+Because the engine is **not on-prem** and egress IPs rotate (and clients may also have unstable IPs),
+any solution that depends on allow-listing a client IP is **rejected**. Two permanent options remain:
 
-**Recommendation:**
-- If the engine is Azure-hosted → **Option A (Private Endpoint)** is the correct, secure, permanent
-  architecture (Option B/C as faster fallbacks). This also aligns with Phase 12's cloud-migration intent.
-- If the engine is on-prem/other-cloud with rotating egress → **Option D (static egress IP)**. The
-  current "add the new IP" loop will never be stable.
+| # | Option | When feasible | Permanence | Notes |
+|---|---|---|---|---|
+| A | **Static egress public IP** for the engine (NAT Gateway / Cloud NAT with a reserved public IP) | Any hosting (Azure, AWS, GCP, PaaS with VNet integration) | ✅ Permanent | The engine's outbound traffic is forced through ONE fixed public IP; allow-list *only that* IP on the Azure SQL firewall. Hosting-agnostic; directly solves "IP changes". Equivalent per cloud: Azure NAT Gateway + PIP, AWS NAT GW + Elastic IP, GCP Cloud NAT + static IP. |
+| B | **Private Endpoint** for Azure SQL | Engine can be placed in / peered to the Azure VNet | ✅ Permanent (no public IP at all) | Enterprise standard. Removes the public endpoint and firewall entirely. Requires VNet + **private DNS zone `privatelink.database.windows.net`**; `connection_config.host` would switch to the private FQDN. |
+
+**Rejected for this requirement:**
+- Per-IP firewall allow-lists (current approach) — breaks on every IP change.
+- *"Allow Azure services and resources to access this server"* — broad (allows all Azure), not
+  least-privilege, and does nothing for non-Azure / unstable client IPs.
+- VNet Service Endpoint — only helps if engine is in an Azure VNet; less complete than Private Endpoint.
+
+**Recommendation (primary):** **Option A — static egress IP.** It is hosting-agnostic, immediately
+removes the IP-churn for the Cert Tenant, and is the pattern to apply to every client environment with
+an unstable egress IP (give each a fixed egress IP, or use Private Link / VPN / ExpressRoute instead of
+IP firewall allow-lists). Migrate to **Option B (Private Endpoint)** as the secure end-state once the
+engine is consolidated into an Azure VNet.
 
 ## 6. Action plan (to be executed in Azure — not by this tool)
 1. From the engine host, capture the true egress IP (`curl https://api.ipify.org`).
