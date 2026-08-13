@@ -93,6 +93,7 @@ class ConnectionPool:
                 f"DATABASE={database};"
                 f"UID={username};"
                 f"PWD={password};"
+                "Encrypt=yes;"
                 "TrustServerCertificate=yes;"
             )
             conn = pyodbc.connect(conn_str, autocommit=True)
