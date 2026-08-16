@@ -14,9 +14,16 @@ class C09ReferentialCoverageRule:
     def execute(self):
 
         schema = self.params["source_schema"]
-        child_table = self.params["child_table"]
-        parent_table = self.params["parent_table"]
-        fk_column = self.params["fk_column"]
+        child_table = self.params.get("child_table")
+        parent_table = self.params.get("parent_table")
+        fk_column = self.params.get("fk_column")
+
+        if not child_table or not parent_table or not fk_column:
+            return {
+                "status": "SKIPPED",
+                "delta": 0,
+                "cause": "NO_FK_METADATA"
+            }
 
         source_missing = self._missing_keys(
             self.source_db,

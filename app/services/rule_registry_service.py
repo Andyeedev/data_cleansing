@@ -7,8 +7,8 @@ class RuleRegistryService:
     def __init__(self):
         self.repository = RuleRegistryRepository()
 
-    def get_all_rules(self) -> List[dict]:
-        rules = self.repository.get_all_rules()
+    def get_all_rules(self, tenant_id: str = None) -> List[dict]:
+        rules = self.repository.get_all_rules(tenant_id)
         return [self._rule_to_dict(r) for r in rules]
 
     def get_rule_by_id(self, rule_id: str) -> Optional[dict]:
@@ -39,22 +39,30 @@ class RuleRegistryService:
     def get_rule_count(self) -> int:
         return self.repository.get_rule_count()
 
-    def get_rule_usage_stats(self) -> List[dict]:
-        rows = self.repository.get_rule_usage_stats()
+    def get_rule_usage_stats(self, tenant_id: str = None) -> List[dict]:
+        rows = self.repository.get_rule_usage_stats(tenant_id)
         return [self._rule_usage_to_dict(r) for r in rows]
 
     def get_tenants(self):
         rows = self.repository.get_unique_tenants()
         return [{"tenant_id": str(r[0]), "tenant_name": r[1] or str(r[0])[:8]} for r in rows]
 
-    def get_mappings_for_rule(self, rule_id: str) -> List[dict]:
-        rows = self.repository.get_mappings_for_rule(rule_id)
+    def get_projects_for_tenant(self, tenant_id: str) -> List[dict]:
+        rows = self.repository.get_projects_for_tenant(tenant_id)
+        return [{"project_id": str(r[0]), "project_name": r[1] or str(r[0])[:8]} for r in rows]
+
+    def get_mappings_for_rule(self, rule_id: str, tenant_id: str = None) -> List[dict]:
+        rows = self.repository.get_mappings_for_rule(rule_id, tenant_id)
         return [
             {
                 "mapping_id": str(row[0]),
                 "dataset_name": f"{row[2]}.{row[3]}" if row[2] else row[1],
                 "is_active": row[4],
                 "created_at": str(row[5]) if row[5] else None,
+                "execution_status": row[6],
+                "delta_value": float(row[7]) if row[7] is not None else None,
+                "execution_time_seconds": float(row[8]) if row[8] is not None else None,
+                "last_execution_at": str(row[9]) if row[9] else None,
             }
             for row in rows
         ]

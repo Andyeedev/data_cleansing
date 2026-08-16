@@ -47,20 +47,22 @@ class DataTypeMatchRule(BaseRule):
 
         for source_col, target_col in columns:
 
-            source_type_query = """
+            p = self.source_db.paramstyle
+            source_type_query = f"""
                 SELECT data_type
                 FROM information_schema.columns
-                WHERE table_schema = %s
-                AND table_name = %s
-                AND column_name = %s
+                WHERE table_schema = {p}
+                AND table_name = {p}
+                AND column_name = {p}
             """
 
-            target_type_query = """
+            p = self.target_db.paramstyle
+            target_type_query = f"""
                 SELECT data_type
                 FROM information_schema.columns
-                WHERE table_schema = %s
-                AND table_name = %s
-                AND column_name = %s
+                WHERE table_schema = {p}
+                AND table_name = {p}
+                AND column_name = {p}
             """
 
             source_type = self.source_db.execute(

@@ -12,18 +12,20 @@ class ColumnCountRule(BaseRule):
         target_schema = self.parameters["target_schema"]
         target_table = self.parameters["target_table"]
 
-        source_query = """
+        p = self.source_db.paramstyle
+        source_query = f"""
             SELECT COUNT(*)
             FROM information_schema.columns
-            WHERE table_schema = %s
-            AND table_name = %s
+            WHERE table_schema = {p}
+            AND table_name = {p}
         """
 
-        target_query = """
+        p = self.target_db.paramstyle
+        target_query = f"""
             SELECT COUNT(*)
             FROM information_schema.columns
-            WHERE table_schema = %s
-            AND table_name = %s
+            WHERE table_schema = {p}
+            AND table_name = {p}
         """
 
         source_count = self.source_db.execute(

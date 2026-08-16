@@ -22,10 +22,11 @@ rule_registry_service = RuleRegistryService()
 @router.get("", response_model=APIResponse)
 @router.get("/", response_model=APIResponse)
 def list_rules(
+    tenant_id: str = Query(None),
     current_user=Depends(get_current_user)
 ):
     try:
-        rules = rule_registry_service.get_all_rules()
+        rules = rule_registry_service.get_all_rules(tenant_id)
         return APIResponse(success=True, data={"rules": rules, "total": len(rules)})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -46,14 +47,31 @@ def get_tenants(
 
 
 # =========================
+# GET PROJECTS FOR TENANT
+# =========================
+@router.get("/projects", response_model=APIResponse)
+def get_projects_for_tenant(
+    tenant_id: str = Query(None),
+    current_user=Depends(get_current_user)
+):
+    try:
+        effective_tenant = tenant_id or current_user.get("tenant_id")
+        projects = rule_registry_service.get_projects_for_tenant(effective_tenant)
+        return APIResponse(success=True, data=projects)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================
 # GET RULE USAGE STATS
 # =========================
 @router.get("/usage-stats", response_model=APIResponse)
 def get_rule_usage_stats(
+    tenant_id: str = Query(None),
     current_user=Depends(get_current_user)
 ):
     try:
-        stats = rule_registry_service.get_rule_usage_stats()
+        stats = rule_registry_service.get_rule_usage_stats(tenant_id)
         return APIResponse(success=True, data={"rules": stats, "total": len(stats)})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -65,10 +83,11 @@ def get_rule_usage_stats(
 @router.get("/{rule_id}/mappings", response_model=APIResponse)
 def get_rule_mappings(
     rule_id: str,
+    tenant_id: str = Query(None),
     current_user=Depends(get_current_user)
 ):
     try:
-        mappings = rule_registry_service.get_mappings_for_rule(rule_id)
+        mappings = rule_registry_service.get_mappings_for_rule(rule_id, tenant_id)
         return APIResponse(success=True, data={"mappings": mappings, "total": len(mappings)})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -16,7 +16,7 @@ export function ValidationDashboardPage() {
   const navigate = useNavigate();
   const [selectedTenant, setSelectedTenant] = useState('');
   const [isLive, setIsLive] = useState(true);
-  const { data, loading, error, refetch } = useValidationDashboard();
+  const { data, loading, error, refetch } = useValidationDashboard(selectedTenant);
 
   const complianceGaugeColor =
     data?.summary.compliance_rate >= 80

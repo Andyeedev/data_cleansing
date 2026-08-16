@@ -19,7 +19,7 @@ export interface RuleUsageStatsResponse {
   total: number;
 }
 
-export function useRules() {
+export function useRules(tenantId?: string) {
   const [data, setData] = useState<RuleRegistryListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +28,11 @@ export function useRules() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiGet<RuleRegistryListResponse>('/rules');
+      const params = new URLSearchParams();
+      params.set('page', '1');
+      params.set('page_size', '20');
+      if (tenantId) params.set('tenant_id', tenantId);
+      const result = await apiGet<RuleRegistryListResponse>(`/rules?${params}`);
       setData(result);
     } catch (err) {
       const status = (err as any)?.response?.status;
@@ -42,7 +46,7 @@ export function useRules() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   return { data, loading, error, refetch: fetchData };
@@ -157,7 +161,7 @@ export function useRuleMutations() {
   return { createRule, updateRule, deleteRule, loading, error };
 }
 
-export function useRuleUsageStats() {
+export function useRuleUsageStats(tenantId?: string) {
   const [data, setData] = useState<RuleUsageStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -166,7 +170,11 @@ export function useRuleUsageStats() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiGet<RuleUsageStatsResponse>('/rules/usage-stats');
+      const params = new URLSearchParams();
+      params.set('page', '1');
+      params.set('page_size', '20');
+      if (tenantId) params.set('tenant_id', tenantId);
+      const result = await apiGet<RuleUsageStatsResponse>(`/rules/usage-stats?${params}`);
       setData(result);
     } catch (err) {
       const status = (err as any)?.response?.status;
@@ -180,7 +188,47 @@ export function useRuleUsageStats() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tenantId]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+  return { data, loading, error, refetch: fetchData };
+}
+
+export interface Project {
+  project_id: string;
+  project_name: string;
+}
+
+export function useProjectsForTenant(tenantId?: string) {
+  const [data, setData] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!tenantId) {
+      setData([]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      params.set('tenant_id', tenantId);
+      const result = await apiGet<Project[]>(`/rules/projects?${params}`);
+      setData(result);
+    } catch (err) {
+      const status = (err as any)?.response?.status;
+      setError(
+        status === 401
+          ? 'Unauthorized - please log in'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to fetch projects'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [tenantId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   return { data, loading, error, refetch: fetchData };

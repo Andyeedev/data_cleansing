@@ -22,18 +22,19 @@ execution_history_service = ExecutionHistoryService()
 @router.get("/dashboard")
 @router.get("/dashboard/")
 def get_validation_dashboard(
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Query(None),
 ):
     """Aggregated validation dashboard data."""
     try:
-        tenant_id = current_user.get("tenant_id")
+        effective_tenant = tenant_id or current_user.get("tenant_id")
         
         # Get data from existing services
-        risk_scores = validation_report_service.get_all_risk_scores(tenant_id)
-        migration_scores = validation_report_service.get_migration_score_summary(tenant_id)
-        unscored = validation_report_service.get_unscored_batches(tenant_id)
+        risk_scores = validation_report_service.get_all_risk_scores(effective_tenant)
+        migration_scores = validation_report_service.get_migration_score_summary(effective_tenant)
+        unscored = validation_report_service.get_unscored_batches(effective_tenant)
         history = execution_history_service.get_execution_history(
-            page=1, page_size=20, tenant_id=tenant_id
+            page=1, page_size=20, tenant_id=effective_tenant
         )
         
         # Calculate summary metrics

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useRules, useRuleMutations } from '../hooks/useRules';
+import { useRules, useRuleMutations, useProjectsForTenant } from '../hooks/useRules';
 import { apiPost } from '../utils/apiClient';
 import { MetricCard } from '../components/shared/MetricCard';
 import { StatusBadge } from '../components/shared/StatusBadge';
@@ -35,7 +35,8 @@ const SEVERITY_COLORS: Record<string, string> = {
 
 export function RuleDefinitionsTab() {
   const [selectedTenant, setSelectedTenant] = useState<string>('');
-  const { data, loading, error, refetch } = useRules();
+  const { data, loading, error, refetch } = useRules(selectedTenant || undefined);
+  const { data: projects } = useProjectsForTenant(selectedTenant || undefined);
   const { updateRule, loading: mutationLoading } = useRuleMutations();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
@@ -159,9 +160,13 @@ export function RuleDefinitionsTab() {
   };
 
   const handleAutoDiscover = async () => {
+    if (!projects || projects.length === 0) {
+      return;
+    }
     setAutoDiscovering(true);
     try {
-      await apiPost('/rules/discover', {});
+      const projectId = projects[0].project_id;
+      await apiPost(`/rules/discovery/${projectId}/trigger`, {});
       refetch();
     } catch {
     } finally {

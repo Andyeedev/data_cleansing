@@ -10,6 +10,8 @@ from ..adapters.pool import ConnectionPoolManager
 class SQLServerAdapter(ConnectionAdapter):
     """SQL Server adapter implementing the ConnectionAdapter interface."""
 
+    paramstyle = "?"
+
     def __init__(self):
         self._pool_manager = ConnectionPoolManager()
         self._connected = False

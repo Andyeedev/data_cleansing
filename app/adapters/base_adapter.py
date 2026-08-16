@@ -12,6 +12,8 @@ from ..config import ConnectionConfig
 class ConnectionAdapter(ABC):
     """Abstract base class for all database adapters."""
 
+    paramstyle: str = "%s"
+
     @property
     def config(self) -> Dict[str, Any]:
         """Backward-compatible config access - returns dict from _config dataclass."""

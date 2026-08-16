@@ -98,7 +98,9 @@ class ConnectionPool:
             # Server typically does not, so only force encryption for Azure.
             if host.endswith(".database.windows.net"):
                 conn_str += "Encrypt=yes;TrustServerCertificate=yes;"
-            conn = pyodbc.connect(conn_str, autocommit=True, timeout=30)
+            else:
+                conn_str += "TrustServerCertificate=yes;"
+            conn = pyodbc.connect(conn_str, autocommit=True)
         elif self.db_type == "mysql":
             import psycopg2
             conn = psycopg2.connect(

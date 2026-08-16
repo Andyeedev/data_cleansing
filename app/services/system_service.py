@@ -157,7 +157,7 @@ class SystemService:
         result = adapter.test_connection(adapter_config)
 
         return {
-            "status": "success" if result.success else "failed",
+            "success": result.success,
             "message": result.message,
             "latency_ms": result.latency_ms,
             "server_version": result.server_version

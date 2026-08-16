@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useRuleUsageStats } from '../hooks/useRules';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useRuleUsageStats, useProjectsForTenant } from '../hooks/useRules';
 import { apiGet, apiPost } from '../utils/apiClient';
 import { MetricCard } from '../components/shared/MetricCard';
 import { StatusBadge } from '../components/shared/StatusBadge';
@@ -19,10 +19,15 @@ interface RuleMapping {
   dataset_name: string;
   is_active: boolean;
   created_at: string | null;
+  execution_status: string | null;
+  delta_value: number | null;
+  execution_time_seconds: number | null;
+  last_execution_at: string | null;
 }
 
 export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selectedTenant: string; onTenantChange: (tenant: string) => void }) {
-  const { data, loading, error, refetch } = useRuleUsageStats();
+  const { data, loading, error, refetch } = useRuleUsageStats(selectedTenant || undefined);
+  const { data: projects } = useProjectsForTenant(selectedTenant || undefined);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMapping, setFilterMapping] = useState<FilterMapping>('all');
   const [filterSeverity, setFilterSeverity] = useState<'all' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'>('all');
@@ -32,6 +37,11 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
   const [expandedRuleId, setExpandedRuleId] = useState<string | null>(null);
   const [expandedMappings, setExpandedMappings] = useState<Record<string, RuleMapping[]>>({});
   const [expandedLoading, setExpandedLoading] = useState(false);
+
+  useEffect(() => {
+    setExpandedRuleId(null);
+    setExpandedMappings({});
+  }, [selectedTenant]);
 
    const filteredRules = useMemo(() => {
     if (!data?.rules) return [];
@@ -75,9 +85,13 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
   const totalMappings = data?.rules?.reduce((sum, r) => sum + r.mapping_count, 0) ?? 0;
 
   const handleAutoDiscover = async () => {
+    if (!projects || projects.length === 0) {
+      return;
+    }
     setAutoDiscovering(true);
     try {
-      await apiPost('/rules/discover', {});
+      const projectId = projects[0].project_id;
+      await apiPost(`/rules/discovery/${projectId}/trigger`, {});
       refetch();
     } catch {
     } finally {
@@ -86,16 +100,20 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
   };
 
   const handleToggleMappings = async (ruleId: string) => {
+    const cacheKey = selectedTenant ? `${ruleId}:${selectedTenant}` : ruleId;
     if (expandedRuleId === ruleId) {
       setExpandedRuleId(null);
     } else {
-      if (!expandedMappings[ruleId]) {
+      if (!expandedMappings[cacheKey]) {
         setExpandedLoading(true);
         try {
-          const result = await apiGet<{mappings: RuleMapping[], total: number}>('/rules/' + ruleId + '/mappings');
-          setExpandedMappings(prev => ({ ...prev, [ruleId]: result.mappings || [] }));
+          const params = new URLSearchParams();
+          if (selectedTenant) params.set('tenant_id', selectedTenant);
+          const qs = params.toString() ? `?${params.toString()}` : '';
+          const result = await apiGet<{mappings: RuleMapping[], total: number}>('/rules/' + ruleId + '/mappings' + qs);
+          setExpandedMappings(prev => ({ ...prev, [cacheKey]: result.mappings || [] }));
         } catch {
-          setExpandedMappings(prev => ({ ...prev, [ruleId]: [] }));
+          setExpandedMappings(prev => ({ ...prev, [cacheKey]: [] }));
         } finally {
           setExpandedLoading(false);
         }
@@ -198,9 +216,10 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
                     const rowBg = idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)';
                     const isUnmapped = rule.mapping_count === 0;
                     const isExpanded = expandedRuleId === rule.rule_id;
-                    const mappings = expandedMappings[rule.rule_id] || [];
+                    const cacheKey = selectedTenant ? `${rule.rule_id}:${selectedTenant}` : rule.rule_id;
+                    const mappings = expandedMappings[cacheKey] || [];
                     return (
-                      <React.Fragment key={rule.rule_id}>
+                      <React.Fragment key={`${rule.rule_id}-${idx}`}>
                         <tr style={{ background: isUnmapped ? 'rgba(245,158,11,0.05)' : rowBg }}>
                           <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 500 }}>{rule.rule_id}</td>
                           <td style={tdStyle}>{rule.rule_name || '\u2014'}</td>
@@ -263,28 +282,48 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
                                     <div style={{ fontSize: '12px', color: '#6b7280' }}>This rule is not bound to any dataset mappings.</div>
                                   </div>
                                 ) : (
-                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                    <thead>
-                                      <tr>
-                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Mapping ID</th>
-                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Dataset</th>
-                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Status</th>
-                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Created At</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {mappings.map(m => (
-                                        <tr key={m.mapping_id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                                          <td style={{ padding: '8px 12px', color: '#1f2937', fontFamily: 'monospace' }}>{m.mapping_id}</td>
-                                          <td style={{ padding: '8px 12px', color: '#1f2937', fontFamily: 'monospace' }}>{m.dataset_name}</td>
-                                          <td style={{ padding: '8px 12px' }}>
-                                            <StatusBadge status={m.is_active ? 'Active' : 'Inactive'} size="sm" variant={m.is_active ? 'success' : 'warning'} />
-                                          </td>
-                                          <td style={{ padding: '8px 12px', color: '#1f2937' }}>{m.created_at ? new Date(m.created_at).toLocaleString() : '\u2014'}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
+                                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                     <thead>
+                                       <tr>
+                                         <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Dataset</th>
+                                         <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Mapping</th>
+                                         <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Last Run</th>
+                                         <th style={{ textAlign: 'right', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Delta</th>
+                                         <th style={{ textAlign: 'right', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Time (s)</th>
+                                         <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Run Date</th>
+                                       </tr>
+                                     </thead>
+                                     <tbody>
+                                       {mappings.map(m => (
+                                         <tr key={m.mapping_id} style={{ borderBottom: '1px solid #e5e7eb', background: m.execution_status === 'FAIL' ? 'rgba(239,68,68,0.04)' : m.execution_status === 'ERROR' ? 'rgba(245,158,11,0.04)' : 'transparent' }}>
+                                           <td style={{ padding: '8px 12px', color: '#1f2937', fontFamily: 'monospace' }}>{m.dataset_name}</td>
+                                           <td style={{ padding: '8px 12px' }}>
+                                             <StatusBadge status={m.is_active ? 'Active' : 'Inactive'} size="sm" variant={m.is_active ? 'success' : 'warning'} />
+                                           </td>
+                                           <td style={{ padding: '8px 12px' }}>
+                                             {m.execution_status ? (
+                                               <StatusBadge
+                                                 status={m.execution_status === 'PASS' ? 'Pass' : m.execution_status === 'FAIL' ? 'Fail' : m.execution_status === 'ERROR' ? 'Error' : m.execution_status === 'SKIPPED' ? 'Skipped' : m.execution_status}
+                                                 size="sm"
+                                                 variant={m.execution_status === 'PASS' ? 'success' : m.execution_status === 'FAIL' ? 'danger' : 'warning'}
+                                               />
+                                             ) : (
+                                               <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Not run</span>
+                                             )}
+                                           </td>
+                                           <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: m.delta_value && m.delta_value > 0 ? '#ef4444' : '#374151' }}>
+                                             {m.delta_value != null ? m.delta_value.toLocaleString() : '\u2014'}
+                                           </td>
+                                           <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#6b7280' }}>
+                                             {m.execution_time_seconds != null ? m.execution_time_seconds.toFixed(2) : '\u2014'}
+                                           </td>
+                                           <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: '11px' }}>
+                                             {m.last_execution_at ? new Date(m.last_execution_at).toLocaleString() : '\u2014'}
+                                           </td>
+                                         </tr>
+                                       ))}
+                                     </tbody>
+                                   </table>
                                 )}
                               </div>
                             </td>

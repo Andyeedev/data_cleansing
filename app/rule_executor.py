@@ -100,9 +100,6 @@ class RuleExecutor:
                         execution_status = result.get("status", "ERROR")
                         delta = result.get("delta", 0)
 
-                        if execution_status == "SKIPPED":
-                            continue
-
                     except Exception as _e:
                         execution_status = "ERROR"
                         delta = 0
@@ -141,6 +138,8 @@ class RuleExecutor:
                         passed += 1
                     elif execution_status == "FAIL":
                         failed += 1
+                    elif execution_status == "SKIPPED":
+                        pass
                     else:
                         errors += 1
 
@@ -253,6 +252,7 @@ class RuleExecutor:
 
         primary_key = self._infer_primary_key(mapping_id)
         numeric_column = self._infer_numeric_column(mapping_id)
+        child_table, parent_table, fk_column = self._infer_fk_metadata(mapping_id)
 
         return {
             "engine_db": self.engine_db,     # 🔥 REQUIRED
@@ -262,7 +262,10 @@ class RuleExecutor:
             "target_schema": target_schema,
             "target_table": target_table,
             "primary_key_column": primary_key,
-            "numeric_column": numeric_column
+            "numeric_column": numeric_column,
+            "child_table": child_table,
+            "parent_table": parent_table,
+            "fk_column": fk_column
         }
 
     # ---------------------------------------------------------
@@ -383,6 +386,22 @@ class RuleExecutor:
         row = self.engine_db.execute(query, (mapping_id,))
 
         return row[0][0] if row else None
+
+    def _infer_fk_metadata(self, mapping_id):
+
+        query = """
+        SELECT column_name, referenced_table, referenced_column
+        FROM core.dataset_columns
+        WHERE mapping_id = %s
+        AND is_foreign_key = TRUE
+        LIMIT 1
+        """
+
+        row = self.engine_db.execute(query, (mapping_id,))
+
+        if row:
+            return row[0][0], row[0][1], row[0][2]
+        return None, None, None
 
     def execute_with_retry(self, rule_function, *args):
 

@@ -21,7 +21,7 @@ export function SystemDetailPage() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [testResult, setTestResult] = useState<{ status: string; message: string; latency_ms?: number; server_version?: string } | null>(null);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string; latency_ms?: number; server_version?: string } | null>(null);
 
   if (!userRoles.includes('admin')) {
     return (
