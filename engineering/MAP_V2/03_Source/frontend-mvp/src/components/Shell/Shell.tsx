@@ -27,6 +27,7 @@ const DEFAULT_NAV: MetadataNavItem[] = [
     { id: 'rules', label: 'Rules', path: '/validation/rules' },
     { id: 'rule-discovery', label: 'Rule Discovery', path: '/validation/rule-discovery' },
     { id: 'controls', label: 'Controls', path: '/validation/controls' },
+    { id: 'dependencies', label: 'Dependencies', path: '/validation/dependencies', requiredRoles: ['admin'] },
     { id: 'results', label: 'Results', path: '/validation/results' },
     { id: 'queue', label: 'Queue', path: '/validation/queue' },
     { id: 'validation-dashboard', label: 'Validation Dashboard', path: '/validation/dashboard' },
@@ -39,7 +40,14 @@ const DEFAULT_NAV: MetadataNavItem[] = [
   { id: 'reports', label: 'Reports', path: '/reports', children: [
     { id: 'executive', label: 'Executive', path: '/reports/executive', requiredRoles: ['admin', 'manager'] },
   ]},
-  { id: 'operations', label: 'Operations', path: '/operations' },
+  { id: 'operations', label: 'Operations', path: '/operations', children: [
+    { id: 'execution', label: 'Execution', path: '/operations/execution' },
+    { id: 'monitoring', label: 'Monitoring', path: '/operations/monitoring' },
+    { id: 'alerts', label: 'Alerts', path: '/operations/alerts' },
+    { id: 'schedules', label: 'Schedules', path: '/operations/schedules' },
+    { id: 'retry', label: 'Retry', path: '/operations/retry' },
+    { id: 'health', label: 'Health', path: '/operations/health' },
+  ]},
   { id: 'tasks', label: 'Task Management', path: '/tasks' },
   { id: 'administration', label: 'Administration', path: '/administration', requiredRoles: ['admin'] },
 ];

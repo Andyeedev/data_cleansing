@@ -4,6 +4,7 @@ import { Shell } from './components/Shell/Shell';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './routes/LoginPage';
 import { LoadingSpinner } from './components/LoadingSpinner/LoadingSpinner';
+import { ValidationFilterProvider } from './context/ValidationFilterContext';
 
 const DashboardPage = lazy(() => import('./routes/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const MigrationPage = lazy(() => import('./routes/MigrationPage').then(m => ({ default: m.MigrationPage })));
@@ -15,6 +16,7 @@ const ExecutionHistoryPage = lazy(() => import('./routes/ExecutionHistoryPage').
 const GovernancePage = lazy(() => import('./routes/GovernancePage').then(m => ({ default: m.GovernancePage })));
 const ReportsPage = lazy(() => import('./routes/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const OperationsPage = lazy(() => import('./routes/OperationsPage').then(m => ({ default: m.OperationsPage })));
+const OperationsExecutionPage = lazy(() => import('./routes/OperationsExecutionPage').then(m => ({ default: m.OperationsExecutionPage })));
 const TaskManagementPage = lazy(() => import('./routes/TaskManagementPage').then(m => ({ default: m.TaskManagementPage })));
 const TaskDetailPage = lazy(() => import('./routes/TaskDetailPage').then(m => ({ default: m.TaskDetailPage })));
 const WorkflowsPage = lazy(() => import('./routes/WorkflowsPage').then(m => ({ default: m.WorkflowsPage })));
@@ -37,6 +39,7 @@ const ValidationDashboardPage = lazy(() => import('./routes/ValidationDashboardP
 const ValidationRulesPage = lazy(() => import('./routes/ValidationRulesPage').then(m => ({ default: m.ValidationRulesPage })));
 const ValidationDiscoveryPage = lazy(() => import('./routes/ValidationDiscoveryPage').then(m => ({ default: m.ValidationDiscoveryPage })));
 const ControlsPage = lazy(() => import('./routes/ControlsPage').then(m => ({ default: m.ControlsPage })));
+const ControlDependenciesPage = lazy(() => import('./routes/ControlDependenciesPage').then(m => ({ default: m.ControlDependenciesPage })));
 const MigrationTimelinePage = lazy(() => import('./routes/MigrationTimelinePage').then(m => ({ default: m.MigrationTimelinePage })));
 const MigrationDatasetsPage = lazy(() => import('./routes/MigrationDatasetsPage').then(m => ({ default: m.MigrationDatasetsPage })));
 const MigrationSchedulesPage = lazy(() => import('./routes/MigrationSchedulesPage').then(m => ({ default: m.MigrationSchedulesPage })));
@@ -63,7 +66,7 @@ export function AppRoutes() {
           <Route path="/migration/connections/:id" element={<SystemDetailPage />} />
           <Route path="/migration/connections/diagnostics" element={<ConnectionDiagnosticsPage />} />
           <Route path="/migration/mappings/spreadsheet" element={<MappingSpreadsheetPage />} />
-          <Route path="/validation/dashboard" element={<ValidationDashboardPage />} />
+          <Route path="/validation/dashboard" element={<ValidationFilterProvider><ValidationDashboardPage /></ValidationFilterProvider>} />
           <Route path="/migration/timeline" element={<MigrationTimelinePage />} />
           <Route path="/migration/discovery" element={<DiscoveryPage />} />
           <Route path="/migration/discovery/tree" element={<DiscoveryTreeTablePage />} />
@@ -74,13 +77,14 @@ export function AppRoutes() {
           <Route path="/migration/workspace" element={<MigrationPage />} />
 
           <Route path="/validation" element={<ValidationPage />} />
-          <Route path="/validation/rules" element={<ValidationRulesPage />} />
-          <Route path="/validation/rule-discovery" element={<ValidationDiscoveryPage />} />
-          <Route path="/validation/results" element={<ValidationResultsPage />} />
-          <Route path="/validation/results/:batchId" element={<ValidationResultsPage />} />
-          <Route path="/validation/history" element={<ExecutionHistoryPage />} />
+          <Route path="/validation/rules" element={<ValidationFilterProvider><ValidationRulesPage /></ValidationFilterProvider>} />
+          <Route path="/validation/rule-discovery" element={<ValidationFilterProvider><ValidationDiscoveryPage /></ValidationFilterProvider>} />
+          <Route path="/validation/results" element={<ValidationFilterProvider><ValidationResultsPage /></ValidationFilterProvider>} />
+          <Route path="/validation/results/:batchId" element={<ValidationFilterProvider><ValidationResultsPage /></ValidationFilterProvider>} />
+          <Route path="/validation/history" element={<ValidationFilterProvider><ExecutionHistoryPage /></ValidationFilterProvider>} />
           <Route path="/validation/queue" element={<ValidationPage />} />
           <Route path="/validation/controls" element={<ControlsPage />} />
+          <Route path="/validation/dependencies" element={<ValidationFilterProvider><ControlDependenciesPage /></ValidationFilterProvider>} />
 
           <Route path="/governance" element={<GovernancePage />} />
           <Route path="/governance/overview" element={<GovernancePage />} />
@@ -102,6 +106,7 @@ export function AppRoutes() {
           <Route path="/reports/distribution" element={<ReportsPage />} />
 
           <Route path="/operations" element={<OperationsPage />} />
+          <Route path="/operations/execution" element={<ValidationFilterProvider><OperationsExecutionPage /></ValidationFilterProvider>} />
           <Route path="/operations/monitoring" element={<OperationsPage />} />
           <Route path="/operations/alerts" element={<OperationsPage />} />
           <Route path="/operations/schedules" element={<OperationsPage />} />

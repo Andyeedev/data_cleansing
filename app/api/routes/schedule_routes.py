@@ -183,6 +183,7 @@ def trigger_schedule_run(
             raise HTTPException(status_code=404, detail="Schedule not found")
 
         project_id = existing["project_id"]
+        tenant_id = existing.get("tenant_id")
         mapping_count = service.repository.db.execute(
             "SELECT COUNT(*) FROM core.dataset_mappings WHERE project_id = %s",
             (project_id,)
@@ -204,7 +205,8 @@ def trigger_schedule_run(
 
         from app.services.schedule_runner import ScheduleRunner
         runner = ScheduleRunner()
-        result = runner.run_schedule(schedule_id, triggered_by="manual")
+        result = runner.run_schedule(schedule_id, triggered_by="manual",
+                                     project_id=project_id, tenant_id=tenant_id)
         return APIResponse(success=True, data=result)
     except HTTPException:
         raise

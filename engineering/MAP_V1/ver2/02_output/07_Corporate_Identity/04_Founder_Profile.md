@@ -1,4 +1,4 @@
-# 04 — Founder Profile
+   # 04 — Founder Profile
 
 **Document:** Founder Profile
 **Version:** 1.0

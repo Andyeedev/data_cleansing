@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useExecutionHistory, useExecutionControl } from '../hooks/useValidation';
+import { useValidationFilter } from '../context/ValidationFilterContext';
 import { apiGet } from '../utils/apiClient';
-import { TenantFilter } from '../components/shared/TenantFilter';
 import { PageHeader } from '../components/PageHeader/PageHeader';
 import { StatusBadge } from '../components/shared/StatusBadge';
 import { MetricCard } from '../components/shared/MetricCard';
@@ -12,6 +12,7 @@ import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
+import CascadeDropdowns from '../components/shared/CascadeDropdowns';
 
 interface StatusBreakdown {
   breakdown: Record<string, number>;
@@ -37,10 +38,10 @@ const SORT_FIELDS: { key: SortField; label: string }[] = [
 export function ExecutionHistoryPage() {
   const { userRoles } = useAuth();
   const navigate = useNavigate();
+  const { tenantId } = useValidationFilter();
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [selectedTenant, setSelectedTenant] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -52,10 +53,14 @@ export function ExecutionHistoryPage() {
 
   const { cancel, retry, loading: controlLoading } = useExecutionControl();
 
+  useEffect(() => {
+    setPage(1);
+  }, [tenantId]);
+
   const { data, loading, error, refetch } = useExecutionHistory(
     page,
     pageSize,
-    selectedTenant || undefined,
+    tenantId || undefined,
     statusFilter === 'all' ? undefined : statusFilter,
     debouncedSearch || undefined,
     historySort,
@@ -65,7 +70,7 @@ export function ExecutionHistoryPage() {
   useEffect(() => {
     let cancelled = false;
     setBreakdownLoading(true);
-    const tenantParam = selectedTenant ? `?tenant_id=${selectedTenant}` : '';
+    const tenantParam = tenantId ? `?tenant_id=${tenantId}` : '';
     apiGet<StatusBreakdown>(`/execution/history/status-breakdown${tenantParam}`)
       .then((result) => {
         if (!cancelled) setBreakdown(result);
@@ -77,7 +82,7 @@ export function ExecutionHistoryPage() {
         if (!cancelled) setBreakdownLoading(false);
       });
     return () => { cancelled = true; };
-  }, [selectedTenant]);
+  }, [tenantId]);
 
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
@@ -107,11 +112,6 @@ export function ExecutionHistoryPage() {
 
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPageSize(Number(e.target.value));
-    setPage(1);
-  };
-
-  const handleTenantChange = (tenantId: string) => {
-    setSelectedTenant(tenantId);
     setPage(1);
   };
 
@@ -164,7 +164,7 @@ export function ExecutionHistoryPage() {
         description="View and manage past validation executions"
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-            <TenantFilter selectedTenant={selectedTenant} onChange={handleTenantChange} />
+            <CascadeDropdowns showBatch={false} />
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}

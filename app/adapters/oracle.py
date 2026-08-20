@@ -148,10 +148,12 @@ class OracleAdapter(ConnectionAdapter):
                 self.close()
 
     def close(self) -> None:
-        """Close the connection."""
+        """Release connection back to pool (does not close it)."""
         if self._connection:
             try:
-                self._connection.close()
+                self._pool_manager.release_by_config(
+                    self._config, "oracle", self._connection
+                )
             except Exception:
                 pass
             finally:

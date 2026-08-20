@@ -38,8 +38,13 @@ from app.api.routes import (
     rule_registry_routes,
     rule_discovery_routes,
     control_routes,
-    mapping_routes
+    mapping_routes,
+    operations_execution_routes,
+    control_dependencies_routes,
 )
+
+# Import pool manager to reset on startup
+from app.adapters.pool import ConnectionPoolManager
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +53,14 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Migration Validation SaaS")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Reset connection pool manager on startup to pick up MARS config changes
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Resetting connection pool manager...")
+    pool_manager = ConnectionPoolManager()
+    pool_manager.reset()
+    logger.info("Connection pool manager reset complete")
 
 
 # =========================
@@ -186,6 +199,8 @@ app.include_router(rule_registry_routes.router)
 app.include_router(rule_discovery_routes.router)
 app.include_router(control_routes.router)
 app.include_router(mapping_routes.router)
+app.include_router(operations_execution_routes.router)
+app.include_router(control_dependencies_routes.router)
 
 
 # =========================

@@ -29,7 +29,8 @@ class ValidationReportRepository:
                 total_rules,
                 passed_rules,
                 failed_rules,
-                error_rules
+                error_rules,
+                COALESCE(skipped_rules, 0) AS skipped_rules
             FROM engine.migration_control_summary
             WHERE batch_id = %s
             ORDER BY control_id

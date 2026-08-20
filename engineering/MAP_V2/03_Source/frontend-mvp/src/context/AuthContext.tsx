@@ -29,8 +29,16 @@ function getInitialAuthState(): AuthState {
     const token = localStorage.getItem('access_token');
     const userStr = localStorage.getItem('map_nexus_user');
     if (token && userStr) {
-      const user = JSON.parse(userStr);
       const payload = decodeJwtPayload(token);
+      if (payload?.exp) {
+        const expiresAt = (payload.exp as number) * 1000;
+        if (Date.now() >= expiresAt) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('map_nexus_user');
+          return { user: null, token: null, isAuthenticated: false, isLoading: false };
+        }
+      }
+      const user = JSON.parse(userStr);
       if (payload?.tenant_id && !user.tenantId) {
         user.tenantId = payload.tenant_id as string;
         localStorage.setItem('map_nexus_user', JSON.stringify(user));

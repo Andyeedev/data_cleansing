@@ -4,7 +4,9 @@ from typing import Optional
 
 from app.db.connection import get_db_connection
 from app.services.system_service import SystemService
-from app.api.core.auth.dependencies import get_current_user_with_tenant
+from app.services.health_check_service import HealthCheckService
+from app.api.core.auth.dependencies import get_current_user, get_current_user_with_tenant
+from app.api.core.auth.rbac import require_admin
 from app.api.models.system_models import SystemCreateRequest
 
 router = APIRouter(prefix="/api/v1/systems", tags=["Systems"])
@@ -120,5 +122,79 @@ def delete_system(system_id: str, current_user=Depends(get_current_user_with_ten
         service = SystemService(db.conn)
         result = service.delete_system(system_id, tenant_id=tenant_id)
         return {"success": True, "data": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================
+# HEALTH CHECK - MANUAL (Admin only)
+# =========================
+@router.post("/{system_id}/health-check")
+def run_health_check(
+    system_id: str,
+    current_user=Depends(require_admin)
+):
+    """Manually trigger a health check for a single system. Admin only."""
+    try:
+        db = get_db_connection()
+        service = SystemService(db.conn)
+        system = service.get_system(system_id)
+        if not system:
+            raise HTTPException(status_code=404, detail="System not found")
+
+        from app.adapters.registry import AdapterRegistry
+        from app.adapters.pool import ConnectionPoolManager
+        from app.config import PostgresConfig, SQLServerConfig
+
+        db_type = system.get("database_type", "postgres")
+        conn_config = system.get("connection_config", {})
+        if isinstance(conn_config, str):
+            import json
+            conn_config = json.loads(conn_config)
+
+        adapter_class = AdapterRegistry.get(db_type)
+        adapter = adapter_class()
+
+        if db_type == "postgres":
+            config = PostgresConfig(**conn_config)
+        elif db_type == "sqlserver":
+            config = SQLServerConfig(**conn_config)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported db_type: {db_type}")
+
+        adapter.connect(config)
+
+        hc = HealthCheckService(db.conn)
+        result = hc.check_single(
+            system_id=system_id,
+            adapter=adapter,
+            label="MANUAL",
+            initiated_by="ADMIN",
+            user_id=current_user.get("user", "unknown")
+        )
+
+        adapter.close()
+        return {"success": True, "data": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================
+# HEALTH CHECK HISTORY
+# =========================
+@router.get("/health-check/history")
+def get_health_check_history(
+    system_id: str = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    current_user=Depends(get_current_user_with_tenant)
+):
+    """Get health check audit trail. Optional system_id filter."""
+    try:
+        db = get_db_connection()
+        hc = HealthCheckService(db.conn)
+        history = hc.get_history(system_id=system_id, limit=limit)
+        return {"success": True, "data": history}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

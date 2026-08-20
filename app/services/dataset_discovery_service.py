@@ -27,6 +27,12 @@ class DatasetDiscoveryService:
         target_adapter = SQLServerAdapter()
         target_adapter.connect(target_config)
 
+        from app.adapters.base_adapter import ConnectionAdapter
+        ConnectionAdapter.validate_connections(
+            {"SOURCE": source_adapter, "TARGET": target_adapter},
+            label="DATASET_DISCOVERY"
+        )
+
         source_tables = source_adapter.list_tables()
         target_tables = target_adapter.list_tables()
 

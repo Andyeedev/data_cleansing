@@ -30,7 +30,7 @@ def get_batch_status_breakdown(
 @router.get("/history", response_model=APIResponse)
 def get_execution_history(
     page: int = Query(1, ge=1),
-    page_size: int = Query(100, ge=1, le=100),
+    page_size: int = Query(100, ge=1, le=500),
     tenant_id: str = Query(None),
     status: str = Query(None),
     search: str = Query(None),

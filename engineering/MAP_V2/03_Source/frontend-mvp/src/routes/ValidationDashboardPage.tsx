@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useValidationDashboard } from '../hooks/useValidation';
+import { useValidationFilter } from '../context/ValidationFilterContext';
 import { PageHeader } from '../components/PageHeader/PageHeader';
 import { MetricCard } from '../components/shared/MetricCard';
 import { StatusBadge } from '../components/shared/StatusBadge';
@@ -9,19 +10,19 @@ import { ProgressBar } from '../components/shared/ProgressBar';
 import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
-import { TenantFilter } from '../components/shared/TenantFilter';
+import CascadeDropdowns from '../components/shared/CascadeDropdowns';
 
 export function ValidationDashboardPage() {
   const { userRoles } = useAuth();
   const navigate = useNavigate();
-  const [selectedTenant, setSelectedTenant] = useState('');
+  const { tenantId } = useValidationFilter();
   const [isLive, setIsLive] = useState(true);
-  const { data, loading, error, refetch } = useValidationDashboard(selectedTenant);
+  const { data, loading, error, refetch } = useValidationDashboard(tenantId || undefined);
 
   const complianceGaugeColor =
-    data?.summary.compliance_rate >= 80
+    (data?.summary.compliance_rate ?? 0) >= 80
       ? 'var(--color-success)'
-      : data?.summary.compliance_rate >= 50
+      : (data?.summary.compliance_rate ?? 0) >= 50
         ? 'var(--color-warning)'
         : 'var(--color-danger)';
 
@@ -41,7 +42,7 @@ export function ValidationDashboardPage() {
         description="Real-time validation health and risk monitoring"
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+            <CascadeDropdowns showProject={false} showBatch={false} />
             <button
               onClick={() => setIsLive(!isLive)}
               style={{

@@ -18,7 +18,8 @@ class RuleExecutionRepository:
                 delta_value,
                 execution_time_seconds,
                 severity_level,
-                created_at
+                created_at,
+                detail_json
             FROM engine.migration_control_execution
             WHERE batch_id = %s
             ORDER BY control_id, rule_id
@@ -38,7 +39,8 @@ class RuleExecutionRepository:
                 execution_time_seconds,
                 severity_level,
                 mapping_id,
-                created_at
+                created_at,
+                detail_json
             FROM engine.migration_control_execution
             WHERE batch_id = %s AND rule_id = %s
         """
@@ -57,7 +59,8 @@ class RuleExecutionRepository:
                 delta_value,
                 execution_time_seconds,
                 severity_level,
-                created_at
+                created_at,
+                detail_json
             FROM engine.migration_control_execution
             WHERE batch_id = %s AND control_id = %s
             ORDER BY rule_id
@@ -73,7 +76,8 @@ class RuleExecutionRepository:
                 total_rules,
                 passed_rules,
                 failed_rules,
-                error_rules
+                error_rules,
+                COALESCE(skipped_rules, 0) AS skipped_rules
             FROM engine.migration_control_summary
             WHERE batch_id = %s
             ORDER BY control_id

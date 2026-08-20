@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRuleDiscovery } from '../hooks/useRuleDiscovery';
-import { useMigrationProjects } from '../hooks/useMigration';
+import { useValidationFilter } from '../context/ValidationFilterContext';
 import { SplitPane } from '../components/shared/SplitPane';
 import { PageHeader } from '../components/PageHeader/PageHeader';
 import { MetricCard } from '../components/shared/MetricCard';
@@ -11,6 +11,7 @@ import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
 import { Modal } from '../components/shared/Modal';
+import CascadeDropdowns from '../components/shared/CascadeDropdowns';
 import type { DiscoveredRule, DiscoveryMapping, DiscoveryTreeNode } from '../types/rule_discovery';
 
 type SortField = 'rule_id' | 'rule_name' | 'control_id' | 'dataset_name';
@@ -19,7 +20,7 @@ type MappingSortField = 'dataset_name' | 'rule_id' | 'rule_name' | 'sql_template
 
 export function ValidationDiscoveryPage() {
   const { userRoles } = useAuth();
-  const [projectId, setProjectId] = useState<string>('');
+  const { projectId } = useValidationFilter();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
   const [selectedRule, setSelectedRule] = useState<DiscoveredRule | null>(null);
@@ -41,8 +42,6 @@ export function ValidationDiscoveryPage() {
     rules, mappings, status, loading, error, refetch, triggerDiscovery,
     controlTreeData, datasetTreeData,
   } = useRuleDiscovery(projectId || null);
-
-  const { projects: availableProjects, loading: projectsLoading } = useMigrationProjects();
 
   const filteredTableData = useMemo(() => {
     if (!rules?.rules) return [];
@@ -189,16 +188,8 @@ export function ValidationDiscoveryPage() {
       />
 
       <div style={{ marginBottom: 'var(--space-lg)' }}>
-        <label style={{ display: 'block', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Project</label>
-        <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-          <select value={projectId} onChange={(e) => { setProjectId(e.target.value); setCurrentPage(1); }} style={{ padding: 'var(--space-sm) var(--space-md)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-base)', flex: 1, background: 'var(--color-background)', color: 'var(--color-text)' }}>
-            <option value="">Select a project...</option>
-            {availableProjects.map((p) => (
-              <option key={p.project_id} value={p.project_id}>{p.project_name || p.project_id}</option>
-            ))}
-          </select>
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>or enter ID manually:</span>
-          <input type="text" value={projectId} onChange={(e) => { setProjectId(e.target.value); setCurrentPage(1); }} placeholder="Paste project UUID" style={{ padding: 'var(--space-sm) var(--space-md)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-sm)', width: 200 }} />
+        <CascadeDropdowns showBatch={false} />
+        <div style={{ marginTop: 'var(--space-sm)', display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
           <button onClick={handleTrigger} disabled={loading || !projectId} style={{ padding: 'var(--space-sm) var(--space-lg)', background: loading || !projectId ? 'var(--color-bg-secondary)' : 'rgba(34, 197, 94, 0.1)', color: loading || !projectId ? 'var(--color-text-secondary)' : 'var(--color-success)', border: `1px solid ${loading || !projectId ? 'var(--color-border)' : 'rgba(34, 197, 94, 0.3)'}`, borderRadius: 'var(--radius)', cursor: loading || !projectId ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-base)', fontWeight: 500, whiteSpace: 'nowrap' }}>
             {loading ? 'Discovering...' : 'Trigger Discovery'}
           </button>

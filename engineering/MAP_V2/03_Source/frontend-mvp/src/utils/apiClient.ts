@@ -49,7 +49,10 @@ async function request<T>(
     const res = await fetch(url, options);
 
     if (res.status === 401) {
-      throw { response: { status: 401, detail: 'Unauthorized' } };
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('map_nexus_user');
+      window.location.href = '/login';
+      throw new Error('Session expired — please re-login');
     }
 
     if (res.status === 429) {

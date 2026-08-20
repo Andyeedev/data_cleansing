@@ -12,9 +12,14 @@ from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def run_engine(config_path, resume_batch=None, recovery=False, batch_name=None):
+def run_engine(config_path, resume_batch=None, recovery=False, batch_name=None,
+               project_id_override=None, tenant_id=None):
     config = load_config(config_path)
-    engine = ExecutionEngine(config=config, batch_id=resume_batch, batch_name=batch_name)
+    if project_id_override:
+        config["project_id"] = project_id_override
+    if tenant_id:
+        config["tenant_id"] = tenant_id
+    engine = ExecutionEngine(config=config, batch_id=resume_batch, batch_name=batch_name, tenant_id=tenant_id)
     engine.recovery_mode = recovery
     logger.info(f"Starting execution batch: {engine.batch_id}")
     engine.run()

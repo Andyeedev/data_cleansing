@@ -29,6 +29,7 @@ class RuleExecutionService:
         passed_rules = sum(r[4] or 0 for r in control_summaries)
         failed_rules = sum(r[5] or 0 for r in control_summaries)
         error_rules = sum(r[6] or 0 for r in control_summaries)
+        skipped_rules = sum(r[7] or 0 for r in control_summaries)
 
         controls = []
         for cs in control_summaries:
@@ -38,7 +39,8 @@ class RuleExecutionService:
                 "total_rules": cs[3],
                 "passed_rules": cs[4],
                 "failed_rules": cs[5],
-                "error_rules": cs[6]
+                "error_rules": cs[6],
+                "skipped_rules": cs[7]
             })
 
         return {
@@ -47,11 +49,19 @@ class RuleExecutionService:
             "passed_rules": passed_rules,
             "failed_rules": failed_rules,
             "error_rules": error_rules,
+            "skipped_rules": skipped_rules,
             "overall_status": batch_status[2] if batch_status else "UNKNOWN",
             "controls": controls
         }
 
     def _rule_to_dict(self, row):
+        import json
+        detail = row[10]
+        if detail and isinstance(detail, str):
+            try:
+                detail = json.loads(detail)
+            except Exception:
+                pass
         return {
             "id": row[0],
             "batch_id": str(row[1]),
@@ -62,10 +72,18 @@ class RuleExecutionService:
             "delta_value": float(row[6]) if row[6] is not None else None,
             "execution_time_seconds": float(row[7]) if row[7] is not None else None,
             "severity_level": row[8],
-            "created_at": str(row[9]) if row[9] else None
+            "created_at": str(row[9]) if row[9] else None,
+            "detail_json": detail
         }
 
     def _rule_detail_to_dict(self, row):
+        import json
+        detail = row[11]
+        if detail and isinstance(detail, str):
+            try:
+                detail = json.loads(detail)
+            except Exception:
+                pass
         return {
             "id": row[0],
             "batch_id": str(row[1]),
@@ -77,5 +95,6 @@ class RuleExecutionService:
             "execution_time_seconds": float(row[7]) if row[7] is not None else None,
             "severity_level": row[8],
             "mapping_id": str(row[9]) if row[9] else None,
-            "created_at": str(row[10]) if row[10] else None
+            "created_at": str(row[10]) if row[10] else None,
+            "detail_json": detail
         }

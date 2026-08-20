@@ -69,6 +69,7 @@ export interface ControlSummary {
   passed_rules: number;
   failed_rules: number;
   error_rules: number;
+  skipped_rules: number;
 }
 
 export interface GovernanceDecision {

@@ -21,12 +21,18 @@ class ScheduleRunner:
         self.db = get_db_connection()
         self.project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    def _run_subprocess(self, schedule_id):
+    def _run_subprocess(self, schedule_id, project_id=None, tenant_id=None):
         env = copy.deepcopy(os.environ)
         env["PYTHONPATH"] = self.project_root + os.pathsep + env.get("PYTHONPATH", "")
 
+        cmd = [sys.executable, "-m", "app.main", "run", "--config", "config.yaml"]
+        if project_id:
+            cmd.extend(["--project-id", str(project_id)])
+        if tenant_id:
+            cmd.extend(["--tenant-id", str(tenant_id)])
+
         return subprocess.run(
-            [sys.executable, "-m", "app.main", "run", "--config", "config.yaml"],
+            cmd,
             capture_output=True,
             timeout=3600,
             cwd=self.project_root,
@@ -75,7 +81,7 @@ class ScheduleRunner:
         """
         self.db.execute(query, (status, terminal_output, error_message, exit_code, duration_seconds, execution_id))
 
-    def run_schedule(self, schedule_id, triggered_by="scheduled"):
+    def run_schedule(self, schedule_id, triggered_by="scheduled", project_id=None, tenant_id=None):
         """
         Execute MAP CLI for a given schedule.
         Returns execution_id.
@@ -87,7 +93,7 @@ class ScheduleRunner:
 
             start_time = time.time()
 
-            result = self._run_subprocess(schedule_id)
+            result = self._run_subprocess(schedule_id, project_id=project_id, tenant_id=tenant_id)
 
             duration = int(time.time() - start_time)
             terminal_output = result.stdout

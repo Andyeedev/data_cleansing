@@ -17,6 +17,12 @@ class AutoRuleDiscovery:
 
     def generate_rules(self):
 
+        from app.adapters.base_adapter import ConnectionAdapter
+        if self.source_connections:
+            ConnectionAdapter.validate_connections(
+                self.source_connections, label="AUTO_DISCOVERY"
+            )
+
         mappings = self._get_dataset_mappings()
 
         # Group mappings by source_system_id for better logging

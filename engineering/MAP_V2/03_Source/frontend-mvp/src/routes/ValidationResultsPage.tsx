@@ -1,14 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { usePollBatchStatus } from '../hooks/useExecution';
 import {
   useValidationReport,
   useGovernanceDecision,
   useRiskScore,
   useComplianceChecks,
-  useExecutionHistory
+  useControlRules
 } from '../hooks/useValidation';
 import { useAuth } from '../context/AuthContext';
+import { useValidationFilter } from '../context/ValidationFilterContext';
 import { StatusBadge } from '../components/shared/StatusBadge';
 import { ProgressBar } from '../components/shared/ProgressBar';
 import { MetricCard } from '../components/shared/MetricCard';
@@ -17,24 +18,45 @@ import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { EmptyState } from '../components/shared/EmptyState';
 import { PageHeader } from '../components/PageHeader/PageHeader';
+import CascadeDropdowns from '../components/shared/CascadeDropdowns';
 
 type TabKey = 'overview' | 'controls' | 'exceptions' | 'governance';
 
 export function ValidationResultsPage() {
   const { batchId: urlBatchId } = useParams<{ batchId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { userRoles } = useAuth();
-  const [selectedBatchId, setSelectedBatchId] = useState(urlBatchId || '');
+  const { batchId: contextBatchId } = useValidationFilter();
+  const [selectedBatchId, setSelectedBatchId] = useState(urlBatchId || contextBatchId || '');
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
+  const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
 
-  const { data: batchHistory, loading: historyLoading } = useExecutionHistory(1, 100);
-  const batchItems = batchHistory?.items || [];
-  const batchOptions = batchItems.map((b) => ({
-    batch_id: b.batch_id,
-    label: b.batch_name || b.batch_id.slice(0, 8) + '...',
-    status: b.batch_status,
-    date: b.batch_start_time,
-  }));
+  // Check if coming from Rules page
+  const fromRules = searchParams.get('from_rules') === 'true';
+  const ruleId = searchParams.get('rule_id');
+  const mappingId = searchParams.get('mapping_id');
+
+  // Auto-select control if coming from rules with rule_id
+  useEffect(() => {
+    if (ruleId && ruleId.startsWith('C')) {
+      // Extract control_id from rule_id (e.g., C02_BALANCE_RECON -> C02)
+      const controlIdMatch = ruleId.match(/^C(\d+)_/);
+      const controlId = controlIdMatch ? `C${controlIdMatch[1]}` : ruleId;
+      setSelectedControlId(controlId);
+    }
+  }, [ruleId]);
+
+  const { data: controlRules, loading: rulesLoading, error: rulesError } = useControlRules(
+    selectedBatchId || null,
+    selectedControlId
+  );
+
+  useEffect(() => {
+    if (contextBatchId && contextBatchId !== selectedBatchId) {
+      setSelectedBatchId(contextBatchId);
+    }
+  }, [contextBatchId]);
 
   const { status, loading: statusLoading, error: statusError, startPolling, stopPolling } = usePollBatchStatus();
   const { data: report, loading: reportLoading, error: reportError } = useValidationReport(selectedBatchId || null);
@@ -69,28 +91,26 @@ export function ValidationResultsPage() {
         title="Validation Results"
         description="Detailed validation report for a specific batch"
         actions={
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-            <select
-              value={selectedBatchId}
-              onChange={(e) => setSelectedBatchId(e.target.value)}
-              style={{
-                padding: 'var(--space-sm) var(--space-md)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                fontSize: 'var(--font-size-sm)',
-                minWidth: 280,
-                background: 'var(--color-background)',
-                color: 'var(--color-text)',
-              }}
-            >
-              <option value="">Select a batch...</option>
-              {batchOptions.map((b) => (
-                <option key={b.batch_id} value={b.batch_id}>
-                  {b.label} [{b.status}] ({b.date ? new Date(b.date).toLocaleDateString() : '—'})
-                </option>
-              ))}
-            </select>
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>or enter ID:</span>
+          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
+            {fromRules && (
+              <button
+                onClick={() => navigate('/validation/rules')}
+                style={{
+                  padding: 'var(--space-sm) var(--space-md)',
+                  background: 'var(--color-secondary)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 'var(--radius)',
+                  cursor: 'pointer',
+                  fontSize: 'var(--font-size-sm)',
+                  fontWeight: 500,
+                }}
+              >
+                ← Back to Rules
+              </button>
+            )}
+            <CascadeDropdowns />
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>or enter Batch ID:</span>
             <input
               type="text"
               placeholder="Batch UUID"
@@ -119,14 +139,14 @@ export function ValidationResultsPage() {
                 borderRadius: 'var(--radius)',
                 cursor: 'pointer',
                 fontSize: 'var(--font-size-sm)',
+                fontWeight: 500,
               }}
             >
               Load
             </button>
-          </div>
+</div>
         }
       />
-
       {!selectedBatchId && (
         <EmptyState
           title="No batch selected"
@@ -245,14 +265,19 @@ export function ValidationResultsPage() {
                       <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
                         <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Control ID</th>
                         <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Status</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Total Rules</th>
+                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Total</th>
                         <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Passed</th>
                         <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Failed</th>
+                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Skipped</th>
                       </tr>
                     </thead>
                     <tbody>
                       {report.control_summaries.map((control) => (
-                        <tr key={control.control_id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                        <tr
+                          key={control.control_id}
+                          style={{ borderBottom: '1px solid var(--color-border)', cursor: 'pointer' }}
+                          onClick={() => setSelectedControlId(control.control_id)}
+                        >
                           <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{control.control_id.slice(0, 12)}...</td>
                           <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
                             <StatusBadge status={control.overall_status} size="sm" />
@@ -262,6 +287,9 @@ export function ValidationResultsPage() {
                           <td style={{ padding: 'var(--space-sm) var(--space-md)', color: control.failed_rules > 0 ? 'var(--color-danger)' : undefined }}>
                             {control.failed_rules}
                           </td>
+                          <td style={{ padding: 'var(--space-sm) var(--space-md)', color: control.skipped_rules > 0 ? 'var(--color-warning)' : undefined }}>
+                            {control.skipped_rules || 0}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -270,10 +298,112 @@ export function ValidationResultsPage() {
               ) : (
                 <EmptyState title="No controls" description="No control data available for this batch." />
               )}
+</div>
+          )}
+
+          {selectedControlId && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+              }}
+              onClick={() => setSelectedControlId(null)}
+            >
+              <div
+                style={{
+                  background: 'var(--color-surface)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: 'var(--space-lg)',
+                  maxWidth: '900px',
+                  width: '90%',
+                  maxHeight: '80vh',
+                  overflow: 'auto',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+                  <h3 style={{ margin: 0 }}>Control Rules: {selectedControlId}</h3>
+                  <button
+                    onClick={() => setSelectedControlId(null)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: 'var(--font-size-lg)',
+                      cursor: 'pointer',
+                      color: 'var(--color-text-secondary)',
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {rulesLoading ? (
+                  <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                    Loading rules...
+                  </div>
+                ) : rulesError ? (
+                  <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-danger)' }}>
+                    {rulesError}
+                  </div>
+                ) : controlRules && controlRules.length > 0 ? (
+                  <div style={{ overflow: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
+                      <thead style={{ position: 'sticky', top: 0, background: 'var(--color-bg-secondary)', zIndex: 1 }}>
+                        <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Rule ID</th>
+                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Entity</th>
+                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Status</th>
+                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Delta</th>
+                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Time (s)</th>
+                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {controlRules.map((rule) => (
+                          <tr key={rule.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                            <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace', fontSize: 'var(--font-size-xs)' }}>{rule.rule_id}</td>
+                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.entity_name}</td>
+                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                              <StatusBadge status={rule.execution_status} size="sm" />
+                            </td>
+                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.delta_value ?? '—'}</td>
+                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.execution_time_seconds?.toFixed(2) ?? '—'}</td>
+                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                              {rule.detail_json && Object.keys(rule.detail_json).length > 0 ? (
+                                <details style={{ cursor: 'pointer' }}>
+                                  <summary style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)' }}>View Details</summary>
+                                  <pre style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius)', overflow: 'auto', maxHeight: '200px' }}>
+                                    {JSON.stringify(rule.detail_json, null, 2)}
+                                  </pre>
+                                </details>
+                              ) : (
+                                <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)' }}>No details</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                    No rules found for this control.
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {activeTab === 'exceptions' && (
+        {activeTab === 'exceptions' && (
             <div>
               <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-md)' }}>Compliance Exceptions</h4>
               {complianceLoading ? (

@@ -62,3 +62,11 @@ def require_role(*role_names: str):
         return current_user
 
     return dependency
+
+
+def require_admin(current_user=Depends(get_current_user)):
+    """Shortcut: require Super Admin role."""
+    roles = current_user.get("roles", [])
+    if "Super Admin" not in roles:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user

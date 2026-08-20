@@ -27,7 +27,8 @@ class ValidationReportService:
                 "total_rules": cs[2],
                 "passed_rules": cs[3],
                 "failed_rules": cs[4],
-                "error_rules": cs[5]
+                "error_rules": cs[5],
+                "skipped_rules": cs[6]
             })
 
         total_controls = sum(c["total_rules"] for c in controls)

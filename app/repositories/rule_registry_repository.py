@@ -179,8 +179,8 @@ class RuleRegistryRepository:
                         (ARRAY_AGG(mce.execution_status ORDER BY mce.created_at DESC))[1] AS last_status,
                         COUNT(*) AS total_executions
                     FROM engine.migration_control_execution mce
-                    INNER JOIN core.dataset_mappings dm ON mce.mapping_id = dm.mapping_id
-                    INNER JOIN core.projects p ON dm.project_id::text = p.project_id::text
+                    INNER JOIN engine.migration_batch_registry b ON mce.batch_id = b.batch_id
+                    INNER JOIN core.projects p ON b.project_id::text = p.project_id::text
                     WHERE p.tenant_id = %s
                     GROUP BY mce.rule_id
                 ) e ON r.rule_id = e.rule_id

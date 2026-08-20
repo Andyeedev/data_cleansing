@@ -2,61 +2,99 @@
 Connection Pool Manager
 
 This module provides connection pooling management for database adapters.
+Pool is a singleton — all adapters sharing the same database instance
+reuse the same pool of connections.
 """
 
+import threading
 from typing import Dict, Any, Optional, List
 
 from app.adapters.registry import AdapterRegistry
 
 
 class ConnectionPool:
-    """Simple connection pool implementation."""
+    """Thread-safe connection pool with health validation."""
 
-    def __init__(self, adapter_class: type, config: Any, db_type: str, min_connections: int, max_connections: int):
+    def __init__(self, adapter_class: type, config: Any, db_type: str,
+                 min_connections: int = 2, max_connections: int = 5):
         self.adapter_class = adapter_class
         self.config = config
         self.db_type = db_type
         self.min_connections = min_connections
         self.max_connections = max_connections
-        self._available_connections: List[Any] = []
-        self._active_connections: List[Any] = []
+        self._available: List[Any] = []
+        self._active: List[Any] = []
+        self._lock = threading.Lock()
 
     def acquire(self):
-        """Acquire a connection from the pool."""
-        if self._available_connections:
-            connection = self._available_connections.pop()
-            self._active_connections.append(connection)
-            return connection
-        else:
-            return self._create_connection()
+        """Acquire a connection from the pool, validating stale ones."""
+        with self._lock:
+            while self._available:
+                conn = self._available.pop()
+                if self._is_alive(conn):
+                    self._active.append(conn)
+                    return conn
+                else:
+                    self._safe_close(conn)
+            if len(self._active) < self.max_connections:
+                conn = self._create_connection()
+                self._active.append(conn)
+                return conn
+        raise ConnectionError(
+            f"Pool exhausted ({self.max_connections} active)"
+        )
 
     def release(self, connection):
         """Return a connection to the pool."""
-        if connection in self._active_connections:
-            self._active_connections.remove(connection)
-            self._available_connections.append(connection)
+        with self._lock:
+            if connection in self._active:
+                self._active.remove(connection)
+                self._available.append(connection)
 
     def health_check(self) -> bool:
         """Check if the pool is healthy."""
-        return len(self._active_connections) > 0
+        with self._lock:
+            alive = sum(1 for c in self._available if self._is_alive(c))
+            return alive > 0 or len(self._active) > 0
 
     def close(self):
         """Close all connections in the pool."""
-        for connection in self._available_connections + self._active_connections:
-            if hasattr(connection, 'close'):
-                connection.close()
-        self._available_connections.clear()
-        self._active_connections.clear()
+        with self._lock:
+            for conn in self._available + self._active:
+                self._safe_close(conn)
+            self._available.clear()
+            self._active.clear()
 
     def get_info(self) -> Dict[str, Any]:
         """Get pool information."""
-        return {
-            'min_connections': self.min_connections,
-            'max_connections': self.max_connections,
-            'available_connections': len(self._available_connections),
-            'active_connections': len(self._active_connections),
-            'is_healthy': self.health_check()
-        }
+        with self._lock:
+            return {
+                'db_type': self.db_type,
+                'host': getattr(self.config, 'host', '?'),
+                'min_connections': self.min_connections,
+                'max_connections': self.max_connections,
+                'available': len(self._available),
+                'active': len(self._active),
+                'is_healthy': self.health_check()
+            }
+
+    def _is_alive(self, conn) -> bool:
+        """Validate connection with SELECT 1."""
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.close()
+            return True
+        except Exception:
+            return False
+
+    def _safe_close(self, conn):
+        """Close connection ignoring errors."""
+        try:
+            if hasattr(conn, 'close'):
+                conn.close()
+        except Exception:
+            pass
 
     def _create_connection(self):
         """Create a new connection based on database type."""
@@ -93,9 +131,8 @@ class ConnectionPool:
                 f"DATABASE={database};"
                 f"UID={username};"
                 f"PWD={password};"
+                "MARS_Connection=Yes;"
             )
-            # Azure SQL Database requires encrypted connections; on-prem SQL
-            # Server typically does not, so only force encryption for Azure.
             if host.endswith(".database.windows.net"):
                 conn_str += "Encrypt=yes;TrustServerCertificate=yes;"
             else:
@@ -114,18 +151,24 @@ class ConnectionPool:
         else:
             raise ValueError(f"Unsupported db_type for pool: {self.db_type}")
 
-        self._active_connections.append(conn)
         return conn
 
 
 class ConnectionPoolManager:
-    """Manages connection pools per database type and instance."""
+    """Singleton pool manager — all adapters share one pool per database instance."""
 
-    def __init__(self):
-        self._pools: Dict[str, ConnectionPool] = {}
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                cls._instance._pools: Dict[str, ConnectionPool] = {}
+            return cls._instance
 
     def get_connection(self, system_id: str, config: Any, db_type: str):
-        """Get a connection from the pool or create a new one."""
+        """Get a connection from the shared pool."""
         pool_key = self._get_pool_key(config, db_type)
 
         if pool_key not in self._pools:
@@ -134,8 +177,8 @@ class ConnectionPoolManager:
                 adapter_class=adapter_class,
                 config=config,
                 db_type=db_type,
-                min_connections=1,
-                max_connections=20
+                min_connections=2,
+                max_connections=5
             )
 
         return self._pools[pool_key].acquire()
@@ -144,6 +187,11 @@ class ConnectionPoolManager:
         """Return a connection to the pool."""
         if pool_key in self._pools:
             self._pools[pool_key].release(connection)
+
+    def release_by_config(self, config: Any, db_type: str, connection):
+        """Return a connection using config-based lookup."""
+        pool_key = self._get_pool_key(config, db_type)
+        self.release_connection(pool_key, connection)
 
     def health_check(self) -> Dict[str, bool]:
         """Check health of all pools."""
@@ -156,6 +204,11 @@ class ConnectionPoolManager:
         """Close all connections in all pools."""
         for pool in self._pools.values():
             pool.close()
+
+    def reset(self):
+        """Reset the pool manager - close all pools and clear the instance."""
+        self.close_all()
+        self._pools.clear()
 
     def get_pools_info(self) -> Dict[str, Dict[str, Any]]:
         """Get information about all pools."""

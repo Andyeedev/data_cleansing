@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 
 
@@ -13,6 +13,7 @@ class RuleExecutionResponse(BaseModel):
     execution_time_seconds: Optional[float] = None
     severity_level: Optional[str] = None
     created_at: Optional[str] = None
+    detail_json: Optional[Dict[str, Any]] = None
 
 
 class RuleExecutionDetailResponse(BaseModel):
@@ -27,6 +28,7 @@ class RuleExecutionDetailResponse(BaseModel):
     severity_level: Optional[str] = None
     mapping_id: Optional[str] = None
     created_at: Optional[str] = None
+    detail_json: Optional[Dict[str, Any]] = None
 
 
 class ExecutionResultsSummary(BaseModel):

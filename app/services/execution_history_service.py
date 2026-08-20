@@ -131,11 +131,12 @@ class ExecutionHistoryService:
     def _history_to_dict(self, row):
         return {
             "batch_id": str(row[0]),
-            "project_id": str(row[1]) if row[1] else None,
-            "batch_status": row[2],
-            "total_controls": row[3],
-            "completed_controls": row[4],
-            "failed_controls": row[5],
-            "batch_start_time": str(row[6]) if row[6] else None,
-            "batch_end_time": str(row[7]) if row[7] else None
+            "batch_name": row[1],
+            "project_id": str(row[2]) if row[2] else None,
+            "batch_status": row[3],
+            "total_controls": row[4],
+            "completed_controls": row[5],
+            "failed_controls": row[6],
+            "batch_start_time": str(row[7]) if row[7] else None,
+            "batch_end_time": str(row[8]) if row[8] else None
         }

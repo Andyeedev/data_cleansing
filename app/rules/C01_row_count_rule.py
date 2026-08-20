@@ -36,5 +36,8 @@ class RowCountRule(BaseRule):
             "source_value": source_count,
             "target_value": target_count,
             "delta": delta,
-            "status": status
+            "status": status,
+            "query": f"Source: {source_query.strip()} | Target: {target_query.strip()}",
+            "source_count": source_count,
+            "target_count": target_count
         }

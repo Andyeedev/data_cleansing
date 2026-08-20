@@ -27,6 +27,21 @@ class DBConnector:
             except Exception:
                 return None
 
+    def fetch_all(self, query, params=None):
+        """Alias for execute() for compatibility with adapter interface."""
+        return self.execute(query, params)
+
+    def fetch_dataframe(self, query, params=None):
+        """Return query results as pandas DataFrame for export utilities."""
+        import pandas as pd
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
+            rows = cur.fetchall()
+            if not rows:
+                return pd.DataFrame()
+            cols = [desc[0] for desc in cur.description]
+            return pd.DataFrame(rows, columns=cols)
+
     def close(self):
         self.conn.close()
 
@@ -70,6 +85,21 @@ class PooledDBConnector:
                 return cur.fetchall()
             except Exception:
                 return None
+
+    def fetch_all(self, query, params=None):
+        """Alias for execute() for compatibility with adapter interface."""
+        return self.execute(query, params)
+
+    def fetch_dataframe(self, query, params=None):
+        """Return query results as pandas DataFrame for export utilities."""
+        import pandas as pd
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
+            rows = cur.fetchall()
+            if not rows:
+                return pd.DataFrame()
+            cols = [desc[0] for desc in cur.description]
+            return pd.DataFrame(rows, columns=cols)
 
     def cursor(self):
         return self.conn.cursor()

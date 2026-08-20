@@ -23,7 +23,7 @@ audit_logger = get_audit_logger()
 
 class ExecutionEngine:
 
-    def __init__(self, config, batch_id=None, batch_name=None):
+    def __init__(self, config, batch_id=None, batch_name=None, tenant_id=None):
 
         self.config = config
 
@@ -36,16 +36,25 @@ class ExecutionEngine:
         # ✅ project_id
         self.project_id = config.get("project_id")
 
-        engine_db_config = config.get("engine_db", {}).copy()
+        # ✅ tenant_id
+        self.tenant_id = tenant_id or config.get("tenant_id")
 
-        if not engine_db_config.get("type"):
-            engine_db_config["type"] = "postgres"
+        engine_db_input = config.get("engine_db", {})
 
-        self.engine_db = connection_factory(engine_db_config)
+        # Support both pre-built connection objects and dict configs
+        if isinstance(engine_db_input, dict):
+            engine_db_config = engine_db_input.copy()
+            if not engine_db_config.get("type"):
+                engine_db_config["type"] = "postgres"
+            self.engine_db = connection_factory(engine_db_config)
+        else:
+            # Already a PooledDBConnector or similar connection object
+            self.engine_db = engine_db_input
 
         # ✅ configs
         self.rule_config = config.get("rules", {})
-        self.control_dependencies = config.get("control_dependencies", {})
+        self.control_dependencies = {}
+        self._load_control_dependencies_from_db()
         self.control_timeout_seconds = config.get("engine", {}).get(
             "control_timeout_seconds", 300
         )
@@ -110,6 +119,22 @@ class ExecutionEngine:
         IndentContext.set_indent(0)
         duration_step1 = int((time.time() - start_step1) * 1000)
         logger.info(f"[STEP 01/06] CONNECTION RESOLUTION COMPLETED ({duration_step1}ms)")
+        logger.info("")
+
+        # -----------------------------------------------------
+        # [STEP 01b] CONNECTION HEALTH CHECK
+        # -----------------------------------------------------
+        from app.services.health_check_service import HealthCheckService
+        hc = HealthCheckService(self.engine_db)
+        logger.info("[STEP 01b] VALIDATING ALL CONNECTIONS ...")
+        try:
+            hc.check_all(source_connections, target_connections,
+                         initiated_by="SYSTEM", user_id="ENGINE")
+        except ConnectionError as e:
+            logger.error(f"[STEP 01b] HEALTH CHECK FAILED: {e}")
+            self._complete_batch("FAILED")
+            raise
+        logger.info("[STEP 01b] ALL CONNECTIONS HEALTHY")
         logger.info("")
 
         # -----------------------------------------------------
@@ -314,7 +339,13 @@ class ExecutionEngine:
 
             self._trace_dag_event("Validating control dependencies")
 
-            self._validate_dependencies(control_ids)
+            valid_control_ids = self._validate_dependencies(control_ids)
+
+            # Filter out controls with unsatisfied dependencies
+            control_ids = valid_control_ids
+            controls = [c for c in controls if c[0] in valid_control_ids]
+
+            self._trace_dag_event(f"Controls after dependency check: {len(controls)}")
 
             self._trace_dag_event("Checking for DAG cycles")
 
@@ -795,6 +826,35 @@ class ExecutionEngine:
 
         self.engine_db.execute(query, (self.batch_id,))
 
+    def _load_control_dependencies_from_db(self):
+        """Load control dependencies from DB instead of config.yaml."""
+        try:
+            query = """
+                SELECT control_id, depends_on_control_id
+                FROM engine.control_dependencies
+                WHERE project_id IS NULL OR project_id = %s
+                ORDER BY project_id NULLS LAST, control_id
+            """
+            rows = self.engine_db.execute(query, (self.project_id,))
+
+            for row in rows:
+                control_id = row[0]
+                dep = row[1]
+                self.control_dependencies.setdefault(control_id, []).append(dep)
+
+            if self.control_dependencies:
+                logger.debug(f"Loaded control dependencies from DB: {self.control_dependencies}")
+        except Exception as e:
+            logger.warning(f"Could not load control dependencies from DB: {e}. Falling back to empty dependencies.")
+            self.control_dependencies = {}
+
+        # Fall back to config.yaml if DB had no dependencies
+        if not self.control_dependencies:
+            config_deps = self.config.get("control_dependencies", {})
+            if config_deps:
+                self.control_dependencies = config_deps
+                logger.debug(f"Loaded control dependencies from config.yaml: {self.control_dependencies}")
+
     def _get_controls(self):
 
         query = """
@@ -988,9 +1048,14 @@ class ExecutionEngine:
 
         if invalid_refs:
             for cid, dep in invalid_refs:
-                logger.error(f"Invalid dependency: {cid} depends on missing {dep}")
+                logger.warning(f"Control {cid} depends on {dep} which is not enabled or available — skipping {cid}")
 
-            raise ValueError("Invalid control dependencies detected")
+            # Return controls with valid dependencies only
+            return [cid for cid in control_ids if not any(
+                dep not in control_ids for dep in self.control_dependencies.get(cid, [])
+            )]
+
+        return list(control_ids)
 
     def _detect_cycles(self, control_ids):
 
@@ -1108,6 +1173,7 @@ class ExecutionEngine:
             INSERT INTO engine.migration_batch_registry (
                 batch_id,
                 project_id,
+                tenant_id,
                 batch_name,
                 batch_start_time,
                 batch_status,
@@ -1115,7 +1181,7 @@ class ExecutionEngine:
                 completed_controls,
                 failed_controls
             )
-            VALUES (%s, %s, %s, NOW(), 'RUNNING', %s, 0, 0)
-        """, (self.batch_id, self.project_id, batch_name, total_controls))
+            VALUES (%s, %s, %s, %s, NOW(), 'RUNNING', %s, 0, 0)
+        """, (self.batch_id, self.project_id, self.tenant_id, batch_name, total_controls))
 
         return True

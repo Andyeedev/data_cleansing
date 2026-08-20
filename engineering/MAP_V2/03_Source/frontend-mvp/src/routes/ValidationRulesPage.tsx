@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useValidationFilter } from '../context/ValidationFilterContext';
 import { PageHeader } from '../components/PageHeader/PageHeader';
 import { ErrorState } from '../components/shared/ErrorState';
 import { TabBar } from '../components/shared/TabBar';
+import CascadeDropdowns from '../components/shared/CascadeDropdowns';
 import { RuleMappingsUsageTab } from './RuleMappingsUsageTab';
 import { RuleDefinitionsTab } from './RuleDefinitionsTab';
 
@@ -13,8 +15,8 @@ const TABS = [
 
 export function ValidationRulesPage() {
   const { userRoles } = useAuth();
+  const { tenantId } = useValidationFilter();
   const [activeTab, setActiveTab] = useState('mappings');
-  const [selectedTenant, setSelectedTenant] = useState<string>('');
 
   if (!userRoles.includes('admin')) {
     return (
@@ -30,12 +32,13 @@ export function ValidationRulesPage() {
       <PageHeader
         title="Validation Rules"
         description="Rule definitions, dataset mappings, and execution usage"
+        actions={<CascadeDropdowns showBatch={false} />}
       />
 
       <TabBar tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
-        {activeTab === 'mappings' && <RuleMappingsUsageTab selectedTenant={selectedTenant} onTenantChange={setSelectedTenant} />}
+        {activeTab === 'mappings' && <RuleMappingsUsageTab selectedTenant={tenantId || ''} />}
         {activeTab === 'definitions' && <RuleDefinitionsTab />}
       </div>
     </div>

@@ -46,11 +46,20 @@ class RuleDiscoveryService:
 
     def trigger_discovery(self, project_id: str) -> dict:
         engine_db = get_db_connection()
-        source_db = get_db_connection()
+
+        from app.db.connection_resolver import ConnectionResolver
+        resolver = ConnectionResolver(engine_db)
+        connections = resolver.get_connections(project_id)
+        source_connections = connections.get("SOURCE", {})
+
+        if not source_connections:
+            raise RuntimeError(f"No active SOURCE systems found for project {project_id}")
+
         discoverer = AutoRuleDiscovery(
             engine_db=engine_db,
-            source_db=source_db,
-            project_id=project_id
+            source_db=next(iter(source_connections.values())),
+            project_id=project_id,
+            source_connections=source_connections
         )
         discoverer.generate_rules()
         return {

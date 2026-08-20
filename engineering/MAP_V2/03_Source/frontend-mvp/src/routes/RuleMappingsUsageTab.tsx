@@ -7,7 +7,7 @@ import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
-import { TenantFilter } from '../components/shared/TenantFilter';
+import { useNavigate } from 'react-router-dom';
 import type { RuleUsageItem } from '../hooks/useRules';
 
 type FilterMapping = 'all' | 'mapped' | 'unmapped';
@@ -25,6 +25,160 @@ interface RuleMapping {
   last_execution_at: string | null;
 }
 
+interface ControlRule {
+  id: number;
+  batch_id: string;
+  control_id: string;
+  rule_id: string;
+  entity_name: string;
+  execution_status: string;
+  delta_value: number | null;
+  execution_time_seconds: number | null;
+  severity_level: string | null;
+  created_at: string | null;
+  detail_json: Record<string, any> | null;
+}
+
+function ControlReportModal({ isOpen, onClose, controlId, controlName, projectId }: { isOpen: boolean; onClose: () => void; controlId: string; controlName: string; projectId: string }) {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !controlId || !projectId) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const batchResult = await apiGet<{ batch_id: string | null; message?: string }>(
+          `/execution/${projectId}/control/${controlId}/latest-batch`
+        );
+        const batchId = batchResult.batch_id;
+        if (!batchId) {
+          setError(batchResult.message || 'No execution found for this control');
+          setData([]);
+          return;
+        }
+        const result = await apiGet<any[]>(
+          `/execution/${batchId}/control/${controlId}/rules`
+        );
+        setData(Array.isArray(result) ? result : (result.items || []));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch control rules');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [isOpen, controlId, projectId]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: 'var(--color-surface)',
+          borderRadius: 'var(--radius-md)',
+          padding: 'var(--space-lg)',
+          maxWidth: '900px',
+          width: '90%',
+          maxHeight: '80vh',
+          overflow: 'auto',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+          <h3 style={{ margin: 0 }}>Control Rules: {controlId}</h3>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: 'var(--font-size-lg)',
+              cursor: 'pointer',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+            Loading rules...
+          </div>
+        ) : error ? (
+          <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-danger)' }}>
+            {error}
+          </div>
+        ) : data.length > 0 ? (
+          <div style={{ overflow: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
+              <thead style={{ position: 'sticky', top: 0, background: 'var(--color-bg-secondary)', zIndex: 1 }}>
+                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Rule ID</th>
+                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Entity</th>
+                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Status</th>
+                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Delta</th>
+                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Time (s)</th>
+                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((rule: any) => (
+                  <tr key={rule.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                    <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace', fontSize: 'var(--font-size-xs)' }}>{rule.rule_id}</td>
+                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.entity_name}</td>
+                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                      <StatusBadge status={rule.execution_status} size="sm" />
+                    </td>
+                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.delta_value ?? '—'}</td>
+                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.execution_time_seconds?.toFixed(2) ?? '—'}</td>
+                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                      {rule.detail_json && Object.keys(rule.detail_json).length > 0 ? (
+                        <details style={{ cursor: 'pointer' }}>
+                          <summary style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)' }}>View Details</summary>
+                          <pre style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius)', overflow: 'auto', maxHeight: '200px' }}>
+                            {JSON.stringify(rule.detail_json, null, 2)}
+                          </pre>
+                        </details>
+                      ) : (
+                        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)' }}>No details</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+            No rules found for this control.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selectedTenant: string; onTenantChange: (tenant: string) => void }) {
   const { data, loading, error, refetch } = useRuleUsageStats(selectedTenant || undefined);
   const { data: projects } = useProjectsForTenant(selectedTenant || undefined);
@@ -38,12 +192,24 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
   const [expandedMappings, setExpandedMappings] = useState<Record<string, RuleMapping[]>>({});
   const [expandedLoading, setExpandedLoading] = useState(false);
 
+  const [controlReportModal, setControlReportModal] = useState<{
+    isOpen: boolean;
+    controlId: string | null;
+    controlName: string | null;
+    projectId: string | null;
+  }>({
+    isOpen: false,
+    controlId: null,
+    controlName: null,
+    projectId: null,
+  });
+
   useEffect(() => {
     setExpandedRuleId(null);
     setExpandedMappings({});
   }, [selectedTenant]);
 
-   const filteredRules = useMemo(() => {
+  const filteredRules = useMemo(() => {
     if (!data?.rules) return [];
     let result = data.rules;
     if (selectedTenant) {
@@ -128,6 +294,17 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
   if (loading) return <LoadingSkeleton rows={4} variant="card" />;
   if (error) return <ErrorState message={error} onRetry={refetch} />;
 
+  const unmappedWarning = unmappedRules > 0 ? (
+    <div style={{ padding: '16px', marginBottom: '16px', background: 'rgba(245,158,11,0.1)', borderRadius: '6px', border: '1px solid #f59e0b' }}>
+      <div style={{ fontWeight: 600, color: '#f59e0b', marginBottom: '4px' }}>
+        {unmappedRules} rule(s) not mapped to any dataset
+      </div>
+      <div style={{ fontSize: '12px', color: '#6b7280' }}>
+        These rules will not execute during migration. Use <strong>Auto-Discover</strong> to bind rules to datasets based on column metadata.
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
       <div style={{ padding: '8px 16px', marginBottom: '16px', background: 'rgba(59,130,246,0.08)', borderRadius: '6px', border: '1px solid rgba(59,130,246,0.2)', fontSize: '12px', color: '#6b7280' }}>
@@ -153,16 +330,7 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
             <MetricCard title="Total Mappings" value={totalMappings} subtitle="rule-to-dataset bindings" />
           </div>
 
-          {unmappedRules > 0 && (
-            <div style={{ padding: '16px', marginBottom: '16px', background: 'rgba(245,158,11,0.1)', borderRadius: '6px', border: '1px solid #f59e0b' }}>
-              <div style={{ fontWeight: 600, color: '#f59e0b', marginBottom: '4px' }}>
-                {unmappedRules} rule(s) not mapped to any dataset
-              </div>
-              <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                These rules will not execute during migration. Use <strong>Auto-Discover</strong> to bind rules to datasets based on column metadata.
-              </div>
-            </div>
-          )}
+          {unmappedWarning}
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 200 }}>
@@ -255,8 +423,8 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
                               <span>
                                 <StatusBadge
                                   status={rule.last_status ? (
-                                    rule.last_status.toLowerCase() === 'pass' ? 'Pass' : 
-                                    rule.last_status.toLowerCase() === 'fail' ? 'Fail' : 
+                                    rule.last_status.toLowerCase() === 'pass' ? 'Pass' :
+                                    rule.last_status.toLowerCase() === 'fail' ? 'Fail' :
                                     rule.last_status.toLowerCase() === 'error' ? 'Error' :
                                     'Unknown'
                                   ) : 'Unknown'}
@@ -282,48 +450,69 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
                                     <div style={{ fontSize: '12px', color: '#6b7280' }}>This rule is not bound to any dataset mappings.</div>
                                   </div>
                                 ) : (
-                                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                     <thead>
-                                       <tr>
-                                         <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Dataset</th>
-                                         <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Mapping</th>
-                                         <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Last Run</th>
-                                         <th style={{ textAlign: 'right', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Delta</th>
-                                         <th style={{ textAlign: 'right', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Time (s)</th>
-                                         <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Run Date</th>
-                                       </tr>
-                                     </thead>
-                                     <tbody>
-                                       {mappings.map(m => (
-                                         <tr key={m.mapping_id} style={{ borderBottom: '1px solid #e5e7eb', background: m.execution_status === 'FAIL' ? 'rgba(239,68,68,0.04)' : m.execution_status === 'ERROR' ? 'rgba(245,158,11,0.04)' : 'transparent' }}>
-                                           <td style={{ padding: '8px 12px', color: '#1f2937', fontFamily: 'monospace' }}>{m.dataset_name}</td>
-                                           <td style={{ padding: '8px 12px' }}>
-                                             <StatusBadge status={m.is_active ? 'Active' : 'Inactive'} size="sm" variant={m.is_active ? 'success' : 'warning'} />
-                                           </td>
-                                           <td style={{ padding: '8px 12px' }}>
-                                             {m.execution_status ? (
-                                               <StatusBadge
-                                                 status={m.execution_status === 'PASS' ? 'Pass' : m.execution_status === 'FAIL' ? 'Fail' : m.execution_status === 'ERROR' ? 'Error' : m.execution_status === 'SKIPPED' ? 'Skipped' : m.execution_status}
-                                                 size="sm"
-                                                 variant={m.execution_status === 'PASS' ? 'success' : m.execution_status === 'FAIL' ? 'danger' : 'warning'}
-                                               />
-                                             ) : (
-                                               <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Not run</span>
-                                             )}
-                                           </td>
-                                           <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: m.delta_value && m.delta_value > 0 ? '#ef4444' : '#374151' }}>
-                                             {m.delta_value != null ? m.delta_value.toLocaleString() : '\u2014'}
-                                           </td>
-                                           <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#6b7280' }}>
-                                             {m.execution_time_seconds != null ? m.execution_time_seconds.toFixed(2) : '\u2014'}
-                                           </td>
-                                           <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: '11px' }}>
-                                             {m.last_execution_at ? new Date(m.last_execution_at).toLocaleString() : '\u2014'}
-                                           </td>
-                                         </tr>
-                                       ))}
-                                     </tbody>
-                                   </table>
+                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                    <thead>
+                                      <tr>
+                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Dataset</th>
+                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Mapping</th>
+                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Last Run</th>
+                                        <th style={{ textAlign: 'right', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Delta</th>
+                                        <th style={{ textAlign: 'right', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Time (s)</th>
+                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Run Date</th>
+                                        <th style={{ textAlign: 'center', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>
+                                          {(() => {
+                                            const expandedRule = filteredRules.find((r) => r.rule_id === expandedRuleId);
+                                            const controlId = expandedRule?.control_id;
+                                            const projectId = projects?.[0]?.project_id;
+                                            return controlId && projectId ? (
+                                              <span
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setControlReportModal({ isOpen: true, controlId, controlName: `Control ${controlId}`, projectId });
+                                                }}
+                                                style={{ cursor: 'pointer', color: '#3b82f6', fontSize: '11px' }}
+                                                title={`Open report for ${controlId}`}
+                                              >
+                                                🔍
+                                              </span>
+                                            ) : null;
+                                          })()}
+                                        </th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {mappings.map((m) => (
+                                        <tr key={m.mapping_id} style={{ borderBottom: '1px solid #e5e7eb', background: m.execution_status === 'FAIL' ? 'rgba(239,68,68,0.04)' : m.execution_status === 'ERROR' ? 'rgba(245,158,11,0.04)' : 'transparent' }}>
+                                          <td style={{ padding: '8px 12px', color: '#1f2937', fontFamily: 'monospace' }}>{m.dataset_name}</td>
+                                          <td style={{ padding: '8px 12px' }}>
+                                            <StatusBadge status={m.is_active ? 'Active' : 'Inactive'} size="sm" variant={m.is_active ? 'success' : 'warning'} />
+                                          </td>
+                                          <td style={{ padding: '8px 12px' }}>
+                                            {m.execution_status ? (
+                                              <StatusBadge
+                                                status={m.execution_status === 'PASS' ? 'Pass' : m.execution_status === 'FAIL' ? 'Fail' : m.execution_status === 'ERROR' ? 'Error' : m.execution_status === 'SKIPPED' ? 'Skipped' : m.execution_status}
+                                                size="sm"
+                                                variant={m.execution_status === 'PASS' ? 'success' : m.execution_status === 'FAIL' ? 'danger' : 'warning'}
+                                              />
+                                            ) : (
+                                              <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Not run</span>
+                                            )}
+                                          </td>
+                                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: m.delta_value && m.delta_value > 0 ? '#ef4444' : '#374151' }}>
+                                            {m.delta_value != null ? m.delta_value.toLocaleString() : '\u2014'}
+                                          </td>
+                                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#6b7280' }}>
+                                            {m.execution_time_seconds != null ? m.execution_time_seconds.toFixed(2) : '\u2014'}
+                                          </td>
+                                          <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: '11px' }}>
+                                            {m.last_execution_at ? new Date(m.last_execution_at).toLocaleString() : '\u2014'}
+                                          </td>
+                                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
                                 )}
                               </div>
                             </td>
@@ -338,6 +527,26 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
           )}
         </>
       )}
+
+      <ControlReportModal
+        isOpen={controlReportModal.isOpen}
+        onClose={() => setControlReportModal(prev => ({ ...prev, isOpen: false }))}
+        controlId={controlReportModal.controlId || ''}
+        controlName={controlReportModal.controlName || ''}
+        projectId={controlReportModal.projectId || ''}
+      />
     </>
+  );
+}
+
+function TenantFilter({ selectedTenant, onChange }: { selectedTenant: string; onChange: (t: string) => void }) {
+  return (
+    <select
+      value={selectedTenant}
+      onChange={(e) => onChange(e.target.value)}
+      style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#fff', color: '#374151' }}
+    >
+      <option value="">All Tenants</option>
+    </select>
   );
 }

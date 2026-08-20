@@ -223,6 +223,16 @@ MOCK_NAV_ITEMS: list[NavItem] = [
                 navGroup="operations",
                 navOrder=6,
             ),
+            NavItem(
+                id="dependencies",
+                capabilityId="validation.controlDiscovery",
+                label="Dependencies",
+                icon="GitBranch",
+                path="/validation/dependencies",
+                navGroup="operations",
+                navOrder=7,
+                requiredRoles=["admin"],
+            ),
         ],
     ),
     # ── 4. Governance ────────────────────────────────────────────────────
@@ -387,13 +397,22 @@ MOCK_NAV_ITEMS: list[NavItem] = [
         navOrder=6,
         children=[
             NavItem(
+                id="execution",
+                capabilityId="validation.execution",
+                label="Execution",
+                icon="Play",
+                path="/operations/execution",
+                navGroup="operations",
+                navOrder=1,
+            ),
+            NavItem(
                 id="monitoring",
                 capabilityId="platform.monitoring",
                 label="Monitoring",
                 icon="Monitor",
                 path="/operations/monitoring",
                 navGroup="operations",
-                navOrder=1,
+                navOrder=2,
             ),
             NavItem(
                 id="alerts",
@@ -402,7 +421,7 @@ MOCK_NAV_ITEMS: list[NavItem] = [
                 icon="Bell",
                 path="/operations/alerts",
                 navGroup="operations",
-                navOrder=2,
+                navOrder=3,
             ),
             NavItem(
                 id="schedules",
@@ -411,7 +430,7 @@ MOCK_NAV_ITEMS: list[NavItem] = [
                 icon="CalendarClock",
                 path="/operations/schedules",
                 navGroup="operations",
-                navOrder=3,
+                navOrder=4,
             ),
             NavItem(
                 id="retry",
@@ -420,7 +439,7 @@ MOCK_NAV_ITEMS: list[NavItem] = [
                 icon="RotateCcw",
                 path="/operations/retry",
                 navGroup="operations",
-                navOrder=4,
+                navOrder=5,
             ),
             NavItem(
                 id="health",
@@ -429,7 +448,7 @@ MOCK_NAV_ITEMS: list[NavItem] = [
                 icon="HeartPulse",
                 path="/operations/health",
                 navGroup="operations",
-                navOrder=5,
+                navOrder=6,
             ),
         ],
     ),

@@ -42,7 +42,11 @@ class RuleExecutor:
         passed = 0
         failed = 0
         errors = 0
+        skipped = 0
         blocked = False
+
+        # Track rule execution statuses for control status determination
+        rule_execution_statuses = []
 
         # Track which systems we've already printed a header for in this control
         logged_systems = set()
@@ -72,28 +76,31 @@ class RuleExecutor:
 
                     total_rules += 1
 
-                    parameters = self._build_parameters(entity)
-
-                    # Look up correct source/target connection adapters
-                    target_system_id = entity[7]
-                    target_adapter = self.target_connections.get(target_system_id, self.target_db)
-
                     # -----------------------------------------
-                    # RULE EXECUTION LOG
+                    # WRAPPED IN TRY/EXCEPT — catch _build_parameters
+                    # and RuleFactory.create failures too
                     # -----------------------------------------
-                    dataset_name = entity[1]
-                    logger.info(f"            Running {rule_id} for {dataset_name} ... ✅")
-
-                    rule_instance = RuleFactory.create(
-                        rule_id,
-                        source_adapter,
-                        target_adapter,
-                        parameters
-                    )
-
                     start_time_epoch = time.time()
+                    execution_status = "SKIPPED"
+                    delta = 0
+                    result = {"status": "SKIPPED"}
+                    dataset_name = entity[1]
 
                     try:
+                        parameters = self._build_parameters(entity)
+
+                        target_system_id = entity[7]
+                        target_adapter = self.target_connections.get(target_system_id, self.target_db)
+
+                        logger.info(f"            Running {rule_id} for {dataset_name} ... ✅")
+
+                        rule_instance = RuleFactory.create(
+                            rule_id,
+                            source_adapter,
+                            target_adapter,
+                            parameters
+                        )
+
                         # Execute rule with retry protection
                         result = self.execute_with_retry(rule_instance.execute)
 
@@ -117,6 +124,18 @@ class RuleExecutor:
                     rule_start_time = datetime.fromtimestamp(start_time_epoch)
                     rule_end_time = datetime.fromtimestamp(end_time_epoch)
 
+                    # Get system host for detail_json - handle adapter or config objects
+                    def _get_host(adapter):
+                        if hasattr(adapter, '_config'):
+                            cfg = adapter._config
+                            if isinstance(cfg, dict):
+                                return cfg.get('host', 'unknown')
+                            return getattr(cfg, 'host', 'unknown')
+                        return getattr(adapter, 'host', 'unknown')
+
+                    self._current_source_system = _get_host(source_adapter)
+                    self._current_target_system = _get_host(target_adapter)
+
                     self._log_rule_execution(
                         rule_id,
                         entity,
@@ -125,8 +144,12 @@ class RuleExecutor:
                         execution_time,
                         severity_level,
                         rule_start_time,
-                        rule_end_time
+                        rule_end_time,
+                        result=result
                     )
+
+                    # Track rule execution status for control-level summary
+                    rule_execution_statuses.append(execution_status)
 
                     if execution_status == "FAIL":
                         self._log_exception(rule_id, entity[1], result)
@@ -134,30 +157,46 @@ class RuleExecutor:
                         if severity_level and severity_level.upper() == "CRITICAL":
                             blocked = True
 
+                    # Update counters
                     if execution_status == "PASS":
                         passed += 1
                     elif execution_status == "FAIL":
                         failed += 1
                     elif execution_status == "SKIPPED":
-                        pass
+                        skipped += 1
                     else:
                         errors += 1
 
+        # Control status logic: 
+        # - BLOCKED takes priority
+        # - ERROR takes priority
+        # - FAIL takes priority
+        # - If all rules SKIPPED -> SKIPPED
+        # - If any FAIL/ERROR -> FAILED
+        # - Otherwise PASS
         if blocked:
             overall_status = "BLOCKED"
         elif errors > 0:
             overall_status = "ERROR"
         elif failed > 0:
             overall_status = "FAIL"
+        elif rule_execution_statuses:
+            if all(s == "SKIPPED" for s in rule_execution_statuses):
+                overall_status = "SKIPPED"
+            elif any(s in ("FAIL", "ERROR") for s in rule_execution_statuses):
+                overall_status = "FAILED"
+            else:
+                overall_status = "PASS"
         else:
-            overall_status = "PASS"
+            overall_status = "SKIPPED"
 
         self._log_control_summary(
             overall_status,
             total_rules,
             passed,
             failed,
-            errors
+            errors,
+            skipped
         )
 
     # ---------------------------------------------------------
@@ -272,13 +311,20 @@ class RuleExecutor:
     # LOGGING
     # ---------------------------------------------------------
 
-    def _log_control_summary(self, overall_status, total, passed, failed, errors):
+    def _log_control_summary(self, overall_status, total, passed, failed, errors, skipped=0):
 
         query = """
         INSERT INTO engine.migration_control_summary
         (batch_id, control_id, overall_status,
-         total_rules, passed_rules, failed_rules, error_rules)
-        VALUES (%s,%s,%s,%s,%s,%s,%s)
+         total_rules, passed_rules, failed_rules, error_rules, skipped_rules)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+        ON CONFLICT (batch_id, control_id) DO UPDATE SET
+            overall_status = EXCLUDED.overall_status,
+            total_rules = EXCLUDED.total_rules,
+            passed_rules = EXCLUDED.passed_rules,
+            failed_rules = EXCLUDED.failed_rules,
+            error_rules = EXCLUDED.error_rules,
+            skipped_rules = EXCLUDED.skipped_rules
         """
 
         self.engine_db.execute(query, (
@@ -288,11 +334,12 @@ class RuleExecutor:
             total,
             passed,
             failed,
-            errors
+            errors,
+            skipped
         ))
 
     def _log_rule_execution(self, rule_id, entity, status, delta, execution_time,
-                            severity, start_time, end_time):
+                            severity, start_time, end_time, result=None):
 
         # -----------------------------------------
         # Slow classification
@@ -311,14 +358,46 @@ class RuleExecutor:
         else:
             slow_flag = None
 
+        # -----------------------------------------
+        # Build detail_json for ALL statuses
+        # -----------------------------------------
+        import json
+        detail_json = None
+        
+        if result and isinstance(result, dict):
+            reserved = {"status", "delta", "source_value", "target_value", "source_count", "target_count", "query", "error", "skip_reason"}
+            extra = {k: v for k, v in result.items() if k not in reserved}
+            
+            # Always include core fields if present
+            core_fields = {
+                "query": result.get("query"),
+                "source_count": result.get("source_count"),
+                "target_count": result.get("target_count"),
+                "source_system": getattr(self, '_current_source_system', None),
+                "target_system": getattr(self, '_current_target_system', None),
+                "delta": result.get("delta"),
+                "error": result.get("error"),
+                "skip_reason": result.get("skip_reason"),
+            }
+            # Filter out None values
+            core_fields = {k: v for k, v in core_fields.items() if v is not None}
+            
+            # Merge extra with core
+            combined = {**core_fields, **extra}
+            if combined:
+                detail_json = json.dumps(combined, default=str)
+        else:
+            # No result dict, create minimal detail_json
+            detail_json = json.dumps({"delta": delta}, default=str)
+
         query = """
         INSERT INTO engine.migration_control_execution
         (batch_id, control_id, rule_id, entity_name,
         execution_status, delta_value, execution_time_seconds,
         severity_level, mapping_id,
         rule_start_time, rule_end_time,
-        slow_flag)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        slow_flag, detail_json)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s::jsonb)
         """
 
         self.engine_db.execute(query, (
@@ -333,7 +412,8 @@ class RuleExecutor:
             entity[0],
             start_time,
             end_time,
-            slow_flag
+            slow_flag,
+            detail_json
         ))
 
     def _log_exception(self, rule_id, entity_name, error):

@@ -148,10 +148,12 @@ class SnowflakeAdapter(ConnectionAdapter):
                 self.close()
 
     def close(self) -> None:
-        """Close the connection."""
+        """Release connection back to pool (does not close it)."""
         if self._connection:
             try:
-                self._connection.close()
+                self._pool_manager.release_by_config(
+                    self._config, "snowflake", self._connection
+                )
             except Exception:
                 pass
             finally:

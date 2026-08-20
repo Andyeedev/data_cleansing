@@ -28,14 +28,16 @@ export function useValidationDashboard(tenantId?: string) {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiGet<ValidationDashboard>('/execution/dashboard');
+      const params: Record<string, string> = {};
+      if (tenantId) params.tenant_id = tenantId;
+      const result = await apiGet<ValidationDashboard>('/execution/dashboard', params);
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch dashboard');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   return { data, loading, error, refetch: fetchData };
@@ -264,6 +266,47 @@ export function useStatusBreakdown(tenantId?: string) {
       setLoading(false);
     }
   }, [tenantId]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+  return { data, loading, error, refetch: fetchData };
+}
+
+export interface ControlRule {
+  id: number;
+  batch_id: string;
+  control_id: string;
+  rule_id: string;
+  entity_name: string;
+  execution_status: string;
+  delta_value: number | null;
+  execution_time_seconds: number | null;
+  severity_level: string | null;
+  created_at: string | null;
+  detail_json: Record<string, any> | null;
+}
+
+export function useControlRules(batchId: string | null, controlId: string | null) {
+  const [data, setData] = useState<ControlRule[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (!batchId || !controlId) {
+      setData([]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiGet<ControlRule[]>(`/execution/${batchId}/control/${controlId}/rules`);
+      setData(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch control rules');
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [batchId, controlId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   return { data, loading, error, refetch: fetchData };

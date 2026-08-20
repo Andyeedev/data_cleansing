@@ -17,6 +17,8 @@ def main():
     run_parser.add_argument("--resume-batch", required=False)
     run_parser.add_argument("--batch-name", required=False, help="Optional batch name (auto-generated if not provided)")
     run_parser.add_argument("--recovery", action="store_true")
+    run_parser.add_argument("--project-id", required=False, help="Override project_id from config.yaml")
+    run_parser.add_argument("--tenant-id", required=False, help="Tenant ID for tenant isolation")
 
     discover_parser = subparsers.add_parser("discover")
     discover_parser.add_argument("--config", required=True)
@@ -28,7 +30,8 @@ def main():
     args = parser.parse_args()
 
     if args.command == "run":
-        run_engine(args.config, args.resume_batch, args.recovery, args.batch_name)
+        run_engine(args.config, args.resume_batch, args.recovery, args.batch_name,
+                   project_id_override=args.project_id, tenant_id=args.tenant_id)
     elif args.command == "discover":
         config = load_config(args.config)
         engine_db = DBConnector(config["engine_db"])
