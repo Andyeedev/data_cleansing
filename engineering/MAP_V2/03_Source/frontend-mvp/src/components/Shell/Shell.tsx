@@ -8,6 +8,10 @@ import type { MetadataNavItem } from '../../types/metadata';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
+const STATIC_NAV_ITEMS: MetadataNavItem[] = [
+  { id: 'about', label: 'About MAP', path: '/about' },
+];
+
 const DEFAULT_NAV: MetadataNavItem[] = [
   { id: 'home', label: 'Home', path: '/', children: [
     { id: 'dashboard', label: 'Dashboard', path: '/dashboard' },
@@ -24,13 +28,11 @@ const DEFAULT_NAV: MetadataNavItem[] = [
     { id: 'execution', label: 'Execution', path: '/migration/execution' },
   ]},
   { id: 'validation', label: 'Validation', path: '/validation', children: [
+    { id: 'validation-centre', label: 'Validation Centre', path: '/validation-centre' },
     { id: 'rules', label: 'Rules', path: '/validation/rules' },
     { id: 'rule-discovery', label: 'Rule Discovery', path: '/validation/rule-discovery' },
-    { id: 'controls', label: 'Controls', path: '/validation/controls' },
-    { id: 'dependencies', label: 'Dependencies', path: '/validation/dependencies', requiredRoles: ['admin'] },
     { id: 'results', label: 'Results', path: '/validation/results' },
     { id: 'queue', label: 'Queue', path: '/validation/queue' },
-    { id: 'validation-dashboard', label: 'Validation Dashboard', path: '/validation/dashboard' },
   ]},
   { id: 'governance', label: 'Governance', path: '/governance', children: [
     { id: 'approvals', label: 'Approvals', path: '/governance/approvals', requiredRoles: ['admin', 'compliance-officer', 'manager'] },
@@ -73,7 +75,7 @@ export function Shell({ navItems: overrideNavItems, userRoles: propRoles }: Shel
     apiGet<MetadataNavItem[]>('/navigation')
       .then((data) => {
         if (Array.isArray(data)) {
-          setRawNavItems(data);
+          setRawNavItems([...data, ...STATIC_NAV_ITEMS]);
         }
       })
       .catch(() => {

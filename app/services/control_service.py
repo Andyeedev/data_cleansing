@@ -7,8 +7,8 @@ class ControlService:
     def __init__(self):
         self.repository = ControlRepository()
 
-    def get_all_controls(self, search: str = None, severity: str = None, status: str = None) -> dict:
-        rows = self.repository.get_all_controls(search, severity, status)
+    def get_all_controls(self, search: str = None, severity: str = None, status: str = None, tenant_id: str = None) -> dict:
+        rows = self.repository.get_all_controls(search, severity, status, tenant_id)
         controls = [
             {
                 "control_id": row[0],
@@ -49,3 +49,21 @@ class ControlService:
 
     def delete_control(self, control_id: str) -> bool:
         return self.repository.delete_control(control_id)
+
+    def get_execution_outcomes(self, tenant_id: str = None) -> dict:
+        return self.repository.get_execution_outcomes(tenant_id)
+
+    def get_per_control_outcomes(self, tenant_id: str = None) -> list:
+        rows = self.repository.get_per_control_outcomes(tenant_id)
+        return [
+            {
+                "control_id": row[0],
+                "overall_status": row[1],
+                "total_rules": row[2],
+                "passed_rules": row[3],
+                "failed_rules": row[4],
+                "error_rules": row[5],
+                "skipped_rules": row[6],
+            }
+            for row in rows
+        ]

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useValidationFilter } from '../context/ValidationFilterContext';
 import { PageHeader } from '../components/PageHeader/PageHeader';
@@ -7,10 +7,14 @@ import { TabBar } from '../components/shared/TabBar';
 import CascadeDropdowns from '../components/shared/CascadeDropdowns';
 import { RuleMappingsUsageTab } from './RuleMappingsUsageTab';
 import { RuleDefinitionsTab } from './RuleDefinitionsTab';
+import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
+
+const ControlDependenciesPage = lazy(() => import('./ControlDependenciesPage').then(m => ({ default: m.ControlDependenciesPage })));
 
 const TABS = [
   { key: 'mappings', label: 'Rule Mappings & Usage' },
   { key: 'definitions', label: 'Rule Definitions' },
+  { key: 'dependencies', label: 'Control Dependencies' },
 ];
 
 export function ValidationRulesPage() {
@@ -40,6 +44,11 @@ export function ValidationRulesPage() {
       <div role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
         {activeTab === 'mappings' && <RuleMappingsUsageTab selectedTenant={tenantId || ''} />}
         {activeTab === 'definitions' && <RuleDefinitionsTab />}
+        {activeTab === 'dependencies' && (
+          <Suspense fallback={<LoadingSkeleton rows={4} variant="card" />}>
+            <ControlDependenciesPage />
+          </Suspense>
+        )}
       </div>
     </div>
   );

@@ -100,8 +100,8 @@ export function useUnreadCount() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiGet<number>('/notifications/unread/count');
-      setCount(result);
+      const result = await apiGet<{ count: number }>('/notifications/unread/count');
+      setCount(result.count);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch unread count');
     } finally {

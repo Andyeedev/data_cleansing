@@ -51,7 +51,7 @@ async function request<T>(
     if (res.status === 401) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('map_nexus_user');
-      window.location.href = '/login';
+      window.location.href = '/session-expired';
       throw new Error('Session expired — please re-login');
     }
 

@@ -9,15 +9,29 @@ router = APIRouter(prefix="/api/v1/validation/controls", tags=["Controls"])
 control_service = ControlService()
 
 
+@router.get("/outcomes", response_model=APIResponse)
+def get_execution_outcomes(
+    tenant_id: Optional[str] = Query(None, description="Filter by tenant"),
+    current_user=Depends(get_current_user)
+):
+    try:
+        summary = control_service.get_execution_outcomes(tenant_id=tenant_id)
+        per_control = control_service.get_per_control_outcomes(tenant_id=tenant_id)
+        return APIResponse(success=True, data={"summary": summary, "controls": per_control})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/", response_model=APIResponse)
 def get_controls(
     search: Optional[str] = Query(None, description="Search controls"),
     severity: Optional[str] = Query(None, description="Filter by severity"),
     status: Optional[str] = Query(None, description="Filter by status: enabled, disabled, all"),
+    tenant_id: Optional[str] = Query(None, description="Filter controls by tenant via project ownership"),
     current_user=Depends(get_current_user)
 ):
     try:
-        data = control_service.get_all_controls(search=search, severity=severity, status=status)
+        data = control_service.get_all_controls(search=search, severity=severity, status=status, tenant_id=tenant_id)
         return APIResponse(success=True, data=data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

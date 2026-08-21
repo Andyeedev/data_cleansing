@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { Bell } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { RoleSwitcher } from '../RoleSwitcher/RoleSwitcher';
+import { NotificationPanel } from '../header/NotificationPanel';
+import { UserProfileMenu } from '../header/UserProfileMenu';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { LoadingSpinner } from '../LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../../context/AuthContext';
+import { useUnreadCount } from '../../hooks/useNotifications';
 
 interface LayoutProps {
   sidebar: ReactNode;
@@ -14,7 +18,10 @@ interface LayoutProps {
 }
 
 export function Layout({ sidebar, children, breadcrumb, loading }: LayoutProps) {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { count: unreadCount, refetch: refetchCount } = useUnreadCount();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
@@ -29,6 +36,20 @@ export function Layout({ sidebar, children, breadcrumb, loading }: LayoutProps) 
     await logout();
     window.location.href = '/login';
   };
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+    setShowProfile(false);
+  };
+
+  const toggleProfile = () => {
+    setShowProfile(!showProfile);
+    setShowNotifications(false);
+  };
+
+  const initials = user?.name
+    ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+    : user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -68,26 +89,79 @@ export function Layout({ sidebar, children, breadcrumb, loading }: LayoutProps) 
             alignItems: 'center',
             justifyContent: 'flex-end',
             padding: '0 var(--space-lg)',
+            gap: 'var(--space-sm)',
           }}
         >
           <RoleSwitcher />
           <ThemeToggle />
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            style={{
-              marginLeft: 'var(--space-md)',
-              padding: 'var(--space-sm) var(--space-md)',
-              background: 'var(--color-danger)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 'var(--radius)',
-              cursor: 'pointer',
-              fontSize: 'var(--font-size-base)',
-              fontWeight: 600,
-            }}
-          >
-            Logout
-          </button>
+
+          {/* Notification Bell */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={toggleNotifications}
+              aria-label="Notifications"
+              style={{
+                background: 'none',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius)',
+                padding: '6px 10px',
+                cursor: 'pointer',
+                color: 'var(--color-text)',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Bell size={16} />
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -4,
+                  minWidth: 18,
+                  height: 18,
+                  borderRadius: 9,
+                  background: '#d13438',
+                  color: '#fff',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 4px',
+                  lineHeight: 1,
+                }}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+            {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
+          </div>
+
+          {/* User Profile Avatar */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={toggleProfile}
+              aria-label="User menu"
+              style={{
+                background: 'var(--color-primary)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '50%',
+                width: 32,
+                height: 32,
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {initials}
+            </button>
+            {showProfile && <UserProfileMenu onClose={() => setShowProfile(false)} />}
+          </div>
         </header>
 
         {breadcrumb && (

@@ -7,7 +7,7 @@ class ControlRepository:
     def __init__(self):
         self.db = get_db_connection()
 
-    def get_all_controls(self, search: str = None, severity: str = None, status: str = None) -> List:
+    def get_all_controls(self, search: str = None, severity: str = None, status: str = None, tenant_id: str = None) -> List:
         query = """
             SELECT control_id, control_name, description, severity_level, enabled_flag, created_at, project_id
             FROM engine.control_registry
@@ -80,3 +80,88 @@ class ControlRepository:
         query = "DELETE FROM engine.control_registry WHERE control_id = %s"
         self.db.execute(query, (control_id,))
         return True
+
+    def get_execution_outcomes(self, tenant_id: str = None) -> dict:
+        """Aggregate control execution outcomes from migration_control_summary."""
+        if tenant_id:
+            query = """
+                SELECT
+                    cs.overall_status,
+                    COUNT(*) as cnt
+                FROM engine.migration_control_summary cs
+                JOIN engine.migration_batch_registry b ON b.batch_id = cs.batch_id
+                JOIN core.projects p ON p.project_id::text = b.project_id
+                WHERE p.tenant_id::text = %s
+                GROUP BY cs.overall_status
+            """
+            params = (tenant_id,)
+        else:
+            query = """
+                SELECT
+                    overall_status,
+                    COUNT(*) as cnt
+                FROM engine.migration_control_summary
+                GROUP BY overall_status
+            """
+            params = None
+
+        rows = self.db.execute(query, params)
+        status_counts = {row[0]: row[1] for row in rows}
+
+        passed = status_counts.get("PASS", 0)
+        attention = status_counts.get("FAIL", 0)
+        critical = status_counts.get("BLOCKED", 0) + status_counts.get("ERROR", 0)
+        skipped = status_counts.get("SKIPPED", 0)
+        total = passed + attention + critical + skipped
+
+        disabled_query = """
+            SELECT COUNT(*) FROM engine.control_registry WHERE enabled_flag = FALSE
+        """
+        disabled_rows = self.db.execute(disabled_query)
+        disabled = disabled_rows[0][0] if disabled_rows else 0
+
+        return {
+            "passed": passed,
+            "attention": attention,
+            "critical": critical,
+            "disabled": disabled,
+            "skipped": skipped,
+            "total_executed": total,
+            "total_controls": total + disabled,
+        }
+
+    def get_per_control_outcomes(self, tenant_id: str = None) -> List:
+        """Get latest outcome per control for the tenant."""
+        if tenant_id:
+            query = """
+                SELECT DISTINCT ON (cs.control_id)
+                    cs.control_id,
+                    cs.overall_status,
+                    cs.total_rules,
+                    cs.passed_rules,
+                    cs.failed_rules,
+                    cs.error_rules,
+                    cs.skipped_rules
+                FROM engine.migration_control_summary cs
+                JOIN engine.migration_batch_registry b ON b.batch_id = cs.batch_id
+                JOIN core.projects p ON p.project_id::text = b.project_id
+                WHERE p.tenant_id::text = %s
+                ORDER BY cs.control_id, cs.created_at DESC
+            """
+            params = (tenant_id,)
+        else:
+            query = """
+                SELECT DISTINCT ON (control_id)
+                    control_id,
+                    overall_status,
+                    total_rules,
+                    passed_rules,
+                    failed_rules,
+                    error_rules,
+                    skipped_rules
+                FROM engine.migration_control_summary
+                ORDER BY control_id, created_at DESC
+            """
+            params = None
+
+        return self.db.execute(query, params)

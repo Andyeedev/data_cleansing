@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useWorkflowList } from '../hooks/useWorkflows';
 import { useRunExecution, usePollBatchStatus } from '../hooks/useExecution';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +12,7 @@ import type { ExecutionRunResponse } from '../types/execution';
 
 export function ValidationPage() {
   const { userRoles } = useAuth();
+  const navigate = useNavigate();
   const { data: workflowData, loading: workflowsLoading, error: workflowsError } = useWorkflowList({ type: 'validation' });
   const { run, loading: running } = useRunExecution();
   const { status, loading: polling, error: pollError, startPolling } = usePollBatchStatus();
@@ -52,6 +54,23 @@ export function ValidationPage() {
       <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-lg)' }}>
         Run pre-migration validation to check data integrity across source and target systems.
       </p>
+
+      <button
+        onClick={() => navigate('/validation-centre')}
+        style={{
+          padding: 'var(--space-sm) var(--space-lg)',
+          background: 'rgba(0, 120, 212, 0.1)',
+          color: 'var(--color-primary)',
+          border: '1px solid rgba(0, 120, 212, 0.3)',
+          borderRadius: 'var(--radius)',
+          cursor: 'pointer',
+          fontSize: 'var(--font-size-sm)',
+          fontWeight: 500,
+          marginBottom: 'var(--space-lg)',
+        }}
+      >
+        Validation Centre
+      </button>
 
       {(runError || pollError) && <ErrorState message={runError || pollError || ''} onRetry={() => setRunError(null)} />}
       {workflowsError && <ErrorState message={workflowsError} />}

@@ -5,9 +5,10 @@ import { LoadingSpinner } from './LoadingSpinner/LoadingSpinner';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRoles?: string[];
+  requiredPermissions?: string[];
 }
 
-export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requiredRoles, requiredPermissions }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
@@ -22,6 +23,15 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   if (requiredRoles && user) {
     const hasRequiredRole = requiredRoles.some((role) => user.roles.includes(role));
     if (!hasRequiredRole) {
+      return <Navigate to="/access-denied" state={{ from: location }} replace />;
+    }
+  }
+
+  if (requiredPermissions && user) {
+    const hasRequiredPermission = requiredPermissions.some((permission) =>
+      user.permissions.includes(permission)
+    );
+    if (!hasRequiredPermission) {
       return <Navigate to="/access-denied" state={{ from: location }} replace />;
     }
   }

@@ -69,6 +69,7 @@ class RunOrchestratorService:
         Each step creates its own DB connection (thread-safe, no shared state).
         Each step reuses System 1's existing service classes.
         """
+        self._ensure_controls_exist(tenant_id)
         steps_to_run = steps if steps else STEP_ORDER
 
         step_results = []
@@ -141,6 +142,40 @@ class RunOrchestratorService:
             update_db.close()
 
         return {"run_id": run_id, "status": overall_status, "step_results": step_results, "errors": errors}
+
+    STANDARD_CONTROLS = [
+        ("C01", "Source-to-Target Record Completeness", "Validates record counts match between source and target", "HIGH"),
+        ("C02", "Financial Value Integrity & Reconciliation", "Validates financial totals reconcile across systems", "CRITICAL"),
+        ("C03", "Referential Integrity & Relationship Preservation", "Validates foreign key relationships are preserved", "HIGH"),
+        ("C04", "Column Count Validation", "Validates column count matches source schema", "HIGH"),
+        ("C05", "Null Drift Detection", "Detects unexpected null values in migrated data", "HIGH"),
+        ("C06", "Duplicate Key Detection", "Detects duplicate primary keys in target", "CRITICAL"),
+        ("C07", "Data Type Validation", "Validates data types match source schema", "HIGH"),
+        ("C08", "Numeric Data Drift Detection", "Detects numeric value drift between source and target", "HIGH"),
+        ("C09", "Referential Coverage Validation", "Validates all referenced records exist in target", "HIGH"),
+        ("C010", "Schema Drift Detection", "Detects schema changes between source and target", "CRITICAL"),
+    ]
+
+    def _ensure_controls_exist(self, tenant_id: str) -> None:
+        """Auto-seed standard controls if tenant has none. Called before every execution."""
+        db = get_db_connection()
+        try:
+            row = db.execute(
+                "SELECT COUNT(*) FROM engine.control_registry WHERE control_id IN (SELECT control_id FROM engine.control_registry LIMIT 1)"
+            )
+            total = row[0][0] if row else 0
+            if total >= len(self.STANDARD_CONTROLS):
+                return
+            for ctrl in self.STANDARD_CONTROLS:
+                db.execute(
+                    """INSERT INTO engine.control_registry (control_id, control_name, description, severity_level, enabled_flag)
+                       VALUES (%s, %s, %s, %s, TRUE)
+                       ON CONFLICT (control_id) DO NOTHING""",
+                    ctrl,
+                )
+            logger.info(f"Auto-seeded {len(self.STANDARD_CONTROLS)} standard controls")
+        finally:
+            db.close()
 
     def get_run_status(self, run_id: str) -> Dict:
         """Get detailed status of a specific run."""

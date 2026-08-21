@@ -31,3 +31,28 @@ export interface ControlDependencyResponse {
   tree: DependencyTree;
   total: number;
 }
+
+export interface ExecutionOutcomeSummary {
+  passed: number;
+  attention: number;
+  critical: number;
+  disabled: number;
+  skipped: number;
+  total_executed: number;
+  total_controls: number;
+}
+
+export interface ControlOutcome {
+  control_id: string;
+  overall_status: string;
+  total_rules: number;
+  passed_rules: number;
+  failed_rules: number;
+  error_rules: number;
+  skipped_rules: number;
+}
+
+export interface ExecutionOutcomesResponse {
+  summary: ExecutionOutcomeSummary;
+  controls: ControlOutcome[];
+}

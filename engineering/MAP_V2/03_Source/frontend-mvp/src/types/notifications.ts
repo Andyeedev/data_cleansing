@@ -4,8 +4,10 @@ export interface Notification {
   title: string;
   message: string;
   type: string;
+  severity?: string;
   is_read: boolean;
   read?: boolean;
+  link?: string;
   created_at: string;
 }
 
