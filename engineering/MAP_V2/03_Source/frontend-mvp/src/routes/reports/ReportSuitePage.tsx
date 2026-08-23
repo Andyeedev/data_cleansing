@@ -12,15 +12,24 @@ import {
   QualitySectionView,
   ReadinessSectionView,
   IssuesSectionView,
+  OperationalSectionView,
+  MigrationPackSectionView,
+  ValidationPackSectionView,
+  GovernancePackSectionView,
+  AuditPackSectionView,
 } from './reportSections';
 import { useState, useCallback } from 'react';
 import { useParams, Navigate, NavLink } from 'react-router-dom';
 
 const SECTIONS = [
   { key: 'executive', label: 'Executive Summary', title: 'Executive Summary' },
-  { key: 'migration', label: 'Migration', title: 'Migration Summary' },
-  { key: 'validation', label: 'Validation', title: 'Validation Summary' },
-  { key: 'governance', label: 'Governance', title: 'Governance Summary' },
+  { key: 'operational', label: 'Operational', title: 'Operational Pack' },
+  { key: 'migration_pack', label: 'Migration', title: 'Migration Pack' },
+  { key: 'validation_pack', label: 'Validation', title: 'Validation Pack' },
+  { key: 'validation', label: 'Validation Board', title: 'Validation Summary' },
+  { key: 'governance_pack', label: 'Governance', title: 'Governance Pack' },
+  { key: 'audit_pack', label: 'Audit', title: 'Audit Pack' },
+  { key: 'governance', label: 'Governance Board', title: 'Governance Summary' },
   { key: 'risk', label: 'Risk', title: 'Risk Summary' },
   { key: 'quality', label: 'Quality', title: 'Data Quality Summary' },
   { key: 'readiness', label: 'Readiness', title: 'Readiness Report' },
@@ -29,7 +38,10 @@ const SECTIONS = [
 
 const sectionRoleMap: Record<string, string[]> = {
   operational:     ['admin', 'manager'],
-  migration:       ['admin', 'manager', 'operator'],
+  migration_pack:  ['admin', 'manager', 'operator'],
+  validation_pack: ['admin', 'manager', 'operator'],
+  governance_pack: ['admin', 'manager'],
+  audit_pack:      ['admin'],
   validation:      ['admin', 'manager', 'operator'],
   governance:      ['admin', 'manager'],
   audit:           ['admin'],
@@ -152,7 +164,11 @@ export function ReportSuitePage() {
           </header>
 
           {active.key === 'executive' && suite.executive && <ExecutiveSectionView s={suite.executive} />}
-          {active.key === 'migration' && suite.migration && <MigrationSectionView s={suite.migration} />}
+          {active.key === 'operational' && suite.operational && <OperationalSectionView s={suite.operational} />}
+          {active.key === 'migration_pack' && suite.migration_pack && <MigrationPackSectionView s={suite.migration_pack} />}
+          {active.key === 'validation_pack' && suite.validation_pack && <ValidationPackSectionView s={suite.validation_pack} />}
+          {active.key === 'governance_pack' && suite.governance_pack && <GovernancePackSectionView s={suite.governance_pack} />}
+          {active.key === 'audit_pack' && suite.audit_pack && <AuditPackSectionView s={suite.audit_pack} />}
           {active.key === 'validation' && suite.validation && <ValidationSectionView s={suite.validation} />}
           {active.key === 'governance' && suite.governance && <GovernanceSectionView s={suite.governance} />}
           {active.key === 'risk' && suite.risk && <RiskSectionView s={suite.risk} />}

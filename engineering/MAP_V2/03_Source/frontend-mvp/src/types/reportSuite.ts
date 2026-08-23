@@ -153,6 +153,134 @@ export interface IssuesSection {
   by_owner: OwnerBreakdown[];
 }
 
+export interface OperationalPhase {
+  phase: string;
+  status: string;
+  progress: number;
+}
+
+export interface OperationalBatch {
+  batch_id: string;
+  batch_name: string;
+  status: string;
+  total_controls: number;
+  completed_controls: number;
+  failed_controls: number;
+  duration_seconds: number | null;
+  started_at: string;
+  ended_at: string;
+  created_at: string;
+}
+
+export interface OperationalControl {
+  control_id: string;
+  control_name: string;
+  severity: string;
+  enabled: boolean;
+  status: string;
+  total_rules: number;
+  passed_rules: number;
+  failed_rules: number;
+  error_rules: number;
+}
+
+export interface OperationalSection {
+  overview: { total_batches: number; completed: number; running: number; failed: number; pending: number };
+  phases: OperationalPhase[];
+  batches: OperationalBatch[];
+  control_status: OperationalControl[];
+}
+
+export interface MigrationPackEntity {
+  source_schema: string;
+  source_table: string;
+  target_schema: string;
+  target_table: string;
+  source_columns: number;
+  target_columns: number;
+  matched_columns: number;
+  match_pct: string;
+  status: string;
+}
+
+export interface MigrationPackColumn {
+  source_table: string;
+  target_table: string;
+  match_status: string;
+  confidence: number | null;
+}
+
+export interface MigrationPackSection {
+  overview: { total_projects: number; total_entities: number; total_source_columns: number; total_target_columns: number; overall_match_pct: number };
+  projects: { id: string; name: string; type: string; status: string }[];
+  entities: MigrationPackEntity[];
+  entity_summary: { passed: number; attention: number; failed: number };
+  column_mappings: MigrationPackColumn[];
+  column_summary: { total: number; auto_matched: number; manual_review: number };
+}
+
+export interface ValidationPackControl {
+  control_id: string;
+  control_name: string;
+  severity: string;
+  status: string;
+  total_rules: number;
+  passed_rules: number;
+  failed_rules: number;
+  error_rules: number;
+  skipped_rules: number;
+  pass_rate: number;
+}
+
+export interface ValidationPackSection {
+  overview: { total_controls: number; passed: number; failed: number; error: number; blocked: number; skipped: number; pass_rate: number };
+  rules_summary: { total_rules: number; passed_rules: number; failed_rules: number; error_rules: number; skipped_rules: number };
+  controls: ValidationPackControl[];
+  analysis: string;
+}
+
+export interface GovernancePackFinding {
+  control_id: string;
+  control_name: string;
+  entity_name: string;
+  rule_id: string;
+  type: string;
+  owner: string;
+  severity: string;
+  source_value: string;
+  target_value: string;
+  variance_value: string;
+  status: string;
+}
+
+export interface GovernancePackSection {
+  overview: { total_findings: number; critical: number; high: number; medium: number; low: number };
+  findings: GovernancePackFinding[];
+  severity_distribution: Record<string, number>;
+  type_distribution: Record<string, number>;
+  ownership_distribution: Record<string, number>;
+  analysis: string;
+}
+
+export interface AuditPackTrail {
+  batch_id: string;
+  batch_name: string;
+  status: string;
+  total_controls: number;
+  completed_controls: number;
+  failed_controls: number;
+  duration: string;
+  created_at: string;
+}
+
+export interface AuditPackSection {
+  overview: { total_batches: number; completed_batches: number; failed_batches: number; compliance_pct: number; total_controls_executed: number; passed_controls: number; failed_controls: number; error_controls: number };
+  audit_trail: AuditPackTrail[];
+  batch_status_distribution: Record<string, number>;
+  severity_findings: Record<string, number>;
+  analysis: string;
+}
+
 export interface ReportSuite {
   has_data: boolean;
   generated_at: string;
@@ -166,4 +294,9 @@ export interface ReportSuite {
   quality?: QualitySection;
   readiness?: ReadinessSection;
   issues?: IssuesSection;
+  operational?: OperationalSection;
+  migration_pack?: MigrationPackSection;
+  validation_pack?: ValidationPackSection;
+  governance_pack?: GovernancePackSection;
+  audit_pack?: AuditPackSection;
 }

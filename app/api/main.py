@@ -42,6 +42,7 @@ from app.api.routes import (
     operations_execution_routes,
     control_dependencies_routes,
     report_suite_routes,
+    permissions_routes,
 )
 
 # Import pool manager to reset on startup
@@ -203,6 +204,7 @@ app.include_router(mapping_routes.router)
 app.include_router(operations_execution_routes.router)
 app.include_router(control_dependencies_routes.router)
 app.include_router(report_suite_routes.router)
+app.include_router(permissions_routes.router)
 
 
 # =========================

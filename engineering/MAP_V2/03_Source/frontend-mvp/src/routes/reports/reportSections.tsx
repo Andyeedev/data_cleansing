@@ -483,3 +483,405 @@ export function IssuesSectionView({ s }: { s: NonNullable<Suite['issues']> }) {
     </>
   );
 }
+
+export function OperationalSectionView({ s }: { s: NonNullable<import('../../types/reportSuite').OperationalSection> }) {
+  const ov = s.overview;
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <KpiBox label="Total Batches" value={ov.total_batches} tone="info" />
+        <KpiBox label="Completed" value={ov.completed} tone="success" />
+        <KpiBox label="Running" value={ov.running} tone={ov.running > 0 ? 'warning' : 'neutral'} />
+        <KpiBox label="Failed" value={ov.failed} tone={ov.failed > 0 ? 'error' : 'neutral'} />
+      </div>
+      <ReportCard title="Migration Progress" subtitle="10-phase execution timeline" className="mb-6">
+        <div className="space-y-3">
+          {s.phases.map((p) => (
+            <div key={p.phase} className="flex items-center gap-3">
+              <span className="text-sm text-gray-700 w-[220px] shrink-0">{p.phase}</span>
+              <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    p.status === 'completed' ? 'bg-green-500' : p.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
+                  style={{ width: `${p.progress}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-500 w-[40px] text-right">{p.progress}%</span>
+              <StatusPill status={p.status === 'completed' ? 'PASS' : p.status === 'in_progress' ? 'RUNNING' : 'PENDING'} />
+            </div>
+          ))}
+        </div>
+      </ReportCard>
+      <ReportCard title="Recent Batches" subtitle={`${s.batches.length} most recent batches`} className="mb-6">
+        {s.batches.length === 0 ? (
+          <EmptyState message="No batches recorded yet." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Name', 'Status', 'Controls', 'Completed', 'Failed', 'Duration', 'Created'].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {s.batches.map((b) => (
+                  <tr key={b.batch_id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{b.batch_name}</td>
+                    <td className="px-3 py-2.5"><StatusPill status={b.status} /></td>
+                    <td className="px-3 py-2.5 tabular-nums">{b.total_controls}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-green-700">{b.completed_controls}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-red-700">{b.failed_controls}</td>
+                    <td className="px-3 py-2.5 text-xs text-gray-500">{b.duration_seconds != null ? `${b.duration_seconds}s` : '-'}</td>
+                    <td className="px-3 py-2.5 text-xs text-gray-500 whitespace-nowrap">{b.created_at ? b.created_at.slice(0, 16).replace('T', ' ') : '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </ReportCard>
+      <ReportCard title="Control Execution Status">
+        {s.control_status.length === 0 ? (
+          <EmptyState message="No control status data available." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Control', 'Name', 'Severity', 'Status', 'Total', 'Passed', 'Failed', 'Error'].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {s.control_status.map((c) => (
+                  <tr key={c.control_id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2.5 font-mono text-xs text-gray-500">{c.control_id}</td>
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{c.control_name}</td>
+                    <td className="px-3 py-2.5"><StatusPill status={c.severity} /></td>
+                    <td className="px-3 py-2.5"><StatusPill status={c.status} /></td>
+                    <td className="px-3 py-2.5 tabular-nums">{c.total_rules}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-green-700">{c.passed_rules}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-red-700">{c.failed_rules}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-orange-700">{c.error_rules}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </ReportCard>
+    </>
+  );
+}
+
+export function ValidationPackSectionView({ s }: { s: NonNullable<import('../../types/reportSuite').ValidationPackSection> }) {
+  const ov = s.overview;
+  const rs = s.rules_summary;
+  const hasCriticalFinding = s.analysis.toLowerCase().includes('critical finding');
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
+        <KpiBox label="Total Controls" value={ov.total_controls} tone="info" />
+        <KpiBox label="Passed" value={ov.passed} tone="success" />
+        <KpiBox label="Failed" value={ov.failed} tone={ov.failed > 0 ? 'error' : 'neutral'} />
+        <KpiBox label="Error" value={ov.error} tone={ov.error > 0 ? 'error' : 'neutral'} />
+        <KpiBox label="Skipped" value={ov.skipped} tone="neutral" />
+        <KpiBox label="Pass Rate" value={`${ov.pass_rate}%`} tone={ov.pass_rate >= 80 ? 'success' : 'warning'} />
+      </div>
+      <ReportCard title="Rules Summary" className="mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <KpiBox label="Total Rules" value={rs.total_rules} tone="info" />
+          <KpiBox label="Passed Rules" value={rs.passed_rules} tone="success" />
+          <KpiBox label="Failed Rules" value={rs.failed_rules} tone={rs.failed_rules > 0 ? 'error' : 'neutral'} />
+          <KpiBox label="Error Rules" value={rs.error_rules} tone={rs.error_rules > 0 ? 'error' : 'neutral'} />
+          <KpiBox label="Skipped Rules" value={rs.skipped_rules} tone="neutral" />
+        </div>
+      </ReportCard>
+      <ReportCard title="Control Results" subtitle={`${s.controls.length} controls executed`} className="mb-6">
+        {s.controls.length === 0 ? (
+          <EmptyState message="No control outcomes for this batch." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Control', 'Name', 'Severity', 'Status', 'Total', 'Passed', 'Failed', 'Error', 'Pass Rate'].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {s.controls.map((c) => (
+                  <tr key={c.control_id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2.5 font-mono text-xs text-gray-500">{c.control_id}</td>
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{c.control_name}</td>
+                    <td className="px-3 py-2.5"><StatusPill status={c.severity} /></td>
+                    <td className="px-3 py-2.5"><StatusPill status={c.status} /></td>
+                    <td className="px-3 py-2.5 tabular-nums">{c.total_rules}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-green-700">{c.passed_rules}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-red-700">{c.failed_rules}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-orange-700">{c.error_rules}</td>
+                    <td className="px-3 py-2.5 tabular-nums">{c.pass_rate}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </ReportCard>
+      <ReportCard title="Analysis">
+        {hasCriticalFinding && (
+          <div className="rounded-lg border-2 border-red-600 bg-red-50 p-4 mb-4">
+            <div className="text-sm font-bold text-red-700 mb-1">CRITICAL FINDING</div>
+            <p className="text-sm text-red-800">{s.analysis.split('CRITICAL FINDING: ')[1]?.split('.')[0] ?? 'Critical issues detected.'}</p>
+          </div>
+        )}
+        <p className="text-sm text-gray-800 leading-relaxed">{s.analysis}</p>
+      </ReportCard>
+    </>
+  );
+}
+
+export function GovernancePackSectionView({ s }: { s: NonNullable<import('../../types/reportSuite').GovernancePackSection> }) {
+  const ov = s.overview;
+  const hasCritical = ov.critical > 0;
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
+        <KpiBox label="Total Findings" value={ov.total_findings} tone="info" />
+        <KpiBox label="Critical" value={ov.critical} tone={ov.critical > 0 ? 'error' : 'neutral'} />
+        <KpiBox label="High" value={ov.high} tone={ov.high > 0 ? 'error' : 'neutral'} />
+        <KpiBox label="Medium" value={ov.medium} tone={ov.medium > 0 ? 'warning' : 'neutral'} />
+        <KpiBox label="Low" value={ov.low} tone="neutral" />
+      </div>
+      <ReportCard title="Findings" subtitle={`${s.findings.length} governance findings identified`} className="mb-6">
+        {s.findings.length === 0 ? (
+          <EmptyState message="No governance findings in current batch." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Entity', 'Rule', 'Type', 'Owner', 'Severity', 'Status'].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {s.findings.map((f, i) => (
+                  <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{f.entity_name}</td>
+                    <td className="px-3 py-2.5 font-mono text-xs text-gray-500">{f.rule_id}</td>
+                    <td className="px-3 py-2.5"><StatusPill status={f.type} /></td>
+                    <td className="px-3 py-2.5 text-gray-700">{f.owner}</td>
+                    <td className="px-3 py-2.5"><StatusPill status={f.severity} /></td>
+                    <td className="px-3 py-2.5"><StatusPill status={f.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </ReportCard>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <ReportCard title="By Severity">
+          {Object.entries(s.severity_distribution).filter(([,v]) => v > 0).map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between py-2 border-b border-gray-100">
+              <StatusPill status={k} />
+              <span className="text-sm font-semibold tabular-nums">{v}</span>
+            </div>
+          ))}
+        </ReportCard>
+        <ReportCard title="By Type">
+          {Object.entries(s.type_distribution).map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">{k}</span>
+              <span className="text-sm font-semibold tabular-nums">{v}</span>
+            </div>
+          ))}
+        </ReportCard>
+        <ReportCard title="By Owner">
+          {Object.entries(s.ownership_distribution).map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">{k}</span>
+              <span className="text-sm font-semibold tabular-nums">{v}</span>
+            </div>
+          ))}
+        </ReportCard>
+      </div>
+      <ReportCard title="Analysis">
+        {hasCritical && (
+          <div className="rounded-lg border-2 border-red-600 bg-red-50 p-4 mb-4">
+            <div className="text-sm font-bold text-red-700 mb-1">CRITICAL FINDING</div>
+            <p className="text-sm text-red-800">{ov.critical} critical-severity governance finding(s) require immediate remediation.</p>
+          </div>
+        )}
+        <p className="text-sm text-gray-800 leading-relaxed">{s.analysis}</p>
+      </ReportCard>
+    </>
+  );
+}
+
+export function AuditPackSectionView({ s }: { s: NonNullable<import('../../types/reportSuite').AuditPackSection> }) {
+  const ov = s.overview;
+  const hasComplianceIssue = ov.compliance_pct < 80;
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
+        <KpiBox label="Total Batches" value={ov.total_batches} tone="info" />
+        <KpiBox label="Completed" value={ov.completed_batches} tone="success" />
+        <KpiBox label="Failed" value={ov.failed_batches} tone={ov.failed_batches > 0 ? 'error' : 'neutral'} />
+        <KpiBox label="Compliance" value={`${ov.compliance_pct}%`} tone={ov.compliance_pct >= 80 ? 'success' : 'error'} />
+        <KpiBox label="Controls Executed" value={ov.total_controls_executed} tone="info" />
+        <KpiBox label="Passed Controls" value={ov.passed_controls} tone="success" />
+      </div>
+      <ReportCard title="Audit Trail" subtitle={`${s.audit_trail.length} batch(es) recorded`} className="mb-6">
+        {s.audit_trail.length === 0 ? (
+          <EmptyState message="No audit trail available." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Batch Name', 'Status', 'Controls', 'Completed', 'Failed', 'Duration', 'Date'].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {s.audit_trail.map((b) => (
+                  <tr key={b.batch_id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{b.batch_name}</td>
+                    <td className="px-3 py-2.5"><StatusPill status={b.status} /></td>
+                    <td className="px-3 py-2.5 tabular-nums">{b.total_controls}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-green-700">{b.completed_controls}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-red-700">{b.failed_controls}</td>
+                    <td className="px-3 py-2.5 text-gray-700">{b.duration}</td>
+                    <td className="px-3 py-2.5 text-gray-500">{b.created_at}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </ReportCard>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <ReportCard title="Batch Status Distribution">
+          {Object.entries(s.batch_status_distribution).map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between py-2 border-b border-gray-100">
+              <StatusPill status={k} />
+              <span className="text-sm font-semibold tabular-nums">{v}</span>
+            </div>
+          ))}
+        </ReportCard>
+        <ReportCard title="Findings by Severity">
+          {Object.entries(s.severity_findings).length === 0 ? (
+            <p className="text-sm text-gray-500 py-2">No failing findings.</p>
+          ) : (
+            Object.entries(s.severity_findings).map(([k, v]) => (
+              <div key={k} className="flex items-center justify-between py-2 border-b border-gray-100">
+                <StatusPill status={k} />
+                <span className="text-sm font-semibold tabular-nums">{v}</span>
+              </div>
+            ))
+          )}
+        </ReportCard>
+      </div>
+      <ReportCard title="Analysis">
+        {hasComplianceIssue && (
+          <div className="rounded-lg border-2 border-red-600 bg-red-50 p-4 mb-4">
+            <div className="text-sm font-bold text-red-700 mb-1">COMPLIANCE ISSUE</div>
+            <p className="text-sm text-red-800">Compliance rate of {ov.compliance_pct}% is below the 80% threshold. Remediation required before production migration.</p>
+          </div>
+        )}
+        <p className="text-sm text-gray-800 leading-relaxed">{s.analysis}</p>
+      </ReportCard>
+    </>
+  );
+}
+
+export function MigrationPackSectionView({ s }: { s: NonNullable<import('../../types/reportSuite').MigrationPackSection> }) {
+  const ov = s.overview;
+  const es = s.entity_summary;
+  const cs = s.column_summary;
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
+        <KpiBox label="Projects" value={ov.total_projects} tone="info" />
+        <KpiBox label="Entities Mapped" value={ov.total_entities} tone="info" />
+        <KpiBox label="Source Columns" value={ov.total_source_columns} tone="info" />
+        <KpiBox label="Target Columns" value={ov.total_target_columns} tone="info" />
+        <KpiBox label="Overall Match" value={`${ov.overall_match_pct}%`} tone={ov.overall_match_pct >= 80 ? 'success' : 'warning'} />
+      </div>
+      <ReportCard title="Projects" subtitle={`${s.projects.length} migration projects`} className="mb-6">
+        {s.projects.length === 0 ? (
+          <EmptyState message="No projects found." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Name', 'Type', 'Status'].map((h) => (
+                    <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {s.projects.map((p) => (
+                  <tr key={p.id} className="border-b border-gray-100">
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{p.name}</td>
+                    <td className="px-3 py-2.5 text-gray-700">{p.type}</td>
+                    <td className="px-3 py-2.5"><StatusPill status={p.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </ReportCard>
+      <ReportCard title="Entity Mapping" subtitle={`${s.entities.length} entities · ${es.passed} passed, ${es.attention} attention, ${es.failed} failed`} className="mb-6">
+        {s.entities.length === 0 ? (
+          <EmptyState message="No entity mappings available." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Source Schema', 'Source Entity', 'Target Schema', 'Target Entity', 'Src Cols', 'Tgt Cols', 'Matched', 'Match %', 'Status'].map((h, i) => (
+                    <th key={h} className={`px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 ${i >= 4 && i <= 7 ? 'text-right' : 'text-left'}`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {s.entities.map((e, i) => (
+                  <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2.5 text-xs text-gray-500">{e.source_schema}</td>
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{e.source_table}</td>
+                    <td className="px-3 py-2.5 text-xs text-gray-500">{e.target_schema}</td>
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{e.target_table}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{e.source_columns}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{e.target_columns}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{e.matched_columns}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{e.match_pct}%</td>
+                    <td className="px-3 py-2.5"><StatusPill status={e.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </ReportCard>
+      <ReportCard title="Column Mapping Summary" subtitle={`${cs.total} columns · ${cs.auto_matched} auto-matched, ${cs.manual_review} manual review`}>
+        <div className="grid grid-cols-3 gap-3">
+          <KpiBox label="Total Columns" value={cs.total} tone="info" />
+          <KpiBox label="Auto Matched" value={cs.auto_matched} tone="success" />
+          <KpiBox label="Manual Review" value={cs.manual_review} tone={cs.manual_review > 0 ? 'warning' : 'neutral'} />
+        </div>
+      </ReportCard>
+    </>
+  );
+}

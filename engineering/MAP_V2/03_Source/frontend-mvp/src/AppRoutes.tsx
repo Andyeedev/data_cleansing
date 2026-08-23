@@ -49,6 +49,10 @@ const UserSettingsPage = lazy(() => import('./routes/UserSettingsPage').then(m =
 const AboutPage = lazy(() => import('./routes/AboutPage').then(m => ({ default: m.AboutPage })));
 const ValidationCentrePage = lazy(() => import('./routes/ValidationCentrePage').then(m => ({ default: m.ValidationCentrePage })));
 const ReportSuitePage = lazy(() => import('./routes/reports/ReportSuitePage').then(m => ({ default: m.ReportSuitePage })));
+const RiskAssessmentPage = lazy(() => import('./routes/RiskAssessmentPage').then(m => ({ default: m.RiskAssessmentPage })));
+const DataQualityPage = lazy(() => import('./routes/DataQualityPage').then(m => ({ default: m.DataQualityPage })));
+const GovernanceCentrePage = lazy(() => import('./routes/GovernanceCentrePage').then(m => ({ default: m.GovernanceCentrePage })));
+const PermissionsPage = lazy(() => import('./routes/PermissionsPage').then(m => ({ default: m.PermissionsPage })));
 
 export function AppRoutes() {
   return (
@@ -100,6 +104,9 @@ export function AppRoutes() {
 
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/reports/suite/:section" element={<ReportSuitePage />} />
+          <Route path="/dashboards/risk-assessment" element={<RiskAssessmentPage />} />
+          <Route path="/dashboards/data-quality" element={<DataQualityPage />} />
+          <Route path="/dashboards/governance-centre" element={<GovernanceCentrePage />} />
           <Route path="/reports/executive" element={<ReportsPage />} />
           <Route path="/reports/operational" element={<ReportsPage />} />
           <Route path="/reports/migration" element={<ReportsPage />} />
@@ -137,6 +144,7 @@ export function AppRoutes() {
           <Route path="/administration/roles/:id" element={<RoleDetailPage />} />
           <Route path="/administration/tenants" element={<AdministrationPage />} />
           <Route path="/administration/settings" element={<SettingsPage />} />
+          <Route path="/administration/permissions" element={<PermissionsPage />} />
           <Route path="/administration/feature-flags" element={<SettingsPage />} />
           <Route path="/administration/security" element={<AdministrationPage />} />
           <Route path="/administration/notifications" element={<AdministrationPage />} />
