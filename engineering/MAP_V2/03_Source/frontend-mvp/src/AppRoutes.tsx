@@ -48,6 +48,7 @@ const ProfilePage = lazy(() => import('./routes/ProfilePage').then(m => ({ defau
 const UserSettingsPage = lazy(() => import('./routes/UserSettingsPage').then(m => ({ default: m.UserSettingsPage })));
 const AboutPage = lazy(() => import('./routes/AboutPage').then(m => ({ default: m.AboutPage })));
 const ValidationCentrePage = lazy(() => import('./routes/ValidationCentrePage').then(m => ({ default: m.ValidationCentrePage })));
+const ReportSuitePage = lazy(() => import('./routes/reports/ReportSuitePage').then(m => ({ default: m.ReportSuitePage })));
 
 export function AppRoutes() {
   return (
@@ -98,6 +99,7 @@ export function AppRoutes() {
           <Route path="/governance/approvals" element={<GovernancePage />} />
 
           <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/reports/suite/:section" element={<ReportSuitePage />} />
           <Route path="/reports/executive" element={<ReportsPage />} />
           <Route path="/reports/operational" element={<ReportsPage />} />
           <Route path="/reports/migration" element={<ReportsPage />} />

@@ -124,3 +124,18 @@ export function useAuth(): AuthContextType {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 }
+
+/** role → report‑pack permission map */
+export const packPermissions: Record<string, string[]> = {
+  admin:     ['operational', 'migration', 'validation', 'governance', 'audit'],
+  manager:   ['migration', 'validation', 'governance'],
+  operator:  ['validation'],
+  viewer:    [],
+};
+
+/** Hook: does the current user see the given pack? */
+export function usePackPermission(pack: string): boolean {
+  const { userRoles } = useAuth();
+  const userRole = userRoles[0] ?? 'viewer';
+  return packPermissions[userRole]?.includes(pack) ?? false;
+}

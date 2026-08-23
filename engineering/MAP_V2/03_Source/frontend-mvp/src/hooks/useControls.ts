@@ -33,7 +33,7 @@ export function useControls(tenantId?: string) {
     }
   }, [tenantId]);
 
-  const updateControl = useCallback(async (controlId: string, updates: dict): Promise<boolean> => {
+  const updateControl = useCallback(async (controlId: string, updates: Record<string, unknown>): Promise<boolean> => {
     try {
       await apiPut(`/validation/controls/${controlId}/`, updates);
       return true;
@@ -93,4 +93,33 @@ export function useExecutionOutcomes(tenantId?: string) {
   }, [fetchOutcomes]);
 
   return { data, loading, error, refetch: fetchOutcomes };
+}
+
+export function useBatchList(tenantId?: string) {
+  const [data, setData] = useState<any[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchBatches = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (tenantId) params.set('tenant_id', tenantId);
+      params.set('limit', '50');
+      const qs = params.toString();
+      const result = await apiGet<any>(`/reports/batches${qs ? `?${qs}` : ''}`);
+      setData(Array.isArray(result) ? result : []);
+    } catch (err: any) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch batches');
+    } finally {
+      setLoading(false);
+    }
+  }, [tenantId]);
+
+  useEffect(() => {
+    fetchBatches();
+  }, [fetchBatches]);
+
+  return { data, loading, error, refetch: fetchBatches };
 }
