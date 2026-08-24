@@ -53,7 +53,7 @@ export function DashboardPage() {
 
     Promise.all([
       apiGet<PortfolioSummary>(`/dashboard/portfolio${tenantParam}`).catch(() => null),
-      isExecutive ? apiGet<{ entries: ActivityEntry[]; total: number }>(`/dashboard/activity?limit=5${activityTenantParam}`).catch(() => null) : Promise.resolve(null),
+      isExecutive ? apiGet<{ entries: ActivityEntry[]; total: number }>(`/dashboard/activity?limit=10${activityTenantParam}`).catch(() => null) : Promise.resolve(null),
       apiGet<{ migration_scores: MigrationScoreEntry[] }>(`/execution/migration-score-summary${tenantParam}`).catch(() => null),
     ])
       .then(([portfolioData, activityData, migrationData]) => {

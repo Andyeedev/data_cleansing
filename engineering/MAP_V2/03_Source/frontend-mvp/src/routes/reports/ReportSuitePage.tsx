@@ -18,39 +18,63 @@ import {
   GovernancePackSectionView,
   AuditPackSectionView,
 } from './reportSections';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useParams, Navigate, NavLink } from 'react-router-dom';
+import { apiGet } from '../../utils/apiClient';
 
 const SECTIONS = [
   { key: 'executive', label: 'Executive Summary', title: 'Executive Summary' },
   { key: 'operational', label: 'Operational', title: 'Operational Pack' },
-  { key: 'migration_pack', label: 'Migration', title: 'Migration Pack' },
-  { key: 'validation_pack', label: 'Validation', title: 'Validation Pack' },
-  { key: 'validation', label: 'Validation Board', title: 'Validation Summary' },
-  { key: 'governance_pack', label: 'Governance', title: 'Governance Pack' },
-  { key: 'audit_pack', label: 'Audit', title: 'Audit Pack' },
-  { key: 'governance', label: 'Governance Board', title: 'Governance Summary' },
+  { key: 'migration', label: 'Migration', title: 'Migration Summary' },
+  { key: 'validation', label: 'Validation', title: 'Validation Summary' },
+  { key: 'validation_pack', label: 'Validation Pack', title: 'Validation Pack' },
+  { key: 'governance', label: 'Governance', title: 'Governance Summary' },
+  { key: 'governance_pack', label: 'Governance Pack', title: 'Governance Pack' },
+  { key: 'audit_pack', label: 'Audit Pack', title: 'Audit Pack' },
   { key: 'risk', label: 'Risk', title: 'Risk Summary' },
   { key: 'quality', label: 'Quality', title: 'Data Quality Summary' },
   { key: 'readiness', label: 'Readiness', title: 'Readiness Report' },
   { key: 'issues', label: 'Issues', title: 'Issue Register' },
 ] as const;
 
-const sectionRoleMap: Record<string, string[]> = {
+const fallbackRoleMap: Record<string, string[]> = {
+  executive:       ['admin', 'manager', 'operator', 'viewer'],
   operational:     ['admin', 'manager'],
-  migration_pack:  ['admin', 'manager', 'operator'],
+  migration:       ['admin', 'manager', 'operator', 'viewer'],
+  validation:      ['admin', 'manager', 'operator'],
   validation_pack: ['admin', 'manager', 'operator'],
+  governance:      ['admin', 'manager'],
   governance_pack: ['admin', 'manager'],
   audit_pack:      ['admin'],
-  validation:      ['admin', 'manager', 'operator'],
-  governance:      ['admin', 'manager'],
-  audit:           ['admin'],
-  executive:       ['admin', 'manager', 'operator', 'viewer'],
   risk:            ['admin', 'manager', 'operator', 'viewer'],
   quality:         ['admin', 'manager', 'operator', 'viewer'],
   readiness:       ['admin', 'manager', 'operator', 'viewer'],
   issues:          ['admin', 'manager', 'operator', 'viewer'],
 };
+
+function usePackPermissions() {
+  const [packMap, setPackMap] = useState<Record<string, string[]>>(fallbackRoleMap);
+  useEffect(() => {
+    apiGet<Record<string, Record<string, boolean>>>('/permissions')
+      .then((matrix) => {
+        const roleMap: Record<string, string[]> = {};
+        for (const [role, packs] of Object.entries(matrix)) {
+          for (const [pack, enabled] of Object.entries(packs)) {
+            if (enabled) {
+              if (!roleMap[pack]) roleMap[pack] = [];
+              roleMap[pack].push(role);
+            }
+          }
+        }
+        for (const key of Object.keys(fallbackRoleMap)) {
+          if (!roleMap[key]) roleMap[key] = fallbackRoleMap[key];
+        }
+        setPackMap(roleMap);
+      })
+      .catch(() => {});
+  }, []);
+  return packMap;
+}
 
 export function ReportSuitePage() {
   const { section } = useParams<{ section: string }>();
@@ -58,6 +82,7 @@ export function ReportSuitePage() {
   const [selectedTenant, setSelectedTenant] = useState<string>('');
   const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const { userRoles } = useAuth();
+  const sectionRoleMap = usePackPermissions();
 
   const { data: batches } = useBatchList(selectedTenant || undefined);
   const { data: suite, loading, error, refetch } = useReportSuite(selectedTenant || undefined, selectedBatchId || undefined);
@@ -71,18 +96,18 @@ export function ReportSuitePage() {
     setSelectedBatchId(batchId);
   }, []);
 
-  if (!section || !SECTIONS.some((s) => s.key === section)) {
-    return <Navigate to="/reports/suite/executive" replace />;
-  }
+if (!section || !SECTIONS.some((s) => s.key === section)) {
+  return <Navigate to="/reports/suite/executive" replace />;
+}
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="print:hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
-          <div>
-            <div className="text-sm font-bold text-gray-900">MAP Nexus&#8482; &mdash; Migration Assurance Platform</div>
-            <div className="text-xs text-gray-500">Board Pack &mdash; live generated report suite</div>
-          </div>
+<div>
+              <div className="text-sm font-bold text-gray-900">MAP Nexus&#8482; &mdash; Migration Assurance Platform</div>
+              <div className="text-xs text-gray-500">Executive Pack &mdash; live generated report suite</div>
+            </div>
           <div className="flex items-center gap-3">
             <TenantFilter selectedTenant={selectedTenant} onChange={handleTenantChange} />
             <select
@@ -163,22 +188,22 @@ export function ReportSuitePage() {
             </div>
           </header>
 
-          {active.key === 'executive' && suite.executive && <ExecutiveSectionView s={suite.executive} />}
-          {active.key === 'operational' && suite.operational && <OperationalSectionView s={suite.operational} />}
-          {active.key === 'migration_pack' && suite.migration_pack && <MigrationPackSectionView s={suite.migration_pack} />}
-          {active.key === 'validation_pack' && suite.validation_pack && <ValidationPackSectionView s={suite.validation_pack} />}
-          {active.key === 'governance_pack' && suite.governance_pack && <GovernancePackSectionView s={suite.governance_pack} />}
-          {active.key === 'audit_pack' && suite.audit_pack && <AuditPackSectionView s={suite.audit_pack} />}
-          {active.key === 'validation' && suite.validation && <ValidationSectionView s={suite.validation} />}
-          {active.key === 'governance' && suite.governance && <GovernanceSectionView s={suite.governance} />}
-          {active.key === 'risk' && suite.risk && <RiskSectionView s={suite.risk} />}
-          {active.key === 'quality' && suite.quality && <QualitySectionView s={suite.quality} />}
-          {active.key === 'readiness' && suite.readiness && <ReadinessSectionView s={suite.readiness} />}
-          {active.key === 'issues' && suite.issues && <IssuesSectionView s={suite.issues} />}
+{active.key === 'executive' && suite.executive && <ExecutiveSectionView s={suite.executive} />}
+           {active.key === 'operational' && suite.operational && <OperationalSectionView s={suite.operational} />}
+           {active.key === 'migration' && suite.migration && <MigrationSectionView s={suite.migration} />}
+           {active.key === 'validation' && suite.validation && <ValidationSectionView s={suite.validation} />}
+           {active.key === 'validation_pack' && suite.validation_pack && <ValidationPackSectionView s={suite.validation_pack} />}
+           {active.key === 'governance' && suite.governance && <GovernanceSectionView s={suite.governance} />}
+           {active.key === 'governance_pack' && suite.governance_pack && <GovernancePackSectionView s={suite.governance_pack} />}
+           {active.key === 'audit_pack' && suite.audit_pack && <AuditPackSectionView s={suite.audit_pack} />}
+           {active.key === 'risk' && suite.risk && <RiskSectionView s={suite.risk} />}
+           {active.key === 'quality' && suite.quality && <QualitySectionView s={suite.quality} />}
+           {active.key === 'readiness' && suite.readiness && <ReadinessSectionView s={suite.readiness} />}
+           {active.key === 'issues' && suite.issues && <IssuesSectionView s={suite.issues} />}
 
-          <footer className="mt-10 pt-4 border-t border-gray-200 text-xs text-gray-400">
-            MAP Nexus&#8482; &mdash; Migration Assurance Platform · Board Pack generated from live validation data
-          </footer>
+<footer className="mt-10 pt-4 border-t border-gray-200 text-xs text-gray-400">
+             MAP Nexus&#8482; &mdash; Migration Assurance Platform · Executive Pack generated from live validation data
+           </footer>
         </>
       )}
     </div>

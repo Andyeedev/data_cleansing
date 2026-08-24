@@ -84,16 +84,17 @@ def update_permissions(body: PermissionUpdate, user=Depends(get_current_user)):
 def reset_permissions(user=Depends(get_current_user)):
     try:
         db = _get_db()
+        packs = ['operational', 'executive', 'validation_pack', 'governance_pack', 'audit_pack']
         defaults = {
-            'admin': ['operational', 'migration', 'validation', 'governance', 'audit'],
-            'manager': ['migration', 'validation', 'governance'],
-            'operator': ['migration', 'validation'],
-            'viewer': [],
+            'admin':     ['operational', 'executive', 'validation_pack', 'governance_pack', 'audit_pack'],
+            'manager':   ['executive', 'validation_pack', 'governance_pack'],
+            'operator':  ['executive', 'validation_pack'],
+            'viewer':    [],
         }
         db.execute("DELETE FROM core.role_permissions")
-        for role, packs in defaults.items():
-            for pack in ['operational', 'migration', 'validation', 'governance', 'audit']:
-                enabled = pack in packs
+        for role, allowed_packs in defaults.items():
+            for pack in packs:
+                enabled = pack in allowed_packs
                 db.execute(
                     "INSERT INTO core.role_permissions (role_name, pack_key, enabled) VALUES (%s, %s, %s)",
                     (role, pack, enabled),

@@ -125,11 +125,11 @@ export function useAuth(): AuthContextType {
   return ctx;
 }
 
-/** role → report‑pack permission map */
+/** role → report‑pack permission map (fallback, overridden by API) */
 export const packPermissions: Record<string, string[]> = {
-  admin:     ['operational', 'migration', 'validation', 'governance', 'audit'],
-  manager:   ['migration', 'validation', 'governance'],
-  operator:  ['validation'],
+  admin:     ['operational', 'executive', 'validation_pack', 'governance_pack', 'audit_pack'],
+  manager:   ['executive', 'validation_pack', 'governance_pack'],
+  operator:  ['executive', 'validation_pack'],
   viewer:    [],
 };
 

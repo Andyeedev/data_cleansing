@@ -1,41 +1,52 @@
-from fastapi import APIRouter, Depends, HTTPException
-from app.db.connection import get_db_connection
-from app.services.report_suite_service import ReportSuiteService
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.api.core.auth.dependencies import get_current_user
+from app.api.models.responses import APIResponse
+from app.services.dashboard_service import DashboardService
 
-router = APIRouter(prefix="/api/v1/dashboards", tags=["Dashboards"])
+router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
+
+dashboard_service = DashboardService()
 
 
-def _get_svc():
-    db = get_db_connection()
-    return ReportSuiteService(db)
+def _require_admin(current_user=Depends(get_current_user)):
+    roles = current_user.get("roles", [])
+    if not any("admin" in r.lower() for r in roles):
+        raise HTTPException(status_code=403, detail="Access denied. Admin role required.")
+    return current_user
 
 
-@router.get("/risk-assessment")
-def get_risk_assessment(tenant_id: str = None, user=Depends(get_current_user)):
+@router.get("/portfolio", response_model=APIResponse)
+def get_portfolio(
+    tenant_id: str = Query(None),
+    current_user=Depends(_require_admin)
+):
     try:
-        svc = _get_svc()
-        data = svc.get_risk_dashboard(tenant_id)
-        return {"success": True, "data": data}
+        result = dashboard_service.get_portfolio_summary(tenant_id)
+        return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/data-quality")
-def get_data_quality(tenant_id: str = None, user=Depends(get_current_user)):
+@router.get("/kpis", response_model=APIResponse)
+def get_kpis(
+    tenant_id: str = Query(None),
+    current_user=Depends(_require_admin)
+):
     try:
-        svc = _get_svc()
-        data = svc.get_quality_dashboard(tenant_id)
-        return {"success": True, "data": data}
+        result = dashboard_service.get_kpis(tenant_id)
+        return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/governance-centre")
-def get_governance_centre(tenant_id: str = None, user=Depends(get_current_user)):
+@router.get("/activity", response_model=APIResponse)
+def get_activity(
+    limit: int = Query(10, ge=1, le=50),
+    tenant_id: str = Query(None),
+    current_user=Depends(_require_admin)
+):
     try:
-        svc = _get_svc()
-        data = svc.get_governance_dashboard(tenant_id)
-        return {"success": True, "data": data}
+        result = dashboard_service.get_activity(limit, tenant_id)
+        return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

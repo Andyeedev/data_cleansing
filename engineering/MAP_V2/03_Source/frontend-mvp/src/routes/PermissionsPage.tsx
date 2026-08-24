@@ -4,13 +4,13 @@ import { useAuth } from '../context/AuthContext';
 
 const PACK_LABELS: Record<string, string> = {
   operational: 'Operational Pack',
-  migration: 'Migration Pack',
-  validation: 'Validation Pack',
-  governance: 'Governance Pack',
-  audit: 'Audit Pack',
+  executive: 'Executive Pack',
+  validation_pack: 'Validation Pack',
+  governance_pack: 'Governance Pack',
+  audit_pack: 'Audit Pack',
 };
 
-const PACK_ORDER = ['operational', 'migration', 'validation', 'governance', 'audit'];
+const PACK_ORDER = ['operational', 'executive', 'validation_pack', 'governance_pack', 'audit_pack'];
 
 export function PermissionsPage() {
   const { user } = useAuth();
