@@ -25,10 +25,13 @@ class C08DataDriftDetectionRule:
 
             if not numeric_columns:
 
+                source_schema = self.params.get("source_schema", "unknown")
+                source_table = self.params.get("source_table", "unknown")
                 return {
                     "status": "SKIPPED",
                     "delta": 0,
-                    "cause": "No numeric columns detected for drift analysis",
+                    "cause": "NO_NUMERIC_COLUMNS",
+                    "message": f"No numeric columns found for {source_schema}.{source_table}. Tag decimal/numeric columns with inferred_role='NUMERIC_METRIC' in core.dataset_columns to enable drift analysis.",
                     "failure_scope": "ENGINE"
                 }
 

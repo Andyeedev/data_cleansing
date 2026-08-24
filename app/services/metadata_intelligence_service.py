@@ -10,6 +10,7 @@ class MetadataIntelligenceService:
         FROM core.dataset_columns
         WHERE mapping_id = %s
         AND column_side = 'SOURCE'
+        AND inferred_role IS NULL
         """
 
         columns = self.engine_db.execute(query, (mapping_id,))
@@ -17,20 +18,23 @@ class MetadataIntelligenceService:
         for col_id, name, dtype in columns:
 
             role = None
+            name_lower = name.lower() if name else ""
+            dtype_lower = dtype.lower() if dtype else ""
 
-            if name.lower() in ["id", "account_id", "customer_id"]:
+            if name_lower.endswith("_id") or name_lower in ["id"]:
                 role = "PRIMARY_KEY"
 
-            elif dtype.lower() in ["numeric", "decimal", "double precision"]:
+            elif dtype_lower in ["numeric", "decimal", "double precision", "float", "real"]:
                 role = "NUMERIC_METRIC"
 
-            elif "date" in name.lower():
+            elif "date" in name_lower or "timestamp" in name_lower:
                 role = "AUDIT_COLUMN"
 
-            update = """
-            UPDATE core.dataset_columns
-            SET inferred_role = %s
-            WHERE column_id = %s
-            """
+            if role:
+                update = """
+                UPDATE core.dataset_columns
+                SET inferred_role = %s
+                WHERE column_id = %s
+                """
 
-            self.engine_db.execute(update, (role, col_id))
+                self.engine_db.execute(update, (role, col_id))

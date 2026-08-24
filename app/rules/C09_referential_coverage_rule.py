@@ -19,10 +19,19 @@ class C09ReferentialCoverageRule:
         fk_column = self.params.get("fk_column")
 
         if not child_table or not parent_table or not fk_column:
+            schema = self.params.get("source_schema", "unknown")
+            missing = []
+            if not child_table:
+                missing.append("child_table")
+            if not parent_table:
+                missing.append("parent_table")
+            if not fk_column:
+                missing.append("fk_column")
             return {
                 "status": "SKIPPED",
                 "delta": 0,
-                "cause": "NO_FK_METADATA"
+                "cause": "NO_FK_METADATA",
+                "message": f"Missing foreign key metadata: {', '.join(missing)} not defined for {schema}. Define FK relationships in core.dataset_columns (is_foreign_key=TRUE) to enable referential coverage checks."
             }
 
         source_missing = self._missing_keys(

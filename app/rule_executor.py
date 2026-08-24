@@ -291,7 +291,11 @@ class RuleExecutor:
 
         primary_key = self._infer_primary_key(mapping_id)
         numeric_column = self._infer_numeric_column(mapping_id)
+        all_numeric_columns = self._infer_all_numeric_columns(mapping_id)
         child_table, parent_table, fk_column = self._infer_fk_metadata(mapping_id)
+
+        if not all_numeric_columns and numeric_column:
+            all_numeric_columns = [numeric_column]
 
         return {
             "engine_db": self.engine_db,     # 🔥 REQUIRED
@@ -302,6 +306,7 @@ class RuleExecutor:
             "target_table": target_table,
             "primary_key_column": primary_key,
             "numeric_column": numeric_column,
+            "numeric_columns": all_numeric_columns,
             "child_table": child_table,
             "parent_table": parent_table,
             "fk_column": fk_column
@@ -365,7 +370,7 @@ class RuleExecutor:
         detail_json = None
         
         if result and isinstance(result, dict):
-            reserved = {"status", "delta", "source_value", "target_value", "source_count", "target_count", "query", "error", "skip_reason"}
+            reserved = {"status", "delta", "source_value", "target_value", "source_count", "target_count", "query", "error", "skip_reason", "cause", "message", "column_results", "columns_checked", "failure_scope"}
             extra = {k: v for k, v in result.items() if k not in reserved}
             
             # Always include core fields if present
@@ -378,6 +383,10 @@ class RuleExecutor:
                 "delta": result.get("delta"),
                 "error": result.get("error"),
                 "skip_reason": result.get("skip_reason"),
+                "cause": result.get("cause"),
+                "message": result.get("message"),
+                "column_results": result.get("column_results"),
+                "columns_checked": result.get("columns_checked"),
             }
             # Filter out None values
             core_fields = {k: v for k, v in core_fields.items() if v is not None}
@@ -466,6 +475,20 @@ class RuleExecutor:
         row = self.engine_db.execute(query, (mapping_id,))
 
         return row[0][0] if row else None
+
+    def _infer_all_numeric_columns(self, mapping_id):
+
+        query = """
+        SELECT column_name
+        FROM core.dataset_columns
+        WHERE mapping_id = %s
+        AND inferred_role = 'NUMERIC_METRIC'
+        ORDER BY column_position
+        """
+
+        rows = self.engine_db.execute(query, (mapping_id,))
+
+        return [row[0] for row in rows]
 
     def _infer_fk_metadata(self, mapping_id):
 

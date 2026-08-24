@@ -33,7 +33,9 @@ class C07DuplicateDetectionRule:
 
             return {
                 "status": "SKIPPED",
-                "delta": 0
+                "delta": 0,
+                "cause": "NO_PRIMARY_KEY",
+                "message": f"No primary key column found for {source_schema}.{source_table}. Tag a column with inferred_role='PRIMARY_KEY' in core.dataset_columns to enable duplicate detection."
             }
 
         source_duplicates = self._count_duplicates(
