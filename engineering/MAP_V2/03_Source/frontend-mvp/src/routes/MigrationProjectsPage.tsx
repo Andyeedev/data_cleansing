@@ -31,9 +31,9 @@ export function MigrationProjectsPage() {
         title="Migration Projects"
         description="Manage your migration projects"
         actions={
-          <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center' }}>
+          <div className="flex gap-3 items-center">
             <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
-            <button style={createButtonStyle}>
+            <button className="px-3 py-1.5 bg-primary text-white rounded cursor-pointer text-sm font-medium hover:bg-primary/90">
               + New Project
             </button>
           </div>
@@ -46,52 +46,50 @@ export function MigrationProjectsPage() {
           description="Create your first migration project to get started."
         />
       ) : (
-        <div style={gridStyle}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <div key={project.project_id} style={cardStyle}>
-              <div style={cardHeaderStyle}>
-                <h3 style={cardTitleStyle}>{project.project_name}</h3>
+            <div key={project.project_id} className="bg-bg-secondary rounded-lg border border-border p-6">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-lg font-semibold text-text">{project.project_name}</h3>
                 <StatusBadge status={project.status} />
               </div>
-              <div style={statsStyle}>
-                <div style={statItemStyle}>
-                  <span style={statLabelStyle}>Batches</span>
-                  <span style={statValueStyle}>{project.total_batches}</span>
+              <div className="grid grid-cols-3 gap-2 mb-4 p-2 bg-bg rounded">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-secondary">Batches</span>
+                  <span className="text-lg font-bold text-text">{project.total_batches}</span>
                 </div>
-                <div style={statItemStyle}>
-                  <span style={statLabelStyle}>Completed</span>
-                  <span style={{ ...statValueStyle, color: 'var(--color-success)' }}>
-                    {project.completed_batches}
-                  </span>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-secondary">Completed</span>
+                  <span className="text-lg font-bold text-success">{project.completed_batches}</span>
                 </div>
-                <div style={statItemStyle}>
-                  <span style={statLabelStyle}>Datasets</span>
-                  <span style={statValueStyle}>{project.dataset_count}</span>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-secondary">Datasets</span>
+                  <span className="text-lg font-bold text-text">{project.dataset_count}</span>
                 </div>
               </div>
-              <div style={statsStyle}>
-                <div style={statItemStyle}>
-                  <span style={statLabelStyle}>Controls</span>
-                  <span style={statValueStyle}>{project.total_controls}</span>
+              <div className="grid grid-cols-3 gap-2 mb-4 p-2 bg-bg rounded">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-secondary">Controls</span>
+                  <span className="text-lg font-bold text-text">{project.total_controls}</span>
                 </div>
-                <div style={statItemStyle}>
-                  <span style={statLabelStyle}>Completed</span>
-                  <span style={{ ...statValueStyle, color: 'var(--color-success)' }}>
-                    {project.completed_controls}
-                  </span>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-secondary">Completed</span>
+                  <span className="text-lg font-bold text-success">{project.completed_controls}</span>
                 </div>
-                <div style={statItemStyle}>
-                  <span style={statLabelStyle}>Failed</span>
-                  <span style={{ ...statValueStyle, color: project.failed_batches > 0 ? 'var(--color-error)' : 'var(--color-text-secondary)' }}>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-secondary">Failed</span>
+                  <span className={`text-lg font-bold ${project.failed_batches > 0 ? 'text-danger' : 'text-text-secondary'}`}>
                     {project.failed_batches}
                   </span>
                 </div>
               </div>
-              <div style={footerStyle}>
-                <span style={dateStyle}>
+              <div className="flex justify-between items-center pt-3 border-t border-border">
+                <span className="text-xs text-secondary">
                   Created: {new Date(project.created_at).toLocaleDateString()}
                 </span>
-                <button style={viewButtonStyle}>View Details</button>
+                <button className="px-2 py-1 bg-transparent text-primary border border-primary rounded cursor-pointer text-xs font-medium hover:bg-primary/10">
+                  View Details
+                </button>
               </div>
             </div>
           ))}
@@ -100,92 +98,3 @@ export function MigrationProjectsPage() {
     </PageContainer>
   );
 }
-
-const createButtonStyle: React.CSSProperties = {
-  padding: 'var(--space-sm) var(--space-md)',
-  background: 'var(--color-primary)',
-  color: 'white',
-  border: 'none',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontWeight: 'var(--font-weight-medium)',
-  fontSize: 'var(--font-size-sm)',
-};
-
-const gridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-  gap: 'var(--space-lg)',
-};
-
-const cardStyle: React.CSSProperties = {
-  background: 'var(--color-bg-secondary)',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--color-border)',
-  padding: 'var(--space-lg)',
-};
-
-const cardHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  marginBottom: 'var(--space-sm)',
-};
-
-const cardTitleStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-lg)',
-  fontWeight: 'var(--font-weight-semibold)',
-  color: 'var(--color-text)',
-  margin: 0,
-};
-
-const statsStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(3, 1fr)',
-  gap: 'var(--space-sm)',
-  marginBottom: 'var(--space-md)',
-  padding: 'var(--space-sm)',
-  background: 'var(--color-bg)',
-  borderRadius: 'var(--radius)',
-};
-
-const statItemStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-};
-
-const statLabelStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-};
-
-const statValueStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-lg)',
-  fontWeight: 'var(--font-weight-bold)',
-  color: 'var(--color-text)',
-};
-
-const footerStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingTop: 'var(--space-sm)',
-  borderTop: '1px solid var(--color-border)',
-};
-
-const dateStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-};
-
-const viewButtonStyle: React.CSSProperties = {
-  padding: 'var(--space-xs) var(--space-sm)',
-  background: 'transparent',
-  color: 'var(--color-primary)',
-  border: '1px solid var(--color-primary)',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-  fontWeight: 'var(--font-weight-medium)',
-};

@@ -44,3 +44,36 @@ class DashboardService:
                 "timestamp": str(row[5])
             })
         return {"entries": entries, "total": len(entries)}
+
+    def get_control_results(self, tenant_id: str = None, limit: int = 20):
+        rows = self.repository.get_control_results(tenant_id, limit)
+        controls = []
+        for row in rows:
+            controls.append({
+                "control_id": row[0],
+                "control_name": row[1],
+                "severity": row[2],
+                "status": row[3],
+                "total_rules": row[4],
+                "passed_rules": row[5],
+                "failed_rules": row[6],
+                "error_rules": row[7],
+                "skipped_rules": row[8],
+                "pass_rate": float(row[9]) if row[9] else 0
+            })
+        return {"controls": controls}
+
+    def get_recent_executions(self, tenant_id: str = None, limit: int = 10):
+        rows = self.repository.get_recent_executions(tenant_id, limit)
+        executions = []
+        for row in rows:
+            executions.append({
+                "batch_id": row[0],
+                "batch_name": row[1],
+                "batch_status": row[2],
+                "total_controls": row[3],
+                "completed_controls": row[4],
+                "failed_controls": row[5],
+                "batch_start_time": str(row[6]) if row[6] else None
+            })
+        return {"executions": executions}

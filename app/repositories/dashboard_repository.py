@@ -89,3 +89,84 @@ class DashboardRepository:
                 LIMIT %s
             """
             return self.db.execute(query, (limit,))
+
+    def get_control_results(self, tenant_id: str = None, limit: int = 20):
+        if tenant_id:
+            query = """
+                SELECT
+                    mcs.control_id,
+                    cr.control_name,
+                    cr.severity_level,
+                    mcs.overall_status,
+                    mcs.total_rules,
+                    mcs.passed_rules,
+                    mcs.failed_rules,
+                    mcs.error_rules,
+                    mcs.skipped_rules,
+                    CASE WHEN mcs.total_rules > 0 
+                         THEN ROUND(mcs.passed_rules::numeric / mcs.total_rules * 100, 1)
+                         ELSE 0 END as pass_rate
+                FROM engine.migration_control_summary mcs
+                JOIN engine.control_registry cr ON mcs.control_id = cr.control_id
+                JOIN engine.migration_batch_registry b ON mcs.batch_id = b.batch_id
+                JOIN core.projects p ON b.project_id = p.project_id::text
+                WHERE p.tenant_id::text = %s
+                ORDER BY mcs.created_at DESC
+                LIMIT %s
+            """
+            return self.db.execute(query, (tenant_id, limit))
+        else:
+            query = """
+                SELECT
+                    mcs.control_id,
+                    cr.control_name,
+                    cr.severity_level,
+                    mcs.overall_status,
+                    mcs.total_rules,
+                    mcs.passed_rules,
+                    mcs.failed_rules,
+                    mcs.error_rules,
+                    mcs.skipped_rules,
+                    CASE WHEN mcs.total_rules > 0 
+                         THEN ROUND(mcs.passed_rules::numeric / mcs.total_rules * 100, 1)
+                         ELSE 0 END as pass_rate
+                FROM engine.migration_control_summary mcs
+                JOIN engine.control_registry cr ON mcs.control_id = cr.control_id
+                ORDER BY mcs.created_at DESC
+                LIMIT %s
+            """
+            return self.db.execute(query, (limit,))
+
+    def get_recent_executions(self, tenant_id: str = None, limit: int = 10):
+        if tenant_id:
+            query = """
+                SELECT
+                    b.batch_id,
+                    b.batch_name,
+                    b.batch_status,
+                    b.total_controls,
+                    b.completed_controls,
+                    b.failed_controls,
+                    b.batch_start_time
+                FROM engine.migration_batch_registry b
+                JOIN core.projects p ON b.project_id = p.project_id::text
+                WHERE p.tenant_id::text = %s
+                ORDER BY b.batch_start_time DESC
+                LIMIT %s
+            """
+            return self.db.execute(query, (tenant_id, limit))
+        else:
+            query = """
+                SELECT
+                    batch_id,
+                    batch_name,
+                    batch_status,
+                    total_controls,
+                    completed_controls,
+                    failed_controls,
+                    batch_start_time
+                FROM engine.migration_batch_registry
+                ORDER BY batch_start_time DESC
+                LIMIT %s
+            """
+            return self.db.execute(query, (limit,))

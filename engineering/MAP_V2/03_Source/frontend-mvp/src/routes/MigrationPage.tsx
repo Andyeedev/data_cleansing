@@ -124,8 +124,8 @@ export function MigrationPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Migration</h1>
+      <div className="p-6">
+        <h1 className="text-h1 mb-4">Migration</h1>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
       </div>
     );
@@ -139,10 +139,10 @@ export function MigrationPage() {
     ? `conic-gradient(var(--color-success, #22c55e) 0% ${completedPct}%, var(--color-warning, #f59e0b) ${completedPct}% ${completedPct + runningPct}%, var(--color-error, #ef4444) ${completedPct + runningPct}% 100%)`
     : 'none';
 
-  const startBtnBg = running ? 'var(--color-bg-secondary)' : 'rgba(34, 197, 94, 0.1)';
-  const startBtnColor = running ? 'var(--color-text-secondary)' : 'var(--color-success)';
-  const startBtnBorder = running ? 'var(--color-border)' : 'rgba(34, 197, 94, 0.3)';
-  const startBtnCursor = running ? 'not-allowed' : 'pointer';
+  const startBtnBg = running ? 'bg-bg-secondary' : 'bg-success/10';
+  const startBtnColor = running ? 'text-text-secondary' : 'text-success';
+  const startBtnBorder = running ? 'border-border' : 'border-success/30';
+  const startBtnCursor = running ? 'cursor-not-allowed' : 'cursor-pointer';
 
   const handleHistorySort = (field: SortField) => {
     if (historySort === field) {
@@ -156,126 +156,89 @@ export function MigrationPage() {
 
   const totalPages = Math.ceil(total / pageSize);
 
-  const thStyle = { textAlign: 'left' as const, padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', cursor: 'pointer', userSelect: 'none' as const, background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)' };
-
-  const selectStyle = { padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-sm)', background: 'var(--color-background)', color: 'var(--color-text)', cursor: 'pointer' };
-
-  const paginationRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)' };
-
-  const paginationStyle = { display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' };
-
-  const paginationBtnStyle = (disabled: boolean) => ({ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: disabled ? 0.5 : 1 });
-
-  const historyStart = historyItems.length > 0 ? (serverPage - 1) * historyPageSize + 1 : 0;
-  const historyEnd = Math.min(serverPage * historyPageSize, total);
-
   const handleTenantChange = (v: string) => {
     setSelectedTenant(v);
     setServerPage(1);
   };
 
-  return (
-    <div style={{ padding: 'var(--space-lg)' }}>
-      <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-sm)' }}>Migration</h1>
-      <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-lg)' }}>
-        Execute migration runs, monitor progress, and review past executions.
-      </p>
+  const historyStart = historyItems.length > 0 ? (serverPage - 1) * historyPageSize + 1 : 0;
+  const historyEnd = Math.min(serverPage * historyPageSize, total);
 
-      <div style={{ display: 'flex', gap: 'var(--space-lg)', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+  return (
+    <div className="p-6">
+      <h1 className="text-h1 mb-2">Migration</h1>
+      <p className="text-secondary mb-6">Execute migration runs, monitor progress, and review past executions.</p>
+
+      <div className="flex gap-6 items-center mb-4">
         <TabBar tabs={tabs} activeTab={activeTab} onTabChange={(key) => setActiveTab(key as Tab)} />
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="flex-1 flex justify-end">
           <TenantFilter selectedTenant={selectedTenant} onChange={handleTenantChange} />
         </div>
       </div>
 
-      {(runError) && <ErrorState message={runError || ''} onRetry={() => { setRunError(null); }} />}
+      {runError && <ErrorState message={runError} onRetry={() => setRunError(null)} />}
 
       {activeTab === 'execution' && (
         <>
           {statusBreakdown && (
-            <div style={{
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: 'var(--space-lg)',
-              marginBottom: 'var(--space-lg)',
-            }}>
-              <h3 style={{ fontSize: 'var(--font-size-h3)', marginBottom: 'var(--space-md)' }}>Execution Overview</h3>
+            <div className="border border-border rounded-lg p-6 mb-6">
+              <h3 className="text-h3 mb-4">Execution Overview</h3>
 
-              <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', marginBottom: 'var(--space-md)' }}>
-                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 100, flex: 1, minHeight: 70 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Running Today</p>
-                  <p style={{ fontSize: 'var(--font-size-h2)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-warning)' }}>
-                    {todayBreakdown.running || 0}
-                  </p>
+              <div className="flex gap-4 flex-wrap mb-4">
+                <div className="p-4 bg-bg-secondary rounded-lg border border-border min-w-[100px] flex-1 min-h-[70px]">
+                  <p className="text-secondary text-xs mb-1">Running Today</p>
+                  <p className="text-3xl font-bold text-warning">{todayBreakdown.running || 0}</p>
                 </div>
-                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 100, flex: 1, minHeight: 70 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Completed Today</p>
-                  <p style={{ fontSize: 'var(--font-size-h2)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-success)' }}>
-                    {todayBreakdown.completed || 0}
-                  </p>
+                <div className="p-4 bg-bg-secondary rounded-lg border border-border min-w-[100px] flex-1 min-h-[70px]">
+                  <p className="text-secondary text-xs mb-1">Completed Today</p>
+                  <p className="text-3xl font-bold text-success">{todayBreakdown.completed || 0}</p>
                 </div>
-                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 100, flex: 1, minHeight: 70 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Failed Today</p>
-                  <p style={{ fontSize: 'var(--font-size-h2)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-danger)' }}>
-                    {todayBreakdown.failed || 0}
-                  </p>
+                <div className="p-4 bg-bg-secondary rounded-lg border border-border min-w-[100px] flex-1 min-h-[70px]">
+                  <p className="text-secondary text-xs mb-1">Failed Today</p>
+                  <p className="text-3xl font-bold text-danger">{todayBreakdown.failed || 0}</p>
                 </div>
-                <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 100, flex: 1, minHeight: 70 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Scheduled Today</p>
-                  <p style={{ fontSize: 'var(--font-size-h2)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-info)' }}>
-                    {todayBreakdown.scheduled || 0}
-                  </p>
+                <div className="p-4 bg-bg-secondary rounded-lg border border-border min-w-[100px] flex-1 min-h-[70px]">
+                  <p className="text-secondary text-xs mb-1">Scheduled Today</p>
+                  <p className="text-3xl font-bold text-info">{todayBreakdown.scheduled || 0}</p>
                 </div>
               </div>
 
-              <h4 style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-sm)' }}>Last 7 Days</h4>
-              <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', marginBottom: 'var(--space-lg)' }}>
-                <div style={{ padding: 'var(--space-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', minWidth: 90, flex: 1 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Running</p>
-                  <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, color: 'var(--color-warning)' }}>
-                    {breakdown.RUNNING || 0}
-                  </p>
+              <h4 className="text-sm text-secondary mb-2">Last 7 Days</h4>
+              <div className="flex gap-4 flex-wrap mb-6">
+                <div className="p-2 bg-bg-secondary rounded border border-border min-w-[90px] flex-1">
+                  <p className="text-secondary text-xs mb-1">Running</p>
+                  <p className="text-h3 font-semibold text-warning">{breakdown.RUNNING || 0}</p>
                 </div>
-                <div style={{ padding: 'var(--space-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', minWidth: 90, flex: 1 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Completed</p>
-                  <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, color: 'var(--color-success)' }}>
-                    {breakdown.COMPLETED || 0}
-                  </p>
+                <div className="p-2 bg-bg-secondary rounded border border-border min-w-[90px] flex-1">
+                  <p className="text-secondary text-xs mb-1">Completed</p>
+                  <p className="text-h3 font-semibold text-success">{breakdown.COMPLETED || 0}</p>
                 </div>
-                <div style={{ padding: 'var(--space-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', minWidth: 90, flex: 1 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Failed</p>
-                  <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, color: 'var(--color-danger)' }}>
-                    {breakdown.FAILED || 0}
-                  </p>
+                <div className="p-2 bg-bg-secondary rounded border border-border min-w-[90px] flex-1">
+                  <p className="text-secondary text-xs mb-1">Failed</p>
+                  <p className="text-h3 font-semibold text-danger">{breakdown.FAILED || 0}</p>
                 </div>
-                <div style={{ padding: 'var(--space-sm)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--color-border)', minWidth: 90, flex: 1 }}>
-                  <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Total</p>
-                  <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, color: 'var(--color-info)' }}>
-                    {statusBreakdown.total || 0}
-                  </p>
+                <div className="p-2 bg-bg-secondary rounded border border-border min-w-[90px] flex-1">
+                  <p className="text-secondary text-xs mb-1">Total</p>
+                  <p className="text-h3 font-semibold text-info">{statusBreakdown.total || 0}</p>
                 </div>
               </div>
 
               {historyItems.slice(0, 10).length > 0 && (
                 <div>
-                  <h4 style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-sm)' }}>Execution Queue (Last 10 runs)</h4>
-                  <div style={{
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-md)',
-                    overflow: 'hidden',
-                  }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
+                  <h4 className="text-sm text-secondary mb-2">Execution Queue (Last 10 runs)</h4>
+                  <div className="border border-border rounded-lg overflow-hidden">
+                    <table className="w-full border-collapse text-sm">
                       <tbody>
                         {historyItems.slice(0, 10).map((item) => (
-                          <tr key={item.batch_id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{item.batch_id.slice(0, 8)}...</td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                          <tr key={item.batch_id} className="border-b border-border">
+                            <td className="px-3 py-2 font-mono">{item.batch_id.slice(0, 8)}...</td>
+                            <td className="px-3 py-2">
                               <StatusBadge status={item.batch_status || 'UNKNOWN'} size="sm" />
                             </td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                            <td className="px-3 py-2">
                               {item.total_controls ? `${item.completed_controls ?? 0}/${item.total_controls}` : '—'}
                             </td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                            <td className="px-3 py-2 text-xs text-secondary">
                               {item.batch_start_time ? new Date(item.batch_start_time).toLocaleString() : '—'}
                             </td>
                           </tr>
@@ -288,38 +251,20 @@ export function MigrationPage() {
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+          <div className="flex gap-2 items-center mb-6">
             <button
-                onClick={() => { setModalError(null); setShowConfirmModal(true); }}
+              onClick={() => { setModalError(null); setShowConfirmModal(true); }}
               disabled={running}
               aria-label={running ? 'Starting migration...' : 'Start Migration'}
-              style={{
-                padding: 'var(--space-sm) var(--space-lg)',
-                background: startBtnBg,
-                color: startBtnColor,
-                border: `1px solid ${startBtnBorder}`,
-                borderRadius: 'var(--radius)',
-                cursor: startBtnCursor,
-                fontSize: 'var(--font-size-base)',
-                fontWeight: 500,
-              }}
+              className={`px-4 py-2 rounded cursor-pointer text-base font-medium ${startBtnBg} ${startBtnColor} ${startBtnBorder} ${startBtnCursor}`}
             >
               {running ? 'Starting...' : 'Start Migration ▼'}
             </button>
             <button
               onClick={() => {}}
               disabled={!running}
-              style={{
-                padding: 'var(--space-sm) var(--space-lg)',
-                background: 'var(--color-bg-secondary)',
-                color: 'var(--color-danger)',
-                border: `1px solid var(--color-border)`,
-                borderRadius: 'var(--radius)',
-                cursor: 'pointer',
-                fontSize: 'var(--font-size-base)',
-                fontWeight: 500,
-                opacity: !running ? 0.5 : 1,
-              }}
+              className="px-4 py-2 bg-bg-secondary text-danger border border-border rounded cursor-pointer text-base font-medium"
+              style={{ opacity: !running ? 0.5 : 1 }}
             >
               Stop All
             </button>
@@ -330,15 +275,13 @@ export function MigrationPage() {
             onClose={() => setShowConfirmModal(false)}
             title="Start Migration"
           >
-            <div style={{ fontSize: 'var(--font-size-sm)' }}>
-              <div style={{ marginBottom: 'var(--space-md)' }}>
-                <label style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
-                  Tenant
-                </label>
-                 <select
+            <div className="text-sm">
+              <div className="mb-4">
+                <label className="block text-xs text-secondary mb-1">Tenant</label>
+                <select
                   value={confirmTenantIdInternal}
                   onChange={(e) => { setConfirmTenantId(e.target.value); setSelectedProjectId(''); setModalError(null); }}
-                  style={{ ...selectStyle, width: '100%' }}
+                  className="w-full px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer"
                   disabled={tenantsLoading}
                 >
                   <option value="">All Tenants</option>
@@ -348,14 +291,12 @@ export function MigrationPage() {
                 </select>
               </div>
 
-              <div style={{ marginBottom: 'var(--space-md)' }}>
-                <label style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
-                  Project
-                </label>
+              <div className="mb-4">
+                <label className="block text-xs text-secondary mb-1">Project</label>
                 <select
                   value={selectedProjectId}
                   onChange={(e) => { setSelectedProjectId(e.target.value); setConfirmProjectId(''); setModalError(null); }}
-                  style={{ ...selectStyle, width: '100%' }}
+                  className="w-full px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer"
                   disabled={!confirmTenantIdInternal}
                 >
                   <option value="">Select a tenant first</option>
@@ -365,25 +306,21 @@ export function MigrationPage() {
                 </select>
               </div>
 
-              <div style={{ marginBottom: 'var(--space-md)' }}>
-                <label style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
-                  Project ID (manual)
-                </label>
+              <div className="mb-4">
+                <label className="block text-xs text-secondary mb-1">Project ID (manual)</label>
                 <input
                   type="text"
                   value={confirmProjectId}
                   onChange={(e) => { setConfirmProjectId(e.target.value); setSelectedProjectId(''); setModalError(null); }}
                   placeholder="Or enter project ID manually"
-                  style={{ ...selectStyle, width: '100%' }}
+                  className="w-full px-2 py-1.5 border border-border rounded bg-bg text-text text-sm"
                 />
               </div>
 
-              <div style={{ marginBottom: 'var(--space-md)' }}>
-                <label style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
-                  Execution Mode
-                </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
+              <div className="mb-4">
+                <label className="block text-xs text-secondary mb-1">Execution Mode</label>
+                <div className="flex flex-col gap-1">
+                  <label className="flex items-center gap-2">
                     <input
                       type="radio"
                       name="executionMode"
@@ -393,7 +330,7 @@ export function MigrationPage() {
                     />
                     <span>Full Validation (Recommended)</span>
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
+                  <label className="flex items-center gap-2">
                     <input
                       type="radio"
                       name="executionMode"
@@ -406,53 +343,29 @@ export function MigrationPage() {
                 </div>
               </div>
 
-              <div style={{ padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
-                  Current Status:
-                </p>
-                <p style={{ fontSize: 'var(--font-size-sm)' }}>
-                  • {breakdown.RUNNING || 0} Running (7d) | {breakdown.COMPLETED || 0} Completed (7d) | {breakdown.FAILED || 0} Failed (7d)
-                </p>
-                <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
-                  Estimated time: ~5 minutes
-                </p>
+              <div className="p-4 bg-bg-secondary rounded-lg border border-border">
+                <p className="text-xs text-secondary mb-1">Current Status:</p>
+                <p className="text-sm">• {breakdown.RUNNING || 0} Running (7d) | {breakdown.COMPLETED || 0} Completed (7d) | {breakdown.FAILED || 0} Failed (7d)</p>
+                <p className="text-xs text-secondary mt-1">Estimated time: ~5 minutes</p>
               </div>
 
               {modalError && (
-                <div style={{ 
-                  padding: 'var(--space-md)', 
-                  background: 'rgba(239, 68, 68, 0.1)', 
-                  borderRadius: 'var(--radius-md)', 
-                  border: '1px solid var(--color-danger)',
-                  marginTop: 'var(--space-md)'
-                }}>
-                  <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>
-                    {modalError}
-                  </p>
+                <div className="p-4 bg-danger/10 rounded-lg border border-danger mt-4">
+                  <p className="text-sm text-danger">{modalError}</p>
                 </div>
               )}
             </div>
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', justifyContent: 'flex-end', marginTop: 'var(--space-lg)' }}>
+            <div className="flex gap-2 justify-end mt-6">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                style={{ padding: 'var(--space-sm) var(--space-lg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}
+                className="px-4 py-1.5 border border-border rounded bg-bg cursor-pointer text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleStartExecution}
                 disabled={running || (!selectedProjectId && !confirmProjectId)}
-                style={{ 
-                  padding: 'var(--space-sm) var(--space-lg)', 
-                  border: 'none', 
-                  borderRadius: 'var(--radius)', 
-                  background: (!selectedProjectId && !confirmProjectId) ? 'var(--color-bg-secondary)' : 'var(--color-primary)', 
-                  color: (!selectedProjectId && !confirmProjectId) ? 'var(--color-text-secondary)' : 'var(--color-text-inverse)', 
-                  cursor: (!selectedProjectId && !confirmProjectId) ? 'not-allowed' : 'pointer', 
-                  fontSize: 'var(--font-size-sm)', 
-                  fontWeight: 500,
-                  opacity: (!selectedProjectId && !confirmProjectId) ? 0.5 : 1
-                }}
+                className={`px-4 py-1.5 rounded cursor-pointer text-sm font-medium ${(!selectedProjectId && !confirmProjectId) ? 'bg-bg-secondary text-text-secondary cursor-not-allowed' : 'bg-primary text-white'} opacity-${(!selectedProjectId && !confirmProjectId) ? 50 : 100}`}
               >
                 Start Execution
               </button>
@@ -464,78 +377,43 @@ export function MigrationPage() {
       {activeTab === 'history' && (
         <>
           {historyError && <ErrorState message={historyError} />}
-
           {historyLoading && <LoadingSkeleton rows={5} variant="table" />}
-
           {!historyLoading && historyItems.length === 0 && (
             <EmptyState title="No executions yet" description="Start a migration to see execution history." />
           )}
-
           {!historyLoading && historyItems.length > 0 && (
             <div>
               {statusBreakdown && (
-                <div style={{
-                  display: 'flex',
-                  gap: 'var(--space-lg)',
-                  marginBottom: 'var(--space-lg)',
-                  alignItems: 'flex-start',
-                }}>
-                  <div style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: '50%',
-                    position: 'relative',
-                    flexShrink: 0,
-                    background: donutGradient,
-                  }}>
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: 80,
-                      height: 80,
-                      borderRadius: '50%',
-                      background: 'var(--color-background)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexDirection: 'column',
+                <div className="flex gap-6 mb-6 items-start">
+                  <div className="w-30 h-30 rounded-full flex-shrink-0 relative" style={{ background: donutGradient }}>
+                    <div className="absolute inset-0 rounded-full flex items-center justify-center flex-col" style={{
+                      top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                      width: '80px', height: '80px', background: 'var(--color-background)', borderRadius: '50%'
                     }}>
-                      <span style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)' }}>
-                        {statusBreakdown.total}
-                      </span>
-                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                        Total
-                      </span>
+                      <span className="text-h3 font-bold">{statusBreakdown.total}</span>
+                      <span className="text-xs text-secondary">Total</span>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', flex: 1 }}>
-                    <div style={{ padding: 'var(--space-md)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 120 }}>
-                      <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Completed</p>
-                      <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-success)' }}>
-                        {breakdown.COMPLETED || 0}
-                      </p>
-                      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                  <div className="flex gap-4 flex-wrap flex-1">
+                    <div className="p-4 bg-surface rounded-lg border border-border min-w-[120px]">
+                      <p className="text-secondary text-xs mb-1">Completed</p>
+                      <p className="text-h3 font-bold text-success">{breakdown.COMPLETED || 0}</p>
+                      <p className="text-xs text-secondary">
                         {statusBreakdown.total > 0 ? ((breakdown.COMPLETED || 0) / statusBreakdown.total * 100).toFixed(1) : 0}%
                       </p>
                     </div>
-                    <div style={{ padding: 'var(--space-md)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 120 }}>
-                      <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Running</p>
-                      <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-warning)' }}>
-                        {breakdown.RUNNING || 0}
-                      </p>
-                      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                    <div className="p-4 bg-surface rounded-lg border border-border min-w-[120px]">
+                      <p className="text-secondary text-xs mb-1">Running</p>
+                      <p className="text-h3 font-bold text-warning">{breakdown.RUNNING || 0}</p>
+                      <p className="text-xs text-secondary">
                         {statusBreakdown.total > 0 ? ((breakdown.RUNNING || 0) / statusBreakdown.total * 100).toFixed(1) : 0}%
                       </p>
                     </div>
-                    <div style={{ padding: 'var(--space-md)', background: 'var(--color-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', minWidth: 120 }}>
-                      <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)', marginBottom: 'var(--space-xs)' }}>Failed</p>
-                      <p style={{ fontSize: 'var(--font-size-h3)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-error)' }}>
-                        {breakdown.FAILED || 0}
-                      </p>
-                      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                    <div className="p-4 bg-surface rounded-lg border border-border min-w-[120px]">
+                      <p className="text-secondary text-xs mb-1">Failed</p>
+                      <p className="text-h3 font-bold text-danger">{breakdown.FAILED || 0}</p>
+                      <p className="text-xs text-secondary">
                         {statusBreakdown.total > 0 ? ((breakdown.FAILED || 0) / statusBreakdown.total * 100).toFixed(1) : 0}%
                       </p>
                     </div>
@@ -544,30 +422,23 @@ export function MigrationPage() {
               )}
 
               {statusBreakdown && statusBreakdown.unscored > 0 && (
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-md)' }}>
-                  {statusBreakdown.unscored} batches have no score data
-                </p>
+                <p className="text-sm text-secondary mb-4">{statusBreakdown.unscored} batches have no score data</p>
               )}
 
               {!historyLoading && historyItems.length > 0 && (
-                <div style={{
-                  fontWeight: 600,
-                  fontSize: 'var(--font-size-h4)',
-                  padding: 'var(--space-sm) var(--space-md)',
-                  borderBottom: '1px solid var(--color-border)',
-                }}>
+                <div className="font-semibold text-h4 px-3 py-2 border-b border-border">
                   Execution History ({total} total)
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)', alignItems: 'center' }}>
-                <div style={{ flex: 1 }}>
+              <div className="flex gap-4 mb-4 items-center">
+                <div className="flex-1">
                   <SearchBar value={historySearch} onChange={handleSearchChange} placeholder="Search by batch ID, status, or project..." />
                 </div>
                 <select
                   value={statusFilter}
                   onChange={(e) => { setStatusFilter(e.target.value); setServerPage(1); }}
-                  style={selectStyle}
+                  className="px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer"
                 >
                   {STATUS_OPTIONS.map(status => (
                     <option key={status} value={status}>{status === 'all' ? 'All Statuses' : status}</option>
@@ -576,7 +447,7 @@ export function MigrationPage() {
                 <select
                   value={historyPageSize}
                   onChange={(e) => { setHistoryPageSize(Number(e.target.value)); setServerPage(1); }}
-                  style={selectStyle}
+                  className="px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer"
                 >
                   {PAGE_SIZE_OPTIONS.map(size => (
                     <option key={size} value={size}>{size} rows</option>
@@ -584,48 +455,43 @@ export function MigrationPage() {
                 </select>
               </div>
 
-              <div style={{
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                maxHeight: 400,
-                overflowY: 'auto',
-              }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                  <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
-                    <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                      <th style={thStyle} onClick={() => handleHistorySort('batch_id')}>
+              <div className="border border-border rounded-lg max-h-[400px] overflow-y-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="border-b border-border bg-bg-secondary">
+                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('batch_id')}>
                         Batch ID {historySort === 'batch_id' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
                       </th>
-                      <th style={thStyle} onClick={() => handleHistorySort('batch_status')}>
+                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('batch_status')}>
                         Status {historySort === 'batch_status' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
                       </th>
-                      <th style={thStyle} onClick={() => handleHistorySort('total_controls')}>
+                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('total_controls')}>
                         Controls {historySort === 'total_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
                       </th>
-                      <th style={thStyle} onClick={() => handleHistorySort('completed_controls')}>
+                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('completed_controls')}>
                         Completed {historySort === 'completed_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
                       </th>
-                      <th style={thStyle} onClick={() => handleHistorySort('failed_controls')}>
+                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('failed_controls')}>
                         Failed {historySort === 'failed_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
                       </th>
-                      <th style={thStyle} onClick={() => handleHistorySort('batch_start_time')}>
+                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('batch_start_time')}>
                         Started {historySort === 'batch_start_time' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {historyItems.map((item) => (
-                      <tr key={item.batch_id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{item.batch_id.slice(0, 8)}...</td>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                      <tr key={item.batch_id} className="border-b border-border">
+                        <td className="px-3 py-2 font-mono">{item.batch_id.slice(0, 8)}...</td>
+                        <td className="px-3 py-2">
                           <StatusBadge status={item.batch_status || 'UNKNOWN'} size="sm" />
                         </td>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{item.total_controls ?? 0}</td>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-success)' }}>{item.completed_controls ?? 0}</td>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)', color: (item.failed_controls ?? 0) > 0 ? 'var(--color-danger)' : 'inherit' }}>
+                        <td className="px-3 py-2">{item.total_controls ?? 0}</td>
+                        <td className="px-3 py-2 text-success">{item.completed_controls ?? 0}</td>
+                        <td className="px-3 py-2" style={{ color: (item.failed_controls ?? 0) > 0 ? 'var(--color-danger)' : 'inherit' }}>
                           {item.failed_controls ?? 0}
                         </td>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                        <td className="px-3 py-2 text-xs text-secondary">
                           {item.batch_start_time ? new Date(item.batch_start_time).toLocaleString() : '—'}
                         </td>
                       </tr>
@@ -634,19 +500,27 @@ export function MigrationPage() {
                 </table>
               </div>
 
-              <div style={paginationRowStyle}>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+              <div className="flex justify-between items-center mt-4">
+                <span className="text-sm text-secondary">
                   Showing {historyStart}–{historyEnd} of {total} rows
                 </span>
                 {totalPages > 1 && (
-                  <div style={paginationStyle}>
-                    <button onClick={() => setServerPage(p => Math.max(1, p - 1))} disabled={serverPage === 1} style={paginationBtnStyle(serverPage === 1)}>
+                  <div className="flex gap-2 items-center">
+                    <button
+                      onClick={() => setServerPage(p => Math.max(1, p - 1))}
+                      disabled={serverPage === 1}
+                      className="px-2 py-1.5 border border-border rounded bg-bg text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       Previous
                     </button>
-                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                    <span className="text-sm text-secondary">
                       Page {serverPage} of {totalPages}
                     </span>
-                    <button onClick={() => setServerPage(p => Math.min(totalPages, p + 1))} disabled={serverPage === totalPages} style={paginationBtnStyle(serverPage === totalPages)}>
+                    <button
+                      onClick={() => setServerPage(p => Math.min(totalPages, p + 1))}
+                      disabled={serverPage === totalPages}
+                      className="px-2 py-1.5 border border-border rounded bg-bg text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       Next
                     </button>
                   </div>

@@ -147,29 +147,29 @@ export function MigrationSchedulesPage() {
     return <LoadingOverlay message="Loading schedules..." />;
   }
 
-   if (schedulesError) {
-     return (
-       <PageContainer>
-         <PageHeader title="Migration Schedules" description="Manage automated migration schedules" />
-         <ErrorState message={schedulesError} onRetry={refreshAll} />
-       </PageContainer>
-     );
-   }
+  if (schedulesError) {
+    return (
+      <PageContainer>
+        <PageHeader title="Migration Schedules" description="Manage automated migration schedules and view execution history" />
+        <ErrorState message={schedulesError} onRetry={refreshAll} />
+      </PageContainer>
+    );
+  }
 
-   const currentSchedule = schedules.find(s => s.schedule_id === expandedSchedule);
-   const isScheduleEnabled = currentSchedule ? currentSchedule.enabled : true;
+  const currentSchedule = schedules.find(s => s.schedule_id === expandedSchedule);
+  const isScheduleEnabled = currentSchedule ? currentSchedule.enabled : true;
 
-   return (
+  return (
     <PageContainer>
       <PageHeader
         title="Migration Schedules"
         description="Manage automated migration schedules and view execution history"
         actions={
-          <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center' }}>
+          <div className="flex gap-3 items-center">
             {isSuperAdmin && (
               <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
             )}
-            <button style={createButtonStyle} onClick={() => setShowCreateModal(true)}>
+            <button className="px-3 py-1.5 bg-primary text-white rounded cursor-pointer text-sm font-medium hover:bg-primary/90" onClick={() => setShowCreateModal(true)}>
               + New Schedule
             </button>
           </div>
@@ -177,64 +177,60 @@ export function MigrationSchedulesPage() {
       />
 
       {toast && (
-        <div style={{
-          ...toastStyle,
-          background: toast.type === 'success' ? 'var(--color-success)' : 'var(--color-danger)',
-        }}>
+        <div className="fixed top-5 right-5 px-4 py-3 text-white rounded font-medium text-sm shadow-lg z-50"
+          style={{ background: toast.type === 'success' ? 'var(--color-success)' : 'var(--color-danger)' }}
+        >
           {toast.message}
         </div>
       )}
 
       {stats && (
-        <div style={kpiGridStyle}>
-          <div style={kpiCardStyle}>
-            <div style={kpiLabelStyle}>Schedules</div>
-            <div style={kpiValueStyle}>{stats.total_schedules}</div>
-            <div style={kpiSubStyle}>{stats.enabled_schedules} enabled</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-bg-secondary rounded-lg border border-border p-6 text-center">
+            <div className="text-xs text-secondary mb-1 uppercase tracking-wider">Schedules</div>
+            <div className="text-h3 font-bold text-text">{stats.total_schedules}</div>
+            <div className="text-xs text-secondary mt-1">{stats.enabled_schedules} enabled</div>
           </div>
-          <div style={kpiCardStyle}>
-            <div style={kpiLabelStyle}>Running</div>
-            <div style={{ ...kpiValueStyle, color: runningScheduleId || stats.running_schedules > 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
+          <div className="bg-bg-secondary rounded-lg border border-border p-6 text-center">
+            <div className="text-xs text-secondary mb-1 uppercase tracking-wider">Running</div>
+            <div className="text-h3 font-bold" style={{ color: runningScheduleId || stats.running_schedules > 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
               {runningScheduleId ? 1 : stats.running_schedules}
             </div>
           </div>
-          <div style={kpiCardStyle}>
-            <div style={kpiLabelStyle}>Total Runs</div>
-            <div style={kpiValueStyle}>{stats.total_runs}</div>
+          <div className="bg-bg-secondary rounded-lg border border-border p-6 text-center">
+            <div className="text-xs text-secondary mb-1 uppercase tracking-wider">Total Runs</div>
+            <div className="text-h3 font-bold text-text">{stats.total_runs}</div>
           </div>
-          <div style={kpiCardStyle}>
-            <div style={kpiLabelStyle}>Pass Rate</div>
-            <div style={{
-              ...kpiValueStyle,
-              color: stats.pass_rate >= 80 ? 'var(--color-success)' : stats.pass_rate >= 50 ? 'var(--color-warning)' : 'var(--color-danger)'
-            }}>
+          <div className="bg-bg-secondary rounded-lg border border-border p-6 text-center">
+            <div className="text-xs text-secondary mb-1 uppercase tracking-wider">Pass Rate</div>
+            <div className="text-h3 font-bold" style={{ color: stats.pass_rate >= 80 ? 'var(--color-success)' : stats.pass_rate >= 50 ? 'var(--color-warning)' : 'var(--color-danger)' }}>
               {stats.pass_rate}%
             </div>
           </div>
         </div>
       )}
 
-      <div style={mainContentStyle}>
-        <div style={{ flex: 2 }}>
+      <div className="flex gap-6 items-start">
+        <div className="flex-1 min-w-0">
           {schedules.length === 0 ? (
             <EmptyState
               title="No schedules configured"
               description="Create a schedule to automate your migration tasks."
             />
           ) : (
-            <div style={tableContainerStyle}>
-              <table style={tableStyle}>
+            <div className="bg-bg-secondary rounded-lg border border-border overflow-hidden">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr>
-                    <th style={thStyle}></th>
-                    <th style={thStyle}>Name</th>
-                    <th style={thStyle}>Schedule</th>
-                    <th style={thStyle}>Next Run</th>
-                    <th style={thStyle}>Last Run</th>
-                    <th style={thStyle}>Runs</th>
-                    <th style={thStyle}>Status</th>
-                    <th style={thStyle}>Enabled</th>
-                    <th style={thStyle}>Actions</th>
+                  <tr className="bg-bg border-b border-border">
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border"></th>
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Name</th>
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Schedule</th>
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Next Run</th>
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Last Run</th>
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Runs</th>
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Status</th>
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Enabled</th>
+                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -257,29 +253,30 @@ export function MigrationSchedulesPage() {
               </table>
 
               {expandedSchedule && (
-                <div style={expandedLogsContainerStyle}>
-                  <div style={expandedLogsHeaderStyle}>
-                    <span style={expandedLogsTitleStyle}>Run History</span>
-                    {logsLoading && <span style={loadingTextStyle}>Loading...</span>}
+                <div className="border-t border-border p-4 bg-bg">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-sm font-semibold text-text">Run History</span>
+                    {logsLoading && <span className="text-xs text-secondary">Loading...</span>}
                   </div>
                   {expandedLogs.length === 0 && !logsLoading ? (
-                    <div style={noLogsStyle}>No execution logs found.</div>
+                    <div className="text-center text-secondary text-sm py-4">No execution logs found.</div>
                   ) : (
-                    <div style={logsListStyle}>
+                    <div className="flex flex-col gap-2">
                       {expandedLogs.map((log) => (
-                        <div key={log.execution_id} style={logRowStyle}>
-                          <div style={logInfoStyle}>
+                        <div key={log.execution_id} className="flex items-center justify-between p-3 bg-bg-secondary rounded border border-border">
+                          <div className="flex items-center gap-3">
                             <StatusBadge status={log.status} size="sm" />
-                            <span style={logDateStyle}>
-                              {new Date(log.started_at).toLocaleString()}
-                            </span>
+                            <span className="text-xs text-secondary">{new Date(log.started_at).toLocaleString()}</span>
                             {log.duration_seconds != null && (
-                              <span style={logDurationStyle}>{log.duration_seconds}s</span>
+                              <span className="text-xs text-secondary font-mono">{log.duration_seconds}s</span>
                             )}
-                            <span style={logTriggerStyle}>{log.triggered_by}</span>
+                            <span className="text-xs text-secondary italic">{log.triggered_by}</span>
                           </div>
                           <button
-                            style={!isScheduleEnabled ? viewLogBtnDisabledStyle : viewLogBtnStyle}
+                            className={isScheduleEnabled
+                              ? 'px-2 py-1 bg-transparent text-primary border border-primary rounded cursor-pointer text-xs hover:bg-primary/10'
+                              : 'px-2 py-1 bg-transparent text-text-muted border border-border rounded cursor-not-allowed text-xs'
+                            }
                             onClick={() => setShowLogModal(log)}
                             disabled={!isScheduleEnabled}
                           >
@@ -295,7 +292,7 @@ export function MigrationSchedulesPage() {
           )}
         </div>
 
-        <div style={{ flex: 1 }}>
+        <div className="w-72 flex-shrink-0">
           <CalendarEventsPanel
             events={events}
             loading={eventsLoading}
@@ -355,57 +352,59 @@ function ScheduleRow({
   const isDisabled = !schedule.enabled;
 
   return (
-    <tr style={{ ...trStyle, background: isExpanded ? 'var(--color-bg)' : 'transparent', opacity: isDisabled ? 0.6 : 1 }}>
-      <td style={tdStyle}>
-        <button style={expandBtnStyle} onClick={onToggleExpand} disabled={isDisabled}>
-          {isExpanded ? '\u25BC' : '\u25B6'}
+    <tr className={`border-b border-border ${isExpanded ? 'bg-bg' : ''} ${isDisabled ? 'opacity-60' : ''}`}>
+      <td className="px-4 py-3">
+        <button className="bg-none border-none cursor-pointer text-xs text-secondary p-1" onClick={onToggleExpand} disabled={isDisabled}>
+          {isExpanded ? '▼' : '▶'}
         </button>
       </td>
-      <td style={tdStyle}>
-        <div style={scheduleNameStyle}>{schedule.name}</div>
-        <div style={scheduleProjectStyle}>{schedule.project_name}</div>
+      <td className="px-4 py-3">
+        <div className="font-medium text-text">{schedule.name}</div>
+        <div className="text-xs text-secondary mt-1">{schedule.project_name}</div>
       </td>
-      <td style={tdStyle}>
-        <code style={cronStyle}>{schedule.cron_expression}</code>
+      <td className="px-4 py-3">
+        <code className="px-2 py-0.5 bg-bg rounded text-xs font-mono">{schedule.cron_expression}</code>
       </td>
-      <td style={tdStyle}>
+      <td className="px-4 py-3">
         {schedule.next_run ? new Date(schedule.next_run).toLocaleString() : '-'}
       </td>
-      <td style={tdStyle}>
+      <td className="px-4 py-3">
         {schedule.last_run ? new Date(schedule.last_run).toLocaleString() : '-'}
       </td>
-      <td style={tdStyle}>
-        <span style={runsCountStyle}>{schedule.execution_count}</span>
+      <td className="px-4 py-3">
+        <span className="font-semibold text-text">{schedule.execution_count}</span>
       </td>
-      <td style={tdStyle}>
+      <td className="px-4 py-3">
         <StatusBadge status={schedule.status} size="sm" />
       </td>
-      <td style={tdStyle}>
+      <td className="px-4 py-3">
         <button
-          style={schedule.enabled ? toggleOnStyle : toggleOffStyle}
+          className={schedule.enabled
+            ? 'px-2 py-1 bg-success text-white rounded cursor-pointer text-xs font-bold min-w-[40px]'
+            : 'px-2 py-1 bg-gray-300 text-gray-500 rounded cursor-pointer text-xs font-bold min-w-[40px]'}
           onClick={onToggle}
         >
           {schedule.enabled ? 'ON' : 'OFF'}
         </button>
       </td>
-      <td style={tdStyle}>
-        <div style={actionsStyle}>
+      <td className="px-4 py-3">
+        <div className="flex gap-1">
           <button
-            style={{ ...runBtnStyle, opacity: isDisabled || isRunning ? 0.4 : 1 }}
+            className={`px-2 py-1 bg-success text-white rounded cursor-pointer text-xs font-medium ${isDisabled || isRunning ? 'opacity-40 cursor-not-allowed' : ''}`}
             onClick={onRun}
             disabled={isDisabled || isRunning}
           >
             {isRunning ? 'Running...' : 'Run'}
           </button>
           <button
-            style={{ ...editBtnStyle, opacity: isDisabled ? 0.4 : 1 }}
+            className={`px-2 py-1 bg-transparent text-primary border border-primary rounded cursor-pointer text-xs ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
             onClick={onEdit}
             disabled={isDisabled}
           >
             Edit
           </button>
           <button
-            style={{ ...deleteBtnStyle, opacity: isDisabled ? 0.4 : 1 }}
+            className={`px-2 py-1 bg-transparent text-danger border border-danger rounded cursor-pointer text-xs ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
             onClick={onDelete}
             disabled={isDisabled}
           >
@@ -430,30 +429,28 @@ function CalendarEventsPanel({
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   return (
-    <div style={calendarPanelStyle}>
-      <div style={calendarHeaderStyle}>
-        <h3 style={calendarTitleStyle}>Calendar Events</h3>
-        <button style={refreshBtnStyle} onClick={onRefresh}>Refresh</button>
+    <div className="bg-bg-secondary rounded-lg border border-border p-6 min-w-[280px]">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-base font-semibold text-text m-0">Calendar Events</h3>
+        <button className="px-2 py-1 bg-bg text-secondary border border-border rounded cursor-pointer text-xs hover:bg-bg-tertiary" onClick={onRefresh}>Refresh</button>
       </div>
       {loading ? (
-        <div style={loadingTextStyle}>Loading events...</div>
+        <div className="text-xs text-secondary">Loading events...</div>
       ) : events.length === 0 ? (
-        <div style={noEventsStyle}>No calendar events linked to schedules.</div>
+        <div className="text-center text-secondary text-sm py-4">No calendar events linked to schedules.</div>
       ) : (
-        <div style={eventsListStyle}>
+        <div className="flex flex-col gap-2">
           {events.map((event) => (
-            <div key={event.event_id} style={eventCardStyle}>
-              <div style={eventIconStyle}>
+            <div key={event.event_id} className="flex gap-2 p-2 bg-bg rounded border border-border items-start">
+              <div className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold bg-primary text-white flex-shrink-0">
                 {event.type === 'milestone' ? 'M' : event.type === 'deadline' ? 'D' : 'T'}
               </div>
-              <div style={eventContentStyle}>
-                <div style={eventTitleStyle}>{event.title}</div>
-                <div style={eventTimeStyle}>
-                  {new Date(event.start_time).toLocaleString()}
-                </div>
-                <div style={eventRecurrenceStyle}>{event.cron_expression}</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-text truncate">{event.title}</div>
+                <div className="text-xs text-secondary">{new Date(event.start_time).toLocaleString()}</div>
+                <div className="text-xs text-secondary font-mono">{event.cron_expression}</div>
               </div>
-              <button style={eventEditBtnStyle} onClick={() => setEditingEvent(event)}>
+              <button className="px-1.5 py-0.5 bg-transparent text-primary border border-primary rounded cursor-pointer text-xs flex-shrink-0 hover:bg-primary/10" onClick={() => setEditingEvent(event)}>
                 Edit
               </button>
             </div>
@@ -502,32 +499,32 @@ function CalendarEventEditModal({
   };
 
   return (
-    <div style={modalOverlayStyle} onClick={onClose}>
-      <div style={{ ...modalContentStyle, maxWidth: '400px' }} onClick={(e) => e.stopPropagation()}>
-        <div style={modalHeaderStyle}>
-          <h3 style={modalTitleStyle}>Edit Calendar Event</h3>
-          <button style={closeBtnStyle} onClick={onClose}>X</button>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-bg-secondary rounded-lg border border-border w-[90%] max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-start p-4 border-b border-border">
+          <h3 className="text-lg font-semibold text-text m-0">Edit Calendar Event</h3>
+          <button className="bg-none border-none text-xl cursor-pointer text-secondary p-1" onClick={onClose}>×</button>
         </div>
-        <div style={{ padding: 'var(--space-lg)' }}>
-          <div style={formGroupStyle}>
-            <label style={formLabelStyle}>Title</label>
+        <div className="p-4">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-text mb-1">Title</label>
             <input
-              style={formInputStyle}
+              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          <div style={formGroupStyle}>
-            <label style={formLabelStyle}>Description</label>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-text mb-1">Description</label>
             <textarea
-              style={{ ...formInputStyle, minHeight: '60px' }}
+              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border min-h-[60px]"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginTop: 'var(--space-lg)' }}>
-            <button style={cancelBtnStyle} onClick={onClose}>Cancel</button>
-            <button style={submitBtnStyle} onClick={handleSave} disabled={saving}>
+          <div className="flex justify-end gap-2 mt-6">
+            <button className="px-3 py-2 bg-bg text-text border border-border rounded cursor-pointer text-sm hover:bg-bg-tertiary" onClick={onClose}>Cancel</button>
+            <button className="px-3 py-2 bg-primary text-white rounded cursor-pointer text-sm font-medium hover:bg-primary/90" onClick={handleSave} disabled={saving}>
               {saving ? 'Saving...' : 'Save'}
             </button>
           </div>
@@ -593,29 +590,29 @@ function ScheduleFormModal({
   };
 
   return (
-    <div style={modalOverlayStyle} onClick={onClose}>
-      <div style={{ ...modalContentStyle, maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
-        <div style={modalHeaderStyle}>
-          <h3 style={modalTitleStyle}>{title}</h3>
-          <button style={closeBtnStyle} onClick={onClose}>X</button>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-bg-secondary rounded-lg border border-border w-[90%] max-w-xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-4 border-b border-border">
+          <h3 className="text-lg font-semibold text-text m-0">{title}</h3>
+          <button className="bg-none border-none text-xl cursor-pointer text-secondary p-1" onClick={onClose}>×</button>
         </div>
-        <form onSubmit={handleSubmit} style={{ padding: 'var(--space-lg)' }}>
-          {error && <div style={formErrorStyle}>{error}</div>}
+        <form onSubmit={handleSubmit} className="p-4 flex-1 overflow-auto">
+          {error && <div className="mb-4 p-3 bg-danger/10 text-danger rounded text-sm">{error}</div>}
 
-          <div style={formGroupStyle}>
-            <label style={formLabelStyle}>Schedule Name *</label>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-text mb-1">Schedule Name *</label>
             <input
-              style={formInputStyle}
+              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Daily Validation Run"
             />
           </div>
 
-          <div style={formGroupStyle}>
-            <label style={formLabelStyle}>Description</label>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-text mb-1">Description</label>
             <textarea
-              style={{ ...formInputStyle, minHeight: '60px' }}
+              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border min-h-[60px]"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional description"
@@ -623,10 +620,10 @@ function ScheduleFormModal({
           </div>
 
           {!schedule && (
-            <div style={formGroupStyle}>
-              <label style={formLabelStyle}>Project *</label>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-text mb-1">Project *</label>
               <select
-                style={formInputStyle}
+                className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
               >
@@ -641,30 +638,26 @@ function ScheduleFormModal({
           )}
 
           {schedule && (
-            <div style={formGroupStyle}>
-              <label style={formLabelStyle}>Project</label>
-              <div style={formInputStyle}>{schedule.project_name}</div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-text mb-1">Project</label>
+              <div className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border">{schedule.project_name}</div>
             </div>
           )}
 
-          <div style={formGroupStyle}>
-            <label style={formLabelStyle}>Schedule (Cron) *</label>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-text mb-1">Schedule (Cron) *</label>
             <input
-              style={formInputStyle}
+              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
               value={cronExpression}
               onChange={(e) => setCronExpression(e.target.value)}
               placeholder="0 2 * * *"
             />
-            <div style={cronPresetsStyle}>
+            <div className="flex flex-wrap gap-1 mt-1">
               {cronPresets.map((preset) => (
                 <button
                   key={preset.value}
                   type="button"
-                  style={{
-                    ...cronPresetBtnStyle,
-                    background: cronExpression === preset.value ? 'var(--color-primary)' : 'var(--color-bg)',
-                    color: cronExpression === preset.value ? 'white' : 'var(--color-text)',
-                  }}
+                  className={`px-2 py-1 border border-border rounded text-xs cursor-pointer ${cronExpression === preset.value ? 'bg-primary text-white' : 'bg-bg text-text'}`}
                   onClick={() => setCronExpression(preset.value)}
                 >
                   {preset.label}
@@ -673,10 +666,10 @@ function ScheduleFormModal({
             </div>
           </div>
 
-          <div style={formGroupStyle}>
-            <label style={formLabelStyle}>Timezone</label>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-text mb-1">Timezone</label>
             <select
-              style={formInputStyle}
+              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
             >
@@ -688,9 +681,9 @@ function ScheduleFormModal({
             </select>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginTop: 'var(--space-lg)' }}>
-            <button type="button" style={cancelBtnStyle} onClick={onClose}>Cancel</button>
-            <button type="submit" style={submitBtnStyle} disabled={submitting}>
+          <div className="flex justify-end gap-2 mt-6">
+            <button type="button" className="px-3 py-2 bg-bg text-text border border-border rounded cursor-pointer text-sm hover:bg-bg-tertiary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="px-3 py-2 bg-primary text-white rounded cursor-pointer text-sm font-medium hover:bg-primary/90" disabled={submitting}>
               {submitting ? 'Saving...' : schedule ? 'Save Changes' : 'Create Schedule'}
             </button>
           </div>
@@ -703,32 +696,34 @@ function ScheduleFormModal({
 
 function TerminalModal({ log, onClose }: { log: ScheduleExecutionLog; onClose: () => void }) {
   return (
-    <div style={modalOverlayStyle} onClick={onClose}>
-      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-        <div style={modalHeaderStyle}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-bg-secondary rounded-lg border border-border w-[90%] max-w-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-start p-4 border-b border-border">
           <div>
-            <h3 style={modalTitleStyle}>Execution Log</h3>
-            <div style={modalMetaStyle}>
+            <h3 className="text-lg font-semibold text-text m-0">Execution Log</h3>
+            <div className="flex items-center gap-2 text-xs text-secondary mt-1">
               <StatusBadge status={log.status} size="sm" />
               {log.duration_seconds != null && (
-                <span style={{ marginLeft: 'var(--space-sm)' }}>Duration: {log.duration_seconds}s</span>
+                <span className="ml-2">Duration: {log.duration_seconds}s</span>
               )}
               {log.exit_code != null && (
-                <span style={{ marginLeft: 'var(--space-sm)' }}>Exit Code: {log.exit_code}</span>
+                <span className="ml-2">Exit Code: {log.exit_code}</span>
               )}
-              <span style={{ marginLeft: 'var(--space-sm)' }}>Triggered: {log.triggered_by}</span>
+              <span className="ml-2">Triggered: {log.triggered_by}</span>
             </div>
           </div>
-          <button style={closeBtnStyle} onClick={onClose}>X</button>
+          <button className="bg-none border-none text-xl cursor-pointer text-secondary p-1" onClick={onClose}>×</button>
         </div>
-        <div style={terminalScrollContainerStyle}>
-          <pre style={terminalTextStyle}>
+        <div className="flex-1 overflow-auto p-4 max-h-[60vh]">
+          <pre className="m-0 p-4 bg-[#1e1e1e] text-[#d4d4d4] rounded text-xs font-mono leading-[1.6] whitespace-pre-wrap break-all" style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}>
             {log.terminal_output || 'No output captured.'}
           </pre>
           {log.error_message && (
-            <div style={errorContainerStyle}>
-              <div style={errorTitleStyle}>Error Output:</div>
-              <pre style={errorTextStyle}>{log.error_message}</pre>
+            <div className="mt-4">
+              <div className="text-sm font-semibold text-danger mb-1">Error Output:</div>
+              <pre className="m-0 p-4 bg-[#2d1b1b] text-[#f5c6c6] rounded text-xs font-mono leading-[1.6] whitespace-pre-wrap break-all" style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}>
+                {log.error_message}
+              </pre>
             </div>
           )}
         </div>
@@ -736,559 +731,3 @@ function TerminalModal({ log, onClose }: { log: ScheduleExecutionLog; onClose: (
     </div>
   );
 }
-
-
-// ===================== STYLES =====================
-
-const toastStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: '20px',
-  right: '20px',
-  padding: 'var(--space-md) var(--space-lg)',
-  color: 'white',
-  borderRadius: 'var(--radius)',
-  fontSize: 'var(--font-size-sm)',
-  fontWeight: 'var(--font-weight-medium)',
-  zIndex: 1100,
-  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-};
-
-const createButtonStyle: React.CSSProperties = {
-  padding: 'var(--space-sm) var(--space-md)',
-  background: 'var(--color-primary)',
-  color: 'white',
-  border: 'none',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontWeight: 'var(--font-weight-medium)',
-  fontSize: 'var(--font-size-sm)',
-};
-
-const kpiGridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-  gap: 'var(--space-md)',
-  marginBottom: 'var(--space-lg)',
-};
-
-const kpiCardStyle: React.CSSProperties = {
-  background: 'var(--color-bg-secondary)',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--color-border)',
-  padding: 'var(--space-lg)',
-  textAlign: 'center',
-};
-
-const kpiLabelStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-  marginBottom: 'var(--space-xs)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.05em',
-};
-
-const kpiValueStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-h3)',
-  fontWeight: 'var(--font-weight-bold)',
-  color: 'var(--color-text)',
-};
-
-const kpiSubStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-  marginTop: 'var(--space-xs)',
-};
-
-const mainContentStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: 'var(--space-lg)',
-  alignItems: 'flex-start',
-};
-
-const tableContainerStyle: React.CSSProperties = {
-  background: 'var(--color-bg-secondary)',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--color-border)',
-  overflow: 'hidden',
-};
-
-const tableStyle: React.CSSProperties = {
-  width: '100%',
-  borderCollapse: 'collapse',
-};
-
-const thStyle: React.CSSProperties = {
-  padding: 'var(--space-md)',
-  textAlign: 'left',
-  fontWeight: 'var(--font-weight-semibold)',
-  color: 'var(--color-text-secondary)',
-  fontSize: 'var(--font-size-sm)',
-  borderBottom: '1px solid var(--color-border)',
-  background: 'var(--color-bg)',
-};
-
-const trStyle: React.CSSProperties = {
-  borderBottom: '1px solid var(--color-border)',
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: 'var(--space-md)',
-  fontSize: 'var(--font-size-sm)',
-};
-
-const expandBtnStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-  padding: '4px',
-};
-
-const scheduleNameStyle: React.CSSProperties = {
-  fontWeight: 'var(--font-weight-medium)',
-  color: 'var(--color-text)',
-};
-
-const scheduleProjectStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-  marginTop: '2px',
-};
-
-const cronStyle: React.CSSProperties = {
-  padding: '2px 6px',
-  background: 'var(--color-bg)',
-  borderRadius: 'var(--radius-sm)',
-  fontSize: 'var(--font-size-xs)',
-  fontFamily: 'monospace',
-};
-
-const runsCountStyle: React.CSSProperties = {
-  fontWeight: 'var(--font-weight-semibold)',
-  color: 'var(--color-text)',
-};
-
-const toggleOnStyle: React.CSSProperties = {
-  padding: '4px 12px',
-  background: 'var(--color-success)',
-  color: 'white',
-  border: 'none',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-  fontWeight: 'var(--font-weight-bold)',
-  minWidth: '40px',
-};
-
-const toggleOffStyle: React.CSSProperties = {
-  padding: '4px 12px',
-  background: '#ccc',
-  color: '#666',
-  border: 'none',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-  fontWeight: 'var(--font-weight-bold)',
-  minWidth: '40px',
-};
-
-const actionsStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: 'var(--space-xs)',
-};
-
-const runBtnStyle: React.CSSProperties = {
-  padding: 'var(--space-xs) var(--space-sm)',
-  background: 'var(--color-success)',
-  color: 'white',
-  border: 'none',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-  fontWeight: 'var(--font-weight-medium)',
-};
-
-const editBtnStyle: React.CSSProperties = {
-  padding: 'var(--space-xs) var(--space-sm)',
-  background: 'transparent',
-  color: 'var(--color-primary)',
-  border: '1px solid var(--color-primary)',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-};
-
-const deleteBtnStyle: React.CSSProperties = {
-  padding: 'var(--space-xs) var(--space-sm)',
-  background: 'transparent',
-  color: 'var(--color-danger)',
-  border: '1px solid var(--color-danger)',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-};
-
-const expandedLogsContainerStyle: React.CSSProperties = {
-  borderTop: '1px solid var(--color-border)',
-  padding: 'var(--space-md)',
-  background: 'var(--color-bg)',
-};
-
-const expandedLogsHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 'var(--space-sm)',
-  marginBottom: 'var(--space-md)',
-};
-
-const expandedLogsTitleStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-sm)',
-  fontWeight: 'var(--font-weight-semibold)',
-  color: 'var(--color-text)',
-};
-
-const loadingTextStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-};
-
-const noLogsStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-sm)',
-  color: 'var(--color-text-secondary)',
-  textAlign: 'center',
-  padding: 'var(--space-md)',
-};
-
-const logsListStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 'var(--space-xs)',
-};
-
-const logRowStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  padding: 'var(--space-sm) var(--space-md)',
-  background: 'var(--color-bg-secondary)',
-  borderRadius: 'var(--radius)',
-  border: '1px solid var(--color-border)',
-};
-
-const logInfoStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 'var(--space-md)',
-};
-
-const logDateStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-};
-
-const logDurationStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-  fontFamily: 'monospace',
-};
-
-const logTriggerStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-  fontStyle: 'italic',
-};
-
-const viewLogBtnStyle: React.CSSProperties = {
-  padding: 'var(--space-xs) var(--space-sm)',
-  background: 'transparent',
-  color: 'var(--color-primary)',
-  border: '1px solid var(--color-primary)',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-};
-
-const viewLogBtnDisabledStyle: React.CSSProperties = {
-  padding: 'var(--space-xs) var(--space-sm)',
-  background: 'transparent',
-  color: 'var(--color-text-muted)',
-  border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius)',
-  cursor: 'not-allowed',
-  fontSize: 'var(--font-size-xs)',
-};
-
-const calendarPanelStyle: React.CSSProperties = {
-  background: 'var(--color-bg-secondary)',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--color-border)',
-  padding: 'var(--space-lg)',
-  minWidth: '280px',
-};
-
-const calendarHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 'var(--space-md)',
-};
-
-const calendarTitleStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-base)',
-  fontWeight: 'var(--font-weight-semibold)',
-  color: 'var(--color-text)',
-  margin: 0,
-};
-
-const refreshBtnStyle: React.CSSProperties = {
-  padding: '4px 8px',
-  background: 'var(--color-bg)',
-  color: 'var(--color-text-secondary)',
-  border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-};
-
-const noEventsStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-sm)',
-  color: 'var(--color-text-secondary)',
-  textAlign: 'center',
-  padding: 'var(--space-md)',
-};
-
-const eventsListStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 'var(--space-sm)',
-};
-
-const eventCardStyle: React.CSSProperties = {
-  display: 'flex',
-  gap: 'var(--space-sm)',
-  padding: 'var(--space-sm)',
-  background: 'var(--color-bg)',
-  borderRadius: 'var(--radius)',
-  border: '1px solid var(--color-border)',
-  alignItems: 'flex-start',
-};
-
-const eventIconStyle: React.CSSProperties = {
-  width: '32px',
-  height: '32px',
-  borderRadius: 'var(--radius)',
-  background: 'var(--color-primary)',
-  color: 'white',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontSize: 'var(--font-size-xs)',
-  fontWeight: 'var(--font-weight-bold)',
-  flexShrink: 0,
-};
-
-const eventContentStyle: React.CSSProperties = {
-  flex: 1,
-  minWidth: 0,
-};
-
-const eventTitleStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-sm)',
-  fontWeight: 'var(--font-weight-medium)',
-  color: 'var(--color-text)',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-};
-
-const eventTimeStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-};
-
-const eventRecurrenceStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-  fontFamily: 'monospace',
-};
-
-const eventEditBtnStyle: React.CSSProperties = {
-  padding: '2px 6px',
-  background: 'transparent',
-  color: 'var(--color-primary)',
-  border: '1px solid var(--color-primary)',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-xs)',
-  flexShrink: 0,
-};
-
-const modalOverlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: 'rgba(0, 0, 0, 0.6)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 1000,
-};
-
-const modalContentStyle: React.CSSProperties = {
-  background: 'var(--color-bg-secondary)',
-  borderRadius: 'var(--radius-md)',
-  border: '1px solid var(--color-border)',
-  width: '90%',
-  maxWidth: '800px',
-  maxHeight: '80vh',
-  display: 'flex',
-  flexDirection: 'column',
-};
-
-const modalHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  padding: 'var(--space-lg)',
-  borderBottom: '1px solid var(--color-border)',
-};
-
-const modalTitleStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-lg)',
-  fontWeight: 'var(--font-weight-semibold)',
-  color: 'var(--color-text)',
-  margin: 0,
-};
-
-const modalMetaStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 'var(--space-xs)',
-  fontSize: 'var(--font-size-xs)',
-  color: 'var(--color-text-secondary)',
-  marginTop: 'var(--space-xs)',
-};
-
-const closeBtnStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  fontSize: 'var(--font-size-lg)',
-  cursor: 'pointer',
-  color: 'var(--color-text-secondary)',
-  padding: '4px',
-};
-
-const terminalScrollContainerStyle: React.CSSProperties = {
-  flex: 1,
-  overflow: 'auto',
-  padding: 'var(--space-lg)',
-  maxHeight: '60vh',
-};
-
-const terminalTextStyle: React.CSSProperties = {
-  margin: 0,
-  padding: 'var(--space-md)',
-  background: '#1e1e1e',
-  color: '#d4d4d4',
-  borderRadius: 'var(--radius)',
-  fontSize: 'var(--font-size-xs)',
-  fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-  lineHeight: 1.6,
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-all',
-};
-
-const errorContainerStyle: React.CSSProperties = {
-  marginTop: 'var(--space-md)',
-};
-
-const errorTitleStyle: React.CSSProperties = {
-  fontSize: 'var(--font-size-sm)',
-  fontWeight: 'var(--font-weight-semibold)',
-  color: 'var(--color-danger)',
-  marginBottom: 'var(--space-xs)',
-};
-
-const errorTextStyle: React.CSSProperties = {
-  margin: 0,
-  padding: 'var(--space-md)',
-  background: '#2d1b1b',
-  color: '#f5c6c6',
-  borderRadius: 'var(--radius)',
-  fontSize: 'var(--font-size-xs)',
-  fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-  lineHeight: 1.6,
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-all',
-};
-
-const formGroupStyle: React.CSSProperties = {
-  marginBottom: 'var(--space-md)',
-};
-
-const formLabelStyle: React.CSSProperties = {
-  display: 'block',
-  fontSize: 'var(--font-size-sm)',
-  fontWeight: 'var(--font-weight-medium)',
-  color: 'var(--color-text)',
-  marginBottom: 'var(--space-xs)',
-};
-
-const formInputStyle: React.CSSProperties = {
-  width: '100%',
-  padding: 'var(--space-sm) var(--space-md)',
-  background: 'var(--color-bg)',
-  color: 'var(--color-text)',
-  border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius)',
-  fontSize: 'var(--font-size-sm)',
-  boxSizing: 'border-box',
-};
-
-const formErrorStyle: React.CSSProperties = {
-  padding: 'var(--space-sm) var(--space-md)',
-  background: 'rgba(239, 68, 68, 0.1)',
-  color: 'var(--color-danger)',
-  borderRadius: 'var(--radius)',
-  fontSize: 'var(--font-size-sm)',
-  marginBottom: 'var(--space-md)',
-};
-
-const cronPresetsStyle: React.CSSProperties = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: 'var(--space-xs)',
-  marginTop: 'var(--space-xs)',
-};
-
-const cronPresetBtnStyle: React.CSSProperties = {
-  padding: '4px 8px',
-  border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius)',
-  fontSize: 'var(--font-size-xs)',
-  cursor: 'pointer',
-};
-
-const cancelBtnStyle: React.CSSProperties = {
-  padding: 'var(--space-sm) var(--space-md)',
-  background: 'var(--color-bg)',
-  color: 'var(--color-text)',
-  border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-sm)',
-};
-
-const submitBtnStyle: React.CSSProperties = {
-  padding: 'var(--space-sm) var(--space-md)',
-  background: 'var(--color-primary)',
-  color: 'white',
-  border: 'none',
-  borderRadius: 'var(--radius)',
-  cursor: 'pointer',
-  fontSize: 'var(--font-size-sm)',
-  fontWeight: 'var(--font-weight-medium)',
-};

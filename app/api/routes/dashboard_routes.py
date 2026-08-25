@@ -50,3 +50,29 @@ def get_activity(
         return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/control-results", response_model=APIResponse)
+def get_control_results(
+    limit: int = Query(20, ge=1, le=100),
+    tenant_id: str = Query(None),
+    current_user=Depends(_require_admin)
+):
+    try:
+        result = dashboard_service.get_control_results(tenant_id, limit)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/recent-executions", response_model=APIResponse)
+def get_recent_executions(
+    limit: int = Query(10, ge=1, le=50),
+    tenant_id: str = Query(None),
+    current_user=Depends(_require_admin)
+):
+    try:
+        result = dashboard_service.get_recent_executions(tenant_id, limit)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

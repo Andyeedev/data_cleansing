@@ -44,6 +44,7 @@ const MigrationTimelinePage = lazy(() => import('./routes/MigrationTimelinePage'
 const MigrationDatasetsPage = lazy(() => import('./routes/MigrationDatasetsPage').then(m => ({ default: m.MigrationDatasetsPage })));
 const MigrationSchedulesPage = lazy(() => import('./routes/MigrationSchedulesPage').then(m => ({ default: m.MigrationSchedulesPage })));
 const MigrationOverviewPage = lazy(() => import('./routes/MigrationOverviewPage').then(m => ({ default: m.MigrationOverviewPage })));
+const MigrationOverviewNewPage = lazy(() => import('./routes/MigrationOverviewNew').then(m => ({ default: m.MigrationOverviewNew })));
 const ProfilePage = lazy(() => import('./routes/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const UserSettingsPage = lazy(() => import('./routes/UserSettingsPage').then(m => ({ default: m.UserSettingsPage })));
 const AboutPage = lazy(() => import('./routes/AboutPage').then(m => ({ default: m.AboutPage })));
@@ -65,6 +66,7 @@ export function AppRoutes() {
 
           <Route path="/migration" element={<MigrationPage />} />
           <Route path="/migration/overview" element={<MigrationOverviewPage />} />
+          <Route path="/migration/overview/new" element={<MigrationOverviewNewPage />} />
           <Route path="/migration/projects" element={<MigrationProjectsPage />} />
           <Route path="/migration/datasets" element={<MigrationDatasetsPage />} />
           <Route path="/migration/schedules" element={<MigrationSchedulesPage />} />

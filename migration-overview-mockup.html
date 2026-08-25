@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migration Overview - Mockup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0078d4',
+            success: '#22c55e',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+            info: '#3b82f6',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .kpi-box { border-left-width: 4px; }
+    .kpi-info { border-left-color: #3b82f6; background-color: #eff6ff; color: #1e40af; }
+    .kpi-success { border-left-color: #22c55e; background-color: #f0fdf4; color: #166534; }
+    .kpi-warning { border-left-color: #f59e0b; background-color: #fffbeb; color: #92400e; }
+    .kpi-danger { border-left-color: #ef4444; background-color: #fef2f2; color: #991b1b; }
+    .kpi-neutral { border-left-color: #d1d5db; background-color: #f9fafb; color: #374151; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto p-6">
+    <!-- ========== ROW 1: Standalone filters/refresh right-aligned ========== -->
+    <div class="flex justify-end gap-3 mb-6">
+      <!-- Tenant Filter -->
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-500">Tenant:</label>
+        <select class="px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary">
+          <option value="">All Tenants</option>
+          <option value="cert">Cert Tenant 086cfe2b</option>
+          <option value="legacy">Default Tenant</option>
+        </select>
+      </div>
+      <!-- Refresh Button -->
+      <button class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+        Refresh
+      </button>
+    </div>
+
+    <!-- ========== ROW 2: All white-frame cards ========== -->
+    <div class="space-y-6">
+
+      <!-- CARD 1: Migration Overview - 6-col KpiBox grid (NEW from Migration Pack) -->
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Migration Overview</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+          <div class="kpi-box kpi-info p-4 rounded-lg">
+            <div class="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">Projects</div>
+            <div class="text-2xl font-bold tabular-nums">2</div>
+          </div>
+          <div class="kpi-box kpi-info p-4 rounded-lg">
+            <div class="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">Batches</div>
+            <div class="text-2xl font-bold tabular-nums">23</div>
+          </div>
+          <div class="kpi-box kpi-info p-4 rounded-lg">
+            <div class="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">Controls</div>
+            <div class="text-2xl font-bold tabular-nums">10</div>
+          </div>
+          <div class="kpi-box kpi-info p-4 rounded-lg">
+            <div class="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">Datasets</div>
+            <div class="text-2xl font-bold tabular-nums">5</div>
+          </div>
+          <div class="kpi-box kpi-success p-4 rounded-lg">
+            <div class="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">Active Projects</div>
+            <div class="text-2xl font-bold tabular-nums">2</div>
+          </div>
+          <div class="kpi-box kpi-warning p-4 rounded-lg">
+            <div class="text-xs font-semibold uppercase tracking-wider opacity-70 mb-1">Active Batches</div>
+            <div class="text-2xl font-bold tabular-nums">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: Health Score + Quick Actions (2-col) -->
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <!-- Health Score -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+          <h3 class="text-base font-semibold text-gray-900 mb-4">Health Score</h3>
+          <div class="flex flex-col items-center justify-center py-8">
+            <div class="relative w-48 h-48 mb-6">
+              <svg viewBox="0 0 120 120" class="w-full h-full -rotate-90">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#e5e7eb" stroke-width="10" />
+                <circle 
+                  cx="60" cy="60" r="50" 
+                  fill="none" 
+                  stroke="#22c55e" 
+                  stroke-width="10" 
+                  stroke-linecap="round" 
+                  stroke-dasharray="219.9 314.16"
+                  class="transition-all duration-1000" 
+                />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-4xl font-bold text-gray-900">70%</span>
+                <span class="text-xs text-gray-500">Health Score</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 text-center w-full">
+              <div class="p-3 bg-green-50 rounded-lg border border-green-100">
+                <div class="text-2xl font-bold text-green-700">1,650</div>
+                <div class="text-xs text-gray-500">Completed</div>
+              </div>
+              <div class="p-3 bg-red-50 rounded-lg border border-red-100">
+                <div class="text-2xl font-bold text-red-700">180</div>
+                <div class="text-xs text-gray-500">Failed/Error</div>
+              </div>
+              <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                <div class="text-2xl font-bold text-blue-700">1,830</div>
+                <div class="text-xs text-gray-500">Total Rules</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions (EXISTING - retained) -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+          <h3 class="text-base font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button class="px-4 py-3 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
+              View Projects
+            </button>
+            <button class="px-4 py-3 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
+              Upload Dataset
+            </button>
+            <button class="px-4 py-3 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
+              View Reports
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: Recent Activity (EXISTING - retained) -->
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+        <h3 class="text-base font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <div class="space-y-3 max-h-96 overflow-y-auto">
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">COMPLETED</span>
+              <div>
+                <div class="text-sm font-medium text-gray-900">C01_SOURCE_TO_TARGET</div>
+                <div class="text-xs text-gray-500">Action: COMPLETED</div>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 whitespace-nowrap">Aug 24, 2026 5:52 PM</div>
+          </div>
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">FAILED</span>
+              <div>
+                <div class="text-sm font-medium text-gray-900">C02_FINANCIAL_VALUE</div>
+                <div class="text-xs text-gray-500">Action: FAILED</div>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 whitespace-nowrap">Aug 24, 2026 5:51 PM</div>
+          </div>
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">RUNNING</span>
+              <div>
+                <div class="text-sm font-medium text-gray-900">C08_DATA_DRIFT</div>
+                <div class="text-xs text-gray-500">Action: RUNNING</div>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 whitespace-nowrap">Aug 24, 2026 5:50 PM</div>
+          </div>
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">SKIPPED</span>
+              <div>
+                <div class="text-sm font-medium text-gray-900">C09_REFERENTIAL_COVERAGE</div>
+                <div class="text-xs text-gray-500">Action: SKIPPED</div>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 whitespace-nowrap">Aug 24, 2026 5:49 PM</div>
+          </div>
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">COMPLETED</span>
+              <div>
+                <div class="text-sm font-medium text-gray-900">C03_REFERENTIAL</div>
+                <div class="text-xs text-gray-500">Action: COMPLETED</div>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 whitespace-nowrap">Aug 24, 2026 5:48 PM</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4: Top Projects by Progress (EXISTING - retained) -->
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+        <h3 class="text-base font-semibold text-gray-900 mb-4">Top Projects by Progress</h3>
+        <div class="space-y-4">
+          <!-- Project 1 -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-900">Cert Project 4cd2320d</span>
+              <span class="text-xs text-gray-500">85% (17/20)</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-primary rounded-full transition-all duration-300" style="width: 85%"></div>
+            </div>
+          </div>
+          <!-- Project 2 -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-900">Legacy Migration Program</span>
+              <span class="text-xs text-gray-500">60% (6/10)</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-warning rounded-full transition-all duration-300" style="width: 60%"></div>
+            </div>
+          </div>
+          <!-- Project 3 -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-900">Data Migration Beta</span>
+              <span class="text-xs text-gray-500">40% (2/5)</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-danger rounded-full transition-all duration-300" style="width: 40%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 5: Entity Mapping (NEW - Migration Pack recommendation) -->
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
+        <h3 class="text-base font-semibold text-gray-900 mb-4">Entity Mapping</h3>
+        <div class="space-y-3">
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 flex justify-between items-center">
+            <div>
+              <div class="font-medium text-gray-900">customers</div>
+              <div class="text-xs text-gray-500">Schema: dbo · Source: 1,245 rows</div>
+            </div>
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">AUTO_MATCHED</span>
+          </div>
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 flex justify-between items-center">
+            <div>
+              <div class="font-medium text-gray-900">orders</div>
+              <div class="text-xs text-gray-500">Schema: dbo · Source: 8,932 rows</div>
+            </div>
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">AUTO_MATCHED</span>
+          </div>
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 flex justify-between items-center">
+            <div>
+              <div class="font-medium text-gray-900">products</div>
+              <div class="text-xs text-gray-500">Schema: dbo · Source: 1,047 rows</div>
+            </div>
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">REVIEW_REQUIRED</span>
+          </div>
+          <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 flex justify-between items-center">
+            <div>
+              <div class="font-medium text-gray-900">transactions</div>
+              <div class="text-xs text-gray-500">Schema: dbo · Source: 45,621 rows</div>
+            </div>
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">AUTO_MATCHED</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

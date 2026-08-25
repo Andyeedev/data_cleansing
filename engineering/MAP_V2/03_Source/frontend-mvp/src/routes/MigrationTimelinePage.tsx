@@ -57,7 +57,7 @@ export function MigrationTimelinePage() {
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [showLogsModal, setShowLogsModal] = useState(false);
 
-const fetchTimeline = useCallback(async (pageNum: number, append: boolean = false) => {
+  const fetchTimeline = useCallback(async (pageNum: number, append: boolean = false) => {
     if (!append) {
       setLoading(true);
     }
@@ -138,20 +138,10 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
     scheduled: 'warning' as const,
   };
 
-  const selectStyle: React.CSSProperties = {
-    padding: 'var(--space-xs) var(--space-sm)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius)',
-    fontSize: 'var(--font-size-sm)',
-    background: 'var(--color-background)',
-    color: 'var(--color-text)',
-    cursor: 'pointer',
-  };
-
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Migration Timeline</h1>
+      <div className="p-6">
+        <h1 className="text-h1 mb-4">Migration Timeline</h1>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
       </div>
     );
@@ -163,59 +153,25 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
   };
 
   return (
-    <div style={{ padding: 'var(--space-lg)' }}>
+    <div className="p-6">
       {showLogsModal && selectedEvent && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }} onClick={() => setShowLogsModal(false)}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            color: '#1a1a1a',
-            borderRadius: '8px',
-            padding: '24px',
-            maxWidth: '800px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflow: 'auto',
-            border: '1px solid #e0e0e0',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
-          }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, color: '#1a1a1a', fontSize: '18px' }}>Execution Details</h3>
-              <button onClick={() => setShowLogsModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#666', padding: '0 4px' }}>×</button>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowLogsModal(false)}>
+          <div className="bg-white text-gray-900 rounded-lg p-6 max-w-3xl w-[90%] max-h-[80vh] overflow-auto border border-gray-200 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 m-0">Execution Details</h3>
+              <button onClick={() => setShowLogsModal(false)} className="bg-none border-none text-3xl cursor-pointer text-gray-500 px-1">×</button>
             </div>
-            <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
-              <p style={{ margin: '8px 0', color: '#333' }}><strong>Execution ID:</strong> <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{selectedEvent.id}</span></p>
-              <p style={{ margin: '8px 0', color: '#333' }}><strong>Batch ID:</strong> <span style={{ fontFamily: 'monospace', fontSize: '12px' }}>{selectedEvent.batch_id || 'N/A'}</span></p>
-              <p style={{ margin: '8px 0', color: '#333' }}><strong>Status:</strong> {selectedEvent.status}</p>
-              <p style={{ margin: '8px 0', color: '#333' }}><strong>Started:</strong> {new Date(selectedEvent.started_at).toLocaleString()}</p>
-              {selectedEvent.completed_at && <p style={{ margin: '8px 0', color: '#333' }}><strong>Completed:</strong> {new Date(selectedEvent.completed_at).toLocaleString()}</p>}
-              {selectedEvent.duration_seconds && <p style={{ margin: '8px 0', color: '#333' }}><strong>Duration:</strong> {selectedEvent.duration_seconds}s</p>}
+            <div className="text-sm leading-relaxed">
+              <p className="mb-2 text-gray-700"><strong>Execution ID:</strong> <span className="font-mono text-xs">{selectedEvent.id}</span></p>
+              <p className="mb-2 text-gray-700"><strong>Batch ID:</strong> <span className="font-mono text-xs">{selectedEvent.batch_id || 'N/A'}</span></p>
+              <p className="mb-2 text-gray-700"><strong>Status:</strong> {selectedEvent.status}</p>
+              <p className="mb-2 text-gray-700"><strong>Started:</strong> {new Date(selectedEvent.started_at).toLocaleString()}</p>
+              {selectedEvent.completed_at && <p className="mb-2 text-gray-700"><strong>Completed:</strong> {new Date(selectedEvent.completed_at).toLocaleString()}</p>}
+              {selectedEvent.duration_seconds && <p className="mb-2 text-gray-700"><strong>Duration:</strong> {selectedEvent.duration_seconds}s</p>}
               {selectedEvent.error_message && (
                 <>
-                  <p style={{ margin: '8px 0 4px 0', color: '#333' }}><strong>Error:</strong></p>
-                  <pre style={{ 
-                    backgroundColor: '#f5f5f5', 
-                    color: '#c7254e',
-                    padding: '12px', 
-                    borderRadius: '4px', 
-                    overflow: 'auto', 
-                    maxHeight: '200px',
-                    border: '1px solid #e0e0e0',
-                    fontSize: '12px',
-                    fontFamily: 'monospace',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                  }}>
+                  <p className="mb-1 text-gray-700"><strong>Error:</strong></p>
+                  <pre className="bg-gray-100 text-red-600 p-3 rounded border border-gray-200 overflow-auto max-h-48 text-xs font-mono whitespace-pre-wrap break-words">
                     {selectedEvent.error_message}
                   </pre>
                 </>
@@ -228,19 +184,11 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
         title="Migration Timeline"
         description="Chronological view of all migration executions"
         actions={
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
+          <div className="flex gap-2 items-center">
             <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
             <button
               onClick={fetchTimeline}
-              style={{
-                padding: 'var(--space-sm) var(--space-md)',
-                background: 'var(--color-bg-secondary)',
-                color: 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                cursor: 'pointer',
-                fontSize: 'var(--font-size-sm)',
-              }}
+              className="px-3 py-1.5 bg-bg-secondary text-text border border-border rounded cursor-pointer text-sm hover:bg-bg-tertiary"
             >
               Refresh
             </button>
@@ -249,24 +197,23 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
       />
 
       {error && <ErrorState message={error} onRetry={fetchTimeline} />}
-
       {loading && <LoadingSkeleton rows={4} variant="card" />}
 
       {!loading && !error && summary && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <MetricCard title="Running" value={summary.running} color="var(--color-info)" />
             <MetricCard title="Completed Today" value={summary.completed_today} color="var(--color-success)" />
             <MetricCard title="Failed (All Time)" value={summary.failed_total} color={summary.failed_total > 0 ? 'var(--color-danger)' : undefined} />
             <MetricCard title="Scheduled" value={summary.scheduled} color="var(--color-warning)" />
           </div>
 
-          <div style={{ marginBottom: 'var(--space-md)' }}>
-            <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)', alignItems: 'center' }}>
-              <div style={{ flex: 1 }}>
+          <div className="mb-4">
+            <div className="flex gap-4 mb-4 items-center">
+              <div className="flex-1">
                 <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search by batch ID or project..." />
               </div>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={selectStyle}>
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer">
                 <option value="all">All Statuses</option>
                 <option value="running">Running</option>
                 <option value="completed">Completed</option>
@@ -279,7 +226,7 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
           {filteredEvents.length === 0 ? (
             <EmptyState title="No events" description="No migration events match your filters." />
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+            <div className="flex flex-col gap-6">
               {timeline.map((group) => {
                 const groupEvents = group.events.filter((event) => {
                   if (statusFilter !== 'all' && event.status !== statusFilter) return false;
@@ -292,36 +239,28 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
                 if (groupEvents.length === 0) return null;
                 return (
                   <div key={group.date}>
-                    <h4 style={{
-                      fontSize: 'var(--font-size-h4)',
-                      marginBottom: 'var(--space-md)',
-                      padding: 'var(--space-sm) var(--space-md)',
-                      background: 'var(--color-bg-secondary)',
-                      borderRadius: 'var(--radius)',
-                      display: 'inline-block',
-                    }}>
+                    <h4 className="text-h4 mb-4 px-3 py-2 bg-bg-secondary rounded inline-block">
                       {group.label}
                     </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', marginLeft: 'var(--space-lg)' }}>
+                    <div className="flex flex-col gap-4 ml-6">
                       {groupEvents.map((event) => (
                         <div
                           key={event.id}
+                          className="p-4 bg-bg-secondary rounded-lg border border-border border-l-4"
                           style={{
-                            padding: 'var(--space-md)',
-                            background: 'var(--color-bg-secondary)',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--color-border)',
-                            borderLeft: `4px solid ${event.status === 'running' ? 'var(--color-info)' : event.status === 'completed' ? 'var(--color-success)' : event.status === 'failed' ? 'var(--color-danger)' : 'var(--color-warning)'}`,
+                            borderLeftColor: event.status === 'running' ? 'var(--color-info)' :
+                              event.status === 'completed' ? 'var(--color-success)' :
+                                event.status === 'failed' ? 'var(--color-danger)' : 'var(--color-warning)'
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-sm)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                              <span style={{ fontSize: 'var(--font-size-lg)' }}>{statusIcons[event.status]}</span>
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{statusIcons[event.status]}</span>
                               <div>
-                                <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>
+                                <div className="font-semibold text-sm">
                                   {(event.batch_id || event.id || '').slice(0, 8)}...
                                 </div>
-                                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                                <div className="text-xs text-secondary">
                                   {event.project_name ?? 'Unknown'} · Triggered by: {event.triggered_by ?? 'unknown'}
                                 </div>
                               </div>
@@ -330,70 +269,58 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
                           </div>
 
                           {event.status === 'running' && (
-                            <div style={{ marginBottom: 'var(--space-sm)' }}>
+                            <div className="mb-2">
                               <ProgressBar value={event.progress} max={100} height={6} showPercentage />
                             </div>
                           )}
 
-                          <div style={{ display: 'flex', gap: 'var(--space-md)', fontSize: 'var(--font-size-sm)', flexWrap: 'wrap' }}>
+                          <div className="flex gap-4 text-sm flex-wrap">
                             {event.total_controls ? (
-                              <span style={{ color: 'var(--color-text-secondary)' }}>
+                              <span className="text-secondary">
                                 {event.completed_controls ?? 0}/{event.total_controls} controls
                               </span>
                             ) : null}
                             {(event.failed_controls ?? 0) > 0 && (
-                              <span style={{ color: 'var(--color-danger)' }}>
+                              <span className="text-danger">
                                 {event.failed_controls} failed
                               </span>
                             )}
                             {event.duration_seconds ? (
-                              <span style={{ color: 'var(--color-text-secondary)' }}>
+                              <span className="text-secondary">
                                 Duration: {event.duration_seconds}s
                               </span>
                             ) : null}
-                            <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)' }}>
+                            <span className="text-secondary text-xs">
                               {new Date(event.started_at).toLocaleString()}
                             </span>
                           </div>
 
                           {event.error_message && (
-                            <div style={{
-                              marginTop: '8px',
-                              padding: '8px 12px',
-                              backgroundColor: '#fff5f5',
-                              borderRadius: '4px',
-                              border: '1px solid #fecaca',
-                              fontSize: '13px',
-                              color: '#991b1b',
-                              maxHeight: '60px',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              lineHeight: '1.4',
-                            }}>
+                            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-900 max-h-14 overflow-hidden text-ellipsis leading-snug">
                               {event.error_message}
                             </div>
                           )}
 
-                          <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
-                            <button 
+                          <div className="flex gap-2 mt-3">
+                            <button
                               onClick={() => handleViewLogs(event)}
-                              style={{ padding: 'var(--space-xs) var(--space-sm)', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)' }}
+                              className="px-2 py-1 bg-primary text-white rounded cursor-pointer text-xs hover:bg-primary/90"
                             >
                               View Details
                             </button>
                             {event.status === 'failed' && (
-                              <button style={{ padding: 'var(--space-xs) var(--space-sm)', background: 'var(--color-bg)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)' }}>
+                              <button className="px-2 py-1 bg-bg text-text border border-border rounded cursor-pointer text-xs hover:bg-bg-tertiary">
                                 Retry
                               </button>
                             )}
                             {event.status === 'running' && (
-                              <button style={{ padding: 'var(--space-xs) var(--space-sm)', background: 'var(--color-bg)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)' }}>
+                              <button className="px-2 py-1 bg-bg text-text border border-border rounded cursor-pointer text-xs hover:bg-bg-tertiary">
                                 Stop
                               </button>
                             )}
-                            <button 
+                            <button
                               onClick={() => handleViewLogs(event)}
-                              style={{ padding: 'var(--space-xs) var(--space-sm)', background: 'var(--color-bg)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)' }}
+                              className="px-2 py-1 bg-bg text-text border border-border rounded cursor-pointer text-xs hover:bg-bg-tertiary"
                             >
                               View Logs
                             </button>
@@ -408,18 +335,10 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
           )}
 
           {hasMore && !loading && (
-            <div style={{ marginTop: 'var(--space-lg)', textAlign: 'center' }}>
+            <div className="mt-6 text-center">
               <button
                 onClick={handleLoadMore}
-                style={{
-                  padding: 'var(--space-sm) var(--space-lg)',
-                  background: 'var(--color-primary)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer',
-                  fontSize: 'var(--font-size-sm)',
-                }}
+                className="px-4 py-2 bg-primary text-white rounded cursor-pointer text-sm hover:bg-primary/90"
               >
                 Load More
               </button>
@@ -429,4 +348,18 @@ const fetchTimeline = useCallback(async (pageNum: number, append: boolean = fals
       )}
     </div>
   );
+}
+
+function formatTimeAgo(dateStr: string): string {
+  if (!dateStr) return '-';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'just now';
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} hr ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
 }
