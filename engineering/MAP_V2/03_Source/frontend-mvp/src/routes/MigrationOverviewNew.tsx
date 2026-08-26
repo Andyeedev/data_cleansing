@@ -21,7 +21,13 @@ export function MigrationOverviewNew() {
   if (error) {
     return (
       <PageContainer>
-        <ReportCard title="Migration Overview" description="Summary of all migration activity" className="bg-blue-50 border-blue-200 mb-6">
+        <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Migration Overview</h1>
+            <p className="text-sm text-gray-500 mt-1">Summary of all migration activity across projects and batches</p>
+          </div>
+        </div>
+        <ReportCard title="Error">
           <ErrorState message={error} onRetry={refetch} />
         </ReportCard>
       </PageContainer>
@@ -71,22 +77,28 @@ export function MigrationOverviewNew() {
 
   return (
     <PageContainer>
-      {/* ========== ROW 1: Standalone filters/refresh right-aligned ========== */}
-      <div className="flex justify-end gap-3 mb-6">
-        <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
-        <button
-          className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-          onClick={refetch}
-        >
-          Refresh
-        </button>
+      {/* ========== PAGE HEADER ========== */}
+      <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Migration Overview</h1>
+          <p className="text-sm text-gray-500 mt-1">Summary of all migration activity across projects and batches</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          <button
+            className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={refetch}
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* ========== ROW 2: All white-frame cards ========== */}
       <div className="space-y-6">
 
-        {/* CARD 1: Migration Overview - 6-col KpiBox grid (NEW from Migration Pack) */}
-        <ReportCard title="Migration Overview" description="Summary of all migration activity" className="bg-blue-50 border-blue-200 mb-6">
+        {/* CARD 1: Key Metrics - 6-col KpiBox grid */}
+        <ReportCard title="Key Metrics" className="bg-blue-50 border-blue-200 mb-6">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
             <KpiBox label="Projects" value={stats.total_projects} tone="info" />
             <KpiBox label="Batches" value={stats.total_batches} tone="info" />
@@ -137,14 +149,14 @@ export function MigrationOverviewNew() {
               </button>
               <button
                 className="px-4 py-3 rounded-md text-sm font-medium hover:opacity-90 transition-colors"
-                style={{ background: primaryColor, color: 'white' }}
+                style={{ background: successColor, color: 'white' }}
                 onClick={() => navigate('/migration/datasets')}
               >
                 Upload Dataset
               </button>
               <button
-                className="px-4 py-3 rounded-md text-sm font-medium hover:opacity-90 transition-colors"
-                style={{ background: primaryColor, color: 'white' }}
+                className="px-4 py-3 rounded-md text-sm font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
+                style={{ color: 'var(--color-text)' }}
                 onClick={() => navigate('/migration/reports')}
               >
                 View Reports
