@@ -53,12 +53,12 @@ export default function CascadeDropdowns({ showTenant = true, showProject = true
   );
 
   return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+    <div className="flex gap-3 items-center flex-wrap">
       {showTenant && (
         <div>
-          <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 2 }}>Tenant</label>
+          <label className="block text-xs text-gray-500 mb-1">Tenant</label>
           {tenantsError ? (
-            <div style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid #dc3545', color: '#dc3545', fontSize: 12, minWidth: 160 }}>
+            <div className="px-2.5 py-1.5 rounded border border-red-300 text-red-700 text-xs min-w-[160px]">
               {tenantsError}
             </div>
           ) : (
@@ -66,7 +66,7 @@ export default function CascadeDropdowns({ showTenant = true, showProject = true
               value={tenantId || ''}
               onChange={e => setTenantId(e.target.value || null)}
               disabled={tenantsLoading}
-              style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc', minWidth: 160 }}
+              className="px-2.5 py-1.5 rounded border border-gray-300 text-sm min-w-[160px] bg-white text-gray-900 disabled:opacity-50"
             >
               <option value="">All Tenants</option>
               {tenants?.map((t: any) => (
@@ -79,9 +79,9 @@ export default function CascadeDropdowns({ showTenant = true, showProject = true
 
       {showProject && (
         <div>
-          <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 2 }}>Project</label>
+          <label className="block text-xs text-gray-500 mb-1">Project</label>
           {projectsError ? (
-            <div style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid #dc3545', color: '#dc3545', fontSize: 12, minWidth: 160 }}>
+            <div className="px-2.5 py-1.5 rounded border border-red-300 text-red-700 text-xs min-w-[160px]">
               {projectsError}
             </div>
           ) : (
@@ -89,7 +89,7 @@ export default function CascadeDropdowns({ showTenant = true, showProject = true
               value={projectId || ''}
               onChange={e => setProjectId(e.target.value || null)}
               disabled={projectsLoading}
-              style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc', minWidth: 160 }}
+              className="px-2.5 py-1.5 rounded border border-gray-300 text-sm min-w-[160px] bg-white text-gray-900 disabled:opacity-50"
             >
               <option value="">All Projects</option>
               {projects?.map((p: any) => (
@@ -102,12 +102,12 @@ export default function CascadeDropdowns({ showTenant = true, showProject = true
 
       {showBatch && (
         <div>
-          <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 2 }}>Batch</label>
+          <label className="block text-xs text-gray-500 mb-1">Batch</label>
           <select
             value={batchId || ''}
             onChange={e => setBatchId(e.target.value || null)}
             disabled={batchesLoading}
-            style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc', minWidth: 200 }}
+            className="px-2.5 py-1.5 rounded border border-gray-300 text-sm min-w-[200px] bg-white text-gray-900 disabled:opacity-50"
           >
             <option value="">All Batches</option>
             {filteredBatches.map((b) => (
