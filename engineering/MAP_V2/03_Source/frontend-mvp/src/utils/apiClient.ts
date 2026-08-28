@@ -40,6 +40,19 @@ async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return true;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+    if (!payload?.exp) return false;
+    return Date.now() >= (payload.exp as number) * 1000;
+  } catch {
+    return true;
+  }
+}
+
 async function request<T>(
   url: string,
   options: RequestInit,
@@ -49,10 +62,17 @@ async function request<T>(
     const res = await fetch(url, options);
 
     if (res.status === 401) {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('map_nexus_user');
-      window.location.href = '/session-expired';
-      throw new Error('Session expired — please re-login');
+      const token = getAuthToken();
+      const expired = !token || isTokenExpired(token);
+      if (expired) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('map_nexus_user');
+        window.location.href = '/session-expired';
+        throw new Error('Session expired — please re-login');
+      }
+      const err: Error & { response?: any } = new Error('Unauthorized — you may not have permission for this action');
+      err.response = { status: 401 };
+      throw err;
     }
 
     if (res.status === 429) {

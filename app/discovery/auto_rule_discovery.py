@@ -166,7 +166,11 @@ class AutoRuleDiscovery:
         self.engine_db.execute(insert_query, (rule_id, mapping_id))
 
     def _detect_foreign_keys(self, schema, table, source_db):
-
+        # Snowflake INFORMATION_SCHEMA.KEY_COLUMN_USAGE is not available per database like Postgres/SQLServer
+        # For Snowflake, foreign keys are informational (REFERENCES) and not in KEY_COLUMN_USAGE — skip gracefully
+        db_type = (source_db.config.get("type") or "").lower()
+        if db_type == "snowflake":
+            return []
         if source_db.config.get("type") == "sqlserver":
             query = """
             SELECT kcu.column_name
@@ -187,6 +191,9 @@ class AutoRuleDiscovery:
             AND tc.table_schema = %s
             AND tc.table_name = %s
             """
-
-        rows = source_db.execute(query, (schema, table))
-        return [r[0] for r in rows]
+        try:
+            rows = source_db.execute(query, (schema, table))
+            return [r[0] for r in rows]
+        except Exception:
+            # Snowflake or other: FK detection not critical — return empty to allow rule inference without C03
+            return []

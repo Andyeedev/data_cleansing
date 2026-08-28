@@ -2,14 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useExecutionHistory } from '../hooks/useExecutionHistory';
 import { useAuth } from '../context/AuthContext';
 import { apiGet, apiPost } from '../utils/apiClient';
+import { PageContainer } from '../components/PageContainer/PageContainer';
+import { KpiBox, ReportCard, StatusPill, EmptyState } from '../components/reports/reportWidgets';
 import { TabBar } from '../components/shared/TabBar';
-import { StatusBadge } from '../components/shared/StatusBadge';
-import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
 import { TenantFilter } from '../components/shared/TenantFilter';
 import { Modal } from '../components/shared/Modal';
+import { Pagination } from '../components/shared/Pagination';
 import { toastService } from '../components/shared/Toast';
 import { useMigrationTenants, useMigrationProjects } from '../hooks/useMigration';
 
@@ -124,10 +125,10 @@ export function MigrationPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div className="p-6">
-        <h1 className="text-h1 mb-4">Migration</h1>
+      <PageContainer>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Migration</h1>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
-      </div>
+      </PageContainer>
     );
   }
 
@@ -136,13 +137,8 @@ export function MigrationPage() {
   const completedPct = statusBreakdown && statusBreakdown.total > 0 ? (breakdown.COMPLETED || 0) / statusBreakdown.total * 100 : 0;
   const runningPct = statusBreakdown && statusBreakdown.total > 0 ? (breakdown.RUNNING || 0) / statusBreakdown.total * 100 : 0;
   const donutGradient = statusBreakdown
-    ? `conic-gradient(var(--color-success, #22c55e) 0% ${completedPct}%, var(--color-warning, #f59e0b) ${completedPct}% ${completedPct + runningPct}%, var(--color-error, #ef4444) ${completedPct + runningPct}% 100%)`
+    ? `conic-gradient(#22c55e 0% ${completedPct}%, #f59e0b ${completedPct}% ${completedPct + runningPct}%, #ef4444 ${completedPct + runningPct}% 100%)`
     : 'none';
-
-  const startBtnBg = running ? 'bg-bg-secondary' : 'bg-success/10';
-  const startBtnColor = running ? 'text-text-secondary' : 'text-success';
-  const startBtnBorder = running ? 'border-border' : 'border-success/30';
-  const startBtnCursor = running ? 'cursor-not-allowed' : 'cursor-pointer';
 
   const handleHistorySort = (field: SortField) => {
     if (historySort === field) {
@@ -161,84 +157,71 @@ export function MigrationPage() {
     setServerPage(1);
   };
 
-  const historyStart = historyItems.length > 0 ? (serverPage - 1) * historyPageSize + 1 : 0;
-  const historyEnd = Math.min(serverPage * historyPageSize, total);
-
   return (
-    <div className="p-6">
-      <h1 className="text-h1 mb-2">Migration</h1>
-      <p className="text-secondary mb-6">Execute migration runs, monitor progress, and review past executions.</p>
-
-      <div className="flex gap-6 items-center mb-4">
-        <TabBar tabs={tabs} activeTab={activeTab} onTabChange={(key) => setActiveTab(key as Tab)} />
-        <div className="flex-1 flex justify-end">
+    <PageContainer>
+      {/* ========== PAGE HEADER ========== */}
+      <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Migration</h1>
+          <p className="text-sm text-gray-500 mt-1">Execute migration runs, monitor progress, and review past executions.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <TabBar tabs={tabs} activeTab={activeTab} onTabChange={(key) => setActiveTab(key as Tab)} />
           <TenantFilter selectedTenant={selectedTenant} onChange={handleTenantChange} />
         </div>
       </div>
 
-      {runError && <ErrorState message={runError} onRetry={() => setRunError(null)} />}
+      {runError && (
+        <div className="mb-6 p-4 bg-red-50 rounded-lg border border-red-200">
+          <p className="text-sm text-red-600">{runError}</p>
+          <button onClick={() => setRunError(null)} className="mt-2 text-sm text-red-700 underline cursor-pointer">Dismiss</button>
+        </div>
+      )}
 
+      {/* ========== EXECUTION TAB ========== */}
       {activeTab === 'execution' && (
         <>
           {statusBreakdown && (
-            <div className="border border-border rounded-lg p-6 mb-6">
-              <h3 className="text-h3 mb-4">Execution Overview</h3>
-
-              <div className="flex gap-4 flex-wrap mb-4">
-                <div className="p-4 bg-bg-secondary rounded-lg border border-border min-w-[100px] flex-1 min-h-[70px]">
-                  <p className="text-secondary text-xs mb-1">Running Today</p>
-                  <p className="text-3xl font-bold text-warning">{todayBreakdown.running || 0}</p>
-                </div>
-                <div className="p-4 bg-bg-secondary rounded-lg border border-border min-w-[100px] flex-1 min-h-[70px]">
-                  <p className="text-secondary text-xs mb-1">Completed Today</p>
-                  <p className="text-3xl font-bold text-success">{todayBreakdown.completed || 0}</p>
-                </div>
-                <div className="p-4 bg-bg-secondary rounded-lg border border-border min-w-[100px] flex-1 min-h-[70px]">
-                  <p className="text-secondary text-xs mb-1">Failed Today</p>
-                  <p className="text-3xl font-bold text-danger">{todayBreakdown.failed || 0}</p>
-                </div>
-                <div className="p-4 bg-bg-secondary rounded-lg border border-border min-w-[100px] flex-1 min-h-[70px]">
-                  <p className="text-secondary text-xs mb-1">Scheduled Today</p>
-                  <p className="text-3xl font-bold text-info">{todayBreakdown.scheduled || 0}</p>
-                </div>
+            <ReportCard title="Execution Overview" subtitle="Today and last 7 days summary">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <KpiBox label="Running Today" value={todayBreakdown.running || 0} tone="warning" />
+                <KpiBox label="Completed Today" value={todayBreakdown.completed || 0} tone="good" />
+                <KpiBox label="Failed Today" value={todayBreakdown.failed || 0} tone="critical" />
+                <KpiBox label="Scheduled Today" value={todayBreakdown.scheduled || 0} tone="neutral" />
               </div>
 
-              <h4 className="text-sm text-secondary mb-2">Last 7 Days</h4>
-              <div className="flex gap-4 flex-wrap mb-6">
-                <div className="p-2 bg-bg-secondary rounded border border-border min-w-[90px] flex-1">
-                  <p className="text-secondary text-xs mb-1">Running</p>
-                  <p className="text-h3 font-semibold text-warning">{breakdown.RUNNING || 0}</p>
-                </div>
-                <div className="p-2 bg-bg-secondary rounded border border-border min-w-[90px] flex-1">
-                  <p className="text-secondary text-xs mb-1">Completed</p>
-                  <p className="text-h3 font-semibold text-success">{breakdown.COMPLETED || 0}</p>
-                </div>
-                <div className="p-2 bg-bg-secondary rounded border border-border min-w-[90px] flex-1">
-                  <p className="text-secondary text-xs mb-1">Failed</p>
-                  <p className="text-h3 font-semibold text-danger">{breakdown.FAILED || 0}</p>
-                </div>
-                <div className="p-2 bg-bg-secondary rounded border border-border min-w-[90px] flex-1">
-                  <p className="text-secondary text-xs mb-1">Total</p>
-                  <p className="text-h3 font-semibold text-info">{statusBreakdown.total || 0}</p>
-                </div>
+              <h4 className="text-sm font-medium text-gray-500 mb-3">Last 7 Days</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <KpiBox label="Running" value={breakdown.RUNNING || 0} tone="warning" />
+                <KpiBox label="Completed" value={breakdown.COMPLETED || 0} tone="good" />
+                <KpiBox label="Failed" value={breakdown.FAILED || 0} tone="critical" />
+                <KpiBox label="Total" value={statusBreakdown.total || 0} tone="neutral" />
               </div>
 
               {historyItems.slice(0, 10).length > 0 && (
                 <div>
-                  <h4 className="text-sm text-secondary mb-2">Execution Queue (Last 10 runs)</h4>
-                  <div className="border border-border rounded-lg overflow-hidden">
+                  <h4 className="text-sm font-medium text-gray-500 mb-2">Execution Queue (Last 10 runs)</h4>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
                     <table className="w-full border-collapse text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-200 bg-gray-50">
+                          <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Batch ID</th>
+                          <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Controls</th>
+                          <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Started</th>
+                        </tr>
+                      </thead>
                       <tbody>
                         {historyItems.slice(0, 10).map((item) => (
-                          <tr key={item.batch_id} className="border-b border-border">
-                            <td className="px-3 py-2 font-mono">{item.batch_id.slice(0, 8)}...</td>
+                          <tr key={item.batch_id} className="border-b border-gray-100 last:border-0">
+                            <td className="px-3 py-2 font-mono text-gray-700">{item.batch_id.slice(0, 8)}...</td>
                             <td className="px-3 py-2">
-                              <StatusBadge status={item.batch_status || 'UNKNOWN'} size="sm" />
+                              <StatusPill status={item.batch_status || 'UNKNOWN'} />
                             </td>
-                            <td className="px-3 py-2">
+                            <td className="px-3 py-2 text-gray-700">
                               {item.total_controls ? `${item.completed_controls ?? 0}/${item.total_controls}` : '—'}
                             </td>
-                            <td className="px-3 py-2 text-xs text-secondary">
+                            <td className="px-3 py-2 text-xs text-gray-500">
                               {item.batch_start_time ? new Date(item.batch_start_time).toLocaleString() : '—'}
                             </td>
                           </tr>
@@ -248,28 +231,36 @@ export function MigrationPage() {
                   </div>
                 </div>
               )}
-            </div>
+            </ReportCard>
           )}
 
-          <div className="flex gap-2 items-center mb-6">
+          <div className="flex gap-3 items-center mb-6">
             <button
               onClick={() => { setModalError(null); setShowConfirmModal(true); }}
               disabled={running}
               aria-label={running ? 'Starting migration...' : 'Start Migration'}
-              className={`px-4 py-2 rounded cursor-pointer text-base font-medium ${startBtnBg} ${startBtnColor} ${startBtnBorder} ${startBtnCursor}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
+                running
+                  ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                  : 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
+              }`}
             >
               {running ? 'Starting...' : 'Start Migration ▼'}
             </button>
             <button
               onClick={() => {}}
               disabled={!running}
-              className="px-4 py-2 bg-bg-secondary text-danger border border-border rounded cursor-pointer text-base font-medium"
-              style={{ opacity: !running ? 0.5 : 1 }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
+                running
+                  ? 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                  : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-50'
+              }`}
             >
               Stop All
             </button>
           </div>
 
+          {/* ========== START MIGRATION MODAL ========== */}
           <Modal
             open={showConfirmModal}
             onClose={() => setShowConfirmModal(false)}
@@ -277,11 +268,11 @@ export function MigrationPage() {
           >
             <div className="text-sm">
               <div className="mb-4">
-                <label className="block text-xs text-secondary mb-1">Tenant</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Tenant</label>
                 <select
                   value={confirmTenantIdInternal}
                   onChange={(e) => { setConfirmTenantId(e.target.value); setSelectedProjectId(''); setModalError(null); }}
-                  className="w-full px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={tenantsLoading}
                 >
                   <option value="">All Tenants</option>
@@ -292,11 +283,11 @@ export function MigrationPage() {
               </div>
 
               <div className="mb-4">
-                <label className="block text-xs text-secondary mb-1">Project</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Project</label>
                 <select
                   value={selectedProjectId}
                   onChange={(e) => { setSelectedProjectId(e.target.value); setConfirmProjectId(''); setModalError(null); }}
-                  className="w-full px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={!confirmTenantIdInternal}
                 >
                   <option value="">Select a tenant first</option>
@@ -307,65 +298,71 @@ export function MigrationPage() {
               </div>
 
               <div className="mb-4">
-                <label className="block text-xs text-secondary mb-1">Project ID (manual)</label>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Project ID (manual)</label>
                 <input
                   type="text"
                   value={confirmProjectId}
                   onChange={(e) => { setConfirmProjectId(e.target.value); setSelectedProjectId(''); setModalError(null); }}
                   placeholder="Or enter project ID manually"
-                  className="w-full px-2 py-1.5 border border-border rounded bg-bg text-text text-sm"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div className="mb-4">
-                <label className="block text-xs text-secondary mb-1">Execution Mode</label>
-                <div className="flex flex-col gap-1">
-                  <label className="flex items-center gap-2">
+                <label className="block text-xs font-medium text-gray-500 mb-1">Execution Mode</label>
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
                       name="executionMode"
                       value="full"
                       checked={executionMode === 'full'}
                       onChange={(e) => setExecutionMode(e.target.value as 'full' | 'quick')}
+                      className="accent-blue-600"
                     />
-                    <span>Full Validation (Recommended)</span>
+                    <span className="text-gray-700">Full Validation (Recommended)</span>
                   </label>
-                  <label className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
                       name="executionMode"
                       value="quick"
                       checked={executionMode === 'quick'}
                       onChange={(e) => setExecutionMode(e.target.value as 'full' | 'quick')}
+                      className="accent-blue-600"
                     />
-                    <span>Quick Health Check</span>
+                    <span className="text-gray-700">Quick Health Check</span>
                   </label>
                 </div>
               </div>
 
-              <div className="p-4 bg-bg-secondary rounded-lg border border-border">
-                <p className="text-xs text-secondary mb-1">Current Status:</p>
-                <p className="text-sm">• {breakdown.RUNNING || 0} Running (7d) | {breakdown.COMPLETED || 0} Completed (7d) | {breakdown.FAILED || 0} Failed (7d)</p>
-                <p className="text-xs text-secondary mt-1">Estimated time: ~5 minutes</p>
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-xs font-medium text-gray-500 mb-1">Current Status:</p>
+                <p className="text-sm text-gray-700">• {breakdown.RUNNING || 0} Running (7d) | {breakdown.COMPLETED || 0} Completed (7d) | {breakdown.FAILED || 0} Failed (7d)</p>
+                <p className="text-xs text-gray-500 mt-1">Estimated time: ~5 minutes</p>
               </div>
 
               {modalError && (
-                <div className="p-4 bg-danger/10 rounded-lg border border-danger mt-4">
-                  <p className="text-sm text-danger">{modalError}</p>
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200 mt-4">
+                  <p className="text-sm text-red-600">{modalError}</p>
                 </div>
               )}
             </div>
             <div className="flex gap-2 justify-end mt-6">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                className="px-4 py-1.5 border border-border rounded bg-bg cursor-pointer text-sm"
+                className="px-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm cursor-pointer hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleStartExecution}
                 disabled={running || (!selectedProjectId && !confirmProjectId)}
-                className={`px-4 py-1.5 rounded cursor-pointer text-sm font-medium ${(!selectedProjectId && !confirmProjectId) ? 'bg-bg-secondary text-text-secondary cursor-not-allowed' : 'bg-primary text-white'} opacity-${(!selectedProjectId && !confirmProjectId) ? 50 : 100}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
+                  (!selectedProjectId && !confirmProjectId)
+                    ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-50'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
                 Start Execution
               </button>
@@ -374,162 +371,130 @@ export function MigrationPage() {
         </>
       )}
 
+      {/* ========== HISTORY TAB ========== */}
       {activeTab === 'history' && (
         <>
-          {historyError && <ErrorState message={historyError} />}
+          {historyError && (
+            <div className="mb-6 p-4 bg-red-50 rounded-lg border border-red-200">
+              <p className="text-sm text-red-600">{historyError}</p>
+            </div>
+          )}
           {historyLoading && <LoadingSkeleton rows={5} variant="table" />}
           {!historyLoading && historyItems.length === 0 && (
-            <EmptyState title="No executions yet" description="Start a migration to see execution history." />
+            <EmptyState message="No executions yet. Start a migration to see execution history." />
           )}
           {!historyLoading && historyItems.length > 0 && (
             <div>
+              {/* Donut + Status Cards */}
               {statusBreakdown && (
-                <div className="flex gap-6 mb-6 items-start">
-                  <div className="w-30 h-30 rounded-full flex-shrink-0 relative" style={{ background: donutGradient }}>
-                    <div className="absolute inset-0 rounded-full flex items-center justify-center flex-col" style={{
-                      top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                      width: '80px', height: '80px', background: 'var(--color-background)', borderRadius: '50%'
-                    }}>
-                      <span className="text-h3 font-bold">{statusBreakdown.total}</span>
-                      <span className="text-xs text-secondary">Total</span>
+                <ReportCard title="Status Distribution" subtitle="Last 7 days">
+                  <div className="flex gap-6 items-start">
+                    {/* Donut Chart */}
+                    <div className="relative w-30 h-30 flex-shrink-0 rounded-full" style={{ background: donutGradient }}>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center">
+                        <span className="text-lg font-bold text-gray-900">{statusBreakdown.total}</span>
+                        <span className="text-xs text-gray-500">Total</span>
+                      </div>
+                    </div>
+
+                    {/* Status Breakdown Cards */}
+                    <div className="grid grid-cols-3 gap-4 flex-1">
+                      <KpiBox label="Completed" value={breakdown.COMPLETED || 0} tone="good" />
+                      <KpiBox label="Running" value={breakdown.RUNNING || 0} tone="warning" />
+                      <KpiBox label="Failed" value={breakdown.FAILED || 0} tone="critical" />
                     </div>
                   </div>
 
-                  <div className="flex gap-4 flex-wrap flex-1">
-                    <div className="p-4 bg-surface rounded-lg border border-border min-w-[120px]">
-                      <p className="text-secondary text-xs mb-1">Completed</p>
-                      <p className="text-h3 font-bold text-success">{breakdown.COMPLETED || 0}</p>
-                      <p className="text-xs text-secondary">
-                        {statusBreakdown.total > 0 ? ((breakdown.COMPLETED || 0) / statusBreakdown.total * 100).toFixed(1) : 0}%
-                      </p>
-                    </div>
-                    <div className="p-4 bg-surface rounded-lg border border-border min-w-[120px]">
-                      <p className="text-secondary text-xs mb-1">Running</p>
-                      <p className="text-h3 font-bold text-warning">{breakdown.RUNNING || 0}</p>
-                      <p className="text-xs text-secondary">
-                        {statusBreakdown.total > 0 ? ((breakdown.RUNNING || 0) / statusBreakdown.total * 100).toFixed(1) : 0}%
-                      </p>
-                    </div>
-                    <div className="p-4 bg-surface rounded-lg border border-border min-w-[120px]">
-                      <p className="text-secondary text-xs mb-1">Failed</p>
-                      <p className="text-h3 font-bold text-danger">{breakdown.FAILED || 0}</p>
-                      <p className="text-xs text-secondary">
-                        {statusBreakdown.total > 0 ? ((breakdown.FAILED || 0) / statusBreakdown.total * 100).toFixed(1) : 0}%
-                      </p>
-                    </div>
+                  {statusBreakdown.unscored > 0 && (
+                    <p className="text-sm text-gray-500 mt-3">{statusBreakdown.unscored} batches have no score data</p>
+                  )}
+                </ReportCard>
+              )}
+
+              {/* Filters */}
+              <ReportCard title={`Execution History (${total} total)`}>
+                <div className="flex gap-3 mb-4 items-center">
+                  <div className="flex-1">
+                    <SearchBar value={historySearch} onChange={handleSearchChange} placeholder="Search by batch ID, status, or project..." />
                   </div>
-                </div>
-              )}
-
-              {statusBreakdown && statusBreakdown.unscored > 0 && (
-                <p className="text-sm text-secondary mb-4">{statusBreakdown.unscored} batches have no score data</p>
-              )}
-
-              {!historyLoading && historyItems.length > 0 && (
-                <div className="font-semibold text-h4 px-3 py-2 border-b border-border">
-                  Execution History ({total} total)
-                </div>
-              )}
-
-              <div className="flex gap-4 mb-4 items-center">
-                <div className="flex-1">
-                  <SearchBar value={historySearch} onChange={handleSearchChange} placeholder="Search by batch ID, status, or project..." />
-                </div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => { setStatusFilter(e.target.value); setServerPage(1); }}
-                  className="px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer"
-                >
-                  {STATUS_OPTIONS.map(status => (
-                    <option key={status} value={status}>{status === 'all' ? 'All Statuses' : status}</option>
-                  ))}
-                </select>
-                <select
-                  value={historyPageSize}
-                  onChange={(e) => { setHistoryPageSize(Number(e.target.value)); setServerPage(1); }}
-                  className="px-2 py-1.5 border border-border rounded bg-bg text-text text-sm cursor-pointer"
-                >
-                  {PAGE_SIZE_OPTIONS.map(size => (
-                    <option key={size} value={size}>{size} rows</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="border border-border rounded-lg max-h-[400px] overflow-y-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="border-b border-border bg-bg-secondary">
-                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('batch_id')}>
-                        Batch ID {historySort === 'batch_id' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('batch_status')}>
-                        Status {historySort === 'batch_status' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('total_controls')}>
-                        Controls {historySort === 'total_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('completed_controls')}>
-                        Completed {historySort === 'completed_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('failed_controls')}>
-                        Failed {historySort === 'failed_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
-                      </th>
-                      <th className="px-3 py-2 text-left font-semibold text-xs text-text cursor-pointer" onClick={() => handleHistorySort('batch_start_time')}>
-                        Started {historySort === 'batch_start_time' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historyItems.map((item) => (
-                      <tr key={item.batch_id} className="border-b border-border">
-                        <td className="px-3 py-2 font-mono">{item.batch_id.slice(0, 8)}...</td>
-                        <td className="px-3 py-2">
-                          <StatusBadge status={item.batch_status || 'UNKNOWN'} size="sm" />
-                        </td>
-                        <td className="px-3 py-2">{item.total_controls ?? 0}</td>
-                        <td className="px-3 py-2 text-success">{item.completed_controls ?? 0}</td>
-                        <td className="px-3 py-2" style={{ color: (item.failed_controls ?? 0) > 0 ? 'var(--color-danger)' : 'inherit' }}>
-                          {item.failed_controls ?? 0}
-                        </td>
-                        <td className="px-3 py-2 text-xs text-secondary">
-                          {item.batch_start_time ? new Date(item.batch_start_time).toLocaleString() : '—'}
-                        </td>
-                      </tr>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => { setStatusFilter(e.target.value); setServerPage(1); }}
+                    className="px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {STATUS_OPTIONS.map(status => (
+                      <option key={status} value={status}>{status === 'all' ? 'All Statuses' : status}</option>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </select>
+                  <select
+                    value={historyPageSize}
+                    onChange={(e) => { setHistoryPageSize(Number(e.target.value)); setServerPage(1); }}
+                    className="px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {PAGE_SIZE_OPTIONS.map(size => (
+                      <option key={size} value={size}>{size} rows</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-secondary">
-                  Showing {historyStart}–{historyEnd} of {total} rows
-                </span>
-                {totalPages > 1 && (
-                  <div className="flex gap-2 items-center">
-                    <button
-                      onClick={() => setServerPage(p => Math.max(1, p - 1))}
-                      disabled={serverPage === 1}
-                      className="px-2 py-1.5 border border-border rounded bg-bg text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Previous
-                    </button>
-                    <span className="text-sm text-secondary">
-                      Page {serverPage} of {totalPages}
-                    </span>
-                    <button
-                      onClick={() => setServerPage(p => Math.min(totalPages, p + 1))}
-                      disabled={serverPage === totalPages}
-                      className="px-2 py-1.5 border border-border rounded bg-bg text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
-              </div>
+                {/* Table */}
+                <div className="border border-gray-200 rounded-lg max-h-[400px] overflow-y-auto">
+                  <table className="w-full border-collapse text-sm">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="border-b border-gray-200 bg-gray-50">
+                        <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleHistorySort('batch_id')}>
+                          Batch ID {historySort === 'batch_id' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
+                        </th>
+                        <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleHistorySort('batch_status')}>
+                          Status {historySort === 'batch_status' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
+                        </th>
+                        <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleHistorySort('total_controls')}>
+                          Controls {historySort === 'total_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
+                        </th>
+                        <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleHistorySort('completed_controls')}>
+                          Completed {historySort === 'completed_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
+                        </th>
+                        <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleHistorySort('failed_controls')}>
+                          Failed {historySort === 'failed_controls' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
+                        </th>
+                        <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleHistorySort('batch_start_time')}>
+                          Started {historySort === 'batch_start_time' ? (historySortDir === 'asc' ? '↑' : '↓') : ''}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {historyItems.map((item) => (
+                        <tr key={item.batch_id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                          <td className="px-3 py-2 font-mono text-gray-700">{item.batch_id.slice(0, 8)}...</td>
+                          <td className="px-3 py-2">
+                            <StatusPill status={item.batch_status || 'UNKNOWN'} />
+                          </td>
+                          <td className="px-3 py-2 text-gray-700">{item.total_controls ?? 0}</td>
+                          <td className="px-3 py-2 text-green-600">{item.completed_controls ?? 0}</td>
+                          <td className={`px-3 py-2 ${(item.failed_controls ?? 0) > 0 ? 'text-red-600' : 'text-gray-700'}`}>
+                            {item.failed_controls ?? 0}
+                          </td>
+                          <td className="px-3 py-2 text-xs text-gray-500">
+                            {item.batch_start_time ? new Date(item.batch_start_time).toLocaleString() : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-sm text-gray-500">
+                    Showing {historyItems.length > 0 ? (serverPage - 1) * historyPageSize + 1 : 0}–{Math.min(serverPage * historyPageSize, total)} of {total} rows
+                  </span>
+                  <Pagination page={serverPage} pageSize={historyPageSize} total={total} onPageChange={setServerPage} />
+                </div>
+              </ReportCard>
             </div>
           )}
         </>
       )}
-    </div>
+    </PageContainer>
   );
 }

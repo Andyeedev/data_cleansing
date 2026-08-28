@@ -148,6 +148,47 @@ class ConnectionPool:
                 password=password,
             )
             conn.autocommit = True
+        elif self.db_type == "snowflake":
+            import snowflake.connector
+            from cryptography.hazmat.primitives import serialization
+            from cryptography.hazmat.backends import default_backend
+            # Support SNOWFLAKE_JWT via private_key (PEM contents) or private_key_path
+            pkb = None
+            if getattr(config, "private_key", None):
+                # private_key may be PEM string (encrypted password field)
+                try:
+                    key_str = config.private_key
+                    if "BEGIN PRIVATE KEY" in key_str or "BEGIN RSA" in key_str:
+                        p_key = serialization.load_pem_private_key(key_str.encode(), password=None, backend=default_backend())
+                        pkb = p_key.private_bytes(encoding=serialization.Encoding.DER, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption())
+                    else:
+                        pkb = key_str  # fallback
+                except Exception:
+                    pkb = None
+            elif getattr(config, "private_key_path", None):
+                try:
+                    with open(config.private_key_path, 'rb') as f:
+                        p_key = serialization.load_pem_private_key(f.read(), password=None, backend=default_backend())
+                        pkb = p_key.private_bytes(encoding=serialization.Encoding.DER, format=serialization.PrivateFormat.PKCS8, encryption_algorithm=serialization.NoEncryption())
+                except Exception:
+                    pkb = None
+            conn_kwargs = dict(
+                account=config.account,
+                user=username,
+                warehouse=getattr(config, "warehouse", ""),
+                database=getattr(config, "database", ""),
+                schema=getattr(config, "schema", ""),
+                role=getattr(config, "role", None),
+                authenticator=getattr(config, "authenticator", "snowflake"),
+            )
+            if pkb is not None and getattr(config, "authenticator", "") in ("snowflake_jwt", "SNOWFLAKE_JWT", "JWT"):
+                conn_kwargs["private_key"] = pkb
+                conn_kwargs["authenticator"] = "snowflake_jwt"
+            elif password:
+                conn_kwargs["password"] = password
+            # Filter None
+            conn_kwargs = {k: v for k, v in conn_kwargs.items() if v is not None and v != ""}
+            conn = snowflake.connector.connect(**conn_kwargs)
         else:
             raise ValueError(f"Unsupported db_type for pool: {self.db_type}")
 
@@ -219,4 +260,6 @@ class ConnectionPoolManager:
 
     def _get_pool_key(self, config: Any, db_type: str) -> str:
         """Generate a unique pool key for the configuration."""
+        if db_type == "snowflake":
+            return f"{db_type}:{getattr(config,'account','')}:{getattr(config,'database','')}:{getattr(config,'warehouse','')}:{getattr(config,'schema','')}"
         return f"{db_type}:{config.host}:{config.port}:{config.database}"

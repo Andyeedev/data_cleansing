@@ -1161,10 +1161,24 @@ class ExecutionEngine:
 
         # Auto-generate batch_name if not provided
         if not batch_name:
-            project_row = self.engine_db.fetch_all("""
-                SELECT project_name FROM core.projects WHERE project_id::text = %s
-            """, (self.project_id,))
-            project_name = project_row[0]["project_name"] if project_row else "Batch"
+            try:
+                project_row = self.engine_db.fetch_all("""
+                    SELECT project_name FROM core.projects WHERE project_id::text = %s
+                """, (self.project_id,))
+                if project_row:
+                    row = project_row[0]
+                    if isinstance(row, dict):
+                        project_name = row.get("project_name") or row.get("PROJECT_NAME") or "Batch"
+                    else:
+                        project_name = row[0] if len(row) > 0 else "Batch"
+                else:
+                    project_name = "Batch"
+            except Exception:
+                # Fallback for connectors returning tuples
+                project_row = self.engine_db.execute("""
+                    SELECT project_name FROM core.projects WHERE project_id::text = %s
+                """, (self.project_id,))
+                project_name = project_row[0][0] if project_row else "Batch"
             from datetime import datetime
             batch_name = f"{project_name} - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
 

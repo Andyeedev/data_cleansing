@@ -48,12 +48,7 @@ export function TabBar({ tabs, activeTab, onTabChange }: TabBarProps) {
       ref={tabListRef}
       role="tablist"
       aria-label="Tabs"
-      style={{
-        display: 'flex',
-        gap: 0,
-        borderBottom: 'var(--border-width) solid var(--color-border)',
-        marginBottom: 'var(--space-md)',
-      }}
+      className="flex gap-0 border-b border-gray-200 mb-4"
     >
       {tabs.map((tab, index) => {
         const isActive = tab.key === activeTab;
@@ -68,19 +63,13 @@ export function TabBar({ tabs, activeTab, onTabChange }: TabBarProps) {
             disabled={tab.disabled}
             onClick={() => !tab.disabled && onTabChange(tab.key)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            style={{
-              padding: 'var(--space-sm) var(--space-md)',
-              background: isActive ? 'var(--color-surface)' : 'transparent',
-              border: 'var(--border-width) solid var(--color-border)',
-              borderBottom: isActive ? 'var(--border-width) solid var(--color-surface)' : 'var(--border-width) solid var(--color-border)',
-              borderRadius: 'var(--radius) var(--radius) 0 0',
-              cursor: tab.disabled ? 'not-allowed' : 'pointer',
-              fontSize: 'var(--font-size-base)',
-              fontWeight: isActive ? 600 : 400,
-              color: isActive ? 'var(--color-text)' : 'var(--color-text-secondary)',
-              marginBottom: -1,
-              opacity: tab.disabled ? 0.5 : 1,
-            }}
+            className={
+              `px-3 py-2 text-sm border border-b-0 -mb-px cursor-pointer transition-colors ` +
+              (isActive
+                ? 'bg-white border-gray-200 font-semibold text-gray-900 rounded-t-lg'
+                : 'bg-transparent border-transparent text-gray-500 hover:text-gray-700 rounded-t-lg') +
+              (tab.disabled ? ' opacity-50 cursor-not-allowed' : '')
+            }
           >
             {tab.label}
           </button>

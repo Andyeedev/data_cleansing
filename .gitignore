@@ -45,3 +45,14 @@ package-lock.json
 
 # Temp files
 ~$*
+# Snowflake certification secrets (12_9 pattern — never commit)
+snowflake-certification/keys/
+snowflake-certification/terraform/terraform.tfvars
+*.p8
+*.pub.trimmed
+
+
+# Terraform cache (do not commit providers)
+**/.terraform/
+**/*.tfstate.backup
+

@@ -17,7 +17,10 @@ export function useHealth() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/monitoring/health`);
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE}/monitoring/health`, { headers });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
       }

@@ -39,7 +39,7 @@ class TaskCommentRequest(BaseModel):
     content: str
 
 
-@router.get("/")
+@router.get("")
 def list_tasks(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
@@ -64,7 +64,7 @@ def get_task(task_id: str, current_user=Depends(require_permissions("tasks:read"
     return standardize_response(service.get_task(task_id))
 
 
-@router.post("/")
+@router.post("")
 def create_task(
     payload: TaskCreateRequest,
     current_user=Depends(require_permissions("tasks:create"))

@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDiagnosticSummary, useDiagnosticDetail, useRunDiagnostics, useTestHistory } from '../hooks/useDiagnostics';
 import { SplitPane } from '../components/shared/SplitPane';
 import { TabBar } from '../components/shared/TabBar';
-import { StatusBadge } from '../components/shared/StatusBadge';
-import { MetricCard } from '../components/shared/MetricCard';
 import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
+import { PageContainer } from '../components/PageContainer/PageContainer';
+import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 import type { DiagnosticResult, TestHistoryEntry } from '../types/systems';
 
 const HEALTH_ICONS: Record<string, string> = {
@@ -18,18 +19,19 @@ const HEALTH_ICONS: Record<string, string> = {
 };
 
 const HEALTH_COLORS: Record<string, string> = {
-  pass: 'var(--color-success)',
-  fail: 'var(--color-danger)',
-  warning: 'var(--color-warning)',
+  pass: 'text-green-600',
+  fail: 'text-red-600',
+  warning: 'text-yellow-600',
 };
 
-const STATUS_BADGE: Record<string, string> = {
+const STATUS_PILL: Record<string, string> = {
   healthy: 'ACTIVE',
   unhealthy: 'FAILED',
   unknown: 'WARNING',
 };
 
 export function ConnectionDiagnosticsPage() {
+  const navigate = useNavigate();
   const { userRoles } = useAuth();
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('health');
@@ -64,31 +66,31 @@ export function ConnectionDiagnosticsPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Connection Diagnostics</h1>
+      <PageContainer>
+        <h1 className="text-xl font-bold text-gray-900 mb-4">Connection Diagnostics</h1>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
-      </div>
+      </PageContainer>
     );
   }
 
-  if (summaryLoading) return <div style={{ padding: 'var(--space-lg)' }}><LoadingSkeleton rows={4} variant="card" /></div>;
-  if (summaryError) return <div style={{ padding: 'var(--space-lg)' }}><ErrorState message={summaryError} onRetry={refetchSummary} /></div>;
+  if (summaryLoading) return <PageContainer><LoadingSkeleton rows={4} variant="card" /></PageContainer>;
+  if (summaryError) return <PageContainer><ErrorState message={summaryError} onRetry={refetchSummary} /></PageContainer>;
 
   const systemsList = (
-    <div style={{ padding: 'var(--space-md)', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600, marginBottom: 'var(--space-md)' }}>Systems</div>
+    <div className="p-4 h-full flex flex-col">
+      <div className="text-sm font-semibold text-gray-900 mb-3">Systems</div>
 
       {summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-sm)', marginBottom: 'var(--space-md)' }}>
-          <MetricCard title="Total" value={summary.total_systems} />
-          <MetricCard title="Healthy" value={summary.healthy_systems} color="var(--color-success)" />
-          <MetricCard title="Unhealthy" value={summary.unhealthy_systems} color={summary.unhealthy_systems > 0 ? 'var(--color-danger)' : undefined} />
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <KpiBox label="Total" value={summary.total_systems} tone="neutral" />
+          <KpiBox label="Healthy" value={summary.healthy_systems} tone="success" />
+          <KpiBox label="Unhealthy" value={summary.unhealthy_systems} tone={summary.unhealthy_systems > 0 ? 'error' : 'neutral'} />
         </div>
       )}
 
       <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search systems..." />
 
-      <div style={{ flex: 1, overflow: 'auto', marginTop: 'var(--space-sm)' }}>
+      <div className="flex-1 overflow-auto mt-2">
         <SystemListInner searchQuery={searchQuery} selectedSystemId={selectedSystemId} onSelect={setSelectedSystemId} />
       </div>
     </div>
@@ -109,58 +111,44 @@ export function ConnectionDiagnosticsPage() {
       running={running}
     />
   ) : (
-    <div style={{ padding: 'var(--space-lg)', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+    <div className="p-6 flex items-center justify-center h-full">
       <EmptyState title="Select a system" description="Click a system in the left panel to view diagnostics." />
     </div>
   );
 
   return (
-    <div style={{ padding: 'var(--space-lg)', height: 'calc(100vh - 60px)' }}>
-      <div style={{ marginBottom: 'var(--space-md)' }}>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)', fontSize: 'var(--font-size-sm)', marginBottom: 'var(--space-sm)' }}>
-          <a
-            href="/migration/connections"
-            style={{ color: 'var(--color-primary)', textDecoration: 'none' }}
-            onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-            onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
-          >
+    <PageContainer>
+      <div className="mb-4">
+        <nav className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+          <button onClick={() => navigate('/migration/connections')} className="text-blue-600 hover:underline">
             Connections
-          </a>
-          <span style={{ color: 'var(--color-text-secondary)' }}>/</span>
-          <span style={{ color: 'var(--color-text)' }}>Diagnostics</span>
+          </button>
+          <span>/</span>
+          <span className="text-gray-900">Diagnostics</span>
         </nav>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-            <a
-              href="/migration/connections"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 'var(--space-xs)',
-                color: 'var(--color-text-secondary)',
-                textDecoration: 'none',
-                fontSize: 'var(--font-size-sm)',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/migration/connections')}
+              className="text-sm text-gray-500 hover:text-gray-900"
             >
-              ← Back
-            </a>
+              &larr; Back
+            </button>
             <div>
-              <h1 style={{ fontSize: 'var(--font-size-h1)', margin: 0 }}>Connection Diagnostics</h1>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
+              <h1 className="text-xl font-bold text-gray-900">Connection Diagnostics</h1>
+              <div className="text-sm text-gray-500 mt-0.5">
                 Health checks and connection profiling for all systems
               </div>
             </div>
           </div>
           {summary && (
-            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              Overall Health: <strong>{summary.overall_health_percent}%</strong>
+            <div className="text-sm text-gray-500">
+              Overall Health: <strong className="text-gray-900">{summary.overall_health_percent}%</strong>
             </div>
           )}
         </div>
       </div>
-      <div style={{ height: 'calc(100% - 60px)' }}>
+      <div style={{ height: 'calc(100% - 70px)' }}>
         <SplitPane
           left={systemsList}
           right={detailPanel}
@@ -168,7 +156,7 @@ export function ConnectionDiagnosticsPage() {
           storageKey="diagnostics-split-width"
         />
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -202,7 +190,7 @@ function SystemListInner({ searchQuery, selectedSystemId, onSelect }: {
   if (filtered.length === 0) return <EmptyState title="No systems found" description="No systems match your search." />;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
+    <div className="flex flex-col gap-1">
       {filtered.map((sys) => {
         const isSelected = sys.system_id === selectedSystemId;
         return (
@@ -214,28 +202,25 @@ function SystemListInner({ searchQuery, selectedSystemId, onSelect }: {
             aria-pressed={isSelected}
             aria-label={`${sys.system_name}, ${sys.database_type}, ${sys.system_role}, status ${sys.overall_status}`}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(isSelected ? null : sys.system_id); } }}
-            style={{
-              padding: 'var(--space-sm) var(--space-md)',
-              borderRadius: 'var(--radius)',
-              border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-              background: isSelected ? 'var(--color-primary-bg, rgba(59,130,246,0.05))' : 'transparent',
-              cursor: 'pointer',
-              transition: 'border-color 0.15s, background 0.15s',
-            }}
+            className={`p-2.5 rounded-md cursor-pointer transition-colors ${
+              isSelected
+                ? 'border border-blue-500 bg-blue-50'
+                : 'border border-gray-200 hover:bg-gray-50'
+            }`}
           >
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)' }}>
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <div>
-                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-sm)' }}>{sys.system_name}</div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                <div className="font-medium text-sm text-gray-900">{sys.system_name}</div>
+                <div className="text-xs text-gray-500">
                   {sys.database_type} · {sys.system_role}
                 </div>
               </div>
-              <StatusBadge status={STATUS_BADGE[sys.overall_status] || 'WARNING'} size="sm" />
+              <StatusPill status={STATUS_PILL[sys.overall_status] || 'WARNING'} />
             </div>
             {sys.health_checks.length > 0 && (
-              <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-xs)' }}>
+              <div className="flex gap-2 mt-1 text-xs">
                 {sys.health_checks.slice(0, 3).map((c, i) => (
-                  <span key={i} style={{ color: HEALTH_COLORS[c.status] }}>{HEALTH_ICONS[c.status]} {c.name}</span>
+                  <span key={i} className={HEALTH_COLORS[c.status]}>{HEALTH_ICONS[c.status]} {c.name}</span>
                 ))}
               </div>
             )}
@@ -267,48 +252,30 @@ function SystemDetailPanel({ systemId, detail, detailLoading, detailError, histo
   ];
 
   return (
-    <div style={{ padding: 'var(--space-md)', height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="p-4 h-full flex flex-col">
       {detailLoading && <LoadingSkeleton rows={3} variant="card" />}
       {detailError && <ErrorState message={detailError} />}
       {!detailLoading && !detailError && detail && (
         <>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)' }}>
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-3">
             <div>
-              <div style={{ fontSize: 'var(--font-size-h3)', fontWeight: 600 }}>{detail.system_name}</div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+              <div className="text-sm font-semibold text-gray-900">{detail.system_name}</div>
+              <div className="text-xs text-gray-500">
                 {detail.database_type} · {detail.system_role} ·{' '}
-                <StatusBadge status={STATUS_BADGE[detail.overall_status] || 'WARNING'} size="sm" />
+                <StatusPill status={STATUS_PILL[detail.overall_status] || 'WARNING'} />
               </div>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-sm)' }}>
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={onRunDiagnostic}
                 disabled={running}
-                style={{
-                  padding: 'var(--space-sm) var(--space-md)',
-                  background: 'var(--color-primary)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius)',
-                  cursor: running ? 'not-allowed' : 'pointer',
-                  fontSize: 'var(--font-size-sm)',
-                  fontWeight: 500,
-                  opacity: running ? 0.6 : 1,
-                }}
+                className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {running ? 'Running...' : 'Run Diagnostics'}
               </button>
               <button
                 onClick={onExport}
-                style={{
-                  padding: 'var(--space-sm) var(--space-md)',
-                  background: 'var(--color-bg-secondary)',
-                  color: 'var(--color-text)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer',
-                  fontSize: 'var(--font-size-sm)',
-                }}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50"
               >
                 Export
               </button>
@@ -317,7 +284,7 @@ function SystemDetailPanel({ systemId, detail, detailLoading, detailError, histo
 
           <TabBar tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
 
-          <div style={{ flex: 1, overflow: 'auto' }}>
+          <div className="flex-1 overflow-auto mt-3">
             {activeTab === 'health' && <HealthTab detail={detail} />}
             {activeTab === 'profile' && <ProfileTab detail={detail} />}
             {activeTab === 'history' && <HistoryTab history={history} loading={historyLoading} />}
@@ -338,33 +305,33 @@ function HealthTab({ detail }: { detail: DiagnosticResult }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+    <div className="flex flex-col gap-2">
       {detail.health_checks.map((check, idx) => (
         <div
           key={idx}
           aria-label={`${check.name}: ${check.status}${check.latency_ms ? `, ${check.latency_ms}ms` : ''}`}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 'var(--space-md)',
-            padding: 'var(--space-md)',
-            borderRadius: 'var(--radius)',
-            border: `1px solid ${check.status === 'pass' ? 'var(--color-success)' : 'var(--color-danger)'}`,
-            background: check.status === 'pass' ? 'rgba(var(--color-success-rgb, 34,197,94), 0.05)' : 'rgba(var(--color-danger-rgb, 239,68,68), 0.05)',
-          }}
+          className={`flex items-center gap-3 p-3 rounded-md border ${
+            check.status === 'pass'
+              ? 'border-green-200 bg-green-50'
+              : check.status === 'fail'
+                ? 'border-red-200 bg-red-50'
+                : 'border-yellow-200 bg-yellow-50'
+          }`}
         >
-          <span style={{ fontSize: 'var(--font-size-base)', width: 24, textAlign: 'center' }}>
+          <span className="text-base w-6 text-center flex-shrink-0">
             {HEALTH_ICONS[check.status]}
           </span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 500, fontSize: 'var(--font-size-sm)' }}>{check.name}</div>
-            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{check.message}</div>
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-sm text-gray-900">{check.name}</div>
+            <div className="text-xs text-gray-500">{check.message}</div>
           </div>
           {check.latency_ms !== undefined && (
-            <div style={{ fontFamily: 'monospace', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+            <div className="font-mono text-xs text-gray-500">
               {check.latency_ms}ms
             </div>
           )}
           {check.server_version && (
-            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div className="text-xs text-gray-500 max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
               {check.server_version}
             </div>
           )}
@@ -383,11 +350,11 @@ function ProfileTab({ detail }: { detail: DiagnosticResult }) {
     .reduce((sum, c, _, arr) => sum + (c.latency_ms || 0) / arr.length, 0);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-md)' }}>
-      <MetricCard title="Overall Status" value={detail.overall_status} />
-      <MetricCard title="Checks Passed" value={`${passCount}/${totalCount}`} color={passCount === totalCount ? 'var(--color-success)' : 'var(--color-text)'} />
-      <MetricCard title="Checks Failed" value={String(failCount)} color={failCount > 0 ? 'var(--color-danger)' : 'var(--color-text)'} />
-      <MetricCard title="Avg Latency" value={`${avgLatency.toFixed(1)}ms`} />
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <KpiBox label="Overall Status" value={detail.overall_status} tone="neutral" />
+      <KpiBox label="Checks Passed" value={`${passCount}/${totalCount}`} tone={passCount === totalCount ? 'success' : 'neutral'} />
+      <KpiBox label="Checks Failed" value={String(failCount)} tone={failCount > 0 ? 'error' : 'neutral'} />
+      <KpiBox label="Avg Latency" value={`${avgLatency.toFixed(1)}ms`} tone="info" />
     </div>
   );
 }
@@ -397,31 +364,33 @@ function HistoryTab({ history, loading }: { history: TestHistoryEntry[]; loading
   if (history.length === 0) return <EmptyState title="No test history" description="Run diagnostics to see history." />;
 
   return (
-    <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }} aria-label="Test history">
-        <thead>
-          <tr style={{ borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)' }}>
-            {['Check', 'Status', 'Latency', 'Version', 'Message', 'Time'].map((h) => (
-              <th key={h} style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 600, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {history.map((entry, idx) => (
-            <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
-              <td style={{ padding: 'var(--space-sm) var(--space-md)', fontWeight: 500 }}>{entry.check_name}</td>
-              <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                <StatusBadge status={entry.status === 'pass' ? 'ACTIVE' : 'FAILED'} size="sm" />
-              </td>
-              <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{entry.latency_ms !== null ? `${entry.latency_ms}ms` : '—'}</td>
-              <td style={{ padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-xs)' }}>{entry.server_version || '—'}</td>
-              <td style={{ padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-xs)', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.message}</td>
-              <td style={{ padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-xs)', fontFamily: 'monospace' }}>{entry.checked_at ? new Date(entry.checked_at).toLocaleString() : '—'}</td>
+    <ReportCard title="Test History">
+      <div className="overflow-auto">
+        <table className="w-full text-sm" aria-label="Test history">
+          <thead>
+            <tr className="border-b border-gray-200 bg-gray-50">
+              {['Check', 'Status', 'Latency', 'Version', 'Message', 'Time'].map((h) => (
+                <th key={h} className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {history.map((entry, idx) => (
+              <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="px-3 py-2 font-medium text-gray-900">{entry.check_name}</td>
+                <td className="px-3 py-2">
+                  <StatusPill status={entry.status === 'pass' ? 'ACTIVE' : 'FAILED'} />
+                </td>
+                <td className="px-3 py-2 font-mono text-xs text-gray-600">{entry.latency_ms !== null ? `${entry.latency_ms}ms` : '—'}</td>
+                <td className="px-3 py-2 text-xs text-gray-500">{entry.server_version || '—'}</td>
+                <td className="px-3 py-2 text-xs text-gray-500 max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap">{entry.message}</td>
+                <td className="px-3 py-2 text-xs font-mono text-gray-500">{entry.checked_at ? new Date(entry.checked_at).toLocaleString() : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </ReportCard>
   );
 }
 

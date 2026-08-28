@@ -28,7 +28,7 @@ class PermissionAssignRequest(BaseModel):
     granted: bool = True
 
 
-@router.get("/")
+@router.get("")
 def list_roles(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
@@ -47,7 +47,7 @@ def get_role(role_id: str, current_user=Depends(get_current_user)):
     return standardize_response(service.get_role(role_id))
 
 
-@router.post("/")
+@router.post("")
 def create_role(
     payload: RoleCreateRequest,
     current_user=Depends(get_current_user)

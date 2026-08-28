@@ -61,7 +61,7 @@ export function AppRoutes() {
 
         <Route element={<ProtectedRoute><ErrorBoundary><Shell /></ErrorBoundary></ProtectedRoute>}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<ValidationFilterProvider><DashboardPage /></ValidationFilterProvider>} />
 
           <Route path="/migration" element={<MigrationPage />} />
           <Route path="/migration/overview" element={<MigrationOverviewPage />} />
@@ -130,7 +130,7 @@ export function AppRoutes() {
           <Route path="/about" element={<AboutPage />} />
 
           <Route path="/administration" element={<AdministrationPage />} />
-          <Route path="/administration/users" element={<UsersPage />} />
+          <Route path="/administration/users" element={<ValidationFilterProvider><UsersPage /></ValidationFilterProvider>} />
           <Route path="/administration/users/new" element={<UserDetailPage />} />
           <Route path="/administration/users/:id" element={<UserDetailPage />} />
           <Route path="/administration/roles" element={<RolesPage />} />

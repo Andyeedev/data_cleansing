@@ -23,12 +23,13 @@ export default function CascadeDropdowns({ showTenant = true, showProject = true
   const { projects, loading: projectsLoading, error: projectsError } = useMigrationProjects(undefined, tenantId || undefined);
 
   const [batches, setBatches] = useState<BatchItem[]>([]);
-  const [batchesLoading, setBatchesLoading] = useState(true);
+  const [batchesLoading, setBatchesLoading] = useState(false);
 
   const fetchBatches = useCallback(async () => {
+    if (!showBatch) return;
     setBatchesLoading(true);
     try {
-      const params: Record<string, string | number> = { page: 1, page_size: 100 };
+      const params: Record<string, string | number> = { page: 1, page_size: 50 };
       if (tenantId) params.tenant_id = tenantId;
       const result = await apiGet<{ items: BatchItem[]; total: number }>('/execution/history', params);
       const items = result?.items || [];
@@ -44,7 +45,7 @@ export default function CascadeDropdowns({ showTenant = true, showProject = true
     } finally {
       setBatchesLoading(false);
     }
-  }, [tenantId]);
+  }, [tenantId, showBatch]);
 
   useEffect(() => { fetchBatches(); }, [fetchBatches]);
 

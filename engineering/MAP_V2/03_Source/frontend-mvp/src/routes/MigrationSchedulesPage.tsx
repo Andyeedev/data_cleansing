@@ -16,12 +16,11 @@ import {
   CalendarEvent,
 } from '../hooks/useMigration';
 import { PageContainer } from '../components/PageContainer/PageContainer';
-import { PageHeader } from '../components/PageHeader/PageHeader';
 import { LoadingOverlay } from '../components/LoadingOverlay/LoadingOverlay';
 import { ErrorState } from '../components/shared/ErrorState';
 import { EmptyState } from '../components/shared/EmptyState';
-import { StatusBadge } from '../components/shared/StatusBadge';
 import { TenantFilter } from '../components/shared/TenantFilter';
+import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 import { apiGet } from '../utils/apiClient';
 
 interface ProjectOption {
@@ -150,8 +149,15 @@ export function MigrationSchedulesPage() {
   if (schedulesError) {
     return (
       <PageContainer>
-        <PageHeader title="Migration Schedules" description="Manage automated migration schedules and view execution history" />
-        <ErrorState message={schedulesError} onRetry={refreshAll} />
+        <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Migration Schedules</h1>
+            <p className="text-sm text-gray-500 mt-1">Manage automated migration schedules and view execution history</p>
+          </div>
+        </div>
+        <ReportCard title="Error">
+          <ErrorState message={schedulesError} onRetry={refreshAll} />
+        </ReportCard>
       </PageContainer>
     );
   }
@@ -161,137 +167,128 @@ export function MigrationSchedulesPage() {
 
   return (
     <PageContainer>
-      <PageHeader
-        title="Migration Schedules"
-        description="Manage automated migration schedules and view execution history"
-        actions={
-          <div className="flex gap-3 items-center">
-            {isSuperAdmin && (
-              <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
-            )}
-            <button className="px-3 py-1.5 bg-primary text-white rounded cursor-pointer text-sm font-medium hover:bg-primary/90" onClick={() => setShowCreateModal(true)}>
-              + New Schedule
-            </button>
-          </div>
-        }
-      />
+      {/* ========== PAGE HEADER ========== */}
+      <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Migration Schedules</h1>
+          <p className="text-sm text-gray-500 mt-1">{schedules.length} schedules configured</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          >
+            + New Schedule
+          </button>
+        </div>
+      </div>
 
+      {/* Toast */}
       {toast && (
-        <div className="fixed top-5 right-5 px-4 py-3 text-white rounded font-medium text-sm shadow-lg z-50"
-          style={{ background: toast.type === 'success' ? 'var(--color-success)' : 'var(--color-danger)' }}
+        <div
+          className={`fixed top-5 right-5 px-4 py-3 text-white rounded font-medium text-sm shadow-lg z-50 ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
         >
           {toast.message}
         </div>
       )}
 
+      {/* Stats */}
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-bg-secondary rounded-lg border border-border p-6 text-center">
-            <div className="text-xs text-secondary mb-1 uppercase tracking-wider">Schedules</div>
-            <div className="text-h3 font-bold text-text">{stats.total_schedules}</div>
-            <div className="text-xs text-secondary mt-1">{stats.enabled_schedules} enabled</div>
-          </div>
-          <div className="bg-bg-secondary rounded-lg border border-border p-6 text-center">
-            <div className="text-xs text-secondary mb-1 uppercase tracking-wider">Running</div>
-            <div className="text-h3 font-bold" style={{ color: runningScheduleId || stats.running_schedules > 0 ? 'var(--color-warning)' : 'var(--color-text)' }}>
-              {runningScheduleId ? 1 : stats.running_schedules}
-            </div>
-          </div>
-          <div className="bg-bg-secondary rounded-lg border border-border p-6 text-center">
-            <div className="text-xs text-secondary mb-1 uppercase tracking-wider">Total Runs</div>
-            <div className="text-h3 font-bold text-text">{stats.total_runs}</div>
-          </div>
-          <div className="bg-bg-secondary rounded-lg border border-border p-6 text-center">
-            <div className="text-xs text-secondary mb-1 uppercase tracking-wider">Pass Rate</div>
-            <div className="text-h3 font-bold" style={{ color: stats.pass_rate >= 80 ? 'var(--color-success)' : stats.pass_rate >= 50 ? 'var(--color-warning)' : 'var(--color-danger)' }}>
-              {stats.pass_rate}%
-            </div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <KpiBox label="Schedules" value={stats.total_schedules} tone="info" />
+          <KpiBox label="Running" value={runningScheduleId ? 1 : stats.running_schedules} tone={runningScheduleId || stats.running_schedules > 0 ? 'warning' : 'neutral'} />
+          <KpiBox label="Total Runs" value={stats.total_runs} tone="info" />
+          <KpiBox label="Pass Rate" value={`${stats.pass_rate}%`} tone={stats.pass_rate >= 80 ? 'success' : stats.pass_rate >= 50 ? 'warning' : 'error'} />
         </div>
       )}
 
       <div className="flex gap-6 items-start">
+        {/* Schedule Table */}
         <div className="flex-1 min-w-0">
-          {schedules.length === 0 ? (
-            <EmptyState
-              title="No schedules configured"
-              description="Create a schedule to automate your migration tasks."
-            />
-          ) : (
-            <div className="bg-bg-secondary rounded-lg border border-border overflow-hidden">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-bg border-b border-border">
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border"></th>
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Name</th>
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Schedule</th>
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Next Run</th>
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Last Run</th>
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Runs</th>
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Status</th>
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Enabled</th>
-                    <th className="px-4 py-3 text-left font-semibold text-secondary text-sm border-b border-border">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {schedules.map((schedule) => (
-                    <ScheduleRow
-                      key={schedule.schedule_id}
-                      schedule={schedule}
-                      isExpanded={expandedSchedule === schedule.schedule_id}
-                      isRunning={runningScheduleId === schedule.schedule_id}
-                      onToggleExpand={() => setExpandedSchedule(
-                        expandedSchedule === schedule.schedule_id ? null : schedule.schedule_id
-                      )}
-                      onRun={() => handleRunSchedule(schedule.schedule_id)}
-                      onToggle={() => handleToggleSchedule(schedule.schedule_id)}
-                      onEdit={() => setEditingSchedule(schedule)}
-                      onDelete={() => handleDeleteSchedule(schedule.schedule_id, schedule.name)}
-                    />
-                  ))}
-                </tbody>
-              </table>
-
-              {expandedSchedule && (
-                <div className="border-t border-border p-4 bg-bg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-sm font-semibold text-text">Run History</span>
-                    {logsLoading && <span className="text-xs text-secondary">Loading...</span>}
-                  </div>
-                  {expandedLogs.length === 0 && !logsLoading ? (
-                    <div className="text-center text-secondary text-sm py-4">No execution logs found.</div>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      {expandedLogs.map((log) => (
-                        <div key={log.execution_id} className="flex items-center justify-between p-3 bg-bg-secondary rounded border border-border">
-                          <div className="flex items-center gap-3">
-                            <StatusBadge status={log.status} size="sm" />
-                            <span className="text-xs text-secondary">{new Date(log.started_at).toLocaleString()}</span>
-                            {log.duration_seconds != null && (
-                              <span className="text-xs text-secondary font-mono">{log.duration_seconds}s</span>
-                            )}
-                            <span className="text-xs text-secondary italic">{log.triggered_by}</span>
-                          </div>
-                          <button
-                            className={isScheduleEnabled
-                              ? 'px-2 py-1 bg-transparent text-primary border border-primary rounded cursor-pointer text-xs hover:bg-primary/10'
-                              : 'px-2 py-1 bg-transparent text-text-muted border border-border rounded cursor-not-allowed text-xs'
-                            }
-                            onClick={() => setShowLogModal(log)}
-                            disabled={!isScheduleEnabled}
-                          >
-                            View Output
-                          </button>
-                        </div>
+          <ReportCard title="Schedules" subtitle={`${schedules.length} configured`}>
+            {schedules.length === 0 ? (
+              <EmptyState message="No schedules configured. Create a schedule to automate your migration tasks." />
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr className="border-b border-gray-200">
+                        <th className="w-8"></th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Schedule</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Next Run</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Run</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Runs</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Enabled</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {schedules.map((schedule) => (
+                        <ScheduleRow
+                          key={schedule.schedule_id}
+                          schedule={schedule}
+                          isExpanded={expandedSchedule === schedule.schedule_id}
+                          isRunning={runningScheduleId === schedule.schedule_id}
+                          onToggleExpand={() => setExpandedSchedule(
+                            expandedSchedule === schedule.schedule_id ? null : schedule.schedule_id
+                          )}
+                          onRun={() => handleRunSchedule(schedule.schedule_id)}
+                          onToggle={() => handleToggleSchedule(schedule.schedule_id)}
+                          onEdit={() => setEditingSchedule(schedule)}
+                          onDelete={() => handleDeleteSchedule(schedule.schedule_id, schedule.name)}
+                        />
                       ))}
-                    </div>
-                  )}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </div>
-          )}
+
+                {expandedSchedule && (
+                  <div className="border-t border-gray-200 p-4 bg-white">
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-sm font-semibold text-gray-900">Run History</span>
+                      {logsLoading && <span className="text-xs text-gray-400">Loading...</span>}
+                    </div>
+                    {expandedLogs.length === 0 && !logsLoading ? (
+                      <div className="text-center text-gray-400 text-sm py-4">No execution logs found.</div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {expandedLogs.map((log) => (
+                          <div key={log.execution_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <div className="flex items-center gap-3">
+                              <StatusPill status={log.status} />
+                              <span className="text-xs text-gray-500">{new Date(log.started_at).toLocaleString()}</span>
+                              {log.duration_seconds != null && (
+                                <span className="text-xs text-gray-500 font-mono">{log.duration_seconds}s</span>
+                              )}
+                              <span className="text-xs text-gray-400 italic">{log.triggered_by}</span>
+                            </div>
+                            <button
+                              className={isScheduleEnabled
+                                ? 'px-2 py-1 bg-transparent text-blue-600 border border-blue-200 rounded text-xs font-medium hover:bg-blue-50 transition-colors'
+                                : 'px-2 py-1 bg-transparent text-gray-400 border border-gray-200 rounded text-xs cursor-not-allowed'}
+                              onClick={() => setShowLogModal(log)}
+                              disabled={!isScheduleEnabled}
+                            >
+                              View Output
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </ReportCard>
         </div>
 
+        {/* Calendar Events Panel */}
         <div className="w-72 flex-shrink-0">
           <CalendarEventsPanel
             events={events}
@@ -352,59 +349,67 @@ function ScheduleRow({
   const isDisabled = !schedule.enabled;
 
   return (
-    <tr className={`border-b border-border ${isExpanded ? 'bg-bg' : ''} ${isDisabled ? 'opacity-60' : ''}`}>
-      <td className="px-4 py-3">
-        <button className="bg-none border-none cursor-pointer text-xs text-secondary p-1" onClick={onToggleExpand} disabled={isDisabled}>
-          {isExpanded ? '▼' : '▶'}
+    <tr className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${isExpanded ? 'bg-blue-50/50' : ''} ${isDisabled ? 'opacity-50' : ''}`}>
+      <td className="px-3 py-2.5">
+        <button className="bg-transparent border-none cursor-pointer text-xs text-gray-400 p-1 hover:text-gray-600" onClick={onToggleExpand} disabled={isDisabled}>
+          {isExpanded ? '\u25BC' : '\u25B6'}
         </button>
       </td>
-      <td className="px-4 py-3">
-        <div className="font-medium text-text">{schedule.name}</div>
-        <div className="text-xs text-secondary mt-1">{schedule.project_name}</div>
+      <td className="px-3 py-2.5">
+        <div className="font-medium text-gray-900">{schedule.name}</div>
+        <div className="text-xs text-gray-500 mt-0.5">{schedule.project_name}</div>
       </td>
-      <td className="px-4 py-3">
-        <code className="px-2 py-0.5 bg-bg rounded text-xs font-mono">{schedule.cron_expression}</code>
+      <td className="px-3 py-2.5">
+        <code className="px-2 py-0.5 bg-gray-100 rounded text-xs font-mono text-gray-700">{schedule.cron_expression}</code>
       </td>
-      <td className="px-4 py-3">
-        {schedule.next_run ? new Date(schedule.next_run).toLocaleString() : '-'}
+      <td className="px-3 py-2.5 text-gray-700">
+        {schedule.next_run ? new Date(schedule.next_run).toLocaleString() : '\u2014'}
       </td>
-      <td className="px-4 py-3">
-        {schedule.last_run ? new Date(schedule.last_run).toLocaleString() : '-'}
+      <td className="px-3 py-2.5 text-gray-700">
+        {schedule.last_run ? new Date(schedule.last_run).toLocaleString() : '\u2014'}
       </td>
-      <td className="px-4 py-3">
-        <span className="font-semibold text-text">{schedule.execution_count}</span>
+      <td className="px-3 py-2.5 font-semibold text-gray-900">{schedule.execution_count}</td>
+      <td className="px-3 py-2.5">
+        <StatusPill status={schedule.status} />
       </td>
-      <td className="px-4 py-3">
-        <StatusBadge status={schedule.status} size="sm" />
-      </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-2.5">
         <button
-          className={schedule.enabled
-            ? 'px-2 py-1 bg-success text-white rounded cursor-pointer text-xs font-bold min-w-[40px]'
-            : 'px-2 py-1 bg-gray-300 text-gray-500 rounded cursor-pointer text-xs font-bold min-w-[40px]'}
+          className={`px-2 py-1 rounded text-xs font-bold min-w-[40px] transition-colors ${
+            schedule.enabled
+              ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer'
+              : 'bg-gray-200 text-gray-500 cursor-pointer'
+          }`}
           onClick={onToggle}
         >
           {schedule.enabled ? 'ON' : 'OFF'}
         </button>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-2.5">
         <div className="flex gap-1">
           <button
-            className={`px-2 py-1 bg-success text-white rounded cursor-pointer text-xs font-medium ${isDisabled || isRunning ? 'opacity-40 cursor-not-allowed' : ''}`}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+              isDisabled || isRunning
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700 cursor-pointer'
+            }`}
             onClick={onRun}
             disabled={isDisabled || isRunning}
           >
             {isRunning ? 'Running...' : 'Run'}
           </button>
           <button
-            className={`px-2 py-1 bg-transparent text-primary border border-primary rounded cursor-pointer text-xs ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+            className={`px-2 py-1 bg-transparent text-blue-600 border border-blue-200 rounded text-xs font-medium transition-colors ${
+              isDisabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-50 cursor-pointer'
+            }`}
             onClick={onEdit}
             disabled={isDisabled}
           >
             Edit
           </button>
           <button
-            className={`px-2 py-1 bg-transparent text-danger border border-danger rounded cursor-pointer text-xs ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+            className={`px-2 py-1 bg-transparent text-red-600 border border-red-200 rounded text-xs font-medium transition-colors ${
+              isDisabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-red-50 cursor-pointer'
+            }`}
             onClick={onDelete}
             disabled={isDisabled}
           >
@@ -429,28 +434,35 @@ function CalendarEventsPanel({
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   return (
-    <div className="bg-bg-secondary rounded-lg border border-border p-6 min-w-[280px]">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-base font-semibold text-text m-0">Calendar Events</h3>
-        <button className="px-2 py-1 bg-bg text-secondary border border-border rounded cursor-pointer text-xs hover:bg-bg-tertiary" onClick={onRefresh}>Refresh</button>
+    <ReportCard title="Calendar Events">
+      <div className="flex justify-end mb-3">
+        <button
+          className="px-2 py-1 text-xs font-medium rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+          onClick={onRefresh}
+        >
+          Refresh
+        </button>
       </div>
       {loading ? (
-        <div className="text-xs text-secondary">Loading events...</div>
+        <div className="text-xs text-gray-400">Loading events...</div>
       ) : events.length === 0 ? (
-        <div className="text-center text-secondary text-sm py-4">No calendar events linked to schedules.</div>
+        <div className="text-center text-gray-400 text-sm py-4">No calendar events linked to schedules.</div>
       ) : (
         <div className="flex flex-col gap-2">
           {events.map((event) => (
-            <div key={event.event_id} className="flex gap-2 p-2 bg-bg rounded border border-border items-start">
-              <div className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold bg-primary text-white flex-shrink-0">
+            <div key={event.event_id} className="flex gap-2 p-2 bg-white rounded border border-gray-100 items-start">
+              <div className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold bg-blue-600 text-white flex-shrink-0">
                 {event.type === 'milestone' ? 'M' : event.type === 'deadline' ? 'D' : 'T'}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-text truncate">{event.title}</div>
-                <div className="text-xs text-secondary">{new Date(event.start_time).toLocaleString()}</div>
-                <div className="text-xs text-secondary font-mono">{event.cron_expression}</div>
+                <div className="text-sm font-medium text-gray-900 truncate">{event.title}</div>
+                <div className="text-xs text-gray-500">{new Date(event.start_time).toLocaleString()}</div>
+                <div className="text-xs text-gray-400 font-mono">{event.cron_expression}</div>
               </div>
-              <button className="px-1.5 py-0.5 bg-transparent text-primary border border-primary rounded cursor-pointer text-xs flex-shrink-0 hover:bg-primary/10" onClick={() => setEditingEvent(event)}>
+              <button
+                className="px-1.5 py-0.5 bg-transparent text-blue-600 border border-blue-200 rounded text-xs flex-shrink-0 hover:bg-blue-50 transition-colors"
+                onClick={() => setEditingEvent(event)}
+              >
                 Edit
               </button>
             </div>
@@ -468,7 +480,7 @@ function CalendarEventsPanel({
           }}
         />
       )}
-    </div>
+    </ReportCard>
   );
 }
 
@@ -500,31 +512,31 @@ function CalendarEventEditModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-bg-secondary rounded-lg border border-border w-[90%] max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-start p-4 border-b border-border">
-          <h3 className="text-lg font-semibold text-text m-0">Edit Calendar Event</h3>
-          <button className="bg-none border-none text-xl cursor-pointer text-secondary p-1" onClick={onClose}>×</button>
+      <div className="bg-white rounded-xl shadow-2xl w-[90%] max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-start p-4 border-b border-gray-200">
+          <h3 className="text-base font-semibold text-gray-900 m-0">Edit Calendar Event</h3>
+          <button className="bg-transparent border-none text-lg cursor-pointer text-gray-400 p-1 hover:text-gray-600" onClick={onClose}>&times;</button>
         </div>
         <div className="p-4">
           <div className="mb-4">
-            <label className="block text-sm font-medium text-text mb-1">Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input
-              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md text-sm"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-text mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
-              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border min-h-[60px]"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md text-sm min-h-[60px]"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
           <div className="flex justify-end gap-2 mt-6">
-            <button className="px-3 py-2 bg-bg text-text border border-border rounded cursor-pointer text-sm hover:bg-bg-tertiary" onClick={onClose}>Cancel</button>
-            <button className="px-3 py-2 bg-primary text-white rounded cursor-pointer text-sm font-medium hover:bg-primary/90" onClick={handleSave} disabled={saving}>
+            <button className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md cursor-pointer text-sm hover:bg-gray-50 transition-colors" onClick={onClose}>Cancel</button>
+            <button className="px-3 py-2 bg-blue-600 text-white rounded-md cursor-pointer text-sm font-medium hover:bg-blue-700 transition-colors" onClick={handleSave} disabled={saving}>
               {saving ? 'Saving...' : 'Save'}
             </button>
           </div>
@@ -591,18 +603,18 @@ function ScheduleFormModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-bg-secondary rounded-lg border border-border w-[90%] max-w-xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-4 border-b border-border">
-          <h3 className="text-lg font-semibold text-text m-0">{title}</h3>
-          <button className="bg-none border-none text-xl cursor-pointer text-secondary p-1" onClick={onClose}>×</button>
+      <div className="bg-white rounded-xl shadow-2xl w-[90%] max-w-xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+          <h3 className="text-base font-semibold text-gray-900 m-0">{title}</h3>
+          <button className="bg-transparent border-none text-lg cursor-pointer text-gray-400 p-1 hover:text-gray-600" onClick={onClose}>&times;</button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 flex-1 overflow-auto">
-          {error && <div className="mb-4 p-3 bg-danger/10 text-danger rounded text-sm">{error}</div>}
+          {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm border border-red-200">{error}</div>}
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-text mb-1">Schedule Name *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Schedule Name *</label>
             <input
-              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md text-sm"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Daily Validation Run"
@@ -610,9 +622,9 @@ function ScheduleFormModal({
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-text mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
-              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border min-h-[60px]"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md text-sm min-h-[60px]"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional description"
@@ -621,9 +633,9 @@ function ScheduleFormModal({
 
           {!schedule && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-text mb-1">Project *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Project *</label>
               <select
-                className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
+                className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md text-sm"
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
               >
@@ -639,15 +651,15 @@ function ScheduleFormModal({
 
           {schedule && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-text mb-1">Project</label>
-              <div className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border">{schedule.project_name}</div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
+              <div className="w-full px-3 py-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-md text-sm">{schedule.project_name}</div>
             </div>
           )}
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-text mb-1">Schedule (Cron) *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Schedule (Cron) *</label>
             <input
-              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md text-sm"
               value={cronExpression}
               onChange={(e) => setCronExpression(e.target.value)}
               placeholder="0 2 * * *"
@@ -657,7 +669,11 @@ function ScheduleFormModal({
                 <button
                   key={preset.value}
                   type="button"
-                  className={`px-2 py-1 border border-border rounded text-xs cursor-pointer ${cronExpression === preset.value ? 'bg-primary text-white' : 'bg-bg text-text'}`}
+                  className={`px-2 py-1 border rounded text-xs cursor-pointer transition-colors ${
+                    cronExpression === preset.value
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
                   onClick={() => setCronExpression(preset.value)}
                 >
                   {preset.label}
@@ -667,9 +683,9 @@ function ScheduleFormModal({
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-text mb-1">Timezone</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
             <select
-              className="w-full px-3 py-2 bg-bg text-text border border-border rounded text-sm box-border"
+              className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md text-sm"
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
             >
@@ -682,8 +698,8 @@ function ScheduleFormModal({
           </div>
 
           <div className="flex justify-end gap-2 mt-6">
-            <button type="button" className="px-3 py-2 bg-bg text-text border border-border rounded cursor-pointer text-sm hover:bg-bg-tertiary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="px-3 py-2 bg-primary text-white rounded cursor-pointer text-sm font-medium hover:bg-primary/90" disabled={submitting}>
+            <button type="button" className="px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md cursor-pointer text-sm hover:bg-gray-50 transition-colors" onClick={onClose}>Cancel</button>
+            <button type="submit" className="px-3 py-2 bg-blue-600 text-white rounded-md cursor-pointer text-sm font-medium hover:bg-blue-700 transition-colors" disabled={submitting}>
               {submitting ? 'Saving...' : schedule ? 'Save Changes' : 'Create Schedule'}
             </button>
           </div>
@@ -697,12 +713,12 @@ function ScheduleFormModal({
 function TerminalModal({ log, onClose }: { log: ScheduleExecutionLog; onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-bg-secondary rounded-lg border border-border w-[90%] max-w-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-start p-4 border-b border-border">
+      <div className="bg-white rounded-xl shadow-2xl w-[90%] max-w-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-start p-4 border-b border-gray-200">
           <div>
-            <h3 className="text-lg font-semibold text-text m-0">Execution Log</h3>
-            <div className="flex items-center gap-2 text-xs text-secondary mt-1">
-              <StatusBadge status={log.status} size="sm" />
+            <h3 className="text-base font-semibold text-gray-900 m-0">Execution Log</h3>
+            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+              <StatusPill status={log.status} />
               {log.duration_seconds != null && (
                 <span className="ml-2">Duration: {log.duration_seconds}s</span>
               )}
@@ -712,16 +728,16 @@ function TerminalModal({ log, onClose }: { log: ScheduleExecutionLog; onClose: (
               <span className="ml-2">Triggered: {log.triggered_by}</span>
             </div>
           </div>
-          <button className="bg-none border-none text-xl cursor-pointer text-secondary p-1" onClick={onClose}>×</button>
+          <button className="bg-transparent border-none text-lg cursor-pointer text-gray-400 p-1 hover:text-gray-600" onClick={onClose}>&times;</button>
         </div>
         <div className="flex-1 overflow-auto p-4 max-h-[60vh]">
-          <pre className="m-0 p-4 bg-[#1e1e1e] text-[#d4d4d4] rounded text-xs font-mono leading-[1.6] whitespace-pre-wrap break-all" style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}>
+          <pre className="m-0 p-4 bg-[#1e1e1e] text-[#d4d4d4] rounded-lg text-xs font-mono leading-relaxed whitespace-pre-wrap break-all" style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}>
             {log.terminal_output || 'No output captured.'}
           </pre>
           {log.error_message && (
             <div className="mt-4">
-              <div className="text-sm font-semibold text-danger mb-1">Error Output:</div>
-              <pre className="m-0 p-4 bg-[#2d1b1b] text-[#f5c6c6] rounded text-xs font-mono leading-[1.6] whitespace-pre-wrap break-all" style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}>
+              <div className="text-sm font-semibold text-red-600 mb-1">Error Output:</div>
+              <pre className="m-0 p-4 bg-[#2d1b1b] text-[#f5c6c6] rounded-lg text-xs font-mono leading-relaxed whitespace-pre-wrap break-all" style={{ fontFamily: 'Consolas, Monaco, "Courier New", monospace' }}>
                 {log.error_message}
               </pre>
             </div>

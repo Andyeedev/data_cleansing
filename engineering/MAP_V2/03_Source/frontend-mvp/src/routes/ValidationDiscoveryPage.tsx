@@ -1,22 +1,22 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRuleDiscovery } from '../hooks/useRuleDiscovery';
 import { useValidationFilter } from '../context/ValidationFilterContext';
 import { SplitPane } from '../components/shared/SplitPane';
-import { PageHeader } from '../components/PageHeader/PageHeader';
-import { MetricCard } from '../components/shared/MetricCard';
-import { StatusBadge } from '../components/shared/StatusBadge';
-import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
 import { Modal } from '../components/shared/Modal';
 import CascadeDropdowns from '../components/shared/CascadeDropdowns';
+import { PageContainer } from '../components/PageContainer/PageContainer';
+import { KpiBox, ReportCard, StatusPill, EmptyState } from '../components/reports/reportWidgets';
 import type { DiscoveredRule, DiscoveryMapping, DiscoveryTreeNode } from '../types/rule_discovery';
 
 type SortField = 'rule_id' | 'rule_name' | 'control_id' | 'dataset_name';
 type SortDir = 'asc' | 'desc';
 type MappingSortField = 'dataset_name' | 'rule_id' | 'rule_name' | 'sql_template';
+
+const AUTO_REFRESH_MS = 15000;
 
 export function ValidationDiscoveryPage() {
   const { userRoles } = useAuth();
@@ -36,12 +36,28 @@ export function ValidationDiscoveryPage() {
   const [mappingSortDir, setMappingSortDir] = useState<SortDir>('asc');
   const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
   const [selectedDatasetName, setSelectedDatasetName] = useState<string | null>(null);
+  const [isLive, setIsLive] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pageSize = 10;
 
   const {
     rules, mappings, status, loading, error, refetch, triggerDiscovery,
     controlTreeData, datasetTreeData,
   } = useRuleDiscovery(projectId || null);
+
+  const refetchAll = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (isLive && projectId) {
+      intervalRef.current = setInterval(refetchAll, AUTO_REFRESH_MS);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isLive, refetchAll, projectId]);
 
   const filteredTableData = useMemo(() => {
     if (!rules?.rules) return [];
@@ -162,87 +178,125 @@ export function ValidationDiscoveryPage() {
 
   const collapseAllDataset = useCallback(() => { setExpandedDatasetNodes({}); }, []);
 
-  const thStyle: React.CSSProperties = { textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', cursor: 'pointer', userSelect: 'none', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)' };
-
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Rule Discovery</h1>
+      <PageContainer>
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900">Rule Discovery</h1>
+        </div>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
-      </div>
+      </PageContainer>
     );
   }
 
-  const sortIndicator = (field: string, currentField: string, dir: string) => currentField === field ? (dir === 'asc' ? ' ↑' : ' ↓') : '';
+  const sortIndicator = (field: string, currentField: string, dir: string) => currentField === field ? (dir === 'asc' ? ' \u2191' : ' \u2193') : '';
 
   return (
-    <div style={{ padding: 'var(--space-lg)' }}>
-      <PageHeader
-        title="Rule Discovery"
-        description="Auto-discover validation rules based on dataset mappings for a project"
-        actions={
-          <button onClick={refetch} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
-            Refresh
-          </button>
-        }
-      />
-
-      <div style={{ marginBottom: 'var(--space-lg)' }}>
-        <CascadeDropdowns showBatch={false} />
-        <div style={{ marginTop: 'var(--space-sm)', display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-          <button onClick={handleTrigger} disabled={loading || !projectId} style={{ padding: 'var(--space-sm) var(--space-lg)', background: loading || !projectId ? 'var(--color-bg-secondary)' : 'rgba(34, 197, 94, 0.1)', color: loading || !projectId ? 'var(--color-text-secondary)' : 'var(--color-success)', border: `1px solid ${loading || !projectId ? 'var(--color-border)' : 'rgba(34, 197, 94, 0.3)'}`, borderRadius: 'var(--radius)', cursor: loading || !projectId ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-base)', fontWeight: 500, whiteSpace: 'nowrap' }}>
+    <PageContainer>
+      {/* ========== PAGE HEADER ========== */}
+      <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Rule Discovery</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {status ? `${status.rules_discovered} rules from ${status.total_mappings} mappings` : 'Auto-discover validation rules from dataset mappings'}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <CascadeDropdowns showBatch={false} />
+          <button
+            onClick={handleTrigger}
+            disabled={loading || !projectId}
+            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+              loading || !projectId
+                ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
+                : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+            }`}
+          >
             {loading ? 'Discovering...' : 'Trigger Discovery'}
+          </button>
+          <button
+            onClick={() => setIsLive(!isLive)}
+            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+              isLive
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-gray-50 text-gray-700 border-gray-300'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-white' : 'bg-gray-400'}`} />
+            {isLive ? 'Live' : 'Paused'}
+          </button>
+          <button
+            onClick={refetchAll}
+            className="px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Refresh
           </button>
         </div>
       </div>
 
-      {!projectId && <EmptyState title="No Project Selected" description="Enter a project ID above to view discovered rules and mappings." />}
+      {!projectId && <EmptyState message="No Project Selected. Select a project above to view discovered rules and mappings." />}
       {error && <ErrorState message={error} onRetry={refetch} />}
       {loading && <LoadingSkeleton rows={4} variant="card" />}
 
       {projectId && !loading && !error && status && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-            <MetricCard title="Total Mappings" value={status.total_mappings} />
-            <MetricCard title="Rules Discovered" value={status.rules_discovered} />
-            <MetricCard title="Last Discovery" value={status.last_discovery_at ? new Date(status.last_discovery_at).toLocaleString() : 'Never'} />
+
+          {/* KPI Cards */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <KpiBox label="Total Mappings" value={status.total_mappings} tone="info" />
+            <KpiBox label="Rules Discovered" value={status.rules_discovered} tone="info" />
+            <KpiBox label="Last Discovery" value={status.last_discovery_at ? new Date(status.last_discovery_at).toLocaleString() : 'Never'} tone="neutral" />
           </div>
 
-          <div style={{ marginBottom: 'var(--space-md)', display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 200 }}>
+          {/* Filters row */}
+          <div className="mb-6 flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
               <SearchBar value={searchQuery} onChange={(v) => { setSearchQuery(v); setCurrentPage(1); }} placeholder="Search rules, datasets..." />
             </div>
-            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as 'all' | 'enabled' | 'disabled'); setCurrentPage(1); }} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-sm)', background: 'var(--color-background)', color: 'var(--color-text)' }}>
+            <select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value as 'all' | 'enabled' | 'disabled'); setCurrentPage(1); }}
+              className="px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors appearance-auto"
+            >
               <option value="all">All Status</option>
               <option value="enabled">Enabled</option>
               <option value="disabled">Disabled</option>
             </select>
             {selectedControlId && (
-              <button onClick={() => { setSelectedControlId(null); setSelectedRule(null); }} style={{ padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--font-size-xs)', border: '1px solid var(--color-primary)', borderRadius: 'var(--radius)', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--color-primary)', cursor: 'pointer' }}>
-                Clear: {selectedControlId} ✕
+              <button
+                onClick={() => { setSelectedControlId(null); setSelectedRule(null); }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+              >
+                {selectedControlId}
+                <span className="text-blue-400">&times;</span>
               </button>
             )}
             {selectedDatasetName && (
-              <button onClick={() => { setSelectedDatasetName(null); setSelectedMapping(null); }} style={{ padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--font-size-xs)', border: '1px solid var(--color-primary)', borderRadius: 'var(--radius)', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--color-primary)', cursor: 'pointer' }}>
-                Clear: {selectedDatasetName} ✕
+              <button
+                onClick={() => { setSelectedDatasetName(null); setSelectedMapping(null); }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+              >
+                {selectedDatasetName}
+                <span className="text-blue-400">&times;</span>
               </button>
             )}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+          <div className="flex flex-col gap-6">
+            {/* Controls + Rules SplitPane */}
             <SplitPane
               left={
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
-                    <h4 style={{ fontSize: 'var(--font-size-h4)', margin: 0 }}>Controls ({controlTreeData.length})</h4>
-                    <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
-                      <button onClick={expandAllControl} style={{ padding: '2px 8px', fontSize: 'var(--font-size-xs)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', color: 'var(--color-text)', cursor: 'pointer' }}>Expand All</button>
-                      <button onClick={collapseAllControl} style={{ padding: '2px 8px', fontSize: 'var(--font-size-xs)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', color: 'var(--color-text)', cursor: 'pointer' }}>Collapse All</button>
+                <div className="flex flex-col">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-sm font-semibold text-gray-900">Controls ({controlTreeData.length})</h4>
+                    <div className="flex gap-1">
+                      <button onClick={expandAllControl} className="px-2 py-0.5 text-[10px] font-medium rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition-colors">Expand All</button>
+                      <button onClick={collapseAllControl} className="px-2 py-0.5 text-[10px] font-medium rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition-colors">Collapse All</button>
                     </div>
                   </div>
-                  <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', padding: 'var(--space-md)', maxHeight: '300px', overflowY: 'auto' }}>
+                  <div className="border border-gray-200 rounded-lg p-3 max-h-[300px] overflow-y-auto">
                     {controlTreeData.length === 0 ? (
-                      <EmptyState title="No controls" description="No controls discovered." />
+                      <EmptyState message="No controls discovered." />
                     ) : (
                       controlTreeData.map((node) => (
                         <DiscoveryTreeNodeComponent key={node.id} node={node} expandedNodes={expandedControlNodes} onToggle={toggleControlNode} onSelect={handleControlNodeSelect} onControlClick={handleControlTreeClick} onDetailClick={(rule) => { setDetailModalItem(rule); setDetailModalType('rule'); }} selectedNodeId={selectedRule?.rule_id || null} level={0} />
@@ -253,42 +307,50 @@ export function ValidationDiscoveryPage() {
               }
               right={
                 <div>
-                  <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-sm)' }}>Discovered Rules ({filteredTableData.length})</h4>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Discovered Rules ({filteredTableData.length})</h4>
                   {paginatedData.length === 0 ? (
-                    <EmptyState title="No rules" description="No rules match your filters." />
+                    <EmptyState message="No rules match your filters." />
                   ) : (
                     <>
-                      <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                          <thead>
-                            <tr>
-                              <th style={thStyle} onClick={() => handleSort('rule_id')}>Rule ID{sortIndicator('rule_id', sortField, sortDir)}</th>
-                              <th style={thStyle} onClick={() => handleSort('rule_name')}>Name{sortIndicator('rule_name', sortField, sortDir)}</th>
-                              <th style={thStyle} onClick={() => handleSort('control_id')}>Control{sortIndicator('control_id', sortField, sortDir)}</th>
-                              <th style={thStyle} onClick={() => handleSort('dataset_name')}>Dataset{sortIndicator('dataset_name', sortField, sortDir)}</th>
-                              <th style={thStyle}>Status</th>
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50">
+                            <tr className="border-b border-gray-200">
+                              <th onClick={() => handleSort('rule_id')} className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none">Rule ID{sortIndicator('rule_id', sortField, sortDir)}</th>
+                              <th onClick={() => handleSort('rule_name')} className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none">Name{sortIndicator('rule_name', sortField, sortDir)}</th>
+                              <th onClick={() => handleSort('control_id')} className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none">Control{sortIndicator('control_id', sortField, sortDir)}</th>
+                              <th onClick={() => handleSort('dataset_name')} className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none">Dataset{sortIndicator('dataset_name', sortField, sortDir)}</th>
+                              <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                             </tr>
                           </thead>
                           <tbody>
                             {paginatedData.map((row, idx) => (
-                              <tr key={`${row.rule_id}-${idx}`} style={{ borderBottom: '1px solid var(--color-border)', background: selectedRule?.rule_id === row.rule_id ? 'var(--color-bg-secondary)' : 'transparent', cursor: 'pointer' }} onClick={() => setSelectedRule(row)}>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{row.rule_id}</td>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{row.rule_name}</td>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{row.control_id}</td>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{row.dataset_name || '—'}</td>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)' }}><StatusBadge status={row.enabled_flag ? 'Enabled' : 'Disabled'} size="sm" variant={row.enabled_flag ? 'success' : 'warning'} /></td>
+                              <tr
+                                key={`${row.rule_id}-${idx}`}
+                                className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${selectedRule?.rule_id === row.rule_id ? 'bg-blue-50' : ''}`}
+                                onClick={() => setSelectedRule(row)}
+                              >
+                                <td className="px-3 py-2.5 font-mono text-gray-900">{row.rule_id}</td>
+                                <td className="px-3 py-2.5 text-gray-700">{row.rule_name}</td>
+                                <td className="px-3 py-2.5 font-mono text-gray-900">{row.control_id}</td>
+                                <td className="px-3 py-2.5 font-mono text-gray-900">{row.dataset_name || '\u2014'}</td>
+                                <td className="px-3 py-2.5">
+                                  <StatusPill status={row.enabled_flag ? 'ENABLED' : 'DISABLED'} />
+                                </td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
                       {totalPages > 1 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)' }}>
-                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredTableData.length)} of {filteredTableData.length}</span>
-                          <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: currentPage === 1 ? 0.5 : 1 }}>Prev</button>
-                            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{currentPage}/{totalPages}</span>
-                            <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: currentPage === totalPages ? 0.5 : 1 }}>Next</button>
+                        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 mt-2">
+                          <span className="text-[11px] text-gray-500">
+                            {(currentPage - 1) * pageSize + 1}&ndash;{Math.min(currentPage * pageSize, filteredTableData.length)} of {filteredTableData.length}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-2.5 py-1 text-[11px] rounded border border-gray-300 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors">Prev</button>
+                            <span className="text-[11px] text-gray-500">{currentPage}/{totalPages}</span>
+                            <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-2.5 py-1 text-[11px] rounded border border-gray-300 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors">Next</button>
                           </div>
                         </div>
                       )}
@@ -298,19 +360,20 @@ export function ValidationDiscoveryPage() {
               }
             />
 
+            {/* Datasets + Mappings SplitPane */}
             <SplitPane
               left={
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
-                    <h4 style={{ fontSize: 'var(--font-size-h4)', margin: 0 }}>Datasets ({datasetTreeData.length})</h4>
-                    <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
-                      <button onClick={expandAllDataset} style={{ padding: '2px 8px', fontSize: 'var(--font-size-xs)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', color: 'var(--color-text)', cursor: 'pointer' }}>Expand All</button>
-                      <button onClick={collapseAllDataset} style={{ padding: '2px 8px', fontSize: 'var(--font-size-xs)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', color: 'var(--color-text)', cursor: 'pointer' }}>Collapse All</button>
+                <div className="flex flex-col">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="text-sm font-semibold text-gray-900">Datasets ({datasetTreeData.length})</h4>
+                    <div className="flex gap-1">
+                      <button onClick={expandAllDataset} className="px-2 py-0.5 text-[10px] font-medium rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition-colors">Expand All</button>
+                      <button onClick={collapseAllDataset} className="px-2 py-0.5 text-[10px] font-medium rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 transition-colors">Collapse All</button>
                     </div>
                   </div>
-                  <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', padding: 'var(--space-md)', maxHeight: '300px', overflowY: 'auto' }}>
+                  <div className="border border-gray-200 rounded-lg p-3 max-h-[300px] overflow-y-auto">
                     {datasetTreeData.length === 0 ? (
-                      <EmptyState title="No datasets" description="No dataset mappings found." />
+                      <EmptyState message="No dataset mappings found." />
                     ) : (
                       datasetTreeData.map((node) => (
                         <MappingTreeNodeComponent key={node.id} node={node} expandedNodes={expandedDatasetNodes} onToggle={toggleDatasetNode} onSelect={handleDatasetNodeSelect} onControlClick={handleDatasetTreeClick} onDetailClick={(mapping) => { setDetailModalItem(mapping); setDetailModalType('mapping'); }} selectedNodeId={selectedMapping?.mapping_id || null} level={0} />
@@ -321,40 +384,46 @@ export function ValidationDiscoveryPage() {
               }
               right={
                 <div>
-                  <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-sm)' }}>Rule-to-Dataset Mappings ({filteredMappingsData.length})</h4>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Rule-to-Dataset Mappings ({filteredMappingsData.length})</h4>
                   {paginatedMappings.length === 0 ? (
-                    <EmptyState title="No mappings" description="No mappings match your filters." />
+                    <EmptyState message="No mappings match your filters." />
                   ) : (
                     <>
-                      <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                          <thead>
-                            <tr>
-                              <th style={thStyle} onClick={() => handleMappingSort('dataset_name')}>Dataset{sortIndicator('dataset_name', mappingSortField, mappingSortDir)}</th>
-                              <th style={thStyle} onClick={() => handleMappingSort('rule_id')}>Rule ID{sortIndicator('rule_id', mappingSortField, mappingSortDir)}</th>
-                              <th style={thStyle} onClick={() => handleMappingSort('rule_name')}>Rule Name{sortIndicator('rule_name', mappingSortField, mappingSortDir)}</th>
-                              <th style={thStyle} onClick={() => handleMappingSort('sql_template')}>SQL Template{sortIndicator('sql_template', mappingSortField, mappingSortDir)}</th>
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50">
+                            <tr className="border-b border-gray-200">
+                              <th onClick={() => handleMappingSort('dataset_name')} className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none">Dataset{sortIndicator('dataset_name', mappingSortField, mappingSortDir)}</th>
+                              <th onClick={() => handleMappingSort('rule_id')} className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none">Rule ID{sortIndicator('rule_id', mappingSortField, mappingSortDir)}</th>
+                              <th onClick={() => handleMappingSort('rule_name')} className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none">Rule Name{sortIndicator('rule_name', mappingSortField, mappingSortDir)}</th>
+                              <th onClick={() => handleMappingSort('sql_template')} className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none">SQL Template{sortIndicator('sql_template', mappingSortField, mappingSortDir)}</th>
                             </tr>
                           </thead>
                           <tbody>
                             {paginatedMappings.map((m, idx) => (
-                              <tr key={`${m.mapping_id}-${idx}`} style={{ borderBottom: '1px solid var(--color-border)', background: selectedMapping?.mapping_id === m.mapping_id ? 'var(--color-bg-secondary)' : 'transparent', cursor: 'pointer' }} onClick={() => setSelectedMapping(m)}>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{m.dataset_name || '—'}</td>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{m.rule_id}</td>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{m.rule_name || '—'}</td>
-                                <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace', fontSize: 'var(--font-size-xs)' }}>{m.sql_template || '—'}</td>
+                              <tr
+                                key={`${m.mapping_id}-${idx}`}
+                                className={`border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${selectedMapping?.mapping_id === m.mapping_id ? 'bg-blue-50' : ''}`}
+                                onClick={() => setSelectedMapping(m)}
+                              >
+                                <td className="px-3 py-2.5 font-mono text-gray-900">{m.dataset_name || '\u2014'}</td>
+                                <td className="px-3 py-2.5 font-mono text-gray-900">{m.rule_id}</td>
+                                <td className="px-3 py-2.5 text-gray-700">{m.rule_name || '\u2014'}</td>
+                                <td className="px-3 py-2.5 font-mono text-[11px] text-gray-500">{m.sql_template || '\u2014'}</td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
                       {mappingTotalPages > 1 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)' }}>
-                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredMappingsData.length)} of {filteredMappingsData.length}</span>
-                          <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: currentPage === 1 ? 0.5 : 1 }}>Prev</button>
-                            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{currentPage}/{mappingTotalPages}</span>
-                            <button onClick={() => setCurrentPage((p) => Math.min(mappingTotalPages, p + 1))} disabled={currentPage === mappingTotalPages} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: currentPage === mappingTotalPages ? 0.5 : 1 }}>Next</button>
+                        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 mt-2">
+                          <span className="text-[11px] text-gray-500">
+                            {(currentPage - 1) * pageSize + 1}&ndash;{Math.min(currentPage * pageSize, filteredMappingsData.length)} of {filteredMappingsData.length}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-2.5 py-1 text-[11px] rounded border border-gray-300 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors">Prev</button>
+                            <span className="text-[11px] text-gray-500">{currentPage}/{mappingTotalPages}</span>
+                            <button onClick={() => setCurrentPage((p) => Math.min(mappingTotalPages, p + 1))} disabled={currentPage === mappingTotalPages} className="px-2.5 py-1 text-[11px] rounded border border-gray-300 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors">Next</button>
                           </div>
                         </div>
                       )}
@@ -369,20 +438,20 @@ export function ValidationDiscoveryPage() {
 
       <Modal open={detailModalItem !== null} onClose={() => setDetailModalItem(null)} title={detailModalType === 'rule' ? 'Rule Details' : 'Mapping Details'}>
         {detailModalItem && detailModalType === 'rule' && 'rule_id' in detailModalItem && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+          <div className="flex flex-col gap-2">
             <DetailRow label="Rule ID" value={(detailModalItem as DiscoveredRule).rule_id} mono />
             <DetailRow label="Rule Name" value={(detailModalItem as DiscoveredRule).rule_name} />
             <DetailRow label="Control" value={(detailModalItem as DiscoveredRule).control_id} mono />
             <DetailRow label="Dataset" value={(detailModalItem as DiscoveredRule).dataset_name} mono />
             <DetailRow label="Mapping ID" value={(detailModalItem as DiscoveredRule).mapping_id} mono />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Status</span>
-              <StatusBadge status={(detailModalItem as DiscoveredRule).enabled_flag ? 'Enabled' : 'Disabled'} size="sm" variant={(detailModalItem as DiscoveredRule).enabled_flag ? 'success' : 'warning'} />
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Status</span>
+              <StatusPill status={(detailModalItem as DiscoveredRule).enabled_flag ? 'ENABLED' : 'DISABLED'} />
             </div>
           </div>
         )}
         {detailModalItem && detailModalType === 'mapping' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
+          <div className="flex flex-col gap-2">
             <DetailRow label="Mapping ID" value={(detailModalItem as DiscoveryMapping).mapping_id} mono />
             <DetailRow label="Dataset" value={(detailModalItem as DiscoveryMapping).dataset_name} mono />
             <DetailRow label="Rule ID" value={(detailModalItem as DiscoveryMapping).rule_id} mono />
@@ -391,15 +460,15 @@ export function ValidationDiscoveryPage() {
           </div>
         )}
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 
 function DetailRow({ label, value, mono }: { label: string; value: string | null | undefined; mono?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-      <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
-      <span style={{ fontFamily: mono ? 'monospace' : undefined }}>{value || '—'}</span>
+    <div className="flex justify-between text-sm">
+      <span className="text-gray-500">{label}</span>
+      <span className={mono ? 'font-mono' : ''}>{value || '\u2014'}</span>
     </div>
   );
 }
@@ -412,8 +481,8 @@ function DiscoveryTreeNodeComponent({ node, expandedNodes, onToggle, onSelect, o
   const isExpanded = expandedNodes[node.id] || false;
   const hasChildren = node.children && node.children.length > 0;
   const isSelected = selectedNodeId === node.id;
-  const statusIcon = node.status === 'active' ? '✓' : node.status === 'inactive' ? '✗' : '⚠';
-  const statusColor = node.status === 'active' ? 'var(--color-success)' : node.status === 'inactive' ? 'var(--color-danger)' : 'var(--color-warning)';
+  const statusIcon = node.status === 'active' ? '\u2713' : node.status === 'inactive' ? '\u2717' : '\u26A0';
+  const statusColor = node.status === 'active' ? 'text-green-600' : node.status === 'inactive' ? 'text-red-500' : 'text-yellow-500';
 
   const handleClick = () => {
     if (hasChildren) {
@@ -426,14 +495,23 @@ function DiscoveryTreeNodeComponent({ node, expandedNodes, onToggle, onSelect, o
 
   return (
     <div role={hasChildren ? 'treeitem' : undefined} aria-expanded={hasChildren ? isExpanded : undefined} tabIndex={0}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)', padding: 'var(--space-xs) 0', paddingLeft: `${level * 16}px`, cursor: 'pointer', fontSize: 'var(--font-size-sm)', background: isSelected ? 'var(--color-bg-secondary)' : 'transparent', borderRadius: 'var(--radius)' }}
-        onClick={handleClick}>
-        {hasChildren ? <span style={{ width: 16, textAlign: 'center', fontSize: 'var(--font-size-xs)' }}>{isExpanded ? '▼' : '▶'}</span> : <span style={{ width: 16 }} />}
-        <span style={{ color: statusColor, fontWeight: 600 }}>{statusIcon}</span>
-        <span style={{ fontWeight: node.type === 'control' ? 600 : 400 }}>{node.name}</span>
-        {node.type === 'control' && <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>({node.children?.length || 0} rules)</span>}
+      <div
+        className={`flex items-center gap-1 py-0.5 px-1 cursor-pointer text-sm rounded ${isSelected ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
+        style={{ paddingLeft: `${level * 16 + 4}px` }}
+        onClick={handleClick}
+      >
+        {hasChildren ? <span className="w-4 text-center text-[10px] text-gray-500">{isExpanded ? '\u25BC' : '\u25B6'}</span> : <span className="w-4" />}
+        <span className={`${statusColor} font-semibold`}>{statusIcon}</span>
+        <span className={node.type === 'control' ? 'font-semibold text-gray-900' : 'text-gray-700'}>{node.name}</span>
+        {node.type === 'control' && <span className="text-[10px] text-gray-400">({node.children?.length || 0} rules)</span>}
         {node.type === 'rule' && node.rule && (
-          <button onClick={(e) => { e.stopPropagation(); onDetailClick(node.rule!); }} aria-label={`Details for ${node.name}`} style={{ marginLeft: 'auto', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', color: 'var(--color-text-secondary)', fontSize: '10px', padding: '1px 6px', fontWeight: 600 }} onMouseEnter={(e) => { (e.target as HTMLElement).style.borderColor = 'var(--color-primary)'; (e.target as HTMLElement).style.color = 'var(--color-primary)'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.borderColor = 'var(--color-border)'; (e.target as HTMLElement).style.color = 'var(--color-text-secondary)'; }}>i</button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDetailClick(node.rule!); }}
+            aria-label={`Details for ${node.name}`}
+            className="ml-auto text-gray-400 border border-gray-200 rounded px-1.5 py-0 text-[10px] font-semibold hover:border-blue-400 hover:text-blue-600 transition-colors bg-transparent"
+          >
+            i
+          </button>
         )}
       </div>
       {isExpanded && hasChildren && (
@@ -451,8 +529,8 @@ function MappingTreeNodeComponent({ node, expandedNodes, onToggle, onSelect, onC
   const isExpanded = expandedNodes[node.id] || false;
   const hasChildren = node.children && node.children.length > 0;
   const isSelected = selectedNodeId === node.id;
-  const statusIcon = node.status === 'active' ? '✓' : node.status === 'inactive' ? '✗' : '⚠';
-  const statusColor = node.status === 'active' ? 'var(--color-success)' : node.status === 'inactive' ? 'var(--color-danger)' : 'var(--color-warning)';
+  const statusIcon = node.status === 'active' ? '\u2713' : node.status === 'inactive' ? '\u2717' : '\u26A0';
+  const statusColor = node.status === 'active' ? 'text-green-600' : node.status === 'inactive' ? 'text-red-500' : 'text-yellow-500';
 
   const handleClick = () => {
     if (hasChildren) {
@@ -465,14 +543,23 @@ function MappingTreeNodeComponent({ node, expandedNodes, onToggle, onSelect, onC
 
   return (
     <div role={hasChildren ? 'treeitem' : undefined} aria-expanded={hasChildren ? isExpanded : undefined} tabIndex={0}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)', padding: 'var(--space-xs) 0', paddingLeft: `${level * 16}px`, cursor: 'pointer', fontSize: 'var(--font-size-sm)', background: isSelected ? 'var(--color-bg-secondary)' : 'transparent', borderRadius: 'var(--radius)' }}
-        onClick={handleClick}>
-        {hasChildren ? <span style={{ width: 16, textAlign: 'center', fontSize: 'var(--font-size-xs)' }}>{isExpanded ? '▼' : '▶'}</span> : <span style={{ width: 16 }} />}
-        <span style={{ color: statusColor, fontWeight: 600 }}>{statusIcon}</span>
-        <span style={{ fontWeight: node.type === 'dataset' ? 600 : 400 }}>{node.name}</span>
-        {node.type === 'dataset' && <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>({node.children?.length || 0} rules)</span>}
+      <div
+        className={`flex items-center gap-1 py-0.5 px-1 cursor-pointer text-sm rounded ${isSelected ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
+        style={{ paddingLeft: `${level * 16 + 4}px` }}
+        onClick={handleClick}
+      >
+        {hasChildren ? <span className="w-4 text-center text-[10px] text-gray-500">{isExpanded ? '\u25BC' : '\u25B6'}</span> : <span className="w-4" />}
+        <span className={`${statusColor} font-semibold`}>{statusIcon}</span>
+        <span className={node.type === 'dataset' ? 'font-semibold text-gray-900' : 'text-gray-700'}>{node.name}</span>
+        {node.type === 'dataset' && <span className="text-[10px] text-gray-400">({node.children?.length || 0} rules)</span>}
         {node.type === 'rule' && node.mapping && (
-          <button onClick={(e) => { e.stopPropagation(); onDetailClick(node.mapping!); }} aria-label={`Details for ${node.name}`} style={{ marginLeft: 'auto', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', color: 'var(--color-text-secondary)', fontSize: '10px', padding: '1px 6px', fontWeight: 600 }} onMouseEnter={(e) => { (e.target as HTMLElement).style.borderColor = 'var(--color-primary)'; (e.target as HTMLElement).style.color = 'var(--color-primary)'; }} onMouseLeave={(e) => { (e.target as HTMLElement).style.borderColor = 'var(--color-border)'; (e.target as HTMLElement).style.color = 'var(--color-text-secondary)'; }}>i</button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDetailClick(node.mapping!); }}
+            aria-label={`Details for ${node.name}`}
+            className="ml-auto text-gray-400 border border-gray-200 rounded px-1.5 py-0 text-[10px] font-semibold hover:border-blue-400 hover:text-blue-600 transition-colors bg-transparent"
+          >
+            i
+          </button>
         )}
       </div>
       {isExpanded && hasChildren && (

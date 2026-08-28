@@ -577,6 +577,6 @@ MOCK_NAV_ITEMS: list[NavItem] = [
 ]
 
 
-@router.get("/")
+@router.get("")
 def get_navigation_items():
     return {"success": True, "data": MOCK_NAV_ITEMS}

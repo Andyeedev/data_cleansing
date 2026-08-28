@@ -43,13 +43,26 @@ def _dict_to_config(db_type, config):
         )
     elif db_type == "snowflake":
         from app.config import SnowflakeConfig
+        # host holds Snowflake account identifier (IVVRAYS-FS67669) in MAP system_registry
+        account = cfg.get("account") or cfg.get("host") or ""
+        auth = cfg.get("authenticator", "snowflake")
+        pwd = cfg.get("password")
+        private_key = None
+        # JWT private_key stored encrypted as password (PEM) — detect via BEGIN marker
+        if auth and auth.upper() in ("SNOWFLAKE_JWT","JWT") and pwd and "BEGIN" in pwd:
+            private_key = pwd
+            pwd = None
         return SnowflakeConfig(
-            account=cfg.get("account", ""),
+            account=account,
             warehouse=cfg.get("warehouse", ""),
             database=cfg.get("database", ""),
             schema=cfg.get("schema", ""),
+            role=cfg.get("role"),
+            authenticator=auth,
             username=cfg.get("username"),
-            password=cfg.get("password"),
+            password=pwd,
+            private_key=private_key,
+            private_key_path=cfg.get("private_key_path"),
         )
     elif db_type == "oracle":
         from app.config import OracleConfig

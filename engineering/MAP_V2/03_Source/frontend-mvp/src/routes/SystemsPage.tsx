@@ -1,8 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSystemList, useTestConnection, useCreateSystem, useUpdateSystem, useDeleteSystem } from '../hooks/useSystems';
 import { useDiagnosticSummary } from '../hooks/useDiagnostics';
-import { ErrorState, LoadingSkeleton, EmptyState, StatusBadge, Pagination, ConfirmDialog, MetricCard } from '../components/shared';
+import { ErrorState, LoadingSkeleton, EmptyState, Pagination, ConfirmDialog } from '../components/shared';
 import { TenantFilter } from '../components/shared/TenantFilter';
+import { PageContainer } from '../components/PageContainer/PageContainer';
+import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 import { SystemFormModal, type SystemFormData } from '../components/SystemFormModal';
 import { useAuth } from '../context/AuthContext';
 import type { System, TestConnectionResponse, SystemDetail } from '../types/systems';
@@ -10,7 +13,25 @@ import { apiGet } from '../utils/apiClient';
 
 const PAGE_SIZE = 10;
 
+const DB_TYPE_ICONS: Record<string, string> = {
+  POSTGRES: '\u{1F418}',
+  AZURE_POSTGRES: '\u2601\uFE0F',
+  AWS_RDS_POSTGRES: '\u2601\uFE0F',
+  SQLSERVER: '\u{1F3E2}',
+  AZURE_SQL: '\u{1F3E2}\u2601\uFE0F',
+  MYSQL: '\u{1F42C}',
+  ORACLE: '\u{1F536}',
+  SNOWFLAKE: '\u2744\uFE0F',
+  BIGQUERY: '\u{1F4CA}',
+  DATABRICKS: '\u{1F525}',
+};
+
+function getDbTypeIcon(dbType: string) {
+  return DB_TYPE_ICONS[dbType.toUpperCase()] ?? '\u{1F5C4}\uFE0F';
+}
+
 export function SystemsPage() {
+  const navigate = useNavigate();
   const { userRoles, tenantId: userTenantId } = useAuth();
   const [selectedTenant, setSelectedTenant] = useState<string>(userTenantId || '');
   const [roleFilter, setRoleFilter] = useState<string>('');
@@ -18,17 +39,30 @@ export function SystemsPage() {
   const [page, setPage] = useState(1);
   const [testResults, setTestResults] = useState<Record<string, TestConnectionResponse | null>>({});
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const [live, setLive] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingSystem, setEditingSystem] = useState<SystemDetail | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<System | null>(null);
 
   const { data: systems, loading, error, refetch } = useSystemList(selectedTenant || undefined);
-  const { data: diagSummary } = useDiagnosticSummary();
+  const { data: diagSummary, refetch: refetchDiag } = useDiagnosticSummary();
   const { testConnection, loading: testingId } = useTestConnection();
   const { create, loading: creating } = useCreateSystem();
   const { update, loading: updating } = useUpdateSystem();
   const { remove, loading: deleting } = useDeleteSystem();
+
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (live) {
+      intervalRef.current = setInterval(() => {
+        refetch();
+        refetchDiag();
+      }, 15000);
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [live, refetch, refetchDiag]);
 
   const filtered = useMemo(() => {
     if (!systems) return [];
@@ -85,62 +119,59 @@ export function SystemsPage() {
     }
   };
 
-  const getDbTypeIcon = (dbType: string) => {
-    switch (dbType.toUpperCase()) {
-      case 'POSTGRES': return '\u{1F418}';
-      case 'AZURE_POSTGRES':
-      case 'AWS_RDS_POSTGRES': return '\u2601\uFE0F';
-      case 'SQLSERVER': return '\u{1F3E2}';
-      case 'AZURE_SQL': return '\u{1F3E2}\u2601\uFE0F';
-      case 'MYSQL': return '\u{1F42C}';
-      case 'ORACLE': return '\u{1F536}';
-      case 'SNOWFLAKE': return '\u2744\uFE0F';
-      case 'BIGQUERY': return '\u{1F4CA}';
-      case 'DATABRICKS': return '\u{1F525}';
-      default: return '\u{1F5C4}\uFE0F';
-    }
-  };
-
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Connection Management</h1>
+      <PageContainer>
+        <h1 className="text-xl font-bold text-gray-900 mb-4">Connection Management</h1>
         <ErrorState title="Access Denied" message="You do not have permission to view this page. Required role: admin" />
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div style={{ padding: 'var(--space-lg)' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', margin: 0 }}>Connection Management</h1>
-        <button
-          onClick={() => { setEditingSystem(null); setFormOpen(true); }}
-          style={{
-            padding: 'var(--space-sm) var(--space-md)',
-            background: 'var(--color-primary)',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: 'var(--radius)',
-            cursor: 'pointer',
-            fontWeight: 500,
-            fontSize: 'var(--font-size-sm)',
-          }}
-        >
-          + New System
-        </button>
+    <PageContainer>
+      <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-bold text-gray-900">Connection Management</h1>
+          {systems && (
+            <span className="text-sm text-gray-500">{systems.length} systems</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setLive(!live)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+              live ? 'bg-green-50 text-green-700 border-green-300' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${live ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+            {live ? 'Live' : 'Paused'}
+          </button>
+          <button
+            onClick={() => refetch()}
+            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50"
+          >
+            Refresh
+          </button>
+          <button
+            onClick={() => { setEditingSystem(null); setFormOpen(true); }}
+            className="px-4 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+          >
+            + New System
+          </button>
+        </div>
       </div>
 
       {diagSummary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-          <MetricCard title="Total Systems" value={diagSummary.total_systems} />
-          <MetricCard title="Healthy" value={diagSummary.healthy_systems} color="var(--color-success)" />
-          <MetricCard title="Unhealthy" value={diagSummary.unhealthy_systems} color={diagSummary.unhealthy_systems > 0 ? 'var(--color-danger)' : undefined} />
-          <MetricCard title="Health" value={`${diagSummary.overall_health_percent}%`} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <KpiBox label="Total Systems" value={diagSummary.total_systems} tone="neutral" />
+          <KpiBox label="Healthy" value={diagSummary.healthy_systems} tone="success" />
+          <KpiBox label="Unhealthy" value={diagSummary.unhealthy_systems} tone={diagSummary.unhealthy_systems > 0 ? 'error' : 'neutral'} />
+          <KpiBox label="Health" value={`${diagSummary.overall_health_percent}%`} tone="info" />
         </div>
       )}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
+      <div className="flex flex-wrap items-center gap-3 mb-4">
         <TenantFilter
           selectedTenant={selectedTenant}
           onChange={(val) => { setSelectedTenant(val); setPage(1); }}
@@ -149,14 +180,7 @@ export function SystemsPage() {
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
           aria-label="Filter by role"
-          style={{
-            padding: 'var(--space-sm) var(--space-md)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)',
-            background: 'var(--color-background)',
-            color: 'var(--color-text)',
-            fontSize: 'var(--font-size-sm)',
-          }}
+          className="px-3 py-1.5 text-xs border border-gray-200 rounded-md bg-white text-gray-700"
         >
           <option value="">All Roles</option>
           <option value="SOURCE">Source</option>
@@ -166,14 +190,7 @@ export function SystemsPage() {
           value={dbTypeFilter}
           onChange={(e) => { setDbTypeFilter(e.target.value); setPage(1); }}
           aria-label="Filter by database type"
-          style={{
-            padding: 'var(--space-sm) var(--space-md)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)',
-            background: 'var(--color-background)',
-            color: 'var(--color-text)',
-            fontSize: 'var(--font-size-sm)',
-          }}
+          className="px-3 py-1.5 text-xs border border-gray-200 rounded-md bg-white text-gray-700"
         >
           <option value="">All Database Types</option>
           <option value="POSTGRES">PostgreSQL</option>
@@ -193,175 +210,108 @@ export function SystemsPage() {
       {error && <ErrorState message={error} />}
 
       {!loading && !error && (
-        <>
+        <ReportCard title="Systems">
           {paged.length === 0 ? (
             <EmptyState
               title="No systems found"
               description={(roleFilter || dbTypeFilter || selectedTenant) ? 'Try different filters' : 'No connections configured yet'}
             />
           ) : (
-            <div style={{
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius)',
-              overflow: 'hidden',
-            }}>
-              {paged.map((system, index) => {
-                const testResult = testResults[system.system_id];
-                const isExpanded = expandedRows[system.system_id];
-                const isTesting = testingId;
+            <>
+              <div className="divide-y divide-gray-100">
+                {paged.map((system) => {
+                  const testResult = testResults[system.system_id];
+                  const isExpanded = expandedRows[system.system_id];
+                  const isTesting = testingId;
 
-                return (
-                  <div key={system.system_id}>
-                    <div
-                      style={{
-                        padding: 'var(--space-md)',
-                        borderBottom: index < paged.length - 1 || isExpanded ? '1px solid var(--color-border)' : 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'var(--space-md)',
-                      }}
-                    >
-                      <span style={{ fontSize: 'var(--font-size-h2)' }}>
-                        {getDbTypeIcon(system.database_type)}
-                      </span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 500, marginBottom: 'var(--space-xs)' }}>
-                          <a
-                            href={`/migration/connections/${system.system_id}${selectedTenant ? `?tenant_id=${encodeURIComponent(selectedTenant)}` : ''}`}
-                            style={{ color: 'var(--color-text)', textDecoration: 'none' }}
-                            onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                            onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                  return (
+                    <div key={system.system_id}>
+                      <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                        <span className="text-xl flex-shrink-0">{getDbTypeIcon(system.database_type)}</span>
+                        <div className="flex-1 min-w-0">
+                          <button
+                            onClick={() => navigate(`/migration/connections/${system.system_id}${selectedTenant ? `?tenant_id=${encodeURIComponent(selectedTenant)}` : ''}`)}
+                            className="font-medium text-gray-900 hover:underline text-left"
                           >
                             {system.system_name}
-                          </a>
-                        </div>
-                        <div style={{ display: 'flex', gap: 'var(--space-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                          <StatusBadge status={system.system_role} size="sm" />
-                          <span>{system.database_type}</span>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-                        {testResult && (
-                          <StatusBadge
-                            status={testResult.success ? 'ACTIVE' : 'FAILED'}
-                            size="sm"
-                          />
-                        )}
-                        <button
-                          onClick={() => handleTestConnection(system.system_id)}
-                          disabled={isTesting}
-                          aria-label={`Test connection for ${system.system_name}`}
-                          style={{
-                            background: 'none',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius)',
-                            padding: 'var(--space-xs) var(--space-md)',
-                            cursor: isTesting ? 'not-allowed' : 'pointer',
-                            fontSize: 'var(--font-size-xs)',
-                            color: 'var(--color-text)',
-                            opacity: isTesting ? 0.5 : 1,
-                          }}
-                        >
-                          {isTesting ? 'Testing...' : 'Test'}
-                        </button>
-                        <a
-                          href={`/migration/connections/diagnostics`}
-                          aria-label={`Diagnostics for ${system.system_name}`}
-                          style={{
-                            background: 'none',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius)',
-                            padding: 'var(--space-xs) var(--space-md)',
-                            fontSize: 'var(--font-size-xs)',
-                            color: 'var(--color-text-secondary)',
-                            textDecoration: 'none',
-                          }}
-                        >
-                          Diagnostics
-                        </a>
-                        <button
-                          onClick={async () => {
-                            const qs = selectedTenant ? `?tenant_id=${encodeURIComponent(selectedTenant)}` : '';
-                            const detail = await apiGet<SystemDetail>(`/systems/${system.system_id}${qs}`);
-                            setEditingSystem(detail);
-                            setFormOpen(true);
-                          }}
-                          aria-label={`Edit ${system.system_name}`}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: 'var(--font-size-sm)',
-                            color: 'var(--color-text-secondary)',
-                            padding: 'var(--space-xs)',
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => setDeleteTarget(system)}
-                          aria-label={`Delete ${system.system_name}`}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: 'var(--font-size-sm)',
-                            color: 'var(--color-danger)',
-                            padding: 'var(--space-xs)',
-                          }}
-                        >
-                          Delete
-                        </button>
-                        {testResult && (
-                          <button
-                            onClick={() => toggleExpand(system.system_id)}
-                            aria-expanded={expandedRows[system.system_id] || false}
-                            aria-label={`Expand ${system.system_name} details`}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: 'var(--font-size-xs)',
-                              color: 'var(--color-text-secondary)',
-                              padding: 'var(--space-xs) var(--space-sm)',
-                            }}
-                          >
-                            {isExpanded ? '\u25BE' : '\u25B8'}
                           </button>
-                        )}
-                      </div>
-                    </div>
-                    {isExpanded && testResult && (
-                      <div style={{
-                        padding: 'var(--space-md) var(--space-md) var(--space-md) var(--space-2xl)',
-                        borderBottom: index < paged.length - 1 ? '1px solid var(--color-border)' : 'none',
-                        background: 'var(--color-background)',
-                        fontSize: 'var(--font-size-xs)',
-                      }}>
-                        <div style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Test Result:</div>
-                        <div style={{ color: testResult.success ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                          {testResult.message}
-                        </div>
-                        {testResult.latency_ms !== undefined && (
-                          <div style={{ color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
-                            Latency: {testResult.latency_ms}ms
-                            {testResult.server_version && ` | Version: ${testResult.server_version}`}
+                          <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500">
+                            <StatusPill status={system.system_role} />
+                            <span>{system.database_type}</span>
                           </div>
-                        )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {testResult && (
+                            <StatusPill status={testResult.success ? 'ACTIVE' : 'FAILED'} />
+                          )}
+                          <button
+                            onClick={() => handleTestConnection(system.system_id)}
+                            disabled={!!isTesting}
+                            className="px-2.5 py-1 text-xs font-medium text-gray-600 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isTesting ? 'Testing...' : 'Test'}
+                          </button>
+                          <button
+                            onClick={() => navigate('/migration/connections/diagnostics')}
+                            className="px-2.5 py-1 text-xs text-gray-500 border border-gray-200 rounded hover:bg-gray-50"
+                          >
+                            Diagnostics
+                          </button>
+                          <button
+                            onClick={async () => {
+                              const qs = selectedTenant ? `?tenant_id=${encodeURIComponent(selectedTenant)}` : '';
+                              const detail = await apiGet<SystemDetail>(`/systems/${system.system_id}${qs}`);
+                              setEditingSystem(detail);
+                              setFormOpen(true);
+                            }}
+                            className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(system)}
+                            className="px-2 py-1 text-xs text-red-600 hover:text-red-800"
+                          >
+                            Delete
+                          </button>
+                          {testResult && (
+                            <button
+                              onClick={() => toggleExpand(system.system_id)}
+                              aria-expanded={isExpanded}
+                              className="px-1 py-1 text-xs text-gray-400 hover:text-gray-600"
+                            >
+                              {isExpanded ? '\u25BE' : '\u25B8'}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                      {isExpanded && testResult && (
+                        <div className="px-4 py-3 pl-12 bg-gray-50 text-xs border-t border-gray-100">
+                          <div className="text-gray-500 mb-1">Test Result:</div>
+                          <div className={testResult.success ? 'text-green-600' : 'text-red-600'}>
+                            {testResult.message}
+                          </div>
+                          {testResult.latency_ms !== undefined && (
+                            <div className="text-gray-500 mt-1">
+                              Latency: {testResult.latency_ms}ms
+                              {testResult.server_version && ` | Version: ${testResult.server_version}`}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
 
-          {totalPages > 1 && (
-            <div style={{ marginTop: 'var(--space-md)', display: 'flex', justifyContent: 'center' }}>
-              <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
-            </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-4">
+                  <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
+                </div>
+              )}
+            </>
           )}
-        </>
+        </ReportCard>
       )}
 
       <SystemFormModal
@@ -380,6 +330,6 @@ export function SystemsPage() {
         variant="danger"
         confirmLabel={deleting ? 'Deleting...' : 'Delete'}
       />
-    </div>
+    </PageContainer>
   );
 }

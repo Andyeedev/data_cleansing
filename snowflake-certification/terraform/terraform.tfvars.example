@@ -1,0 +1,27 @@
+# Snowflake Certification — terraform.tfvars (TEMPLATE) — CURRENT PROVIDER SYNTAX
+# DO NOT COMMIT REAL SECRETS — copy to terraform.tfvars (gitignored) and fill locally
+# Follows 12_9 §5.2: sensitive vars passed at runtime, no azurerm_key_vault_secret resource
+
+# ---- Snowflake Trial on Azure (from Snowflake UI: Account → Organization MYORG, Account MYACCOUNT) ----
+snowflake_organization_name = "REPLACE_WITH_ORG"      # e.g., MYORG  (upper case, from MYORG-MYACCOUNT)
+snowflake_account_name      = "REPLACE_WITH_ACCOUNT" # e.g., MYACCOUNT
+# Optional: full host if non-standard region; if empty, derived as <org>-<account>.central-us.azure.snowflakecomputing.com
+snowflake_host              = ""  # e.g., "myorg-myaccount.central-us.azure.snowflakecomputing.com" or leave "" for auto
+
+snowflake_user    = "MAP_CERT_ADMIN"
+snowflake_role    = "ACCOUNTADMIN"
+snowflake_authenticator = "SNOWFLAKE_JWT"  # or "SNOWFLAKE" for password auth (deprecated values snowflake_jwt still accepted but prefer SNOWFLAKE_JWT)
+
+# For JWT: paste private key PEM content — DO NOT COMMIT — pass via -var or env SNOWFLAKE_PRIVATE_KEY
+# snowflake_private_key = ""  # leave null; supply via CLI: -var="snowflake_private_key=$(cat ../rsa_key.p8)"
+# snowflake_private_key_passphrase = null
+
+# Azure side
+location            = "centralus"
+resource_group_name = "rg-snowflake-certification"
+key_vault_name      = "kv-snowflake-cert"
+warehouse_name      = "MAP_CERT_WH"
+warehouse_size      = "XSMALL"
+source_db_name      = "MAP_CERTIFICATION_SOURCE"
+target_db_name      = "MAP_CERTIFICATION_TARGET"
+schema_name         = "CERT_SCHEMA"

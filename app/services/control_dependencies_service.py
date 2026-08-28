@@ -22,7 +22,7 @@ class ControlDependenciesService:
             query = """
                 SELECT control_id, depends_on_control_id, project_id, created_at
                 FROM engine.control_dependencies
-                WHERE project_id = %s
+                WHERE project_id = %s OR project_id IS NULL
                 ORDER BY control_id
             """
             rows = self.engine_db.execute(query, (project_id,))

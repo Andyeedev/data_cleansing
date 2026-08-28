@@ -24,7 +24,7 @@ class ApprovalDecisionRequest(BaseModel):
     notes: Optional[str] = None
 
 
-@router.get("/")
+@router.get("")
 def list_approvals(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
@@ -54,7 +54,7 @@ def get_approval(approval_id: str, current_user=Depends(require_permissions("app
     return standardize_response(service.get_approval(approval_id))
 
 
-@router.post("/")
+@router.post("")
 def create_approval(
     payload: ApprovalCreateRequest,
     current_user=Depends(require_permissions("approvals:create"))

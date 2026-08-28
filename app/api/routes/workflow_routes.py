@@ -31,7 +31,7 @@ class WorkflowExecuteRequest(BaseModel):
     assigned_to: Optional[str] = None
 
 
-@router.get("/")
+@router.get("")
 def list_workflows(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
@@ -54,7 +54,7 @@ def get_workflow(workflow_id: str, current_user=Depends(get_current_user)):
     return standardize_response(service.get_workflow(workflow_id))
 
 
-@router.post("/")
+@router.post("")
 def create_workflow(
     payload: WorkflowCreateRequest,
     current_user=Depends(get_current_user)

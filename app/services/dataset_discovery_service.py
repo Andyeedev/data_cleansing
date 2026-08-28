@@ -1,8 +1,7 @@
-from app.adapters.sqlserver import SQLServerAdapter
-from app.config import SQLServerConfig
 from app.services.credential_service import CredentialService
 from app.services.matching_engine import MatchingEngine
 from app.types.matching import DEFAULT_MATCHING_CONFIG
+from app.adapters.registry import AdapterRegistry
 import json
 
 
@@ -18,13 +17,16 @@ class DatasetDiscoveryService:
         source_system = self._get_system("SOURCE")
         target_system = self._get_system("TARGET")
 
-        source_config = self._build_sqlserver_config(source_system)
-        target_config = self._build_sqlserver_config(target_system)
+        source_config = self._build_adapter_config(source_system)
+        target_config = self._build_adapter_config(target_system)
 
-        source_adapter = SQLServerAdapter()
+        # Reuse certified adapter via registry — no hard-coded SQLServer
+        from app.services.system_service import DB_TYPE_MAP
+        src_type = self._get_db_type(source_system)
+        tgt_type = self._get_db_type(target_system)
+        source_adapter = AdapterRegistry.get(DB_TYPE_MAP.get(src_type, src_type))()
+        target_adapter = AdapterRegistry.get(DB_TYPE_MAP.get(tgt_type, tgt_type))()
         source_adapter.connect(source_config)
-
-        target_adapter = SQLServerAdapter()
         target_adapter.connect(target_config)
 
         from app.adapters.base_adapter import ConnectionAdapter
@@ -90,22 +92,44 @@ class DatasetDiscoveryService:
             ]
         return columns
 
-    def _build_sqlserver_config(self, system):
+    def _get_db_type(self, system):
+        # Fetch database_type from system_registry for this system
+        row = self.engine_db.execute("SELECT database_type FROM core.system_registry WHERE system_id = %s", (system["system_id"],))
+        return row[0][0] if row else "SNOWFLAKE"
+
+    def _build_adapter_config(self, system):
         config = system["connection_config"]
         if isinstance(config, str):
             config = json.loads(config)
-
         cred_service = CredentialService(self.engine_db)
         creds = cred_service.get_decrypted_credentials(system["system_id"])
-
-        return SQLServerConfig(
-            host=config.get("host", ""),
-            port=config.get("port", 1433),
-            database=config.get("database", ""),
-            username=creds.get("username", ""),
-            password=creds.get("password", ""),
-            encrypt=True,
-        )
+        db_type = self._get_db_type(system)
+        from app.services.system_service import DB_TYPE_MAP
+        from app.config import PostgresConfig, SQLServerConfig, SnowflakeConfig, MySQLConfig, OracleConfig, BigQueryConfig, DatabricksConfig
+        adapter_key = DB_TYPE_MAP.get(db_type.upper(), db_type.lower())
+        host = config.get("host", "")
+        port = config.get("port")
+        database = config.get("database", "")
+        username = creds.get("username", "")
+        password = creds.get("password", "")
+        if adapter_key == "postgres":
+            return PostgresConfig(host=host, port=port or 5432, database=database, username=username, password=password, ssl_mode=config.get("ssl_mode","prefer"))
+        elif adapter_key == "sqlserver":
+            return SQLServerConfig(host=host, port=port or 1433, database=database, username=username, password=password, encrypt=True)
+        elif adapter_key == "snowflake":
+            auth = config.get("authenticator", "snowflake")
+            private_key = None
+            pwd = password
+            if auth and auth.upper() in ("SNOWFLAKE_JWT","JWT") and password and "BEGIN" in password:
+                private_key = password
+                pwd = None
+            return SnowflakeConfig(account=host, database=database, username=username, password=pwd, warehouse=config.get("warehouse",""), schema=config.get("schema",""), role=config.get("role"), authenticator=auth, private_key=private_key, private_key_path=config.get("private_key_path"))
+        elif adapter_key == "mysql":
+            return MySQLConfig(host=host, port=port or 3306, database=database, username=username, password=password)
+        elif adapter_key == "oracle":
+            return OracleConfig(host=host, port=port or 1521, service_name=database, username=username, password=password)
+        else:
+            raise Exception(f"No config builder for adapter: {adapter_key} ({db_type})")
 
     def _create_mapping(self, source_system_id, target_system_id, table, source_adapter, target_adapter):
 

@@ -1,5 +1,5 @@
 import { Modal } from './shared/Modal';
-import { StatusBadge } from './shared/StatusBadge';
+import { StatusPill } from './reports/reportWidgets';
 import type { SchemaNode } from '../types/discovery';
 
 interface DiscoveryDetailModalProps {
@@ -19,48 +19,44 @@ function getStatusLabel(status: string): string {
   }
 }
 
-function getStatusVariant(status: string): 'success' | 'warning' | 'danger' | 'info' {
-  switch (status) {
-    case 'matched': return 'success';
-    case 'modified': return 'warning';
-    case 'unmatched': return 'danger';
-    default: return 'info';
-  }
-}
-
-function getRecommendation(table: SchemaNode): { text: string; action: string; color: string } {
+function getRecommendation(table: SchemaNode): { text: string; action: string; colorClass: string; bgClass: string } {
   if (table.status === 'matched' && table.target_table) {
     return {
       text: `This table maps to "${table.target_table}" with high confidence. Columns align well.`,
       action: 'Accept this match or review alternatives.',
-      color: 'var(--color-success)',
+      colorClass: 'text-green-700',
+      bgClass: 'bg-green-50 border-l-green-500',
     };
   }
   if (table.status === 'modified' && table.target_table) {
     return {
       text: `This table maps to "${table.target_table}" but needs review. Confidence is moderate — column types may differ or business logic may not align.`,
       action: 'Review column comparison below. Accept if columns are compatible, or reject to find alternative.',
-      color: 'var(--color-warning)',
+      colorClass: 'text-yellow-700',
+      bgClass: 'bg-yellow-50 border-l-yellow-400',
     };
   }
   if (table.status === 'unmatched' && table.mapped_from_table) {
     return {
       text: `This table is a target that receives data from "${table.mapped_from_table}".`,
       action: 'Verify the mapping is correct.',
-      color: 'var(--color-info)',
+      colorClass: 'text-blue-700',
+      bgClass: 'bg-blue-50 border-l-blue-500',
     };
   }
   if (table.status === 'unmatched') {
     return {
       text: 'No source table found with compatible column structure.',
       action: 'Consider creating a view or ETL transform, or add this table to a future migration batch.',
-      color: 'var(--color-danger)',
+      colorClass: 'text-red-700',
+      bgClass: 'bg-red-50 border-l-red-500',
     };
   }
   return {
     text: 'Status unknown.',
     action: 'Manual review recommended.',
-    color: 'var(--color-text-secondary)',
+    colorClass: 'text-gray-500',
+    bgClass: 'bg-gray-50 border-l-gray-300',
   };
 }
 
@@ -98,76 +94,65 @@ export function DiscoveryDetailModal({ open, table, onClose }: DiscoveryDetailMo
       footer={
         <button
           onClick={onClose}
-          style={{
-            padding: 'var(--space-sm) var(--space-md)',
-            background: 'var(--color-bg-secondary)',
-            color: 'var(--color-text)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius)',
-            cursor: 'pointer',
-            fontSize: 'var(--font-size-sm)',
-          }}
+          className="px-3 py-1.5 text-sm text-gray-700 bg-gray-100 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-200"
         >
           Close
         </button>
       }
     >
-      {/* Status + Confidence */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-        <StatusBadge status={getStatusLabel(table.status)} variant={getStatusVariant(table.status)} />
+      <div className="flex items-center gap-3 mb-5">
+        <StatusPill status={getStatusLabel(table.status)} />
         {table.confidence != null && (
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+          <span className="text-sm text-gray-500">
             Confidence: {Math.round(table.confidence * 100)}%
           </span>
         )}
         {table.target_table && (
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+          <span className="text-sm text-gray-500">
             → {table.target_table}
           </span>
         )}
         {table.mapped_from_table && !table.target_table && (
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+          <span className="text-sm text-gray-500">
             ← {table.mapped_from_table}
           </span>
         )}
       </div>
 
-      {/* Match Rationale */}
-      <div style={{ marginBottom: 'var(--space-lg)' }}>
-        <h4 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-xs)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <div className="mb-5">
+        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
           Match Rationale
         </h4>
-        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text)', lineHeight: 1.5, margin: 0 }}>
+        <p className="text-sm text-gray-900 leading-relaxed m-0">
           {rationale}
         </p>
       </div>
 
-      {/* Column Comparison */}
       {columns.length > 0 && (
-        <div style={{ marginBottom: 'var(--space-lg)' }}>
-          <h4 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-sm)', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div className="mb-5">
+          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
             Columns ({columns.length})
           </h4>
-          <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-xs)' }}>
+          <div className="border border-gray-200 rounded-md overflow-hidden">
+            <table className="w-full text-xs">
               <thead>
-                <tr style={{ background: 'var(--color-bg-secondary)' }}>
-                  <th style={{ textAlign: 'left', padding: 'var(--space-xs) var(--space-sm)', fontWeight: 600 }}>Column</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--space-xs) var(--space-sm)', fontWeight: 600 }}>Type</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--space-xs) var(--space-sm)', fontWeight: 600 }}>Nullable</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--space-xs) var(--space-sm)', fontWeight: 600 }}>PK</th>
-                  <th style={{ textAlign: 'left', padding: 'var(--space-xs) var(--space-sm)', fontWeight: 600 }}>Status</th>
+                <tr className="bg-gray-50">
+                  <th className="text-left px-2 py-1.5 font-semibold text-gray-700">Column</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-gray-700">Type</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-gray-700">Nullable</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-gray-700">PK</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-gray-700">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {columns.map((col) => (
-                  <tr key={col.id} style={{ borderTop: '1px solid var(--color-border)' }}>
-                    <td style={{ padding: 'var(--space-xs) var(--space-sm)', fontFamily: 'monospace' }}>{col.name}</td>
-                    <td style={{ padding: 'var(--space-xs) var(--space-sm)', color: 'var(--color-text-secondary)' }}>{col.data_type || '—'}</td>
-                    <td style={{ padding: 'var(--space-xs) var(--space-sm)' }}>{col.is_nullable ? 'Yes' : 'No'}</td>
-                    <td style={{ padding: 'var(--space-xs) var(--space-sm)' }}>{col.is_primary_key ? '✓' : ''}</td>
-                    <td style={{ padding: 'var(--space-xs) var(--space-sm)' }}>
-                      <StatusBadge status={col.status === 'matched' ? 'Matched' : 'Unmatched'} size="sm" variant={col.status === 'matched' ? 'success' : 'danger'} />
+                  <tr key={col.id} className="border-t border-gray-100">
+                    <td className="px-2 py-1.5 font-mono text-gray-900">{col.name}</td>
+                    <td className="px-2 py-1.5 text-gray-500">{col.data_type || '—'}</td>
+                    <td className="px-2 py-1.5 text-gray-700">{col.is_nullable ? 'Yes' : 'No'}</td>
+                    <td className="px-2 py-1.5 text-gray-700">{col.is_primary_key ? '✓' : ''}</td>
+                    <td className="px-2 py-1.5">
+                      <StatusPill status={col.status === 'matched' ? 'Matched' : 'Unmatched'} />
                     </td>
                   </tr>
                 ))}
@@ -177,20 +162,14 @@ export function DiscoveryDetailModal({ open, table, onClose }: DiscoveryDetailMo
         </div>
       )}
 
-      {/* Recommendation */}
-      <div style={{
-        padding: 'var(--space-md)',
-        background: `color-mix(in srgb, ${recommendation.color} 10%, transparent)`,
-        borderRadius: 'var(--radius)',
-        borderLeft: `3px solid ${recommendation.color}`,
-      }}>
-        <h4 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-xs)', color: recommendation.color }}>
+      <div className={`p-3 rounded-md border-l-[3px] ${recommendation.bgClass}`}>
+        <h4 className={`text-sm font-semibold mb-1 ${recommendation.colorClass}`}>
           Recommendation
         </h4>
-        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text)', margin: 0, lineHeight: 1.5 }}>
+        <p className="text-sm text-gray-900 m-0 leading-relaxed">
           {recommendation.text}
         </p>
-        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', margin: 'var(--space-xs) 0 0', fontStyle: 'italic' }}>
+        <p className="text-xs text-gray-500 mt-1 italic m-0">
           {recommendation.action}
         </p>
       </div>

@@ -1,15 +1,14 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useMappingSummary, useMappingColumnsWithPending, useAutoMap, useSaveMappings, useValidateMapping, useClearPairMapping, useClearAllMappings } from '../hooks/useMapping';
-import { PageHeader } from '../components/PageHeader/PageHeader';
-import { MetricCard } from '../components/shared/MetricCard';
-import { StatusBadge } from '../components/shared/StatusBadge';
 import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
 import { TenantFilter } from '../components/shared/TenantFilter';
 import { Pagination } from '../components/shared/Pagination';
+import { PageContainer } from '../components/PageContainer/PageContainer';
+import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 import type { MappingRow, TransformType } from '../types/mapping';
 import { TRANSFORM_OPTIONS } from '../types/mapping';
 
@@ -17,16 +16,16 @@ type FilterStatus = 'all' | 'matched' | 'unmapped_source' | 'modified' | 'pendin
 type SortField = 'source_table' | 'source_column' | 'target_column' | 'match_status' | 'confidence_score';
 type SortDir = 'asc' | 'desc';
 
-const TRANSFORM_COLORS: Record<string, string> = {
-  none: 'var(--color-text-secondary)',
-  lowercase: 'var(--color-info)',
-  uppercase: 'var(--color-info)',
-  trim: 'var(--color-info)',
-  cast: 'var(--color-warning)',
-  map: 'var(--color-success)',
-  concat: 'var(--color-warning)',
-  split: 'var(--color-warning)',
-  custom: 'var(--color-danger)',
+const TRANSFORM_COLOR_CLASSES: Record<string, string> = {
+  none: 'text-gray-500',
+  lowercase: 'text-blue-600',
+  uppercase: 'text-blue-600',
+  trim: 'text-blue-600',
+  cast: 'text-yellow-600',
+  map: 'text-green-600',
+  concat: 'text-yellow-600',
+  split: 'text-yellow-600',
+  custom: 'text-red-600',
 };
 
 interface TableGroup {
@@ -50,19 +49,12 @@ export function MappingSpreadsheetPage() {
   const [localChanges, setLocalChanges] = useState<Record<string, Partial<MappingRow>>>({});
   const [validationResult, setValidationResult] = useState<{ valid: boolean; issues: unknown[]; type_mismatches: number } | null>(null);
 
-  // Sorting
   const [sortField, setSortField] = useState<SortField>('source_table');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-
-  // Collapse/expand
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
-
-  // Progress tracking
   const [autoMapProgress, setAutoMapProgress] = useState<{ active: boolean; message: string }>({ active: false, message: '' });
   const [clearProgress, setClearProgress] = useState<{ active: boolean; message: string }>({ active: false, message: '' });
   const progressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // REF 1: Confirmation modal state
   const [confirmModal, setConfirmModal] = useState<{ open: boolean; type: 'pair' | 'all'; mappingId?: string; tableName?: string; count: number } | { open: boolean; type: null; count: 0 }>({ open: false, type: null, count: 0 });
   const [confirmText, setConfirmText] = useState('');
 
@@ -77,10 +69,8 @@ export function MappingSpreadsheetPage() {
   const loading = summaryLoading || columnsLoading;
   const error = summaryError || columnsError;
 
-  // Unique row key generator (handles PENDING rows with null column_mapping_id)
   const getRowKey = (col: MappingRow) => col.column_mapping_id || `pending_${col.mapping_id}_${col.source_column}`;
 
-  // Cleanup progress timer on unmount
   useEffect(() => {
     return () => {
       if (progressTimerRef.current) clearTimeout(progressTimerRef.current);
@@ -126,7 +116,6 @@ export function MappingSpreadsheetPage() {
     return result;
   }, [mergedColumns, statusFilter, searchQuery]);
 
-  // Sorting
   const sortedColumns = useMemo(() => {
     const sorted = [...filteredColumns];
     sorted.sort((a, b) => {
@@ -172,9 +161,6 @@ export function MappingSpreadsheetPage() {
     return mergedColumns.filter((c) => !c.target_column).map((c) => `${c.source_table}.${c.source_column}`);
   }, [mergedColumns]);
 
-  // =========================
-  // Sorting handler
-  // =========================
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -186,20 +172,14 @@ export function MappingSpreadsheetPage() {
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <span style={{ opacity: 0.3, fontSize: '10px' }}>{'\u2195'}</span>;
-    return <span style={{ fontSize: '10px' }}>{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>;
+    if (sortField !== field) return <span className="opacity-30 text-[10px]">{'\u2195'}</span>;
+    return <span className="text-[10px]">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>;
   };
 
-  // =========================
-  // Collapse/expand
-  // =========================
   const toggleGroupCollapse = (key: string) => {
     setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // =========================
-  // Individual row toggle (map/unmap)
-  // =========================
   const handleToggleRow = (col: MappingRow) => {
     const key = getRowKey(col);
     if (col.match_status === 'PENDING' || !col.target_column) {
@@ -225,9 +205,6 @@ export function MappingSpreadsheetPage() {
     setLocalChanges((prev) => ({ ...prev, [colId]: { ...prev[colId], transformation: transform } }));
   };
 
-  // =========================
-  // Auto Map with progress simulation
-  // =========================
   const handleAutoMap = async () => {
     if (!selectedTenant) return;
     const scrollY = window.scrollY;
@@ -254,9 +231,6 @@ export function MappingSpreadsheetPage() {
     }
   };
 
-  // =========================
-  // Clear All with progress simulation
-  // =========================
   const handleConfirmClear = async () => {
     const scrollY = window.scrollY;
     if (confirmModal.type === 'pair' && confirmModal.mappingId) {
@@ -322,9 +296,6 @@ export function MappingSpreadsheetPage() {
     URL.revokeObjectURL(url);
   };
 
-  // =========================
-  // REF 1: Clear pair / Clear all handlers
-  // =========================
   const handleClearPairClick = (mappingId: string, tableName: string, count: number) => {
     setConfirmModal({ open: true, type: 'pair', mappingId, tableName, count });
     setConfirmText('');
@@ -347,107 +318,92 @@ export function MappingSpreadsheetPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Migration Mappings</h1>
+      <PageContainer>
+        <h1 className="text-xl font-bold text-gray-900 mb-4">Migration Mappings</h1>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
-      </div>
+      </PageContainer>
     );
   }
-
-  const thStyle: React.CSSProperties = { textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', position: 'sticky', top: 0, zIndex: 1, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' };
-  const tdStyle: React.CSSProperties = { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--font-size-sm)', borderBottom: '1px solid var(--color-border)' };
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '4px 8px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-xs)', background: 'var(--color-background)', color: 'var(--color-text)', boxSizing: 'border-box' };
-  const groupHeaderStyle: React.CSSProperties = { padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--color-text)', cursor: 'pointer' };
 
   const isBusy = autoMapping || clearingPair || clearingAll;
   const progressActive = autoMapProgress.active || clearProgress.active;
   const progressMessage = autoMapProgress.active ? autoMapProgress.message : clearProgress.active ? clearProgress.message : '';
 
   return (
-    <div style={{ padding: 'var(--space-lg)' }}>
-      <PageHeader
-        title="Migration Mappings"
-        description="Committed column relationships for data migration — these are actual mappings stored in the database, not potential matches from discovery"
-        actions={
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
-            <button onClick={handleRefresh} disabled={loading || isBusy} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: loading || isBusy ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: loading || isBusy ? 0.5 : 1 }}>
-              Refresh
-            </button>
-            <button onClick={handleAutoMap} disabled={autoMapping || !selectedTenant} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: autoMapping || !selectedTenant ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: autoMapping || !selectedTenant ? 0.5 : 1 }}>
-              {autoMapping ? 'Mapping...' : 'Auto Map'}
-            </button>
-            <button onClick={handleSave} disabled={saving || Object.keys(localChanges).length === 0} style={{ padding: 'var(--space-sm) var(--space-md)', background: Object.keys(localChanges).length > 0 ? 'var(--color-success)' : 'var(--color-bg-secondary)', color: Object.keys(localChanges).length > 0 ? '#fff' : 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: saving ? 0.5 : 1 }}>
-              {saving ? 'Saving...' : `Save${Object.keys(localChanges).length > 0 ? ` (${Object.keys(localChanges).length})` : ''}`}
-            </button>
-            <button onClick={handleExportCSV} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
-              Export CSV
-            </button>
-            <button onClick={handleClearAllClick} disabled={!selectedTenant || clearingAll || columns?.filter(c => c.match_status !== 'PENDING').length === 0} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-danger)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: !selectedTenant || clearingAll ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: !selectedTenant || clearingAll || columns?.filter(c => c.match_status !== 'PENDING').length === 0 ? 0.5 : 1 }}>
-              {clearingAll ? 'Clearing...' : 'Clear All'}
-            </button>
-          </div>
-        }
-      />
+    <PageContainer>
+      <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Migration Mappings</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Committed column relationships for data migration — these are actual mappings stored in the database, not potential matches from discovery
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          <button onClick={handleRefresh} disabled={loading || isBusy} className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Refresh</button>
+          <button onClick={handleAutoMap} disabled={autoMapping || !selectedTenant} className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{autoMapping ? 'Mapping...' : 'Auto Map'}</button>
+          <button onClick={handleSave} disabled={saving || Object.keys(localChanges).length === 0} className={`px-3 py-1.5 text-xs font-medium rounded-md border ${Object.keys(localChanges).length > 0 ? 'bg-green-600 text-white border-green-600 hover:bg-green-700' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} disabled:opacity-50 disabled:cursor-not-allowed`}>{saving ? 'Saving...' : `Save${Object.keys(localChanges).length > 0 ? ` (${Object.keys(localChanges).length})` : ''}`}</button>
+          <button onClick={handleExportCSV} className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50">Export CSV</button>
+          <button onClick={handleClearAllClick} disabled={!selectedTenant || clearingAll || columns?.filter(c => c.match_status !== 'PENDING').length === 0} className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed">{clearingAll ? 'Clearing...' : 'Clear All'}</button>
+        </div>
+      </div>
 
-      {/* ========================= Progress Bar ========================= */}
       {progressActive && (
-        <div style={{ marginBottom: 'var(--space-md)', padding: 'var(--space-sm) var(--space-md)', background: 'rgba(var(--color-info-rgb, 59,130,246), 0.08)', borderRadius: 'var(--radius)', border: '1px solid rgba(var(--color-info-rgb, 59,130,246), 0.2)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-          <div style={{ width: 16, height: 16, border: '2px solid var(--color-info)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-info)', fontWeight: 500 }}>{progressMessage}</span>
+        <div className="mb-4 p-2.5 bg-blue-50 border border-blue-200 rounded-md flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm text-blue-700 font-medium">{progressMessage}</span>
         </div>
       )}
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {error && <ErrorState message={error} onRetry={() => { refetchSummary(); refetchColumns(); }} />}
       {loading && <LoadingSkeleton rows={4} variant="card" />}
 
       {!loading && !error && summary && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-            <MetricCard title="Active Table Pairs" value={summary.tables_mapped} />
-            <MetricCard title="Columns Defined" value={summary.columns_mapped} />
-            <MetricCard title="Match Rate" value={`${summary.match_rate_percent}%`} color={summary.match_rate_percent > 80 ? 'var(--color-success)' : summary.match_rate_percent > 50 ? 'var(--color-warning)' : 'var(--color-danger)'} />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <KpiBox label="Active Table Pairs" value={summary.tables_mapped} tone="neutral" />
+            <KpiBox label="Columns Defined" value={summary.columns_mapped} tone="info" />
+            <KpiBox label="Match Rate" value={`${summary.match_rate_percent}%`} tone={summary.match_rate_percent > 80 ? 'success' : summary.match_rate_percent > 50 ? 'warning' : 'error'} />
           </div>
 
-          <div style={{ marginBottom: 'var(--space-lg)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
+          <ReportCard title="Match Rate" className="mb-6">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
               <span>Match Rate</span>
               <span>{summary.match_rate_percent}%</span>
             </div>
-            <div style={{ width: '100%', height: 8, background: 'var(--color-bg-secondary)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${summary.match_rate_percent}%`, height: '100%', background: summary.match_rate_percent > 80 ? 'var(--color-success)' : summary.match_rate_percent > 50 ? 'var(--color-warning)' : 'var(--color-danger)', borderRadius: 4, transition: 'width 0.3s' }} />
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${summary.match_rate_percent > 80 ? 'bg-green-500' : summary.match_rate_percent > 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                style={{ width: `${summary.match_rate_percent}%` }}
+              />
             </div>
+          </ReportCard>
+
+          <div className="p-2.5 mb-4 bg-blue-50 border border-blue-200 rounded-md text-xs text-gray-500">
+            <strong className="text-blue-700">Migration Mappings</strong> show actual column relationships stored in the database. Click a row to toggle mapping. Use <strong>Auto Map</strong> to populate from discovery results.
           </div>
 
-          <div style={{ padding: 'var(--space-sm) var(--space-md)', marginBottom: 'var(--space-md)', background: 'rgba(var(--color-info-rgb, 59,130,246), 0.08)', borderRadius: 'var(--radius)', border: '1px solid rgba(var(--color-info-rgb, 59,130,246), 0.2)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-            <strong style={{ color: 'var(--color-info)' }}>Migration Mappings</strong> show actual column relationships stored in the database. Click a row to toggle mapping. Use <strong>Auto Map</strong> to populate from discovery results.
-          </div>
-
-          <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 200 }}>
+          <div className="flex gap-3 mb-4 items-center flex-wrap">
+            <div className="flex-1 min-w-[200px]">
               <SearchBar value={searchQuery} onChange={(v) => { setSearchQuery(v); setCurrentPage(1); }} placeholder="Search columns or tables..." />
             </div>
-            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as FilterStatus); setCurrentPage(1); }} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-sm)', background: 'var(--color-background)', color: 'var(--color-text)' }}>
+            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as FilterStatus); setCurrentPage(1); }} className="px-2.5 py-1 text-xs border border-gray-200 rounded-md bg-white text-gray-700">
               <option value="all">All Statuses</option>
               <option value="matched">Matched</option>
               <option value="unmapped_source">Unmapped Source</option>
               <option value="modified">Modified</option>
               <option value="pending">Pending (No Columns)</option>
             </select>
-            <button onClick={handleValidate} disabled={validating} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', color: 'var(--color-text)', fontSize: 'var(--font-size-sm)', cursor: validating ? 'not-allowed' : 'pointer' }}>
-              {validating ? 'Validating...' : 'Validate'}
-            </button>
+            <button onClick={handleValidate} disabled={validating} className="px-2.5 py-1 text-xs border border-gray-200 rounded-md bg-white text-gray-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">{validating ? 'Validating...' : 'Validate'}</button>
           </div>
 
           {validationResult && !validationResult.valid && (
-            <div style={{ padding: 'var(--space-md)', marginBottom: 'var(--space-md)', background: 'rgba(var(--color-danger-rgb, 239,68,68), 0.1)', borderRadius: 'var(--radius)', border: '1px solid var(--color-danger)' }}>
-              <div style={{ fontWeight: 600, color: 'var(--color-danger)', marginBottom: 'var(--space-xs)' }}>
+            <div className="p-3 mb-4 bg-red-50 border border-red-300 rounded-md">
+              <div className="font-semibold text-red-600 mb-1">
                 {validationResult.type_mismatches} type mismatch(es) found
               </div>
               {(validationResult.issues as Array<{ source_column: string; target_column: string; source_type: string; target_type: string }>).slice(0, 5).map((issue, i) => (
-                <div key={i} style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+                <div key={i} className="text-xs text-gray-500">
                   {issue.source_column} ({issue.source_type}) {'\u2192'} {issue.target_column} ({issue.target_type})
                 </div>
               ))}
@@ -457,128 +413,116 @@ export function MappingSpreadsheetPage() {
           {paginatedGroups.length === 0 ? (
             <EmptyState title="No mappings defined" description="No column mappings found. Use Auto Map to populate from discovery results." />
           ) : (
-            <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'auto', maxHeight: '700px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                <thead>
-                  <tr>
-                    <th style={thStyle} onClick={() => handleSort('source_table')}>
-                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span>{'\u25B6'} Source</span>
-                        <SortIcon field="source_table" />
-                      </span>
-                    </th>
-                    <th style={thStyle}>Type</th>
-                    <th style={thStyle}>Transform</th>
-                    <th style={thStyle}>Rule</th>
-                    <th style={thStyle} onClick={() => handleSort('target_column')}>
-                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span>Target</span>
-                        <SortIcon field="target_column" />
-                      </span>
-                    </th>
-                    <th style={thStyle}>Type</th>
-                    <th style={thStyle} onClick={() => handleSort('match_status')}>
-                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span>Status</span>
-                        <SortIcon field="match_status" />
-                      </span>
-                    </th>
-                    <th style={{ ...thStyle, cursor: 'default', width: 40, textAlign: 'center' }}>{'\u2713'}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedGroups.map((group) => {
-                    const isCollapsed = collapsedGroups[group.key] || false;
-                    const mappedCount = group.columns.filter(c => c.target_column).length;
-                    return (
-                      <React.Fragment key={group.key}>
-                        <tr onClick={() => toggleGroupCollapse(group.key)} style={{ cursor: 'pointer' }}>
-                          <td colSpan={8} style={groupHeaderStyle}>
-                            <span style={{ marginRight: 'var(--space-sm)', fontSize: '10px' }}>{isCollapsed ? '\u25B6' : '\u25BC'}</span>
-                            <span style={{ color: 'var(--color-primary)' }}>{group.source_schema}.{group.source_table}</span>
-                            <span style={{ margin: '0 var(--space-sm)', color: 'var(--color-text-secondary)' }}>{'\u2192'}</span>
-                            <span style={{ color: 'var(--color-success)' }}>{group.target_schema}.{group.target_table}</span>
-                            <span style={{ marginLeft: 'var(--space-sm)', color: 'var(--color-text-secondary)', fontWeight: 400 }}>
-                              ({mappedCount}/{group.columns.length} mapped)
-                            </span>
-                            <span style={{ marginLeft: 'var(--space-sm)' }}>
-                              <StatusBadge
-                                status={mappedCount === group.columns.length ? 'Active' : mappedCount > 0 ? 'Partial' : 'Empty'}
-                                size="sm"
-                                variant={mappedCount === group.columns.length ? 'success' : mappedCount > 0 ? 'warning' : 'danger'}
-                              />
-                            </span>
-                            {mappedCount > 0 && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleClearPairClick(group.columns[0].mapping_id, group.source_table, mappedCount); }}
-                                disabled={clearingPair}
-                                style={{ marginLeft: 'var(--space-sm)', padding: '2px 8px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid var(--color-danger)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-xs)', opacity: clearingPair ? 0.5 : 1 }}
+            <ReportCard title="Column Mappings" className="mb-6">
+              <div className="overflow-auto max-h-[700px]">
+                <table className="w-full text-sm" aria-label="Column mappings">
+                  <thead>
+                    <tr className="bg-gray-50 border-b-2 border-gray-200">
+                      <th onClick={() => handleSort('source_table')} className="text-left px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 sticky top-0 z-10 cursor-pointer select-none whitespace-nowrap">
+                        <span className="flex items-center justify-between"><span>{'\u25B6'} Source</span><SortIcon field="source_table" /></span>
+                      </th>
+                      <th className="text-left px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 sticky top-0 z-10 whitespace-nowrap">Type</th>
+                      <th className="text-left px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 sticky top-0 z-10 whitespace-nowrap">Transform</th>
+                      <th className="text-left px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 sticky top-0 z-10 whitespace-nowrap">Rule</th>
+                      <th onClick={() => handleSort('target_column')} className="text-left px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 sticky top-0 z-10 cursor-pointer select-none whitespace-nowrap">
+                        <span className="flex items-center justify-between"><span>Target</span><SortIcon field="target_column" /></span>
+                      </th>
+                      <th className="text-left px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 sticky top-0 z-10 whitespace-nowrap">Type</th>
+                      <th onClick={() => handleSort('match_status')} className="text-left px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 sticky top-0 z-10 cursor-pointer select-none whitespace-nowrap">
+                        <span className="flex items-center justify-between"><span>Status</span><SortIcon field="match_status" /></span>
+                      </th>
+                      <th className="text-center px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 sticky top-0 z-10 w-10">{'\u2713'}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedGroups.map((group) => {
+                      const isCollapsed = collapsedGroups[group.key] || false;
+                      const mappedCount = group.columns.filter(c => c.target_column).length;
+                      return (
+                        <React.Fragment key={group.key}>
+                          <tr onClick={() => toggleGroupCollapse(group.key)} className="cursor-pointer bg-gray-50 border-b-2 border-gray-200">
+                            <td colSpan={8} className="px-3 py-2 font-semibold text-sm text-gray-900">
+                              <span className="mr-2 text-[10px]">{isCollapsed ? '\u25B6' : '\u25BC'}</span>
+                              <span className="text-blue-600">{group.source_schema}.{group.source_table}</span>
+                              <span className="mx-2 text-gray-400">{'\u2192'}</span>
+                              <span className="text-green-600">{group.target_schema}.{group.target_table}</span>
+                              <span className="ml-2 text-gray-500 font-normal">
+                                ({mappedCount}/{group.columns.length} mapped)
+                              </span>
+                              <span className="ml-2">
+                                <StatusPill status={mappedCount === group.columns.length ? 'Active' : mappedCount > 0 ? 'Partial' : 'Empty'} />
+                              </span>
+                              {mappedCount > 0 && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleClearPairClick(group.columns[0].mapping_id, group.source_table, mappedCount); }}
+                                  disabled={clearingPair}
+                                  className="ml-2 px-2 py-0.5 text-[10px] text-red-600 border border-red-300 rounded bg-transparent cursor-pointer disabled:opacity-50"
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                          {!isCollapsed && group.columns.map((col, idx) => {
+                            const rowKey = getRowKey(col);
+                            const isChanged = !!localChanges[rowKey];
+                            const transform = col.transformation || 'none';
+                            const isMapped = !!col.target_column;
+                            return (
+                              <tr
+                                key={rowKey}
+                                onClick={() => handleToggleRow(col)}
+                                className={`cursor-pointer ${isChanged ? 'bg-blue-50' : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-gray-50`}
+                                title={isMapped ? 'Click to unmap' : 'Click to map'}
                               >
-                                Clear
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                        {!isCollapsed && group.columns.map((col, idx) => {
-                          const rowKey = getRowKey(col);
-                          const isChanged = !!localChanges[rowKey];
-                          const rowBg = idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)';
-                          const transform = col.transformation || 'none';
-                          const isMapped = !!col.target_column;
-                          return (
-                            <tr key={rowKey} onClick={() => handleToggleRow(col)} style={{ background: isChanged ? 'rgba(var(--color-primary-rgb, 59,130,246), 0.05)' : rowBg, cursor: 'pointer' }} title={isMapped ? 'Click to unmap' : 'Click to map'}>
-                              <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 500 }}>{col.source_column}</td>
-                              <td style={{ ...tdStyle, color: 'var(--color-text-secondary)' }}>{col.source_data_type || '\u2014'}</td>
-                              <td style={tdStyle} onClick={(e) => e.stopPropagation()}>
-                                <select value={transform} onChange={(e) => handleTransformChange(rowKey, e.target.value as TransformType)} style={{ ...inputStyle, width: 110, color: TRANSFORM_COLORS[transform] || 'var(--color-text)' }}>
-                                  {TRANSFORM_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                  ))}
-                                </select>
-                              </td>
-                              <td style={tdStyle} onClick={(e) => e.stopPropagation()}>
-                                <input style={{ ...inputStyle, width: 100 }} placeholder="rule..." value={localChanges[rowKey]?.transformation || ''} onChange={(e) => handleTransformChange(rowKey, e.target.value)} />
-                              </td>
-                              <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 500 }}>{col.target_column || '\u2014'}</td>
-                              <td style={{ ...tdStyle, color: 'var(--color-text-secondary)' }}>{col.target_data_type || '\u2014'}</td>
-                              <td style={tdStyle} onClick={(e) => e.stopPropagation()}>
-                               <StatusBadge
-                                 status={col.match_status === 'AUTO_MATCHED' ? 'Matched' : col.match_status === 'MANUAL' ? 'Manual' : col.match_status === 'REVIEW_REQUIRED' ? 'Review' : 'Unmapped'}
-                                 size="sm"
-                                 variant={col.match_status === 'AUTO_MATCHED' ? 'success' : col.match_status === 'MANUAL' ? 'info' : col.match_status === 'REVIEW_REQUIRED' ? 'warning' : 'danger'}
-                                 onClick={() => handleToggleRow(col)}
-                                 aria-label={col.match_status === 'AUTO_MATCHED' ? 'Matched' : col.match_status === 'MANUAL' ? 'Manual' : col.match_status === 'REVIEW_REQUIRED' ? 'Review' : 'Unmapped'}
-                               />
-                              </td>
-                              <td style={{ ...tdStyle, textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                                <span style={{ fontSize: 'var(--font-size-xs)', color: isMapped ? 'var(--color-success)' : 'var(--color-text-secondary)' }}>
-                                  {isMapped ? '\u2713' : '\u2717'}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                                <td className="px-3 py-2 font-mono text-xs font-medium text-gray-900 border-b border-gray-100">{col.source_column}</td>
+                                <td className="px-3 py-2 text-xs text-gray-500 border-b border-gray-100">{col.source_data_type || '\u2014'}</td>
+                                <td className="px-3 py-2 border-b border-gray-100" onClick={(e) => e.stopPropagation()}>
+                                  <select value={transform} onChange={(e) => handleTransformChange(rowKey, e.target.value as TransformType)} className={`w-[110px] px-2 py-1 text-[10px] border border-gray-200 rounded bg-white ${TRANSFORM_COLOR_CLASSES[transform] || 'text-gray-900'}`}>
+                                    {TRANSFORM_OPTIONS.map((opt) => (
+                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                  </select>
+                                </td>
+                                <td className="px-3 py-2 border-b border-gray-100" onClick={(e) => e.stopPropagation()}>
+                                  <input className="w-[100px] px-2 py-1 text-[10px] border border-gray-200 rounded bg-white text-gray-900 box-border" placeholder="rule..." value={localChanges[rowKey]?.transformation || ''} onChange={(e) => handleTransformChange(rowKey, e.target.value)} />
+                                </td>
+                                <td className="px-3 py-2 font-mono text-xs font-medium text-gray-900 border-b border-gray-100">{col.target_column || '\u2014'}</td>
+                                <td className="px-3 py-2 text-xs text-gray-500 border-b border-gray-100">{col.target_data_type || '\u2014'}</td>
+                                <td className="px-3 py-2 border-b border-gray-100" onClick={(e) => e.stopPropagation()}>
+                                  <StatusPill
+                                    status={col.match_status === 'AUTO_MATCHED' ? 'Matched' : col.match_status === 'MANUAL' ? 'Manual' : col.match_status === 'REVIEW_REQUIRED' ? 'Review' : 'Unmapped'}
+                                  />
+                                </td>
+                                <td className="px-3 py-2 text-center border-b border-gray-100" onClick={(e) => e.stopPropagation()}>
+                                  <span className={`text-xs ${isMapped ? 'text-green-600' : 'text-gray-400'}`}>
+                                    {isMapped ? '\u2717' : '\u2717'}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </ReportCard>
           )}
 
-          {/* ========================= Pagination Footer ========================= */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: 'var(--space-md)', gap: 'var(--space-lg)', flexWrap: 'wrap' }}>
+          <div className="flex justify-end items-center mt-4 gap-6 flex-wrap">
             <Pagination page={currentPage} pageSize={pageSize} total={tableGroups.length} onPageChange={setCurrentPage} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)' }}>
-              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-gray-500 whitespace-nowrap">
                 {totalRows} column(s) across {tableGroups.length} table pair(s)
               </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
-                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Page size:</span>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-gray-500 whitespace-nowrap">Page size:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                  style={{ padding: '2px 6px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-xs)', background: 'var(--color-background)', color: 'var(--color-text)' }}
+                  className="px-1.5 py-0.5 text-[10px] border border-gray-200 rounded bg-white text-gray-700"
                 >
                   {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -587,11 +531,11 @@ export function MappingSpreadsheetPage() {
           </div>
 
           {unmappedSource.length > 0 && (
-            <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius)' }}>
-              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>Source Columns Without Target ({unmappedSource.length})</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-xs)' }}>
+            <div className="mt-6 p-3 bg-gray-50 rounded-md">
+              <div className="text-xs font-semibold text-gray-700 mb-2">Source Columns Without Target ({unmappedSource.length})</div>
+              <div className="flex flex-wrap gap-1">
                 {unmappedSource.map((col) => (
-                  <span key={col} style={{ padding: '2px 8px', background: 'rgba(var(--color-danger-rgb, 239,68,68), 0.1)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}>{col}</span>
+                  <span key={col} className="px-2 py-0.5 bg-red-50 text-red-600 rounded text-[10px]">{col}</span>
                 ))}
               </div>
             </div>
@@ -599,33 +543,30 @@ export function MappingSpreadsheetPage() {
         </>
       )}
 
-      {/* ========================= REF 1: Confirmation Modal ========================= */}
       {confirmModal.open && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(2px)' }}>
-          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '24px', maxWidth: 500, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', border: '1px solid #e5e7eb', position: 'relative', zIndex: 10000 }}>
-            <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#dc2626', fontWeight: 700, margin: '0 0 16px 0' }}>
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[9999] backdrop-blur-sm">
+          <div className="bg-white rounded-lg p-6 max-w-[500px] w-[90%] shadow-xl border border-gray-200 relative z-[10000]">
+            <h3 className="text-lg font-bold text-red-600 mb-4">
               {'\u26A0\uFE0F'} Warning: Remove Column Mappings
             </h3>
-
-            <div style={{ padding: '16px', background: '#fef2f2', borderRadius: '8px', border: '2px solid #dc2626', marginBottom: '20px' }}>
-              <p style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#1f2937', lineHeight: 1.5 }}>
-                You are about to remove <strong style={{ color: '#dc2626' }}>{confirmModal.count} column mapping(s)</strong>.
+            <div className="p-4 bg-red-50 rounded-lg border-2 border-red-600 mb-5">
+              <p className="text-sm text-gray-900 mb-3 leading-relaxed">
+                You are about to remove <strong className="text-red-600">{confirmModal.count} column mapping(s)</strong>.
               </p>
               {confirmModal.type === 'pair' && confirmModal.tableName && (
-                <p style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#1f2937', lineHeight: 1.5 }}>
-                  Table pair: <strong style={{ color: '#1f2937' }}>{confirmModal.tableName}</strong>
+                <p className="text-sm text-gray-900 mb-3 leading-relaxed">
+                  Table pair: <strong className="text-gray-900">{confirmModal.tableName}</strong>
                 </p>
               )}
-              <p style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#4b5563', lineHeight: 1.5 }}>
+              <p className="text-sm text-gray-600 mb-3 leading-relaxed">
                 These mappings may have been used by MAP CLI for data migration. Reports generated from these mappings may become invalid.
               </p>
-              <p style={{ fontSize: '14px', margin: 0, fontWeight: 700, color: '#dc2626', lineHeight: 1.5 }}>
+              <p className="text-sm font-bold text-red-600 leading-relaxed">
                 This action cannot be undone.
               </p>
             </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#4b5563', fontWeight: 500 }}>
+            <div className="mb-5">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
                 {confirmModal.type === 'all'
                   ? 'Type "clear all" to confirm:'
                   : `Type "${confirmModal.tableName}" to confirm:`}
@@ -634,23 +575,21 @@ export function MappingSpreadsheetPage() {
                 type="text"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
-                style={{ width: '100%', padding: '12px', border: '2px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#f9fafb', color: '#1f2937', boxSizing: 'border-box', outline: 'none' }}
+                className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-md text-sm bg-gray-50 text-gray-900 outline-none focus:border-blue-500"
                 placeholder={confirmModal.type === 'all' ? 'clear all' : confirmModal.tableName}
                 autoFocus
               />
             </div>
-
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={handleCancelClear}
-                style={{ padding: '10px 20px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}
-              >
-                Cancel
-              </button>
+            <div className="flex gap-3 justify-end">
+              <button onClick={handleCancelClear} className="px-5 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-200">Cancel</button>
               <button
                 onClick={handleConfirmClear}
                 disabled={!isConfirmValid || clearingPair || clearingAll}
-                style={{ padding: '10px 20px', background: isConfirmValid ? '#dc2626' : '#e5e7eb', color: isConfirmValid ? '#ffffff' : '#9ca3af', border: 'none', borderRadius: '6px', cursor: isConfirmValid ? 'pointer' : 'not-allowed', fontSize: '14px', fontWeight: 500, opacity: isConfirmValid ? 1 : 0.7 }}
+                className={`px-5 py-2.5 rounded-md text-sm font-medium border-none ${
+                  isConfirmValid
+                    ? 'bg-red-600 text-white cursor-pointer hover:bg-red-700'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-70'
+                }`}
               >
                 {clearingPair || clearingAll ? 'Removing...' : 'Remove Mappings'}
               </button>
@@ -658,6 +597,6 @@ export function MappingSpreadsheetPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

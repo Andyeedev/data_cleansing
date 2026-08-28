@@ -69,6 +69,8 @@ class SnowflakeConfig(BaseConnectionConfig):
     schema: str = ""
     role: Optional[str] = None
     authenticator: str = "snowflake"
+    private_key: Optional[str] = None  # PEM contents for SNOWFLAKE_JWT (stored encrypted as password, path outside Terraform)
+    private_key_path: Optional[str] = None
 @dataclass
 class BigQueryConfig(BaseConnectionConfig):
     project_id: str = ""

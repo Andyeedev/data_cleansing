@@ -34,7 +34,7 @@ class UserRoleAssignRequest(BaseModel):
     role_id: str
 
 
-@router.get("/")
+@router.get("")
 def list_users(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
@@ -57,7 +57,7 @@ def get_user(user_id: str, current_user=Depends(get_current_user)):
     return standardize_response(service.get_user(user_id))
 
 
-@router.post("/")
+@router.post("")
 def create_user(
     payload: UserCreateRequest,
     current_user=Depends(get_current_user)

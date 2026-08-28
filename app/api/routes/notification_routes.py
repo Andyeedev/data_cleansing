@@ -21,7 +21,7 @@ class PreferenceUpdateRequest(BaseModel):
     enabled: bool
 
 
-@router.get("/")
+@router.get("")
 def list_notifications(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),

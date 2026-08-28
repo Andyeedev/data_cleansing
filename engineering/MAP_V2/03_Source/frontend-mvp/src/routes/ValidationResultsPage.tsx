@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { usePollBatchStatus } from '../hooks/useExecution';
 import {
@@ -10,17 +10,18 @@ import {
 } from '../hooks/useValidation';
 import { useAuth } from '../context/AuthContext';
 import { useValidationFilter } from '../context/ValidationFilterContext';
-import { StatusBadge } from '../components/shared/StatusBadge';
 import { ProgressBar } from '../components/shared/ProgressBar';
-import { MetricCard } from '../components/shared/MetricCard';
 import { TabBar } from '../components/shared/TabBar';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { EmptyState } from '../components/shared/EmptyState';
-import { PageHeader } from '../components/PageHeader/PageHeader';
 import CascadeDropdowns from '../components/shared/CascadeDropdowns';
+import { PageContainer } from '../components/PageContainer/PageContainer';
+import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 
 type TabKey = 'overview' | 'controls' | 'exceptions' | 'governance';
+
+const AUTO_REFRESH_MS = 15000;
 
 export function ValidationResultsPage() {
   const { batchId: urlBatchId } = useParams<{ batchId: string }>();
@@ -31,16 +32,14 @@ export function ValidationResultsPage() {
   const [selectedBatchId, setSelectedBatchId] = useState(urlBatchId || contextBatchId || '');
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
+  const [isLive, setIsLive] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Check if coming from Rules page
   const fromRules = searchParams.get('from_rules') === 'true';
   const ruleId = searchParams.get('rule_id');
-  const mappingId = searchParams.get('mapping_id');
 
-  // Auto-select control if coming from rules with rule_id
   useEffect(() => {
     if (ruleId && ruleId.startsWith('C')) {
-      // Extract control_id from rule_id (e.g., C02_BALANCE_RECON -> C02)
       const controlIdMatch = ruleId.match(/^C(\d+)_/);
       const controlId = controlIdMatch ? `C${controlIdMatch[1]}` : ruleId;
       setSelectedControlId(controlId);
@@ -64,6 +63,18 @@ export function ValidationResultsPage() {
   const { data: riskScore, loading: riskLoading } = useRiskScore(selectedBatchId || null);
   const { data: compliance, loading: complianceLoading } = useComplianceChecks(selectedBatchId || null);
 
+  const refetchAll = useCallback(() => {
+    if (selectedBatchId) startPolling(selectedBatchId);
+  }, [selectedBatchId, startPolling]);
+
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (isLive && selectedBatchId) {
+      intervalRef.current = setInterval(refetchAll, AUTO_REFRESH_MS);
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [isLive, refetchAll, selectedBatchId]);
+
   useEffect(() => {
     if (selectedBatchId) {
       startPolling(selectedBatchId);
@@ -78,97 +89,88 @@ export function ValidationResultsPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Validation Results</h1>
+      <PageContainer>
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900">Validation Results</h1>
+        </div>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div style={{ padding: 'var(--space-lg)' }}>
-      <PageHeader
-        title="Validation Results"
-        description="Detailed validation report for a specific batch"
-        actions={
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
-            {fromRules && (
-              <button
-                onClick={() => navigate('/validation/rules')}
-                style={{
-                  padding: 'var(--space-sm) var(--space-md)',
-                  background: 'var(--color-secondary)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer',
-                  fontSize: 'var(--font-size-sm)',
-                  fontWeight: 500,
-                }}
-              >
-                ← Back to Rules
-              </button>
-            )}
-            <CascadeDropdowns />
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>or enter Batch ID:</span>
+    <PageContainer>
+      {/* ========== PAGE HEADER ========== */}
+      <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Validation Results</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {status
+              ? `${status.completed_controls}/${status.total_controls} controls \u2014 ${status.status}`
+              : selectedBatchId
+                ? `Batch ${selectedBatchId.slice(0, 8)}...`
+                : 'Select a batch to view results'}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {fromRules && (
+            <button
+              onClick={() => navigate('/validation/rules')}
+              className="px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              &larr; Back to Rules
+            </button>
+          )}
+          <CascadeDropdowns />
+          <div className="flex items-center gap-2">
             <input
               type="text"
               placeholder="Batch UUID"
               value={selectedBatchId}
               onChange={(e) => setSelectedBatchId(e.target.value)}
-              style={{
-                padding: 'var(--space-sm) var(--space-md)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                fontSize: 'var(--font-size-sm)',
-                width: 200,
-                fontFamily: 'monospace',
-              }}
+              className="px-3 py-1.5 text-xs font-mono rounded-md border border-gray-300 bg-white text-gray-700 w-[200px] placeholder:text-gray-400"
             />
             <button
-              onClick={() => {
-                if (selectedBatchId) {
-                  navigate(`/validation/results/${selectedBatchId}`);
-                }
-              }}
-              style={{
-                padding: 'var(--space-sm) var(--space-md)',
-                background: 'var(--color-primary)',
-                color: 'var(--color-text-on-primary)',
-                border: 'none',
-                borderRadius: 'var(--radius)',
-                cursor: 'pointer',
-                fontSize: 'var(--font-size-sm)',
-                fontWeight: 500,
-              }}
+              onClick={() => { if (selectedBatchId) navigate(`/validation/results/${selectedBatchId}`); }}
+              className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             >
               Load
             </button>
-</div>
-        }
-      />
+          </div>
+          <button
+            onClick={() => setIsLive(!isLive)}
+            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+              isLive
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-gray-50 text-gray-700 border-gray-300'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-white' : 'bg-gray-400'}`} />
+            {isLive ? 'Live' : 'Paused'}
+          </button>
+        </div>
+      </div>
+
       {!selectedBatchId && (
-        <EmptyState
-          title="No batch selected"
-          description="Enter a batch ID above to view validation results."
-        />
+        <EmptyState message="No batch selected. Enter a batch ID above to view validation results." />
       )}
 
       {selectedBatchId && statusError && <ErrorState message={statusError} />}
       {selectedBatchId && reportError && <ErrorState message={reportError} />}
-
       {selectedBatchId && statusLoading && !status && <LoadingSkeleton rows={4} variant="card" />}
 
       {selectedBatchId && status && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-            <MetricCard title="Status" value={status.status} color={status.status === 'FAILED' ? 'var(--color-danger)' : 'var(--color-success)'} />
-            <MetricCard title="Progress" value={`${getProgressPercent(status.completed_controls, status.total_controls)}%`} />
-            <MetricCard title="Total Controls" value={status.total_controls} />
-            <MetricCard title="Failed" value={status.failed_controls} color={status.failed_controls > 0 ? 'var(--color-danger)' : undefined} />
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <KpiBox label="Status" value={status.status} tone={status.status === 'FAILED' ? 'error' : 'success'} />
+            <KpiBox label="Progress" value={`${getProgressPercent(status.completed_controls, status.total_controls)}%`} tone="info" />
+            <KpiBox label="Total Controls" value={status.total_controls} tone="info" />
+            <KpiBox label="Failed" value={status.failed_controls} tone={status.failed_controls > 0 ? 'error' : 'neutral'} />
           </div>
 
-          <div style={{ marginBottom: 'var(--space-lg)' }}>
+          {/* Progress Bar */}
+          <div className="mb-6">
             <ProgressBar
               value={getProgressPercent(status.completed_controls, status.total_controls)}
               label="Execution Progress"
@@ -178,6 +180,7 @@ export function ValidationResultsPage() {
             />
           </div>
 
+          {/* Tabs */}
           <TabBar
             tabs={[
               { key: 'overview', label: 'Overview' },
@@ -189,302 +192,235 @@ export function ValidationResultsPage() {
             onTabChange={(key) => setActiveTab(key as TabKey)}
           />
 
+          {/* ===== OVERVIEW TAB ===== */}
           {activeTab === 'overview' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)' }}>
-              <div style={{ padding: 'var(--space-lg)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-md)' }}>Batch Summary</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ReportCard title="Batch Summary">
                 {reportLoading ? (
                   <LoadingSkeleton rows={3} variant="card" />
                 ) : report ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Batch ID</span>
-                      <span style={{ fontFamily: 'monospace' }}>{report.batch_id.slice(0, 12)}...</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Overall Status</span>
-                      <StatusBadge status={report.overall_status} size="sm" />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Overall Score</span>
-                      <span>{report.overall_score ?? '—'}%</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Started</span>
-                      <span>{report.started_at ? new Date(report.started_at).toLocaleString() : '—'}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Completed</span>
-                      <span>{report.completed_at ? new Date(report.completed_at).toLocaleString() : '—'}</span>
-                    </div>
+                  <div className="flex flex-col gap-2">
+                    <DetailRow label="Batch ID" value={report.batch_id.slice(0, 12) + '...'} mono />
+                    <DetailRow label="Overall Status">
+                      <StatusPill status={report.overall_status} />
+                    </DetailRow>
+                    <DetailRow label="Overall Score" value={report.overall_score != null ? `${report.overall_score}%` : '\u2014'} />
+                    <DetailRow label="Started" value={report.started_at ? new Date(report.started_at).toLocaleString() : '\u2014'} />
+                    <DetailRow label="Completed" value={report.completed_at ? new Date(report.completed_at).toLocaleString() : '\u2014'} />
                   </div>
                 ) : (
-                  <EmptyState title="No report data" description="Report data is not available for this batch." />
+                  <EmptyState message="Report data is not available for this batch." />
                 )}
-              </div>
+              </ReportCard>
 
-              <div style={{ padding: 'var(--space-lg)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-md)' }}>Risk Score</h4>
+              <ReportCard title="Risk Score">
                 {riskLoading ? (
                   <LoadingSkeleton rows={3} variant="card" />
                 ) : riskScore ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Risk Level</span>
-                      <StatusBadge status={riskScore.risk_level} size="sm" />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Risk Score</span>
-                      <span>{riskScore.risk_score}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Calculated At</span>
-                      <span>{riskScore.calculated_at ? new Date(riskScore.calculated_at).toLocaleString() : '—'}</span>
-                    </div>
+                  <div className="flex flex-col gap-2">
+                    <DetailRow label="Risk Level">
+                      <StatusPill status={riskScore.risk_level} />
+                    </DetailRow>
+                    <DetailRow label="Risk Score" value={riskScore.risk_score} />
+                    <DetailRow label="Calculated At" value={riskScore.calculated_at ? new Date(riskScore.calculated_at).toLocaleString() : '\u2014'} />
                   </div>
                 ) : (
-                  <EmptyState title="No risk data" description="Risk score is not available for this batch." />
+                  <EmptyState message="Risk score is not available for this batch." />
                 )}
-              </div>
+              </ReportCard>
             </div>
           )}
 
+          {/* ===== CONTROLS TAB ===== */}
           {activeTab === 'controls' && (
-            <div>
-              <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-md)' }}>Control Results</h4>
+            <ReportCard title="Control Results" subtitle={`${report?.control_summaries?.length || 0} controls`}>
               {reportLoading ? (
                 <LoadingSkeleton rows={5} variant="card" />
               ) : report?.control_summaries && report.control_summaries.length > 0 ? (
-                <div style={{
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  overflow: 'auto',
-                }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                    <thead style={{ position: 'sticky', top: 0, background: 'var(--color-bg-secondary)', zIndex: 1 }}>
-                      <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Control ID</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Status</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Total</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Passed</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Failed</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Skipped</th>
+                <div className="overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-gray-50 z-[1]">
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Control ID</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Passed</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Failed</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Skipped</th>
                       </tr>
                     </thead>
                     <tbody>
                       {report.control_summaries.map((control) => (
                         <tr
                           key={control.control_id}
-                          style={{ borderBottom: '1px solid var(--color-border)', cursor: 'pointer' }}
+                          className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
                           onClick={() => setSelectedControlId(control.control_id)}
                         >
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{control.control_id.slice(0, 12)}...</td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                            <StatusBadge status={control.overall_status} size="sm" />
+                          <td className="px-3 py-2.5 font-mono text-gray-900">{control.control_id.slice(0, 12)}...</td>
+                          <td className="px-3 py-2.5">
+                            <StatusPill status={control.overall_status} />
                           </td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{control.total_rules}</td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-success)' }}>{control.passed_rules}</td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)', color: control.failed_rules > 0 ? 'var(--color-danger)' : undefined }}>
-                            {control.failed_rules}
-                          </td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)', color: control.skipped_rules > 0 ? 'var(--color-warning)' : undefined }}>
-                            {control.skipped_rules || 0}
-                          </td>
+                          <td className="px-3 py-2.5 text-gray-700">{control.total_rules}</td>
+                          <td className="px-3 py-2.5 text-green-700 font-semibold">{control.passed_rules}</td>
+                          <td className="px-3 py-2.5 text-red-700 font-semibold">{control.failed_rules}</td>
+                          <td className="px-3 py-2.5 text-gray-500">{control.skipped_rules || 0}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <EmptyState title="No controls" description="No control data available for this batch." />
+                <EmptyState message="No control data available for this batch." />
               )}
-</div>
+            </ReportCard>
           )}
 
+          {/* ===== CONTROL RULES MODAL ===== */}
           {selectedControlId && (
             <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1000,
-              }}
+              className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50"
               onClick={() => setSelectedControlId(null)}
             >
               <div
-                style={{
-                  background: 'var(--color-surface)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: 'var(--space-lg)',
-                  maxWidth: '900px',
-                  width: '90%',
-                  maxHeight: '80vh',
-                  overflow: 'auto',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                }}
+                className="relative bg-white rounded-xl shadow-2xl w-[90%] max-w-[900px] max-h-[80vh] overflow-auto"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
-                  <h3 style={{ margin: 0 }}>Control Rules: {selectedControlId}</h3>
+                <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-base font-semibold text-gray-900 m-0">Control Rules: {selectedControlId}</h3>
                   <button
                     onClick={() => setSelectedControlId(null)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: 'var(--font-size-lg)',
-                      cursor: 'pointer',
-                      color: 'var(--color-text-secondary)',
-                    }}
+                    className="text-gray-400 hover:text-gray-600 text-lg bg-transparent border-none cursor-pointer p-1 transition-colors"
                   >
-                    ×
+                    &times;
                   </button>
                 </div>
-
-                {rulesLoading ? (
-                  <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-                    Loading rules...
-                  </div>
-                ) : rulesError ? (
-                  <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-danger)' }}>
-                    {rulesError}
-                  </div>
-                ) : controlRules && controlRules.length > 0 ? (
-                  <div style={{ overflow: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                      <thead style={{ position: 'sticky', top: 0, background: 'var(--color-bg-secondary)', zIndex: 1 }}>
-                        <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Rule ID</th>
-                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Entity</th>
-                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Status</th>
-                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Delta</th>
-                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Time (s)</th>
-                          <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Details</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {controlRules.map((rule) => (
-                          <tr key={rule.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace', fontSize: 'var(--font-size-xs)' }}>{rule.rule_id}</td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.entity_name}</td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                              <StatusBadge status={rule.execution_status} size="sm" />
-                            </td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.delta_value ?? '—'}</td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.execution_time_seconds?.toFixed(2) ?? '—'}</td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                              {rule.detail_json && Object.keys(rule.detail_json).length > 0 ? (
-                                <details style={{ cursor: 'pointer' }}>
-                                  <summary style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)' }}>View Details</summary>
-                                  <pre style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius)', overflow: 'auto', maxHeight: '200px' }}>
-                                    {JSON.stringify(rule.detail_json, null, 2)}
-                                  </pre>
-                                </details>
-                              ) : (
-                                <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)' }}>No details</span>
-                              )}
-                            </td>
+                <div className="px-6 py-4">
+                  {rulesLoading ? (
+                    <div className="py-8 text-center text-sm text-gray-400">Loading rules...</div>
+                  ) : rulesError ? (
+                    <div className="py-8 text-center text-sm text-red-600">{rulesError}</div>
+                  ) : controlRules && controlRules.length > 0 ? (
+                    <div className="overflow-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Rule ID</th>
+                            <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Entity</th>
+                            <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Delta</th>
+                            <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Time (s)</th>
+                            <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Details</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-                    No rules found for this control.
-                  </div>
-                )}
+                        </thead>
+                        <tbody>
+                          {controlRules.map((rule) => (
+                            <tr key={rule.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                              <td className="px-3 py-2.5 font-mono text-[11px] text-gray-900">{rule.rule_id}</td>
+                              <td className="px-3 py-2.5 text-gray-700">{rule.entity_name}</td>
+                              <td className="px-3 py-2.5">
+                                <StatusPill status={rule.execution_status} />
+                              </td>
+                              <td className="px-3 py-2.5 text-gray-700">{rule.delta_value ?? '\u2014'}</td>
+                              <td className="px-3 py-2.5 text-gray-700">{rule.execution_time_seconds?.toFixed(2) ?? '\u2014'}</td>
+                              <td className="px-3 py-2.5">
+                                {rule.detail_json && Object.keys(rule.detail_json).length > 0 ? (
+                                  <details className="cursor-pointer">
+                                    <summary className="text-blue-600 text-[11px] font-medium hover:text-blue-800 transition-colors">View Details</summary>
+                                    <pre className="mt-1 text-[11px] bg-gray-50 p-2 rounded overflow-auto max-h-[200px] font-mono text-gray-700">
+                                      {JSON.stringify(rule.detail_json, null, 2)}
+                                    </pre>
+                                  </details>
+                                ) : (
+                                  <span className="text-gray-400 text-[11px]">No details</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-sm text-gray-400">No rules found for this control.</div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-        {activeTab === 'exceptions' && (
-            <div>
-              <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-md)' }}>Compliance Exceptions</h4>
+          {/* ===== EXCEPTIONS TAB ===== */}
+          {activeTab === 'exceptions' && (
+            <ReportCard title="Compliance Exceptions" subtitle={`${compliance?.exceptions?.length || 0} exceptions`}>
               {complianceLoading ? (
                 <LoadingSkeleton rows={5} variant="card" />
               ) : compliance && compliance.exceptions && compliance.exceptions.length > 0 ? (
-                <div style={{
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  overflow: 'auto',
-                }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                    <thead style={{ position: 'sticky', top: 0, background: 'var(--color-bg-secondary)', zIndex: 1 }}>
-                      <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Entity</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Source</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Target</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Delta</th>
-                        <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>Cause</th>
+                <div className="overflow-auto">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-gray-50 z-[1]">
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Entity</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Source</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Target</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Delta</th>
+                        <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Cause</th>
                       </tr>
                     </thead>
                     <tbody>
                       {compliance.exceptions.map((ex) => (
-                        <tr key={ex.exception_id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{ex.entity_name}</td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{ex.source_value}</td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{ex.target_value}</td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)', color: ex.delta_value && ex.delta_value !== 0 ? 'var(--color-danger)' : undefined }}>
-                            {ex.delta_value ?? '—'}
+                        <tr key={ex.exception_id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                          <td className="px-3 py-2.5 text-gray-700">{ex.entity_name}</td>
+                          <td className="px-3 py-2.5 font-mono text-gray-900">{ex.source_value}</td>
+                          <td className="px-3 py-2.5 font-mono text-gray-900">{ex.target_value}</td>
+                          <td className={`px-3 py-2.5 font-semibold ${ex.delta_value && ex.delta_value !== 0 ? 'text-red-700' : 'text-gray-700'}`}>
+                            {ex.delta_value ?? '\u2014'}
                           </td>
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{ex.cause}</td>
+                          <td className="px-3 py-2.5 text-gray-700">{ex.cause}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               ) : (
-                <EmptyState title="No exceptions" description="No compliance exceptions found for this batch." />
+                <EmptyState message="No compliance exceptions found for this batch." />
               )}
-            </div>
+            </ReportCard>
           )}
 
+          {/* ===== GOVERNANCE TAB ===== */}
           {activeTab === 'governance' && (
-            <div>
-              <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-md)' }}>Governance Decision</h4>
+            <ReportCard title="Governance Decision">
               {govLoading ? (
                 <LoadingSkeleton rows={3} variant="card" />
               ) : governance ? (
-                <div style={{
-                  padding: 'var(--space-lg)',
-                  background: 'var(--color-bg-secondary)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Migration Status</span>
-                      <StatusBadge status={governance.migration_status} size="sm" />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Blocking Controls</span>
-                      <span style={{ color: governance.blocking_controls > 0 ? 'var(--color-danger)' : undefined }}>
-                        {governance.blocking_controls}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Total Failed Rules</span>
-                      <span>{governance.total_failed_rules}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)' }}>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>Decision Time</span>
-                      <span>{governance.decision_time ? new Date(governance.decision_time).toLocaleString() : '—'}</span>
-                    </div>
-                  </div>
+                <div className="flex flex-col gap-2">
+                  <DetailRow label="Migration Status">
+                    <StatusPill status={governance.migration_status} />
+                  </DetailRow>
+                  <DetailRow label="Blocking Controls">
+                    <span className={governance.blocking_controls > 0 ? 'text-red-700 font-semibold' : 'text-gray-700'}>
+                      {governance.blocking_controls}
+                    </span>
+                  </DetailRow>
+                  <DetailRow label="Total Failed Rules" value={governance.total_failed_rules} />
+                  <DetailRow label="Decision Time" value={governance.decision_time ? new Date(governance.decision_time).toLocaleString() : '\u2014'} />
                 </div>
               ) : (
-                <EmptyState title="No governance data" description="Governance decision is not available for this batch." />
+                <EmptyState message="Governance decision is not available for this batch." />
               )}
-            </div>
+            </ReportCard>
           )}
         </>
       )}
+    </PageContainer>
+  );
+}
+
+function DetailRow({ label, value, mono, children }: {
+  label: string; value?: string | number | null; mono?: boolean; children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex justify-between items-center text-sm py-1">
+      <span className="text-gray-500">{label}</span>
+      {children ? children : <span className={mono ? 'font-mono text-gray-900' : 'text-gray-700'}>{value ?? '\u2014'}</span>}
     </div>
   );
 }

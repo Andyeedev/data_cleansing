@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRuleUsageStats, useProjectsForTenant } from '../hooks/useRules';
 import { apiGet, apiPost } from '../utils/apiClient';
-import { MetricCard } from '../components/shared/MetricCard';
+import { useValidationFilter } from '../context/ValidationFilterContext';
+import { KpiBox, StatusPill, EmptyState } from '../components/reports/reportWidgets';
 import { StatusBadge } from '../components/shared/StatusBadge';
-import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
-import { useNavigate } from 'react-router-dom';
+import { Modal } from '../components/shared/Modal';
 import type { RuleUsageItem } from '../hooks/useRules';
 
 type FilterMapping = 'all' | 'mapped' | 'unmapped';
@@ -74,114 +74,62 @@ function ControlReportModal({ isOpen, onClose, controlId, controlName, projectId
     fetchData();
   }, [isOpen, controlId, projectId]);
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          background: 'var(--color-surface)',
-          borderRadius: 'var(--radius-md)',
-          padding: 'var(--space-lg)',
-          maxWidth: '900px',
-          width: '90%',
-          maxHeight: '80vh',
-          overflow: 'auto',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
-          <h3 style={{ margin: 0 }}>Control Rules: {controlId}</h3>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: 'var(--font-size-lg)',
-              cursor: 'pointer',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        {loading ? (
-          <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-            Loading rules...
-          </div>
-        ) : error ? (
-          <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-danger)' }}>
-            {error}
-          </div>
-        ) : data.length > 0 ? (
-          <div style={{ overflow: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-              <thead style={{ position: 'sticky', top: 0, background: 'var(--color-bg-secondary)', zIndex: 1 }}>
-                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Rule ID</th>
-                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Entity</th>
-                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Status</th>
-                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Delta</th>
-                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Time (s)</th>
-                  <th style={{ padding: 'var(--space-sm) var(--space-md)', textAlign: 'left', fontWeight: 700, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>Details</th>
+    <Modal open={isOpen} title={`Control Rules: ${controlId}`} onClose={onClose}>
+      {loading ? (
+        <div className="py-12 text-center text-gray-500">Loading rules...</div>
+      ) : error ? (
+        <div className="py-12 text-center text-red-600">{error}</div>
+      ) : data.length > 0 ? (
+        <div className="overflow-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead className="sticky top-0 bg-gray-50 z-1">
+              <tr className="border-b border-gray-200">
+                <th className="px-4 py-2 text-left font-bold text-xs text-gray-500 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Rule ID</th>
+                <th className="px-4 py-2 text-left font-bold text-xs text-gray-500 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Entity</th>
+                <th className="px-4 py-2 text-left font-bold text-xs text-gray-500 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Status</th>
+                <th className="px-4 py-2 text-left font-bold text-xs text-gray-500 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Delta</th>
+                <th className="px-4 py-2 text-left font-bold text-xs text-gray-500 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Time (s)</th>
+                <th className="px-4 py-2 text-left font-bold text-xs text-gray-500 bg-gray-50 border-b-2 border-gray-200 whitespace-nowrap">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((rule: any) => (
+                <tr key={rule.id} className="border-b border-gray-200">
+                  <td className="px-4 py-2 font-mono text-xs">{rule.rule_id}</td>
+                  <td className="px-4 py-2">{rule.entity_name}</td>
+                  <td className="px-4 py-2"><StatusPill status={rule.execution_status} /></td>
+                  <td className="px-4 py-2">{rule.delta_value ?? '\u2014'}</td>
+                  <td className="px-4 py-2">{rule.execution_time_seconds?.toFixed(2) ?? '\u2014'}</td>
+                  <td className="px-4 py-2">
+                    {rule.detail_json && Object.keys(rule.detail_json).length > 0 ? (
+                      <details className="cursor-pointer">
+                        <summary className="text-blue-600 text-xs">View Details</summary>
+                        <pre className="mt-1 text-xs bg-gray-50 p-2 rounded overflow-auto max-h-48">
+                          {JSON.stringify(rule.detail_json, null, 2)}
+                        </pre>
+                      </details>
+                    ) : (
+                      <span className="text-gray-400 text-xs">No details</span>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {data.map((rule: any) => (
-                  <tr key={rule.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace', fontSize: 'var(--font-size-xs)' }}>{rule.rule_id}</td>
-                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.entity_name}</td>
-                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                      <StatusBadge status={rule.execution_status} size="sm" />
-                    </td>
-                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.delta_value ?? '—'}</td>
-                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{rule.execution_time_seconds?.toFixed(2) ?? '—'}</td>
-                    <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                      {rule.detail_json && Object.keys(rule.detail_json).length > 0 ? (
-                        <details style={{ cursor: 'pointer' }}>
-                          <summary style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)' }}>View Details</summary>
-                          <pre style={{ marginTop: 'var(--space-xs)', fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', padding: 'var(--space-sm)', borderRadius: 'var(--radius)', overflow: 'auto', maxHeight: '200px' }}>
-                            {JSON.stringify(rule.detail_json, null, 2)}
-                          </pre>
-                        </details>
-                      ) : (
-                        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-xs)' }}>No details</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-            No rules found for this control.
-          </div>
-        )}
-      </div>
-    </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="py-12 text-center text-gray-500">No rules found for this control.</div>
+      )}
+    </Modal>
   );
 }
 
-export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selectedTenant: string; onTenantChange: (tenant: string) => void }) {
-  const { data, loading, error, refetch } = useRuleUsageStats(selectedTenant || undefined);
-  const { data: projects } = useProjectsForTenant(selectedTenant || undefined);
+export function RuleMappingsUsageTab() {
+  const { tenantId } = useValidationFilter();
+  const selectedTenant = tenantId || '';
+  const { data, loading, error, refetch } = useRuleUsageStats(tenantId || undefined);
+  const { data: projects } = useProjectsForTenant(tenantId || undefined);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMapping, setFilterMapping] = useState<FilterMapping>('all');
   const [filterSeverity, setFilterSeverity] = useState<'all' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'>('all');
@@ -288,60 +236,66 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
     }
   };
 
-  const thStyle: React.CSSProperties = { textAlign: 'left', padding: '8px 16px', color: '#374151', fontWeight: 700, fontSize: '12px', cursor: 'pointer', userSelect: 'none', background: '#f3f4f6', borderBottom: '2px solid #d1d5db' };
-  const tdStyle: React.CSSProperties = { padding: '8px 16px', fontSize: '14px', borderBottom: '1px solid #e5e7eb' };
+  const handleSort = (field: SortField) => {
+    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    setSortField(field);
+  };
+
+  const sortArrow = (field: SortField) => sortField === field ? (sortDir === 'asc' ? ' \u2191' : ' \u2193') : '';
 
   if (loading) return <LoadingSkeleton rows={4} variant="card" />;
   if (error) return <ErrorState message={error} onRetry={refetch} />;
 
-  const unmappedWarning = unmappedRules > 0 ? (
-    <div style={{ padding: '16px', marginBottom: '16px', background: 'rgba(245,158,11,0.1)', borderRadius: '6px', border: '1px solid #f59e0b' }}>
-      <div style={{ fontWeight: 600, color: '#f59e0b', marginBottom: '4px' }}>
-        {unmappedRules} rule(s) not mapped to any dataset
-      </div>
-      <div style={{ fontSize: '12px', color: '#6b7280' }}>
-        These rules will not execute during migration. Use <strong>Auto-Discover</strong> to bind rules to datasets based on column metadata.
-      </div>
-    </div>
-  ) : null;
-
   return (
     <>
-      <div style={{ padding: '8px 16px', marginBottom: '16px', background: 'rgba(59,130,246,0.08)', borderRadius: '6px', border: '1px solid rgba(59,130,246,0.2)', fontSize: '12px', color: '#6b7280' }}>
-        <strong style={{ color: '#3b82f6' }}>Rule Mappings & Usage</strong> shows which rules are bound to dataset mappings via <code>core.rule_dataset_mapping</code> and their execution history. Rules with <strong>0 mappings</strong> are not applied to any dataset.
+      {/* ========== INFO BANNER ========== */}
+      <div className="p-4 mb-4 bg-blue-50 rounded-md border border-blue-200 text-xs text-gray-500">
+        <strong className="text-blue-600">Rule Mappings &amp; Usage</strong> shows which rules are bound to dataset mappings via <code>core.rule_dataset_mapping</code> and their execution history. Rules with <strong>0 mappings</strong> are not applied to any dataset.
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
-        <TenantFilter selectedTenant={selectedTenant} onChange={onTenantChange} />
-        <button onClick={handleAutoDiscover} disabled={autoDiscovering} style={{ padding: '8px 16px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', cursor: autoDiscovering ? 'not-allowed' : 'pointer', fontSize: '14px', opacity: autoDiscovering ? 0.5 : 1 }}>
+      {/* ========== TOOLBAR ========== */}
+      <div className="flex gap-2 items-center mb-4 flex-wrap">
+        <button onClick={handleAutoDiscover} disabled={autoDiscovering} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
           {autoDiscovering ? 'Discovering...' : 'Auto-Discover'}
         </button>
-        <button onClick={refetch} style={{ padding: '8px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}>
+        <button onClick={refetch} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm border border-gray-300 rounded-md cursor-pointer">
           Refresh
         </button>
       </div>
 
       {data && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-            <MetricCard title="Total Rules" value={totalRules} />
-            <MetricCard title="Mapped Rules" value={mappedRules} color="#10b981" subtitle={`of ${totalRules} total`} />
-            <MetricCard title="Unmapped Rules" value={unmappedRules} color={unmappedRules > 0 ? '#ef4444' : '#10b981'} subtitle={unmappedRules > 0 ? 'Not bound to any dataset' : 'All rules mapped'} />
-            <MetricCard title="Total Mappings" value={totalMappings} subtitle="rule-to-dataset bindings" />
+          {/* ========== KPI ROW ========== */}
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mb-6">
+            <KpiBox label="Total Rules" value={totalRules} tone="info" />
+            <KpiBox label="Mapped Rules" value={mappedRules} tone="success" />
+            <KpiBox label="Unmapped Rules" value={unmappedRules} tone={unmappedRules > 0 ? 'error' : 'success'} />
+            <KpiBox label="Total Mappings" value={totalMappings} tone="info" />
           </div>
 
-          {unmappedWarning}
+          {/* ========== UNMAPPED WARNING ========== */}
+          {unmappedRules > 0 && (
+            <div className="p-4 mb-4 bg-yellow-50 rounded-md border border-yellow-400">
+              <div className="font-semibold text-yellow-600 mb-1">
+                {unmappedRules} rule(s) not mapped to any dataset
+              </div>
+              <div className="text-xs text-gray-500">
+                These rules will not execute during migration. Use <strong>Auto-Discover</strong> to bind rules to datasets based on column metadata.
+              </div>
+            </div>
+          )}
 
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 200 }}>
+          {/* ========== FILTERS ========== */}
+          <div className="flex gap-4 mb-4 items-center flex-wrap">
+            <div className="flex-1 min-w-52">
               <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search rules..." />
             </div>
-            <select value={filterMapping} onChange={(e) => setFilterMapping(e.target.value as FilterMapping)} style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#ffffff', color: '#374151' }}>
+            <select value={filterMapping} onChange={(e) => setFilterMapping(e.target.value as FilterMapping)} className="px-2 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-700">
               <option value="all">All Mapping Status</option>
               <option value="mapped">Mapped</option>
               <option value="unmapped">Unmapped</option>
             </select>
-            <select value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value as 'all' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW')} style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#ffffff', color: '#374151' }}>
+            <select value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value as 'all' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW')} className="px-2 py-1 border border-gray-300 rounded-md text-sm bg-white text-gray-700">
               <option value="all">All Severity</option>
               <option value="CRITICAL">Critical</option>
               <option value="HIGH">High</option>
@@ -350,116 +304,103 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
             </select>
           </div>
 
+          {/* ========== TABLE ========== */}
           {filteredRules.length === 0 ? (
             <EmptyState title="No rules found" description="No rules match your filters." />
           ) : (
-            <div style={{ border: '1px solid #d1d5db', borderRadius: '6px', overflow: 'auto', maxHeight: '700px', background: '#fff' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+            <div className="border border-gray-300 rounded-md overflow-auto max-h-[700px] bg-white">
+              <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr>
-                    <th style={thStyle} onClick={() => { setSortField('rule_id'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                      Rule ID {sortField === 'rule_id' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                    </th>
-                    <th style={thStyle} onClick={() => { setSortField('rule_name'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                      Name {sortField === 'rule_name' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                    </th>
-                    <th style={thStyle} onClick={() => { setSortField('control_id'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                      Control {sortField === 'control_id' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                    </th>
-                    <th style={thStyle} onClick={() => { setSortField('severity_level'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                      Severity {sortField === 'severity_level' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                    </th>
-                    <th style={thStyle} onClick={() => { setSortField('mapping_count'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                      Mappings {sortField === 'mapping_count' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                    </th>
-                    <th style={thStyle}>Status</th>
-                    <th style={thStyle} onClick={() => { setSortField('total_executions'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                      Executions {sortField === 'total_executions' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                    </th>
-                    <th style={thStyle}>Last Execution</th>
+                    <th onClick={() => handleSort('rule_id')} className="text-left px-4 py-2 text-gray-700 font-bold text-xs cursor-pointer select-none bg-gray-50 border-b-2 border-gray-300">Rule ID{sortArrow('rule_id')}</th>
+                    <th onClick={() => handleSort('rule_name')} className="text-left px-4 py-2 text-gray-700 font-bold text-xs cursor-pointer select-none bg-gray-50 border-b-2 border-gray-300">Name{sortArrow('rule_name')}</th>
+                    <th onClick={() => handleSort('control_id')} className="text-left px-4 py-2 text-gray-700 font-bold text-xs cursor-pointer select-none bg-gray-50 border-b-2 border-gray-300">Control{sortArrow('control_id')}</th>
+                    <th onClick={() => handleSort('severity_level')} className="text-left px-4 py-2 text-gray-700 font-bold text-xs cursor-pointer select-none bg-gray-50 border-b-2 border-gray-300">Severity{sortArrow('severity_level')}</th>
+                    <th onClick={() => handleSort('mapping_count')} className="text-left px-4 py-2 text-gray-700 font-bold text-xs cursor-pointer select-none bg-gray-50 border-b-2 border-gray-300">Mappings{sortArrow('mapping_count')}</th>
+                    <th className="text-left px-4 py-2 text-gray-700 font-bold text-xs bg-gray-50 border-b-2 border-gray-300">Status</th>
+                    <th onClick={() => handleSort('total_executions')} className="text-left px-4 py-2 text-gray-700 font-bold text-xs cursor-pointer select-none bg-gray-50 border-b-2 border-gray-300">Executions{sortArrow('total_executions')}</th>
+                    <th className="text-left px-4 py-2 text-gray-700 font-bold text-xs bg-gray-50 border-b-2 border-gray-300">Last Execution</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRules.map((rule: RuleUsageItem, idx: number) => {
-                    const rowBg = idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.02)';
+                    const rowBg = idx % 2 === 0 ? 'bg-transparent' : 'bg-gray-50/30';
                     const isUnmapped = rule.mapping_count === 0;
                     const isExpanded = expandedRuleId === rule.rule_id;
                     const cacheKey = selectedTenant ? `${rule.rule_id}:${selectedTenant}` : rule.rule_id;
                     const mappings = expandedMappings[cacheKey] || [];
                     return (
                       <React.Fragment key={`${rule.rule_id}-${idx}`}>
-                        <tr style={{ background: isUnmapped ? 'rgba(245,158,11,0.05)' : rowBg }}>
-                          <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 500 }}>{rule.rule_id}</td>
-                          <td style={tdStyle}>{rule.rule_name || '\u2014'}</td>
-                          <td style={{ ...tdStyle, fontFamily: 'monospace' }}>{rule.control_id || '\u2014'}</td>
-                          <td style={tdStyle}>
-                            <StatusBadge status={rule.severity_level || 'UNKNOWN'} size="sm" />
+                        <tr className={isUnmapped ? 'bg-yellow-50/30' : rowBg}>
+                          <td className="px-4 py-2 font-mono text-sm font-medium border-b border-gray-200">{rule.rule_id}</td>
+                          <td className="px-4 py-2 border-b border-gray-200">{rule.rule_name || '\u2014'}</td>
+                          <td className="px-4 py-2 font-mono border-b border-gray-200">{rule.control_id || '\u2014'}</td>
+                          <td className="px-4 py-2 border-b border-gray-200">
+                            <StatusPill status={rule.severity_level || 'UNKNOWN'} />
                           </td>
-                          <td style={tdStyle}>
+                          <td className="px-4 py-2 border-b border-gray-200">
                             {isUnmapped ? (
-                              <span style={{ color: '#ef4444', fontWeight: 600 }}>0</span>
+                              <span className="text-red-500 font-semibold">0</span>
                             ) : (
                               <button
                                 onClick={() => handleToggleMappings(rule.rule_id)}
-                                style={{ fontWeight: 600, color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 8px', fontSize: '12px' }}
+                                className="font-semibold text-blue-600 bg-transparent border-none cursor-pointer px-2 py-0.5 text-xs"
                               >
                                 {rule.mapping_count}
                                 {isExpanded ? ' \u2212' : ' +'}
                               </button>
                             )}
                           </td>
-                          <td style={tdStyle}>
+                          <td className="px-4 py-2 border-b border-gray-200">
                             <StatusBadge
                               status={rule.enabled_flag ? 'Enabled' : 'Disabled'}
                               size="sm"
                               variant={rule.enabled_flag ? 'success' : 'warning'}
                             />
                           </td>
-                          <td style={tdStyle}>
-                            <span style={{ fontWeight: 600 }}>{rule.total_executions}</span>
+                          <td className="px-4 py-2 border-b border-gray-200">
+                            <span className="font-semibold">{rule.total_executions}</span>
                           </td>
-                          <td style={{ ...tdStyle, fontSize: '12px', color: '#6b7280' }}>
+                          <td className="px-4 py-2 text-xs text-gray-500 border-b border-gray-200">
                             {rule.last_execution ? (
                               <span>
-                                <StatusBadge
-                                  status={rule.last_status ? (
-                                    rule.last_status.toLowerCase() === 'pass' ? 'Pass' :
-                                    rule.last_status.toLowerCase() === 'fail' ? 'Fail' :
-                                    rule.last_status.toLowerCase() === 'error' ? 'Error' :
+                                <StatusPill
+                                  status={
+                                    rule.last_status?.toLowerCase() === 'pass' ? 'Pass' :
+                                    rule.last_status?.toLowerCase() === 'fail' ? 'Fail' :
+                                    rule.last_status?.toLowerCase() === 'error' ? 'Error' :
                                     'Unknown'
-                                  ) : 'Unknown'}
-                                  size="sm"
-                                  variant={rule.last_status && rule.last_status.toLowerCase() === 'pass' ? 'success' : 'danger'}
+                                  }
                                 />
-                                <span style={{ marginLeft: '4px' }}>{new Date(rule.last_execution).toLocaleDateString()}</span>
+                                <span className="ml-1">{new Date(rule.last_execution).toLocaleDateString()}</span>
                               </span>
                             ) : (
-                              <span style={{ fontStyle: 'italic' }}>No executions</span>
+                              <span className="italic">No executions</span>
                             )}
                           </td>
                         </tr>
                         {isExpanded && (
                           <tr>
-                            <td colSpan={8} style={{ padding: '0', borderBottom: '1px solid #e5e7eb' }}>
-                              <div style={{ padding: '12px 24px', background: '#f9fafb' }}>
+                            <td colSpan={8} className="p-0 border-b border-gray-200">
+                              <div className="p-3 pl-10 bg-gray-50">
                                 {expandedLoading ? (
-                                  <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>Loading mappings...</div>
+                                  <div className="py-5 text-center text-gray-500">Loading mappings...</div>
                                 ) : mappings.length === 0 ? (
-                                  <div style={{ padding: '16px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '4px', color: '#374151' }}>No mappings found</div>
-                                    <div style={{ fontSize: '12px', color: '#6b7280' }}>This rule is not bound to any dataset mappings.</div>
+                                  <div className="py-4 text-center">
+                                    <div className="text-sm font-semibold text-gray-700 mb-1">No mappings found</div>
+                                    <div className="text-xs text-gray-500">This rule is not bound to any dataset mappings.</div>
                                   </div>
                                 ) : (
-                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                  <table className="w-full border-collapse text-xs">
                                     <thead>
                                       <tr>
-                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Dataset</th>
-                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Mapping</th>
-                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Last Run</th>
-                                        <th style={{ textAlign: 'right', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Delta</th>
-                                        <th style={{ textAlign: 'right', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Time (s)</th>
-                                        <th style={{ textAlign: 'left', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>Run Date</th>
-                                        <th style={{ textAlign: 'center', padding: '8px 12px', backgroundColor: '#f3f4f6', color: '#374151', fontWeight: 600, borderBottom: '1px solid #d1d5db' }}>
+                                        <th className="text-left px-3 py-2 bg-gray-50 text-gray-700 font-semibold border-b border-gray-300">Dataset</th>
+                                        <th className="text-left px-3 py-2 bg-gray-50 text-gray-700 font-semibold border-b border-gray-300">Mapping</th>
+                                        <th className="text-left px-3 py-2 bg-gray-50 text-gray-700 font-semibold border-b border-gray-300">Last Run</th>
+                                        <th className="text-right px-3 py-2 bg-gray-50 text-gray-700 font-semibold border-b border-gray-300">Delta</th>
+                                        <th className="text-right px-3 py-2 bg-gray-50 text-gray-700 font-semibold border-b border-gray-300">Time (s)</th>
+                                        <th className="text-left px-3 py-2 bg-gray-50 text-gray-700 font-semibold border-b border-gray-300">Run Date</th>
+                                        <th className="text-center px-3 py-2 bg-gray-50 text-gray-700 font-semibold border-b border-gray-300">
                                           {(() => {
                                             const expandedRule = filteredRules.find((r) => r.rule_id === expandedRuleId);
                                             const controlId = expandedRule?.control_id;
@@ -470,10 +411,10 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
                                                   e.stopPropagation();
                                                   setControlReportModal({ isOpen: true, controlId, controlName: `Control ${controlId}`, projectId });
                                                 }}
-                                                style={{ cursor: 'pointer', color: '#3b82f6', fontSize: '11px' }}
+                                                className="cursor-pointer text-blue-600 text-[11px]"
                                                 title={`Open report for ${controlId}`}
                                               >
-                                                🔍
+                                                \uD83D\uDD0D
                                               </span>
                                             ) : null;
                                           })()}
@@ -482,32 +423,36 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
                                     </thead>
                                     <tbody>
                                       {mappings.map((m) => (
-                                        <tr key={m.mapping_id} style={{ borderBottom: '1px solid #e5e7eb', background: m.execution_status === 'FAIL' ? 'rgba(239,68,68,0.04)' : m.execution_status === 'ERROR' ? 'rgba(245,158,11,0.04)' : 'transparent' }}>
-                                          <td style={{ padding: '8px 12px', color: '#1f2937', fontFamily: 'monospace' }}>{m.dataset_name}</td>
-                                          <td style={{ padding: '8px 12px' }}>
+                                        <tr key={m.mapping_id} className={`border-b border-gray-200 ${m.execution_status === 'FAIL' ? 'bg-red-50/30' : m.execution_status === 'ERROR' ? 'bg-yellow-50/30' : ''}`}>
+                                          <td className="px-3 py-2 text-gray-800 font-mono">{m.dataset_name}</td>
+                                          <td className="px-3 py-2">
                                             <StatusBadge status={m.is_active ? 'Active' : 'Inactive'} size="sm" variant={m.is_active ? 'success' : 'warning'} />
                                           </td>
-                                          <td style={{ padding: '8px 12px' }}>
+                                          <td className="px-3 py-2">
                                             {m.execution_status ? (
-                                              <StatusBadge
-                                                status={m.execution_status === 'PASS' ? 'Pass' : m.execution_status === 'FAIL' ? 'Fail' : m.execution_status === 'ERROR' ? 'Error' : m.execution_status === 'SKIPPED' ? 'Skipped' : m.execution_status}
-                                                size="sm"
-                                                variant={m.execution_status === 'PASS' ? 'success' : m.execution_status === 'FAIL' ? 'danger' : 'warning'}
+                                              <StatusPill
+                                                status={
+                                                  m.execution_status === 'PASS' ? 'Pass' :
+                                                  m.execution_status === 'FAIL' ? 'Fail' :
+                                                  m.execution_status === 'ERROR' ? 'Error' :
+                                                  m.execution_status === 'SKIPPED' ? 'Skipped' :
+                                                  m.execution_status
+                                                }
                                               />
                                             ) : (
-                                              <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Not run</span>
+                                              <span className="text-gray-400 italic">Not run</span>
                                             )}
                                           </td>
-                                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: m.delta_value && m.delta_value > 0 ? '#ef4444' : '#374151' }}>
+                                          <td className="px-3 py-2 text-right font-mono text-gray-700">
                                             {m.delta_value != null ? m.delta_value.toLocaleString() : '\u2014'}
                                           </td>
-                                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#6b7280' }}>
+                                          <td className="px-3 py-2 text-right font-mono text-gray-500">
                                             {m.execution_time_seconds != null ? m.execution_time_seconds.toFixed(2) : '\u2014'}
                                           </td>
-                                          <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: '11px' }}>
+                                          <td className="px-3 py-2 text-gray-500 text-[11px]">
                                             {m.last_execution_at ? new Date(m.last_execution_at).toLocaleString() : '\u2014'}
                                           </td>
-                                          <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                          <td className="px-3 py-2 text-center">
                                           </td>
                                         </tr>
                                       ))}
@@ -539,14 +484,4 @@ export function RuleMappingsUsageTab({ selectedTenant, onTenantChange }: { selec
   );
 }
 
-function TenantFilter({ selectedTenant, onChange }: { selectedTenant: string; onChange: (t: string) => void }) {
-  return (
-    <select
-      value={selectedTenant}
-      onChange={(e) => onChange(e.target.value)}
-      style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#fff', color: '#374151' }}
-    >
-      <option value="">All Tenants</option>
-    </select>
-  );
-}
+

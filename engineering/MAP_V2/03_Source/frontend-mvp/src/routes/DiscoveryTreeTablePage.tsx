@@ -4,16 +4,15 @@ import { useDiscoverySummary, useDiscoveryTree, useDiscoveryTables, triggerDisco
 import { useSystemList } from '../hooks/useSystems';
 import { useMigrationProjects, useMigrationTenants } from '../hooks/useMigration';
 import { SplitPane } from '../components/shared/SplitPane';
-import { PageHeader } from '../components/PageHeader/PageHeader';
-import { MetricCard } from '../components/shared/MetricCard';
-import { StatusBadge } from '../components/shared/StatusBadge';
 import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { SearchBar } from '../components/shared/SearchBar';
 import { TenantFilter } from '../components/shared/TenantFilter';
+import { PageContainer } from '../components/PageContainer/PageContainer';
+import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 import { DiscoveryDetailModal } from '../components/DiscoveryDetailModal';
-import type { SchemaNode, DiscoveryTableRow, ColumnDiff } from '../types/discovery';
+import type { SchemaNode, DiscoveryTableRow } from '../types/discovery';
 
 type SortField = 'source_table' | 'target_table' | 'status';
 type SortDir = 'asc' | 'desc';
@@ -43,7 +42,6 @@ export function DiscoveryTreeTablePage() {
   const selectedTenantName = tenants.find((t) => t.tenant_id === selectedTenant)?.tenant_name || selectedTenant;
 
   const hasSystems = systems && systems.length > 0;
-  const showAutoDiscovery = hasSystems;
   const primaryProject = projects && projects.length > 0 ? projects[0] : null;
 
   const loading = summaryLoading || treeLoading || tableLoading;
@@ -81,7 +79,6 @@ export function DiscoveryTreeTablePage() {
 
   const handleTableRowClick = useCallback((row: DiscoveryTableRow) => {
     setSelectedTable(row);
-    // Find and expand the source system in tree
     if (treeData.length > 0) {
       const firstSystem = treeData[0];
       if (firstSystem.columns) {
@@ -203,79 +200,99 @@ export function DiscoveryTreeTablePage() {
     modified: 'Modified',
   };
 
-  const statusBadgeVariant: Record<string, 'success' | 'danger' | 'warning'> = {
+  const statusPillVariant: Record<string, string> = {
     matched: 'success',
-    unmatched_source: 'danger',
+    unmatched_source: 'error',
     unmatched_target: 'warning',
-    unmatched: 'danger',
+    unmatched: 'error',
     modified: 'warning',
   };
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Discovery</h1>
+      <PageContainer>
+        <h1 className="text-xl font-bold text-gray-900 mb-4">Discovery</h1>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
-      </div>
+      </PageContainer>
     );
   }
 
-  const thStyle: React.CSSProperties = { textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', cursor: 'pointer', userSelect: 'none', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)' };
-  const selectStyle: React.CSSProperties = { padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', fontSize: 'var(--font-size-sm)', background: 'var(--color-background)', color: 'var(--color-text)', cursor: 'pointer' };
-
   return (
-    <div style={{ padding: 'var(--space-lg)' }}>
-      <PageHeader
-        title="Discovery Results"
-        description="Schema discovery and matching results"
-        actions={
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-            {primaryProject && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                <button onClick={handleAutoDiscovery} disabled={discovering} style={{ padding: 'var(--space-sm) var(--space-md)', background: discovering ? 'var(--color-bg-secondary)' : 'rgba(34, 197, 94, 0.1)', color: discovering ? 'var(--color-text-secondary)' : 'var(--color-success)', border: `1px solid ${discovering ? 'var(--color-border)' : 'rgba(34, 197, 94, 0.3)'}`, borderRadius: 'var(--radius)', cursor: discovering ? 'wait' : 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>
-                  {discovering ? '⏳ Discovering...' : 'Auto Discovery'}
-                </button>
-                {discoveryStatus && (
-                  <span style={{ fontSize: 'var(--font-size-sm)', color: discoveryStatus.includes('failed') || discoveryStatus.includes('Error') ? 'var(--color-danger)' : 'var(--color-success)' }}>
-                    {discoveryStatus}
-                  </span>
-                )}
-              </div>
-            )}
-            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
-            <button onClick={handleClearAllClick} disabled={clearingAll || !selectedTenant} aria-label={clearingAll ? 'Clearing discovery data...' : 'Clear All Discovery'} style={{ padding: 'var(--space-sm) var(--space-md)', background: clearingAll || !selectedTenant ? 'var(--color-bg-secondary)' : 'rgba(239, 68, 68, 0.1)', color: clearingAll || !selectedTenant ? 'var(--color-text-secondary)' : 'var(--color-danger)', border: `1px solid ${clearingAll || !selectedTenant ? 'var(--color-border)' : 'rgba(239, 68, 68, 0.3)'}`, borderRadius: 'var(--radius)', cursor: clearingAll || !selectedTenant ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 500 }}>
-              {clearingAll ? 'Clearing...' : 'Clear All'}
-            </button>
-            <button onClick={() => { refetchSummary(); refetchTree(); refetchTables(); }} style={{ padding: 'var(--space-sm) var(--space-md)', background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
-              Refresh
-            </button>
-          </div>
-        }
-      />
+    <PageContainer>
+      <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Discovery Results</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Schema discovery and matching results</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {primaryProject && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAutoDiscovery}
+                disabled={discovering}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                  discovering
+                    ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-wait'
+                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                }`}
+              >
+                {discovering ? '\u23F3 Discovering...' : 'Auto Discovery'}
+              </button>
+              {discoveryStatus && (
+                <span className={`text-xs ${discoveryStatus.includes('failed') || discoveryStatus.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                  {discoveryStatus}
+                </span>
+              )}
+            </div>
+          )}
+          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          <button
+            onClick={handleClearAllClick}
+            disabled={clearingAll || !selectedTenant}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+              clearingAll || !selectedTenant
+                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+            }`}
+          >
+            {clearingAll ? 'Clearing...' : 'Clear All'}
+          </button>
+          <button
+            onClick={() => { refetchSummary(); refetchTree(); refetchTables(); }}
+            className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
 
       {error && <ErrorState message={error} onRetry={() => { refetchSummary(); refetchTree(); refetchTables(); }} />}
       {loading && <LoadingSkeleton rows={4} variant="card" />}
 
       {clearProgress.active && (
-        <div style={{ marginTop: 'var(--space-sm)', marginBottom: 'var(--space-sm)', padding: 'var(--space-sm) var(--space-md)', background: 'rgba(239, 68, 68, 0.08)', borderRadius: 'var(--radius)', border: '1px solid rgba(239, 68, 68, 0.2)', display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', fontWeight: 500 }}>{clearProgress.message}</span>
+        <div className="p-2.5 mb-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
+          <span className="text-xs font-medium text-red-600">{clearProgress.message}</span>
         </div>
       )}
 
       {!loading && !error && summary && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-            <MetricCard title="Systems" value={summary.total_systems} />
-            <MetricCard title="Schemas" value={summary.total_schemas} />
-            <MetricCard title="Tables" value={summary.total_tables} />
-            <MetricCard title="Matched" value={summary.matched_tables} color="var(--color-success)" subtitle={`${summary.match_rate_percent}% match rate`} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <KpiBox label="Systems" value={summary.total_systems} tone="neutral" />
+            <KpiBox label="Schemas" value={summary.total_schemas} tone="info" />
+            <KpiBox label="Tables" value={summary.total_tables} tone="neutral" />
+            <KpiBox label="Matched" value={summary.matched_tables} tone="success" />
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 200 }}>
+          <div className="flex gap-3 mb-4 items-center flex-wrap">
+            <div className="flex-1 min-w-[200px]">
               <SearchBar value={searchQuery} onChange={(v) => { setSearchQuery(v); setCurrentPage(1); }} placeholder="Search tables..." />
             </div>
-            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as FilterStatus); setCurrentPage(1); }} style={selectStyle}>
+            <select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value as FilterStatus); setCurrentPage(1); }}
+              className="px-2.5 py-1 text-xs border border-gray-200 rounded-md bg-white text-gray-700 cursor-pointer"
+            >
               <option value="all">All Statuses</option>
               <option value="matched">Matched</option>
               <option value="unmatched_source">Source Only</option>
@@ -287,14 +304,14 @@ export function DiscoveryTreeTablePage() {
           <SplitPane
             left={
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-sm)' }}>
-                  <h4 style={{ fontSize: 'var(--font-size-h4)', margin: 0 }}>System Tree</h4>
-                  <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
-                    <button onClick={expandAll} style={{ padding: '2px 8px', fontSize: 'var(--font-size-xs)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', color: 'var(--color-text)', cursor: 'pointer' }}>Expand All</button>
-                    <button onClick={collapseAll} style={{ padding: '2px 8px', fontSize: 'var(--font-size-xs)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', color: 'var(--color-text)', cursor: 'pointer' }}>Collapse All</button>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-sm font-semibold text-gray-900">System Tree</h4>
+                  <div className="flex gap-1">
+                    <button onClick={expandAll} className="px-2 py-0.5 text-[10px] border border-gray-200 rounded bg-white text-gray-700 cursor-pointer hover:bg-gray-50">Expand All</button>
+                    <button onClick={collapseAll} className="px-2 py-0.5 text-[10px] border border-gray-200 rounded bg-white text-gray-700 cursor-pointer hover:bg-gray-50">Collapse All</button>
                   </div>
                 </div>
-                <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', padding: 'var(--space-md)', maxHeight: '500px', overflowY: 'auto' }}>
+                <div className="border border-gray-200 rounded-md p-3 max-h-[500px] overflow-y-auto">
                   {treeData.length === 0 ? (
                     <EmptyState title="No systems" description="No systems registered." />
                   ) : (
@@ -316,36 +333,42 @@ export function DiscoveryTreeTablePage() {
             }
             right={
               <div>
-                <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-sm)' }}>Discovery Results</h4>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Discovery Results</h4>
                 {paginatedData.length === 0 ? (
                   <EmptyState title="No results" description="No discovery results match your filters." />
                 ) : (
-                  <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
+                  <div className="border border-gray-200 rounded-md overflow-hidden">
+                    <table className="w-full text-sm" aria-label="Discovery results">
                       <thead>
-                        <tr>
-                          <th style={thStyle} onClick={() => { setSortField('source_table'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                            Source Table {sortField === 'source_table' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                          </th>
-                          <th style={thStyle} onClick={() => { setSortField('target_table'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                            Target Table {sortField === 'target_table' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                          </th>
-                          <th style={thStyle} onClick={() => { setSortField('status'); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                            Status {sortField === 'status' ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
-                          </th>
+                        <tr className="bg-gray-50 border-b-2 border-gray-200">
+                          {[
+                            { key: 'source_table', label: 'Source Table' },
+                            { key: 'target_table', label: 'Target Table' },
+                            { key: 'status', label: 'Status' },
+                          ].map((col) => (
+                            <th
+                              key={col.key}
+                              onClick={() => { setSortField(col.key as SortField); setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); }}
+                              className="text-left px-3 py-2 text-xs font-bold text-gray-700 cursor-pointer select-none"
+                            >
+                              {col.label} {sortField === col.key ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
                         {paginatedData.map((row, idx) => (
                           <tr
                             key={`${row.source_table}-${idx}`}
-                            style={{ borderBottom: '1px solid var(--color-border)', background: selectedTable?.source_table === row.source_table ? 'var(--color-bg-secondary)' : 'transparent', cursor: 'pointer' }}
+                            className={`border-b border-gray-100 cursor-pointer ${
+                              selectedTable?.source_table === row.source_table ? 'bg-gray-50' : 'hover:bg-gray-50'
+                            }`}
                             onClick={() => handleTableRowClick(row)}
                           >
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{row.source_table}</td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{row.target_table || '\u2014'}</td>
-                            <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                              <StatusBadge status={statusLabels[row.status]} size="sm" variant={statusBadgeVariant[row.status]} />
+                            <td className="px-3 py-2 font-mono text-xs text-gray-900">{row.source_table}</td>
+                            <td className="px-3 py-2 text-gray-700">{row.target_table || '\u2014'}</td>
+                            <td className="px-3 py-2">
+                              <StatusPill status={statusLabels[row.status] || row.status} />
                             </td>
                           </tr>
                         ))}
@@ -355,14 +378,22 @@ export function DiscoveryTreeTablePage() {
                 )}
 
                 {totalPages > 1 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)' }}>
-                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                  <div className="flex justify-between items-center mt-3">
+                    <span className="text-xs text-gray-500">
                       {(currentPage - 1) * pageSize + 1}\u2013{Math.min(currentPage * pageSize, filteredTableData.length)} of {filteredTableData.length}
                     </span>
-                    <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-                      <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: currentPage === 1 ? 0.5 : 1 }}>Prev</button>
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>{currentPage}/{totalPages}</span>
-                      <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ padding: 'var(--space-xs) var(--space-sm)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-background)', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', opacity: currentPage === totalPages ? 0.5 : 1 }}>Next</button>
+                    <div className="flex gap-2 items-center">
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-2 py-1 text-xs border border-gray-200 rounded bg-white text-gray-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >Prev</button>
+                      <span className="text-xs text-gray-500">{currentPage}/{totalPages}</span>
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-2 py-1 text-xs border border-gray-200 rounded bg-white text-gray-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >Next</button>
                     </div>
                   </div>
                 )}
@@ -371,31 +402,25 @@ export function DiscoveryTreeTablePage() {
           />
 
           {selectedTable && selectedTable.column_diff && selectedTable.column_diff.length > 0 && (
-            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--space-lg)', marginTop: 'var(--space-lg)' }}>
-              <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-md)' }}>
-                Column Diff: {selectedTable.source_table} \u2192 {selectedTable.target_table || '(no target)'}
-              </h4>
-              <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', overflow: 'auto', maxHeight: 250 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                  <thead style={{ position: 'sticky', top: 0, background: 'var(--color-bg-secondary)', zIndex: 1 }}>
-                    <tr>
-                      <th style={thStyle}>Column</th>
-                      <th style={thStyle}>Source Type</th>
-                      <th style={thStyle}>Target Type</th>
-                      <th style={thStyle}>Status</th>
+            <ReportCard title={`Column Diff: ${selectedTable.source_table} \u2192 ${selectedTable.target_table || '(no target)'}`} className="mt-6">
+              <div className="overflow-auto max-h-[250px]">
+                <table className="w-full text-sm" aria-label="Column diff">
+                  <thead className="sticky top-0 bg-gray-50 z-10">
+                    <tr className="border-b-2 border-gray-200">
+                      {['Column', 'Source Type', 'Target Type', 'Status'].map((h) => (
+                        <th key={h} className="text-left px-3 py-2 text-xs font-bold text-gray-700">{h}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
                     {selectedTable.column_diff.map((diff, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)', fontFamily: 'monospace' }}>{diff.column_name}</td>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{diff.source_type}</td>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>{diff.target_type}</td>
-                        <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                          <StatusBadge
+                      <tr key={idx} className="border-b border-gray-100">
+                        <td className="px-3 py-2 font-mono text-xs text-gray-900">{diff.column_name}</td>
+                        <td className="px-3 py-2 text-gray-700">{diff.source_type}</td>
+                        <td className="px-3 py-2 text-gray-700">{diff.target_type}</td>
+                        <td className="px-3 py-2">
+                          <StatusPill
                             status={diff.status === 'match' ? 'Matched' : diff.status === 'type_change' ? 'Type Change' : diff.status === 'source_only' ? 'Source Only' : 'Target Only'}
-                            size="sm"
-                            variant={diff.status === 'match' ? 'success' : diff.status === 'type_change' ? 'warning' : 'danger'}
                           />
                         </td>
                       </tr>
@@ -403,7 +428,7 @@ export function DiscoveryTreeTablePage() {
                   </tbody>
                 </table>
               </div>
-            </div>
+            </ReportCard>
           )}
         </>
       )}
@@ -415,46 +440,50 @@ export function DiscoveryTreeTablePage() {
       />
 
       {confirmModal.open && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(2px)' }}>
-          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '24px', maxWidth: 500, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', border: '1px solid #e5e7eb', position: 'relative', zIndex: 10000 }}>
-            <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#dc2626', fontWeight: 700, margin: '0 0 16px 0' }}>
+        <div className="fixed inset-0 bg-black/75 flex items-center justify-center z-[9999] backdrop-blur-sm">
+          <div className="bg-white rounded-lg p-6 max-w-[500px] w-[90%] shadow-xl border border-gray-200 relative z-[10000]">
+            <h3 className="text-lg font-bold text-red-600 mb-4">
               {'\u26A0\uFE0F'} Warning: Clear Discovery Data
             </h3>
-            <div style={{ padding: '16px', background: '#fef2f2', borderRadius: '8px', border: '2px solid #dc2626', marginBottom: '20px' }}>
-              <p style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#1f2937', lineHeight: 1.5 }}>
-                You are about to remove all discovered dataset mappings for tenant <strong style={{ color: '#dc2626' }}>{selectedTenantName}</strong>.
+            <div className="p-4 bg-red-50 rounded-lg border-2 border-red-600 mb-5">
+              <p className="text-sm text-gray-900 mb-3 leading-relaxed">
+                You are about to remove all discovered dataset mappings for tenant <strong className="text-red-600">{selectedTenantName}</strong>.
               </p>
-              <p style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#4b5563', lineHeight: 1.5 }}>
+              <p className="text-sm text-gray-600 mb-3 leading-relaxed">
                 Column mappings and auto-mapped relationships derived from these datasets will also be cleared.
               </p>
-              <p style={{ fontSize: '14px', margin: 0, fontWeight: 700, color: '#dc2626', lineHeight: 1.5 }}>
+              <p className="text-sm font-bold text-red-600 leading-relaxed">
                 This action cannot be undone.
               </p>
             </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px', color: '#4b5563', fontWeight: 500 }}>
+            <div className="mb-5">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
                 Type "clear all" to confirm:
               </label>
               <input
                 type="text"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
-                style={{ width: '100%', padding: '12px', border: '2px solid #d1d5db', borderRadius: '6px', fontSize: '14px', background: '#f9fafb', color: '#1f2937', boxSizing: 'border-box', outline: 'none' }}
+                className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-md text-sm bg-gray-50 text-gray-900 outline-none focus:border-blue-500"
                 placeholder="clear all"
                 autoFocus
               />
             </div>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <div className="flex gap-3 justify-end">
               <button
                 onClick={handleCancelClear}
-                style={{ padding: '10px 20px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}
+                className="px-5 py-2.5 bg-gray-100 text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmClear}
                 disabled={!isConfirmValid || clearingAll}
-                style={{ padding: '10px 20px', background: isConfirmValid ? '#dc2626' : '#e5e7eb', color: isConfirmValid ? '#ffffff' : '#9ca3af', border: 'none', borderRadius: '6px', cursor: isConfirmValid ? 'pointer' : 'not-allowed', fontSize: '14px', fontWeight: 500, opacity: isConfirmValid ? 1 : 0.7 }}
+                className={`px-5 py-2.5 rounded-md text-sm font-medium border-none ${
+                  isConfirmValid
+                    ? 'bg-red-600 text-white cursor-pointer hover:bg-red-700'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-70'
+                }`}
               >
                 {clearingAll ? 'Clearing...' : 'Clear Discovery'}
               </button>
@@ -462,7 +491,7 @@ export function DiscoveryTreeTablePage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
 
@@ -480,7 +509,7 @@ function TreeNode({ node, expandedNodes, onToggle, onSelect, onDetailClick, sele
   const isSelected = selectedNodeId === node.id;
 
   const statusIcon = node.status === 'matched' ? '\u2713' : node.status === 'unmatched' ? '\u2717' : node.status === 'unmatched_source' ? '\u2717' : node.status === 'unmatched_target' ? '\u2717' : '\u26A0';
-  const statusColor = node.status === 'matched' ? 'var(--color-success)' : node.status === 'unmatched' ? 'var(--color-danger)' : node.status === 'unmatched_source' ? 'var(--color-danger)' : node.status === 'unmatched_target' ? 'var(--color-warning)' : 'var(--color-warning)';
+  const statusColorClass = node.status === 'matched' ? 'text-green-600' : node.status === 'unmatched' ? 'text-red-600' : node.status === 'unmatched_source' ? 'text-red-600' : node.status === 'unmatched_target' ? 'text-yellow-600' : 'text-yellow-600';
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -499,14 +528,10 @@ function TreeNode({ node, expandedNodes, onToggle, onSelect, onDetailClick, sele
   return (
     <div role={hasChildren ? 'treeitem' : undefined} aria-expanded={hasChildren ? isExpanded : undefined} tabIndex={0} onKeyDown={handleKeyDown}>
       <div
-        style={{
-          display: 'flex', alignItems: 'center', gap: 'var(--space-xs)',
-          padding: 'var(--space-xs) 0', paddingLeft: `${level * 16}px`,
-          cursor: hasChildren ? 'pointer' : 'default',
-          fontSize: 'var(--font-size-sm)',
-          background: isSelected ? 'var(--color-bg-secondary)' : 'transparent',
-          borderRadius: 'var(--radius)',
-        }}
+        className={`flex items-center gap-1 py-0.5 text-sm rounded cursor-pointer ${
+          isSelected ? 'bg-gray-100' : 'hover:bg-gray-50'
+        }`}
+        style={{ paddingLeft: `${level * 16}px` }}
         onClick={() => {
           if (hasChildren) onToggle(node.id);
           if (node.type === 'table') onSelect(node.id, node.name);
@@ -514,34 +539,20 @@ function TreeNode({ node, expandedNodes, onToggle, onSelect, onDetailClick, sele
         }}
       >
         {hasChildren ? (
-          <span style={{ width: 16, textAlign: 'center', fontSize: 'var(--font-size-xs)' }}>{isExpanded ? '\u25BC' : '\u25B6'}</span>
+          <span className="w-4 text-center text-[10px] text-gray-500">{isExpanded ? '\u25BC' : '\u25B6'}</span>
         ) : (
-          <span style={{ width: 16 }} />
+          <span className="w-4" />
         )}
-        <span style={{ color: statusColor, fontWeight: 600 }}>{statusIcon}</span>
-        <span style={{ fontWeight: node.type === 'system' || node.type === 'schema' ? 600 : 400 }}>{node.name}</span>
-        {node.type === 'table' && <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>({node.columns?.length || 0} cols)</span>}
-        {node.type === 'table' && node.target_table && <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}> \u2192 {node.target_table}</span>}
-        {node.type === 'table' && node.mapped_from_table && !node.target_table && <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}> \u2190 {node.mapped_from_table}</span>}
+        <span className={`${statusColorClass} font-semibold`}>{statusIcon}</span>
+        <span className={node.type === 'system' || node.type === 'schema' ? 'font-semibold text-gray-900' : 'font-normal text-gray-700'}>{node.name}</span>
+        {node.type === 'table' && <span className="text-[10px] text-gray-500">({node.columns?.length || 0} cols)</span>}
+        {node.type === 'table' && node.target_table && <span className="text-[10px] text-gray-500"> \u2192 {node.target_table}</span>}
+        {node.type === 'table' && node.mapped_from_table && !node.target_table && <span className="text-[10px] text-gray-500"> \u2190 {node.mapped_from_table}</span>}
         {node.type === 'table' && (
           <button
             onClick={(e) => { e.stopPropagation(); onDetailClick(node); }}
             aria-label={`Additional info for ${node.name}`}
-            style={{
-              marginLeft: 'auto',
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius)',
-              cursor: 'pointer',
-              color: 'var(--color-text-secondary)',
-              fontSize: '10px',
-              padding: '1px 6px',
-              lineHeight: '14px',
-              fontFamily: 'monospace',
-              fontWeight: 600,
-            }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.borderColor = 'var(--color-primary)'; (e.target as HTMLElement).style.color = 'var(--color-primary)'; }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.borderColor = 'var(--color-border)'; (e.target as HTMLElement).style.color = 'var(--color-text-secondary)'; }}
+            className="ml-auto border border-gray-200 rounded cursor-pointer text-gray-500 text-[10px] px-1.5 py-0 leading-[14px] font-mono font-semibold hover:border-blue-500 hover:text-blue-600 transition-colors"
           >
             i
           </button>

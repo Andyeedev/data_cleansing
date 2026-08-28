@@ -57,7 +57,7 @@ export function AdministrationPage() {
     if (!isAdmin) return;
     let cancelled = false;
     setAuditLoading(true);
-    apiGet<{ entries: AuditEntry[]; total: number }>('/audit-log?limit=10')
+    apiGet<{ entries: AuditEntry[]; total: number }>('/governance/audit?limit=10')
       .then((res) => {
         if (!cancelled) setAuditLog(res.entries || []);
       })

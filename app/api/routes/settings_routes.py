@@ -20,7 +20,7 @@ class FeatureFlagUpdateRequest(BaseModel):
     rollout_percentage: Optional[float] = None
 
 
-@router.get("/")
+@router.get("")
 def list_settings(
     category: Optional[str] = None,
     current_user=Depends(get_current_user)
@@ -28,6 +28,31 @@ def list_settings(
     db = get_db_connection()
     service = SettingsService(db.conn)
     return standardize_response(service.list_settings(category=category))
+
+
+@router.get("/flags/list")
+def list_feature_flags(current_user=Depends(get_current_user)):
+    db = get_db_connection()
+    service = SettingsService(db.conn)
+    return standardize_response(service.list_feature_flags())
+
+
+@router.get("/flags/{key}")
+def get_feature_flag(key: str, current_user=Depends(get_current_user)):
+    db = get_db_connection()
+    service = SettingsService(db.conn)
+    return standardize_response(service.get_feature_flag(key))
+
+
+@router.put("/flags/{key}")
+def update_feature_flag(
+    key: str,
+    payload: FeatureFlagUpdateRequest,
+    current_user=Depends(get_current_user)
+):
+    db = get_db_connection()
+    service = SettingsService(db.conn)
+    return standardize_response(service.update_feature_flag(key, payload))
 
 
 @router.get("/{category}")
@@ -54,28 +79,3 @@ def update_setting(
     db = get_db_connection()
     service = SettingsService(db.conn)
     return standardize_response(service.update_setting(category, key, payload.value, current_user.get("sub")))
-
-
-@router.get("/flags/list")
-def list_feature_flags(current_user=Depends(get_current_user)):
-    db = get_db_connection()
-    service = SettingsService(db.conn)
-    return standardize_response(service.list_feature_flags())
-
-
-@router.get("/flags/{key}")
-def get_feature_flag(key: str, current_user=Depends(get_current_user)):
-    db = get_db_connection()
-    service = SettingsService(db.conn)
-    return standardize_response(service.get_feature_flag(key))
-
-
-@router.put("/flags/{key}")
-def update_feature_flag(
-    key: str,
-    payload: FeatureFlagUpdateRequest,
-    current_user=Depends(get_current_user)
-):
-    db = get_db_connection()
-    service = SettingsService(db.conn)
-    return standardize_response(service.update_feature_flag(key, payload))

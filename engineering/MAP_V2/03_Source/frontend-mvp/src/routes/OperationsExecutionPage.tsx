@@ -3,14 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { useValidationFilter } from '../context/ValidationFilterContext';
 import { apiGet, apiPost } from '../utils/apiClient';
 import CascadeDropdowns from '../components/shared/CascadeDropdowns';
-import { StatusBadge } from '../components/shared/StatusBadge';
 import { EmptyState } from '../components/shared/EmptyState';
 import { ErrorState } from '../components/shared/ErrorState';
 import { TabBar } from '../components/shared/TabBar';
-import { MetricCard } from '../components/shared/MetricCard';
-import { ProgressBar } from '../components/shared/ProgressBar';
 import { SearchBar } from '../components/shared/SearchBar';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
+import { Pagination } from '../components/shared/Pagination';
+import { PageContainer } from '../components/PageContainer/PageContainer';
+import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 
 const STEPS = [
   { key: 'health_check', label: 'Connection Health Check' },
@@ -76,6 +76,42 @@ const SORT_FIELDS: { key: SortField; label: string }[] = [
 
 type TabKey = 'execution' | 'history';
 
+const STEP_STATUS_BG: Record<string, string> = {
+  PASSED: 'bg-green-50',
+  FAILED: 'bg-red-50',
+  RUNNING: 'bg-yellow-50',
+};
+
+const STEP_STATUS_CIRCLE: Record<string, string> = {
+  PASSED: 'bg-green-500',
+  FAILED: 'bg-red-500',
+  RUNNING: 'bg-yellow-500',
+};
+
+const BREAKDOWN_BAR_COLOR: Record<string, string> = {
+  COMPLETED: 'bg-green-500',
+  FAILED: 'bg-red-500',
+  RUNNING: 'bg-yellow-500',
+  PENDING: 'bg-gray-400',
+  CANCELLED: 'bg-gray-300',
+};
+
+const BREAKDOWN_TEXT_COLOR: Record<string, string> = {
+  COMPLETED: 'text-green-600',
+  FAILED: 'text-red-600',
+  RUNNING: 'text-yellow-600',
+  PENDING: 'text-gray-500',
+  CANCELLED: 'text-gray-500',
+};
+
+const STEP_LABELS: Record<string, string> = {
+  health_check: 'Connection Health Check',
+  auto_discovery: 'Auto Discovery',
+  mapping_verification: 'Mapping Verification',
+  rule_execution: 'Rule Execution',
+  full_map_validation: 'Full MAP Validation',
+};
+
 export function OperationsExecutionPage() {
   const { userRoles } = useAuth();
   const { tenantId, projectId, setTenantId, setProjectId, reset } = useValidationFilter();
@@ -87,8 +123,7 @@ export function OperationsExecutionPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [currentRunId, setCurrentRunId] = useState<string | null>(null);
   const [runResults, setRunResults] = useState<RunRecord | null>(null);
-  
-  // Enhanced history state
+
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -102,7 +137,7 @@ export function OperationsExecutionPage() {
   const [breakdownLoading, setBreakdownLoading] = useState(true);
   const [historyTotal, setHistoryTotal] = useState(0);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+
   const [error, setError] = useState<string | null>(null);
 
   const fetchHistory = useCallback(async () => {
@@ -141,9 +176,7 @@ export function OperationsExecutionPage() {
     }
   }, [tenantId]);
 
-  useEffect(() => {
-    fetchBreakdown();
-  }, [fetchBreakdown]);
+  useEffect(() => { fetchBreakdown(); }, [fetchBreakdown]);
 
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
@@ -151,19 +184,11 @@ export function OperationsExecutionPage() {
       setDebouncedSearch(searchQuery);
       setPage(1);
     }, 300);
-    return () => {
-      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    };
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
   }, [searchQuery]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [tenantId, statusFilter]);
-
-  // Call fetchHistory when filters change (statusFilter, search, sort, page, pageSize)
-  useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
+  useEffect(() => { setPage(1); }, [tenantId, statusFilter]);
+  useEffect(() => { fetchHistory(); }, [fetchHistory]);
 
   const handleSort = (field: SortField) => {
     if (historySort === field) {
@@ -172,16 +197,6 @@ export function OperationsExecutionPage() {
       setHistorySort(field);
       setHistorySortDir('desc');
     }
-    setPage(1);
-  };
-
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatusFilter(e.target.value);
-    setPage(1);
-  };
-
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPageSize(Number(e.target.value));
     setPage(1);
   };
 
@@ -200,7 +215,6 @@ export function OperationsExecutionPage() {
     try {
       const result = await apiGet<RunRecord>(`/operations/run/${runId}`);
       setRunResults(result);
-
       if (result.status === 'RUNNING' || result.status === 'PENDING') {
         setTimeout(() => pollRunStatus(runId), 2000);
       } else {
@@ -213,14 +227,9 @@ export function OperationsExecutionPage() {
   }, []);
 
   const handleRunNow = async () => {
-    if (!tenantId) {
-      setError('Please select a tenant');
-      return;
-    }
-
+    if (!tenantId) { setError('Please select a tenant'); return; }
     setIsRunning(true);
     setError(null);
-
     try {
       const steps = Array.from(selectedSteps);
       const response = await apiPost<{ run_id: string }>(
@@ -232,7 +241,6 @@ export function OperationsExecutionPage() {
           controls: selectedControls.length > 0 ? selectedControls : undefined,
         }
       );
-
       setCurrentRunId(response.run_id);
       pollRunStatus(response.run_id);
     } catch (err) {
@@ -244,21 +252,15 @@ export function OperationsExecutionPage() {
   const handleToggleStep = (stepKey: string) => {
     setSelectedSteps(prev => {
       const next = new Set(prev);
-      if (next.has(stepKey)) {
-        next.delete(stepKey);
-      } else {
-        next.add(stepKey);
-      }
+      if (next.has(stepKey)) next.delete(stepKey);
+      else next.add(stepKey);
       return next;
     });
   };
 
   const toggleStepSelection = () => {
-    if (selectedSteps.size === STEPS.length) {
-      setSelectedSteps(new Set());
-    } else {
-      setSelectedSteps(new Set(STEPS.map(s => s.key)));
-    }
+    if (selectedSteps.size === STEPS.length) setSelectedSteps(new Set());
+    else setSelectedSteps(new Set(STEPS.map(s => s.key)));
   };
 
   const getStepStatus = (result: RunRecord | null, stepKey: string): string => {
@@ -270,9 +272,7 @@ export function OperationsExecutionPage() {
   const getStepDuration = (result: RunRecord | null, stepKey: string): string => {
     if (!result?.step_results) return '—';
     const step = result.step_results.find(s => s.step === stepKey);
-    if (step && step.status !== 'PENDING') {
-      return `${step.duration_ms}ms`;
-    }
+    if (step && step.status !== 'PENDING') return `${step.duration_ms}ms`;
     return '—';
   };
 
@@ -280,22 +280,24 @@ export function OperationsExecutionPage() {
 
   if (!userRoles.includes('admin')) {
     return (
-      <div style={{ padding: 'var(--space-lg)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Operations Execution</h1>
+      <PageContainer>
+        <h1 className="text-xl font-bold text-gray-900 mb-4">Operations Execution</h1>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div style={{ padding: 'var(--space-lg)' }}>
-      <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-sm)' }}>Operations Execution</h1>
-      <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--space-lg)' }}>
-        Run end-to-end validation across connection health, auto-discovery, mapping verification, rule execution, and governance.
-      </p>
+    <PageContainer>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-gray-900">Operations Execution</h1>
+        <p className="text-sm text-gray-500 mt-0.5">
+          Run end-to-end validation across connection health, auto-discovery, mapping verification, rule execution, and governance.
+        </p>
+      </div>
 
       {error && (
-        <div style={{ padding: 'var(--space-md)', background: 'rgba(220, 53, 69, 0.1)', color: 'var(--color-danger)', borderRadius: 'var(--radius)', marginBottom: 'var(--space-md)' }}>
+        <div className="p-3 mb-4 bg-red-50 text-red-600 rounded-md text-sm">
           {error}
         </div>
       )}
@@ -308,82 +310,46 @@ export function OperationsExecutionPage() {
         activeTab={activeTab}
         onTabChange={(key) => {
           setActiveTab(key as TabKey);
-          if (key === 'history' && history.length === 0) {
-            fetchHistory();
-          }
+          if (key === 'history' && history.length === 0) fetchHistory();
         }}
       />
 
       {activeTab === 'execution' && (
-        <div style={{ display: 'flex', gap: 'var(--space-lg)' }}>
-          {/* Left Sidebar: Quick Actions */}
-          <div style={{ width: '260px', flexShrink: 0 }}>
-            <div style={{
-              background: 'var(--color-surface)',
-              border: 'var(--border-width) solid var(--color-border)',
-              borderRadius: 'var(--radius)',
-              padding: 'var(--space-md)',
-            }}>
-              <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>Quick Actions</h3>
-
+        <div className="flex gap-6 mt-4">
+          <div className="w-[260px] flex-shrink-0">
+            <ReportCard title="Quick Actions">
               <button
                 onClick={handleRunNow}
                 disabled={isRunActive || !tenantId}
-                style={{
-                  width: '100%',
-                  padding: 'var(--space-sm) var(--space-md)',
-                  background: isRunActive ? 'var(--color-text-secondary)' : 'var(--color-primary)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 'var(--radius)',
-                  cursor: isRunActive || !tenantId ? 'not-allowed' : 'pointer',
-                  marginBottom: 'var(--space-sm)',
-                  fontWeight: 600,
-                }}
+                className={`w-full py-2 px-3 text-sm font-semibold rounded-md mb-2 ${
+                  isRunActive || !tenantId
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
+                }`}
               >
                 {isRunActive ? 'Running...' : 'Run End-to-End Validation'}
               </button>
 
               <button
                 onClick={() => setIsConfiguring(!isConfiguring)}
-                style={{
-                  width: '100%',
-                  padding: 'var(--space-sm) var(--space-md)',
-                  background: 'var(--color-secondary)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer',
-                  marginBottom: isConfiguring ? 'var(--space-md)' : '0',
-                  fontWeight: 600,
-                }}
+                className={`w-full py-2 px-3 text-sm font-semibold rounded-md bg-gray-600 text-white hover:bg-gray-700 cursor-pointer ${isConfiguring ? 'mb-3' : ''}`}
               >
-                {isConfiguring ? '▼ Configuring' : '▶ Configure Steps'}
+                {isConfiguring ? '\u25BC Configuring' : '\u25B6 Configure Steps'}
               </button>
 
               {isConfiguring && (
-                <div style={{ animation: 'fadeIn 0.2s ease-in' }}>
-                  <label style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 'var(--space-xs)' }}>
-                    Steps to Execute
-                  </label>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-xs)' }}>
-                    <button
-                      onClick={toggleStepSelection}
-                      style={{ fontSize: 'var(--font-size-xs)', padding: '2px 8px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', background: 'var(--color-surface)', cursor: 'pointer' }}
-                    >
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-1">Steps to Execute</label>
+                  <div className="flex justify-between mb-1">
+                    <button onClick={toggleStepSelection} className="text-[10px] px-2 py-0.5 border border-gray-200 rounded bg-white cursor-pointer hover:bg-gray-50">
                       {selectedSteps.size === STEPS.length ? 'Deselect All' : 'Select All'}
                     </button>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div className="flex flex-col gap-1">
                     {STEPS.map(step => (
-                      <label key={step.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: 'var(--font-size-xs)' }}>
-                        <input
-                          type="checkbox"
-                          checked={selectedSteps.has(step.key)}
-                          onChange={() => handleToggleStep(step.key)}
-                          style={{ pointerEvents: 'none' }}
-                        />
-                        <span style={{ fontSize: 'var(--font-size-xs)' }}>{step.label}</span>
+                      <label key={step.key} className="flex items-center gap-1.5 cursor-pointer text-[10px]">
+                        <input type="checkbox" checked={selectedSteps.has(step.key)} onChange={() => handleToggleStep(step.key)} className="pointer-events-none" />
+                        <span>{step.label}</span>
                       </label>
                     ))}
                   </div>
@@ -391,400 +357,193 @@ export function OperationsExecutionPage() {
               )}
 
               {currentRunId && (
-                <div style={{ marginTop: 'var(--space-md)' }}>
-                  <h4 style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>Current Run</h4>
-                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', wordBreak: 'break-all' }}>
-                    {currentRunId.slice(0, 8)}...
-                  </p>
+                <div className="mt-3">
+                  <h4 className="text-[10px] font-semibold text-gray-500 mb-1">Current Run</h4>
+                  <p className="text-[10px] text-gray-500 break-all">{currentRunId.slice(0, 8)}...</p>
                 </div>
               )}
-            </div>
+            </ReportCard>
 
             {history.length > 0 && (
-              <div style={{
-                background: 'var(--color-surface)',
-                border: 'var(--border-width) solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                padding: 'var(--space-md)',
-                marginTop: 'var(--space-md)',
-              }}>
-                <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>Recent Runs</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <ReportCard title="Recent Runs" className="mt-4">
+                <div className="flex flex-col gap-2">
                   {history.slice(0, 5).map(run => (
-                    <div key={run.run_id} style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '8px', cursor: 'pointer' }} onClick={() => setRunResults(run)}>
-                      <StatusBadge status={run.status} size="sm" />
-                      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
-                        {run.tenant_id.slice(0, 8)}... • {run.started_at}
+                    <div key={run.run_id} className="border-b border-gray-100 pb-2 cursor-pointer hover:bg-gray-50 rounded px-1" onClick={() => setRunResults(run)}>
+                      <StatusPill status={run.status} />
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        {run.tenant_id.slice(0, 8)}... · {run.started_at}
                       </p>
                     </div>
                   ))}
                 </div>
-              </div>
+              </ReportCard>
             )}
           </div>
 
-          {/* Main Content: Step Results */}
-          <div style={{ flex: 1 }}>
-            <div style={{ marginBottom: 'var(--space-md)' }}>
+          <div className="flex-1 min-w-0">
+            <div className="mb-4">
               <CascadeDropdowns showTenant={true} showProject={true} showBatch={false} />
             </div>
 
-            <div style={{
-              background: 'var(--color-surface)',
-              border: 'var(--border-width) solid var(--color-border)',
-              borderRadius: 'var(--radius)',
-              overflow: 'hidden',
-            }}>
+            <ReportCard title="Step Results">
               {STEPS.map(step => {
                 const status = getStepStatus(runResults, step.key);
-                const isExpanded = true; // Always show all steps for now
-
                 return (
-                  <div key={step.key} style={{ borderBottom: 'var(--border-width) solid var(--color-border)' }}>
-                    <div style={{
-                      padding: 'var(--space-md)',
-                      background: status === 'PASSED' ? 'rgba(40, 167, 69, 0.05)' : status === 'FAILED' ? 'rgba(220, 53, 69, 0.05)' : status === 'RUNNING' ? 'rgba(255, 193, 7, 0.05)' : 'transparent',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                        <div style={{
-                          width: '24px', height: '24px', borderRadius: '50%',
-                          background: status === 'PASSED' ? 'var(--color-success)' : status === 'FAILED' ? 'var(--color-danger)' : status === 'RUNNING' ? 'var(--color-warning)' : 'var(--color-border)',
-                          color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600
-                        }}>
+                  <div key={step.key} className="border-b border-gray-100 last:border-b-0">
+                    <div className={`flex items-center justify-between px-4 py-3 ${STEP_STATUS_BG[status] || ''}`}>
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold text-white ${STEP_STATUS_CIRCLE[status] || 'bg-gray-300'}`}>
                           {STEPS.findIndex(s => s.key === step.key) + 1}
                         </div>
-                        <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 500 }}>{step.label}</span>
+                        <span className="text-sm font-medium text-gray-900">{step.label}</span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{getStepDuration(runResults, step.key)}</span>
-                        <StatusBadge status={status} size="sm" />
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-500">{getStepDuration(runResults, step.key)}</span>
+                        <StatusPill status={status} />
                       </div>
                     </div>
                   </div>
                 );
               })}
-            </div>
+            </ReportCard>
 
             {runResults && runResults.status === 'COMPLETED' && (
-              <div style={{
-                background: 'var(--color-surface)',
-                border: 'var(--border-width) solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                padding: 'var(--space-md)',
-                marginTop: 'var(--space-md)',
-              }}>
-                <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 'var(--space-sm)' }}>Run Summary</h3>
-                <p style={{ fontSize: 'var(--font-size-sm)', marginBottom: 'var(--space-sm)' }}>
-                  Run ID: <code>{runResults.run_id}</code>
-                </p>
-                <p style={{ fontSize: 'var(--font-size-sm)', marginBottom: 'var(--space-sm)' }}>
-                  Duration: {runResults.duration_ms ? `${Math.round(runResults.duration_ms / 1000)}s` : '—'}
-                </p>
-                {runResults.error_message && (
-                  <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>
-                    Error: {runResults.error_message}
-                  </p>
-                )}
-              </div>
+              <ReportCard title="Run Summary" className="mt-4">
+                <div className="text-sm text-gray-700 space-y-1">
+                  <p>Run ID: <code className="text-xs bg-gray-100 px-1 rounded">{runResults.run_id}</code></p>
+                  <p>Duration: {runResults.duration_ms ? `${Math.round(runResults.duration_ms / 1000)}s` : '—'}</p>
+                  {runResults.error_message && <p className="text-red-600">Error: {runResults.error_message}</p>}
+                </div>
+              </ReportCard>
             )}
 
             {!runResults && !isRunning && (
-              <EmptyState
-                title="Ready to Run"
-                description="Select a tenant and project, then click 'Run End-to-End Validation' to start."
-                icon="🚀"
-              />
+              <EmptyState title="Ready to Run" description="Select a tenant and project, then click 'Run End-to-End Validation' to start." icon="🚀" />
             )}
           </div>
         </div>
       )}
 
       {activeTab === 'history' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
-            <h2 style={{ fontSize: 'var(--font-size-h2)', margin: 0 }}>Run History</h2>
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' }}>
-              <button
-                onClick={() => { fetchHistory(); fetchBreakdown(); }}
-                disabled={historyLoading}
-                style={{
-                  padding: 'var(--space-xs) var(--space-md)',
-                  background: 'var(--color-secondary)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 'var(--radius)',
-                  cursor: 'pointer',
-                  fontSize: 'var(--font-size-sm)',
-                }}
-              >
-                {historyLoading ? 'Refreshing...' : 'Refresh'}
-              </button>
-            </div>
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-900">Run History</h2>
+            <button onClick={() => { fetchHistory(); fetchBreakdown(); }} disabled={historyLoading} className="px-3 py-1.5 text-xs font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 disabled:opacity-50">
+              {historyLoading ? 'Refreshing...' : 'Refresh'}
+            </button>
           </div>
 
-          {historyLoading && (
-            <div style={{ padding: 'var(--space-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-              <LoadingSkeleton variant="table" rows={5} />
+          {historyLoading && <LoadingSkeleton variant="table" rows={5} />}
+
+          {!breakdownLoading && breakdown && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <KpiBox label="Total Runs" value={breakdown.total} tone="neutral" />
+              <KpiBox label="Completed" value={breakdown.breakdown?.COMPLETED || 0} tone="success" />
+              <KpiBox label="Failed" value={breakdown.breakdown?.FAILED || 0} tone="error" />
+              <KpiBox label="Running" value={breakdown.breakdown?.RUNNING || 0} tone="warning" />
             </div>
           )}
 
           {!breakdownLoading && breakdown && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-              <MetricCard title="Total Runs" value={breakdown.total} color="var(--color-text)" />
-              <MetricCard title="Completed" value={breakdown.breakdown?.COMPLETED || 0} color="var(--color-success)" />
-              <MetricCard title="Failed" value={breakdown.breakdown?.FAILED || 0} color="var(--color-danger)" />
-              <MetricCard title="Running" value={breakdown.breakdown?.RUNNING || 0} color="var(--color-warning)" />
-            </div>
-          )}
-
-          {!breakdownLoading && breakdown && (
-            <div style={{ padding: 'var(--space-lg)', background: 'var(--color-bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', marginBottom: 'var(--space-lg)' }}>
-              <h4 style={{ fontSize: 'var(--font-size-h4)', marginBottom: 'var(--space-md)' }}>Status Distribution</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
-                    <span>COMPLETED</span>
-                    <span style={{ color: 'var(--color-success)' }}>{breakdown.breakdown?.COMPLETED || 0}</span>
-                  </div>
-                  <ProgressBar value={breakdown.breakdown?.COMPLETED || 0} max={Math.max(breakdown.total, 1)} color="var(--color-success)" height={12} />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
-                    <span>FAILED</span>
-                    <span style={{ color: 'var(--color-danger)' }}>{breakdown.breakdown?.FAILED || 0}</span>
-                  </div>
-                  <ProgressBar value={breakdown.breakdown?.FAILED || 0} max={Math.max(breakdown.total, 1)} color="var(--color-danger)" height={12} />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
-                    <span>RUNNING</span>
-                    <span style={{ color: 'var(--color-warning)' }}>{breakdown.breakdown?.RUNNING || 0}</span>
-                  </div>
-                  <ProgressBar value={breakdown.breakdown?.RUNNING || 0} max={Math.max(breakdown.total, 1)} color="var(--color-warning)" height={12} />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
-                    <span>PENDING</span>
-                    <span style={{ color: 'var(--color-text-secondary)' }}>{breakdown.breakdown?.PENDING || 0}</span>
-                  </div>
-                  <ProgressBar value={breakdown.breakdown?.PENDING || 0} max={Math.max(breakdown.total, 1)} color="var(--color-text-secondary)" height={12} />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-xs)', fontSize: 'var(--font-size-sm)' }}>
-                    <span>CANCELLED</span>
-                    <span style={{ color: 'var(--color-text-secondary)' }}>{breakdown.breakdown?.CANCELLED || 0}</span>
-                  </div>
-                  <ProgressBar value={breakdown.breakdown?.CANCELLED || 0} max={Math.max(breakdown.total, 1)} color="var(--color-text-secondary)" height={12} />
-                </div>
+            <ReportCard title="Status Distribution" className="mb-6">
+              <div className="flex flex-col gap-4">
+                {['COMPLETED', 'FAILED', 'RUNNING', 'PENDING', 'CANCELLED'].map((status) => {
+                  const count = breakdown.breakdown?.[status] || 0;
+                  const pct = breakdown.total > 0 ? (count / breakdown.total) * 100 : 0;
+                  return (
+                    <div key={status}>
+                      <div className="flex justify-between mb-1 text-sm">
+                        <span className="text-gray-700">{status}</span>
+                        <span className={BREAKDOWN_TEXT_COLOR[status] || 'text-gray-500'}>{count}</span>
+                      </div>
+                      <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full transition-all ${BREAKDOWN_BAR_COLOR[status] || 'bg-gray-300'}`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            </ReportCard>
           )}
 
-          <div style={{
-            padding: 'var(--space-md)',
-            background: 'var(--color-surface)',
-            border: 'var(--border-width) solid var(--color-border)',
-            borderRadius: 'var(--radius)',
-            marginBottom: 'var(--space-md)',
-          }}>
-            <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <ReportCard title="Runs" className="mb-4">
+            <div className="flex gap-3 items-center flex-wrap">
               <CascadeDropdowns showTenant={true} showProject={true} showBatch={false} />
-              <SearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                placeholder="Search by run ID, tenant, project, status..."
-                style={{ flex: 1, minWidth: '200px' }}
-              />
-              <select
-                value={statusFilter}
-                onChange={handleStatusChange}
-                style={{
-                  padding: 'var(--space-xs) var(--space-sm)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  fontSize: 'var(--font-size-sm)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: 'pointer',
-                  minWidth: '140px',
-                }}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s === 'all' ? 'All Statuses' : s}
-                  </option>
-                ))}
+              <div className="flex-1 min-w-[200px]">
+                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search by run ID, tenant, project, status..." />
+              </div>
+              <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="px-2.5 py-1 text-xs border border-gray-200 rounded-md bg-white text-gray-700 min-w-[140px]">
+                {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s === 'all' ? 'All Statuses' : s}</option>)}
               </select>
-              <select
-                value={pageSize}
-                onChange={handlePageSizeChange}
-                style={{
-                  padding: 'var(--space-xs) var(--space-sm)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius)',
-                  fontSize: 'var(--font-size-sm)',
-                  background: 'var(--color-background)',
-                  color: 'var(--color-text)',
-                  cursor: 'pointer',
-                }}
-              >
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size}>
-                    {size} rows
-                  </option>
-                ))}
+              <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }} className="px-2.5 py-1 text-xs border border-gray-200 rounded-md bg-white text-gray-700">
+                {PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size} rows</option>)}
               </select>
             </div>
-          </div>
+          </ReportCard>
 
           {!historyLoading && history.length === 0 && (
-            <EmptyState
-              title="No Runs Yet"
-              description="No end-to-end validation runs have been performed."
-            />
+            <EmptyState title="No Runs Yet" description="No end-to-end validation runs have been performed." />
           )}
 
           {!historyLoading && history.length > 0 && (
             <>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-sm)' }}>
+              <div className="text-xs text-gray-500 mb-2">
                 Showing {history.length > 0 ? (page - 1) * pageSize + 1 : 0} to {Math.min(page * pageSize, historyTotal)} of {historyTotal} runs
               </div>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
-                  <thead>
-                    <tr>
-                      {SORT_FIELDS.map((field) => (
-                        <th
-                          key={field.key}
-                          onClick={() => handleSort(field.key)}
-                          style={{
-                            textAlign: 'left',
-                            padding: 'var(--space-sm) var(--space-md)',
-                            color: 'var(--color-text)',
-                            fontWeight: 700,
-                            fontSize: 'var(--font-size-xs)',
-                            cursor: 'pointer',
-                            userSelect: 'none',
-                            background: 'var(--color-bg-secondary)',
-                            borderBottom: '2px solid var(--color-border)',
-                            whiteSpace: 'nowrap' as const,
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            {field.label}
-                            {historySort === field.key && (
-                              <span>{historySortDir === 'asc' ? '▲' : '▼'}</span>
-                            )}
-                          </div>
-                        </th>
-                      ))}
-                      <th style={{ textAlign: 'left', padding: 'var(--space-sm) var(--space-md)', color: 'var(--color-text)', fontWeight: 700, fontSize: 'var(--font-size-xs)', background: 'var(--color-bg-secondary)', borderBottom: '2px solid var(--color-border)', whiteSpace: 'nowrap' }}>
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map(run => (
-                      <tr key={run.run_id} style={{ cursor: 'pointer' }} onClick={() => { setRunResults(run as any); setActiveTab('execution'); }}>
-                        <td style={{ padding: 'var(--space-sm)', verticalAlign: 'top' }}>
-                          <StatusBadge status={run.status} size="sm" />
-                        </td>
-                        <td style={{ padding: 'var(--space-sm)', fontFamily: 'monospace', fontSize: 'var(--font-size-xs)', verticalAlign: 'top' }}>
-                          {run.run_id.slice(0, 8)}...
-                        </td>
-                        <td style={{ padding: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', verticalAlign: 'top' }}>
-                          {run.tenant_id.slice(0, 8)}...
-                        </td>
-                        <td style={{ padding: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', verticalAlign: 'top' }}>
-                          {run.project_id ? run.project_id.slice(0, 8) + '...' : '—'}
-                        </td>
-                        <td style={{ padding: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', verticalAlign: 'top' }}>
-                          {new Date(run.started_at).toLocaleString()}
-                        </td>
-                        <td style={{ padding: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', verticalAlign: 'top' }}>
-                          {run.completed_at ? new Date(run.completed_at).toLocaleString() : '—'}
-                        </td>
-                        <td style={{ padding: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', verticalAlign: 'top' }}>
-                          {run.duration_ms ? `${Math.round(run.duration_ms / 1000)}s` : '—'}
-                        </td>
-                        <td style={{ padding: 'var(--space-sm)', fontSize: 'var(--font-size-xs)', verticalAlign: 'top', color: 'var(--color-text-secondary)' }}>
-                          {run.step_results ? run.step_results.map(s => {
-                            const labels: Record<string, string> = {
-                              'health_check': 'Connection Health Check',
-                              'auto_discovery': 'Auto Discovery',
-                              'mapping_verification': 'Mapping Verification',
-                              'rule_execution': 'Rule Execution',
-                              'full_map_validation': 'Full MAP Validation',
-                            };
-                            return labels[s.step] || s.step;
-                          }).join(', ') : '—'}
-                        </td>
-                        <td style={{ padding: 'var(--space-sm)', verticalAlign: 'top' }}>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleReExecute(run.run_id); }}
-                            style={{
-                              padding: 'var(--space-xs) var(--space-sm)',
-                              background: 'var(--color-primary)',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: 'var(--radius)',
-                              cursor: 'pointer',
-                              fontSize: 'var(--font-size-xs)',
-                              fontWeight: 500,
-                            }}
+              <ReportCard title="">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm" aria-label="Run history">
+                    <thead>
+                      <tr className="bg-gray-50 border-b-2 border-gray-200">
+                        {SORT_FIELDS.map((field) => (
+                          <th
+                            key={field.key}
+                            onClick={() => handleSort(field.key)}
+                            className="text-left px-3 py-2 text-xs font-bold text-gray-700 cursor-pointer select-none whitespace-nowrap"
                           >
-                            Re-run
-                          </button>
-                        </td>
+                            <div className="flex items-center gap-1">
+                              {field.label}
+                              {historySort === field.key && <span>{historySortDir === 'asc' ? '\u25B2' : '\u25BC'}</span>}
+                            </div>
+                          </th>
+                        ))}
+                        <th className="text-left px-3 py-2 text-xs font-bold text-gray-700 whitespace-nowrap">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-md)' }}>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-                  Page {page} of {Math.ceil(historyTotal / pageSize) || 1}
+                    </thead>
+                    <tbody>
+                      {history.map(run => (
+                        <tr key={run.run_id} className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => { setRunResults(run as any); setActiveTab('execution'); }}>
+                          <td className="px-3 py-2 align-top"><StatusPill status={run.status} /></td>
+                          <td className="px-3 py-2 font-mono text-[10px] text-gray-700 align-top">{run.run_id.slice(0, 8)}...</td>
+                          <td className="px-3 py-2 text-[10px] text-gray-500 align-top">{run.tenant_id.slice(0, 8)}...</td>
+                          <td className="px-3 py-2 text-[10px] text-gray-500 align-top">{run.project_id ? run.project_id.slice(0, 8) + '...' : '—'}</td>
+                          <td className="px-3 py-2 text-[10px] text-gray-500 align-top">{new Date(run.started_at).toLocaleString()}</td>
+                          <td className="px-3 py-2 text-[10px] text-gray-500 align-top">{run.completed_at ? new Date(run.completed_at).toLocaleString() : '—'}</td>
+                          <td className="px-3 py-2 text-[10px] align-top">{run.duration_ms ? `${Math.round(run.duration_ms / 1000)}s` : '—'}</td>
+                          <td className="px-3 py-2 text-[10px] align-top text-gray-500">
+                            {run.step_results ? run.step_results.map(s => STEP_LABELS[s.step] || s.step).join(', ') : '—'}
+                          </td>
+                          <td className="px-3 py-2 align-top">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleReExecute(run.run_id); }}
+                              className="px-2 py-1 text-[10px] font-medium text-white bg-blue-600 rounded cursor-pointer hover:bg-blue-700"
+                            >
+                              Re-run
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page <= 1}
-                    style={{
-                      padding: 'var(--space-xs) var(--space-md)',
-                      background: page <= 1 ? 'var(--color-bg-secondary)' : 'var(--color-secondary)',
-                      color: page <= 1 ? 'var(--color-text-secondary)' : '#fff',
-                      border: 'none',
-                      borderRadius: 'var(--radius)',
-                      cursor: page <= 1 ? 'not-allowed' : 'pointer',
-                      fontSize: 'var(--font-size-sm)',
-                    }}
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setPage(p => Math.min(Math.ceil(historyTotal / pageSize) || 1, p + 1))}
-                    disabled={page >= Math.ceil(historyTotal / pageSize) || 1}
-                    style={{
-                      padding: 'var(--space-xs) var(--space-md)',
-                      background: page >= Math.ceil(historyTotal / pageSize) || 1 ? 'var(--color-bg-secondary)' : 'var(--color-secondary)',
-                      color: page >= Math.ceil(historyTotal / pageSize) || 1 ? 'var(--color-text-secondary)' : '#fff',
-                      border: 'none',
-                      borderRadius: 'var(--radius)',
-                      cursor: page >= Math.ceil(historyTotal / pageSize) || 1 ? 'not-allowed' : 'pointer',
-                      fontSize: 'var(--font-size-sm)',
-                    }}
-                  >
-                    Next
-                  </button>
-                </div>
+              </ReportCard>
+              <div className="flex justify-end items-center mt-4">
+                <Pagination page={page} pageSize={pageSize} total={historyTotal} onPageChange={setPage} />
               </div>
             </>
           )}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
