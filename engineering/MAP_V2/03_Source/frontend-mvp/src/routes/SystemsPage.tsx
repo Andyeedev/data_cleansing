@@ -47,7 +47,7 @@ export function SystemsPage() {
   const [deleteTarget, setDeleteTarget] = useState<System | null>(null);
 
   const { data: systems, loading, error, refetch } = useSystemList(selectedTenant || undefined);
-  const { data: diagSummary, refetch: refetchDiag } = useDiagnosticSummary();
+  const { data: diagSummary, refetch: refetchDiag } = useDiagnosticSummary(selectedTenant || undefined);
   const { testConnection, loading: testingId } = useTestConnection();
   const { create, loading: creating } = useCreateSystem();
   const { update, loading: updating } = useUpdateSystem();

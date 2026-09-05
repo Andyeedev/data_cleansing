@@ -79,12 +79,21 @@ class DiagnosticsService:
                 username=username, password=password
             )
         elif adapter_key == "snowflake":
+            auth = config.get("authenticator", "snowflake")
+            private_key = None
+            pwd = password
+            if auth and auth.upper() in ("SNOWFLAKE_JWT", "JWT") and password and "BEGIN" in password:
+                private_key = password
+                pwd = None
             return SnowflakeConfig(
                 account=host, database=database,
-                username=username, password=password,
+                username=username, password=pwd,
                 warehouse=config.get("warehouse", ""),
                 schema=config.get("schema", ""),
-                role=config.get("role")
+                role=config.get("role"),
+                authenticator=auth,
+                private_key=private_key,
+                private_key_path=config.get("private_key_path"),
             )
         elif adapter_key == "bigquery":
             return BigQueryConfig(

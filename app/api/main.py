@@ -43,6 +43,8 @@ from app.api.routes import (
     control_dependencies_routes,
     report_suite_routes,
     permissions_routes,
+    diagnostics_routes,
+    lead_routes,
 )
 
 # Import pool manager to reset on startup
@@ -70,7 +72,7 @@ async def startup_event():
 # =========================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:8080", "http://localhost:5500"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -205,6 +207,8 @@ app.include_router(operations_execution_routes.router)
 app.include_router(control_dependencies_routes.router)
 app.include_router(report_suite_routes.router)
 app.include_router(permissions_routes.router)
+app.include_router(diagnostics_routes.router)
+app.include_router(lead_routes.router)
 
 
 # =========================

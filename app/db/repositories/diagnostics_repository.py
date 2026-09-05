@@ -18,16 +18,30 @@ class DiagnosticsRepository:
         return result
 
     def get_latest_by_system(self, system_id):
+        # Return only the latest run's 6 checks (distinct on check_name, latest checked_at)
         query = """
-        SELECT diagnostic_id, check_name, status, message, latency_ms, server_version, checked_at
+        SELECT DISTINCT ON (check_name)
+            diagnostic_id, check_name, status, message, latency_ms, server_version, checked_at
         FROM core.connection_diagnostics
         WHERE system_id = %s
-        ORDER BY checked_at DESC
-        LIMIT 50
+        ORDER BY check_name, checked_at DESC
         """
         with self.conn.cursor() as cur:
             cur.execute(query, (system_id,))
-            return cur.fetchall()
+            rows = cur.fetchall()
+            # Return in consistent order (by check_name) and limit to 6 most recent
+            # Fetch again ordered by checked_at DESC to get latest 6
+            if len(rows) > 6:
+                # Fallback: get latest 6 by max checked_at
+                cur.execute("""
+                    SELECT diagnostic_id, check_name, status, message, latency_ms, server_version, checked_at
+                    FROM core.connection_diagnostics
+                    WHERE system_id = %s
+                    AND checked_at = (SELECT MAX(checked_at) FROM core.connection_diagnostics WHERE system_id = %s)
+                    ORDER BY check_name
+                """, (system_id, system_id))
+                return cur.fetchall()
+            return rows
 
     def get_all_systems_summary(self, tenant_id=None):
         if tenant_id:

@@ -1,0 +1,190 @@
+We are now moving MAP Nexus into an early public/market-validation phase and preparing for our FIRST public soft launch.
+
+IMPORTANT: MAP Nexus has NOT previously been publicly launched. Do not assume there is an existing public MAP Nexus LinkedIn company page.
+
+Before changing or creating anything:
+
+1. LOCAL REPOSITORY / EXISTING WORK — FIRST
+   Search the local MAP Nexus repository and existing project documentation for all previous work relating to:
+
+   * MAP Nexus
+   * LinkedIn
+   * company profile
+   * founder profile
+   * About/positioning
+   * branding
+   * website copy
+   * product positioning
+   * market research
+   * competitors
+   * customer/buyer definition
+
+   Review what we previously prepared for the LinkedIn/company launch.
+
+2. EVALUATE AGAINST THE CURRENT PRODUCT
+   The MAP Nexus product has developed significantly since the earlier material was created.
+
+   Review the current implementation and architecture at a high level and determine:
+
+   * What MAP Nexus actually does today
+   * What capabilities have now been proven
+   * Current database/connectivity capabilities
+   * Discovery, mapping, rule discovery and validation capabilities
+   * Reporting/audit capabilities
+   * AI/assistant foundations
+   * Cloud/platform capabilities
+   * What is genuinely ready to demonstrate
+   * What previous marketing claims are now outdated or should be removed
+
+   Do NOT start coding or make product changes.
+
+3. PUBLIC NAME / BRAND RESEARCH
+   Search public sources for businesses using:
+
+   * MAP Nexus
+   * MapNexus
+   * Map Nexus
+   * similar names
+
+   Determine what those businesses actually do, their markets, websites, LinkedIn presence and whether there is a meaningful risk of confusion with our proposed MAP Nexus financial-services product.
+
+   Do not assume a similar name means it is a competitor.
+
+4. BUSINESS / COMPETITOR RESEARCH
+   Separately research businesses that actually solve similar problems to MAP Nexus, regardless of their name.
+
+   Focus on companies/products involved in:
+
+   * financial-services data migration
+   * migration validation/reconciliation
+   * data quality and assurance
+   * source-to-target validation
+   * migration governance
+   * automated data reconciliation
+   * AI-assisted migration/data assurance
+   * enterprise migration testing
+
+   Identify the closest commercial competitors and explain briefly:
+
+   * Who they target
+   * What problem they solve
+   * How they position themselves
+   * Their key differentiators
+   * Any obvious gaps/opportunities for MAP Nexus
+
+5. FOUNDER / STARTUP POSITIONING
+   Research current early-stage AI/data/software founders and startups, particularly those building enterprise products.
+
+   Look at how they currently use LinkedIn to:
+
+   * Introduce the founder
+   * Explain the problem
+   * Introduce an early product
+   * Demonstrate progress
+   * Build credibility
+   * Attract design partners/early customers
+   * Engage Microsoft/Azure/startup programmes
+   * Build relationships with investors and partners
+
+   Focus on current 2024–2026 patterns rather than generic startup advice.
+
+6. SOFT-LAUNCH STRATEGY
+   Based on the LOCAL PRODUCT REVIEW + PUBLIC BRAND RESEARCH + COMPETITOR RESEARCH, recommend how we should soft-launch MAP Nexus.
+
+   We are NOT trying to present MAP Nexus as a finished enterprise product.
+
+   The objective is market validation:
+
+   * Start conversations
+   * Find potential customers/design partners
+   * Test whether the problem resonates
+   * Learn which market segment has the strongest demand
+   * Build credibility while development continues
+
+7. EXISTING LINKEDIN MATERIAL
+   If previous LinkedIn/company/founder copy exists in the local repository, assess it and recommend what can be reused, what should be updated and what should be discarded.
+
+   Do not publish anything.
+   Do not create a new LinkedIn page yet.
+   Do not delete anything.
+
+8. OUTPUT
+   Keep the final assessment concise and practical.
+
+   Structure the response as:
+
+   A. What MAP Nexus is today
+   B. What previous launch material still works
+   C. What needs updating
+   D. MAP Nexus name/brand collision findings
+   E. Closest actual competitors
+   F. Founder/startup positioning patterns
+   G. Recommended soft-launch positioning
+   H. Recommended immediate next 3 actions
+
+
+
+9. STARTUP MARKET / LAUNCH BENCHMARKING
+
+Research a sample of relevant NEW or EARLY-STAGE AI, data, SaaS and enterprise software startups, particularly companies founded or launched within approximately the last 3–5 years.
+
+For each relevant startup, where publicly available, capture:
+
+* Company/product
+* Founding/launch year
+* Founder(s)
+* Target market/customer
+* Problem being solved
+* Product positioning
+* Business model/pricing, if publicly available
+* Funding/investment, if publicly available
+* Revenue or sales information, if publicly available
+* Number of employees, if available
+* LinkedIn company followers
+* LinkedIn post engagement (likes/reactions/comments)
+* Website traffic or other traction indicators, if reliably available
+* Customer/design-partner announcements
+* Partnerships, particularly Microsoft, Azure, AWS, Snowflake or other major technology partners
+* How they launched
+* What they posted during their early stage
+* How frequently they posted
+* Whether the founder or company page led the marketing
+* How they converted attention into customer conversations
+* Any other useful indicators of traction
+* Identify 5–10 startups that are particularly good examples for MAP Nexus, rather than researching hundreds. That gives you something you can actually study and emulate.
+
+Do NOT assume followers, likes or views equal sales or product-market fit. Clearly distinguish between:
+
+1. Verified commercial traction
+2. Public engagement
+3. Funding/investment
+4. Marketing activity
+5. Claims made by the company itself
+
+Look specifically for patterns in successful early-stage launches:
+
+* What did they announce first?
+* Did they launch with a finished product or early/beta product?
+* Did they lead with the problem, technology or founder story?
+* Did they use "build in public"?
+* How did they attract their first customers?
+* Did they use design partners/private beta?
+* How did they demonstrate credibility before having significant customers?
+* What type of LinkedIn content generated the most engagement?
+* What mistakes or weak approaches are visible?
+
+Use these findings to provide practical recommendations for MAP Nexus rather than simply listing startups.
+
+The goal is to understand how modern startups actually go from:
+IDEA → EARLY PRODUCT → PUBLIC PRESENCE → CUSTOMER DISCOVERY → DESIGN PARTNERS → FIRST REVENUE → SCALE.
+
+Include only publicly available information and identify estimates/claims where applicable.
+
+IMPORTANT:
+
+* No coding.
+* No product redesign.
+* No long architecture documentation.
+* Do not invent capabilities that are not actually implemented/proven.
+* Do not confuse similarly named companies with actual competitors.
+* This is our FIRST public MAP Nexus soft launch, so treat all existing public-domain MAP Nexus results as external companies unless proven otherwise.

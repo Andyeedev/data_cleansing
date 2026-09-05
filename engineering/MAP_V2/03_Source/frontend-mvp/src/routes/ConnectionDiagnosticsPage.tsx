@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDiagnosticSummary, useDiagnosticDetail, useRunDiagnostics, useTestHistory } from '../hooks/useDiagnostics';
+import { TenantFilter } from '../components/shared/TenantFilter';
 import { SplitPane } from '../components/shared/SplitPane';
 import { TabBar } from '../components/shared/TabBar';
 import { EmptyState } from '../components/shared/EmptyState';
@@ -32,21 +33,22 @@ const STATUS_PILL: Record<string, string> = {
 
 export function ConnectionDiagnosticsPage() {
   const navigate = useNavigate();
-  const { userRoles } = useAuth();
+  const { userRoles, tenantId: userTenantId } = useAuth();
+  const [selectedTenant, setSelectedTenant] = useState<string>(userTenantId || '');
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('health');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: summary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useDiagnosticSummary();
-  const { data: detail, loading: detailLoading, error: detailError } = useDiagnosticDetail(selectedSystemId);
-  const { data: history, loading: historyLoading } = useTestHistory(selectedSystemId);
+  const { data: summary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useDiagnosticSummary(selectedTenant || undefined);
+  const { data: detail, loading: detailLoading, error: detailError } = useDiagnosticDetail(selectedSystemId, selectedTenant || undefined);
+  const { data: history, loading: historyLoading } = useTestHistory(selectedSystemId, selectedTenant || undefined);
   const { runDiagnostics, loading: running } = useRunDiagnostics();
 
   const handleRunDiagnostic = useCallback(async () => {
     if (!selectedSystemId) return;
-    await runDiagnostics(selectedSystemId);
+    await runDiagnostics(selectedSystemId, selectedTenant || undefined);
     refetchSummary();
-  }, [selectedSystemId, runDiagnostics, refetchSummary]);
+  }, [selectedSystemId, selectedTenant, runDiagnostics, refetchSummary]);
 
   const handleExportReport = useCallback(() => {
     if (!detail) return;
@@ -78,7 +80,10 @@ export function ConnectionDiagnosticsPage() {
 
   const systemsList = (
     <div className="p-4 h-full flex flex-col">
-      <div className="text-sm font-semibold text-gray-900 mb-3">Systems</div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-sm font-semibold text-gray-900">Systems</div>
+        <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+      </div>
 
       {summary && (
         <div className="grid grid-cols-3 gap-2 mb-3">
@@ -91,7 +96,7 @@ export function ConnectionDiagnosticsPage() {
       <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search systems..." />
 
       <div className="flex-1 overflow-auto mt-2">
-        <SystemListInner searchQuery={searchQuery} selectedSystemId={selectedSystemId} onSelect={setSelectedSystemId} />
+        <SystemListInner searchQuery={searchQuery} selectedSystemId={selectedSystemId} onSelect={setSelectedSystemId} tenantId={selectedTenant || undefined} />
       </div>
     </div>
   );
@@ -160,23 +165,26 @@ export function ConnectionDiagnosticsPage() {
   );
 }
 
-function SystemListInner({ searchQuery, selectedSystemId, onSelect }: {
+function SystemListInner({ searchQuery, selectedSystemId, onSelect, tenantId }: {
   searchQuery: string;
   selectedSystemId: string | null;
   onSelect: (id: string | null) => void;
+  tenantId?: string;
 }) {
   const [systems, setSystems] = useState<DiagnosticResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     import('../utils/apiClient').then(({ apiGet }) => {
-      apiGet<DiagnosticResult[]>('/diagnostics')
+      apiGet<DiagnosticResult[]>('/diagnostics', tenantId ? { tenant_id: tenantId } : undefined)
         .then(setSystems)
         .catch((err) => setError(err instanceof Error ? err.message : 'Failed'))
         .finally(() => setLoading(false));
     });
-  }, []);
+  }, [tenantId]);
 
   if (loading) return <LoadingSkeleton rows={5} variant="list" />;
   if (error) return <ErrorState message={error} />;
