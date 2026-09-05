@@ -1,0 +1,268 @@
+{
+  "timestamp": "2026-07-24T09:46:21.282665",
+  "total_queries": 21,
+  "tables_accessed": 13,
+  "table_summary": {
+    "engine.systems": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.migration_batch_registry": {
+      "SELECT": 7,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.controls": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.audit_log": {
+      "SELECT": 2,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.approvals": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.exceptions": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.migration_validation_batch": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.migration_control_summary": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.migration_governance_status": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.migration_risk_scores": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.migration_control_exceptions": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.migration_control_execution": {
+      "SELECT": 2,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    },
+    "engine.migration_batch_lifecycle": {
+      "SELECT": 1,
+      "INSERT": 0,
+      "UPDATE": 0,
+      "DELETE": 0,
+      "OTHER": 0
+    }
+  },
+  "queries": [
+    {
+      "timestamp": "2026-07-24T09:46:20.651239",
+      "query": "SELECT COUNT(*) FROM engine.systems",
+      "type": "SELECT",
+      "tables": [
+        "engine.systems"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.653621",
+      "query": "\n            SELECT\n                COUNT(*) as total,\n                COUNT(CASE WHEN batch_status = 'RUNNING' THEN 1 END) as active\n            FROM engine.migration_batch_registry\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_batch_registry"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.666250",
+      "query": "SELECT COUNT(*) FROM engine.controls",
+      "type": "SELECT",
+      "tables": [
+        "engine.controls"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.666607",
+      "query": "\n            SELECT\n                id,\n                action,\n                entity_type,\n                entity_id,\n                user_email,\n                timestamp\n            FROM engine.audit_log\n            ORDER BY timestamp DESC\n            LIMIT 5\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.audit_log"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.792165",
+      "query": "\n            SELECT\n                COUNT(*) as total,\n                COUNT(CASE WHEN batch_status = 'RUNNING' THEN 1 END) as running,\n                COUNT(CASE WHEN batch_status = 'COMPLETED' THEN 1 END) as completed,\n                COUNT(CASE WHEN batch_status = 'FAILED' THEN 1 END) as failed\n            FROM engine.migration_batch_registry\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_batch_registry"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.796080",
+      "query": "\n            SELECT\n                batch_id,\n                project_id,\n                batch_status,\n                batch_start_time\n            FROM engine.migration_batch_registry\n            WHERE batch_status IN ('RUNNING', 'PENDING')\n            ORDER BY batch_start_time DESC\n            LIMIT 5\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_batch_registry"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.806342",
+      "query": "\n            SELECT\n                batch_id,\n                project_id,\n                batch_status,\n                total_controls,\n                completed_controls,\n                failed_controls,\n                batch_start_time,\n                batch_end_time\n            FROM engine.migration_batch_registry\n            ORDER BY batch_start_time DESC\n            LIMIT 5\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_batch_registry"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.881159",
+      "query": "\n            SELECT\n                id,\n                action,\n                entity_type,\n                entity_id,\n                user_email,\n                timestamp,\n                details\n            FROM engine.audit_log\n            WHERE 1=1\n         ORDER BY timestamp DESC LIMIT 5",
+      "type": "SELECT",
+      "tables": [
+        "engine.audit_log"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.882719",
+      "query": "\n            SELECT\n                id,\n                entity_type,\n                entity_id,\n                status,\n                requested_by,\n                created_at\n            FROM engine.approvals\n            WHERE status = 'PENDING'\n            ORDER BY created_at DESC\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.approvals"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:20.883381",
+      "query": "\n            SELECT\n                id,\n                entity_type,\n                entity_id,\n                reason,\n                status,\n                requested_by,\n                created_at\n            FROM engine.exceptions\n            WHERE status = 'OPEN'\n            ORDER BY created_at DESC\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.exceptions"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.027578",
+      "query": "\n            SELECT\n                batch_id,\n                project_id,\n                overall_status,\n                overall_score,\n                execution_start,\n                execution_end\n            FROM engine.migration_validation_batch\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_validation_batch"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.034205",
+      "query": "\n            SELECT\n                control_id,\n                overall_status,\n                total_rules,\n                passed_rules,\n                failed_rules,\n                error_rules\n            FROM engine.migration_control_summary\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n            ORDER BY control_id\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_control_summary"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.043875",
+      "query": "\n            SELECT\n                batch_id,\n                project_id,\n                migration_status,\n                blocking_controls,\n                total_failed_rules,\n                decision_time\n            FROM engine.migration_governance_status\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_governance_status"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.048130",
+      "query": "\n            SELECT\n                batch_id,\n                risk_score,\n                risk_level,\n                calculated_timestamp\n            FROM engine.migration_risk_scores\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n            ORDER BY calculated_timestamp DESC\n            LIMIT 1\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_risk_scores"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.049419",
+      "query": "\n            SELECT\n                exception_id,\n                batch_id,\n                control_id,\n                rule_id,\n                entity_name,\n                source_value,\n                target_value,\n                delta_value,\n                cause,\n                failure_scope,\n                created_at\n            FROM engine.migration_control_exceptions\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n            ORDER BY control_id, rule_id\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_control_exceptions"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.050094",
+      "query": "\n            SELECT\n                execution_status,\n                COALESCE(severity_level, 'LOW')\n            FROM engine.migration_control_execution\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_control_execution"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.125529",
+      "query": "\n            SELECT batch_id, batch_status\n            FROM engine.migration_batch_registry\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_batch_registry"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.128986",
+      "query": "\n            SELECT\n                id,\n                batch_id,\n                event_type,\n                event_timestamp,\n                details\n            FROM engine.migration_batch_lifecycle\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n            ORDER BY event_timestamp ASC\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_batch_lifecycle"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.129797",
+      "query": "\n            SELECT\n                batch_id,\n                batch_status,\n                total_controls,\n                completed_controls,\n                failed_controls\n            FROM engine.migration_batch_registry\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_batch_registry"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.198770",
+      "query": "\n            SELECT\n                batch_id,\n                project_id,\n                batch_status,\n                total_controls,\n                completed_controls,\n                failed_controls,\n                batch_start_time,\n                batch_end_time\n            FROM engine.migration_batch_registry\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_batch_registry"
+      ]
+    },
+    {
+      "timestamp": "2026-07-24T09:46:21.274521",
+      "query": "\n            SELECT\n                id,\n                batch_id,\n                control_id,\n                rule_id,\n                entity_name,\n                execution_status,\n                delta_value,\n                execution_time_seconds,\n                severity_level,\n                created_at\n            FROM engine.migration_control_execution\n            WHERE batch_id = 8780c73b-1267-4424-aa46-478a1f3c0f9e\n            ORDER BY control_id, rule_id\n        ",
+      "type": "SELECT",
+      "tables": [
+        "engine.migration_control_execution"
+      ]
+    }
+  ]
+}

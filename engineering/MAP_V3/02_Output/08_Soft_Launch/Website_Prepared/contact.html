@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - MAP | Migration Assurance Platform</title>
+    <meta name="description" content="Get in touch with MAP - Enterprise migration assurance, governance, validation, and intelligence.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3); }
+        .input-focus:focus { box-shadow: 0 0 0 3px rgba(102, 126, 234,0.1), 0 0 0 1px rgba(102, 126, 234,0.5); }
+        .scroll-fade { opacity: 0; transform: translateY(30px); animation: fadeInUp 0.8s ease forwards; }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm fixed w-full top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold gradient-text">MAP</a>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="text-gray-700 hover:text-blue-600 transition">Home</a>
+                    <a href="platform.html" class="text-gray-700 hover:text-blue-600 transition">Platform</a>
+                    <a href="about.html" class="text-gray-700 hover:text-blue-600 transition">About</a>
+                    <a href="roadmap.html" class="text-gray-700 hover:text-blue-600 transition">Roadmap</a>
+                    <a href="contact.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">Contact</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="gradient-bg pt-24 pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center space-x-2 text-blue-200 text-sm mb-6">
+                <a href="index.html" class="hover:text-white transition">Home</a>
+                <span>/</span>
+                <span class="text-white">Contact</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Contact Us</h1>
+            <p class="text-xl text-blue-100 max-w-3xl">Get in touch to learn how MAP can support your migration programme</p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-2 gap-12">
+                <!-- Contact Form -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Send us a message</h2>
+                    <form id="contactForm" onsubmit="handleFormSubmit(event, 'request_demo')" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                            <input name="full_name" type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg input-focus focus:outline-none" placeholder="Your name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Work Email *</label>
+                            <input name="work_email" type="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg input-focus focus:outline-none" placeholder="you@company.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Organisation</label>
+                            <input name="company" type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg input-focus focus:outline-none" placeholder="Your organisation">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Industry *</label>
+                                <select name="industry" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none bg-white">
+                                    <option value="">Select</option>
+                                    <option>Financial Services</option>
+                                    <option>Pharmaceuticals</option>
+                                    <option>Government</option>
+                                    <option>Housing</option>
+                                    <option>Insurance</option>
+                                    <option>Healthcare</option>
+                                    <option>Enterprise (Other)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Role *</label>
+                                <select name="role" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none bg-white">
+                                    <option value="">Select</option>
+                                    <option>Migration Programme</option>
+                                    <option>Head of Data</option>
+                                    <option>Data Engineering</option>
+                                    <option>Governance</option>
+                                    <option>Transformation</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Org Size</label>
+                                <select name="org_size" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none bg-white">
+                                    <option value="">Select</option>
+                                    <option>1-100</option>
+                                    <option>101-1000</option>
+                                    <option>1001+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Challenge *</label>
+                                <select name="challenge" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none bg-white">
+                                    <option value="">Select</option>
+                                    <option>Row counts pass but data still wrong</option>
+                                    <option>Balances don't reconcile</option>
+                                    <option>Relationships broken</option>
+                                    <option>Nulls & data quality</option>
+                                    <option>Manual reconciliation effort</option>
+                                    <option>Audit/governance</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+                            <textarea name="message" rows="3" required class="w-full px-4 py-3 border border-gray-300 rounded-lg input-focus focus:outline-none" placeholder="Briefly describe source→target and biggest pain"></textarea>
+                        </div>
+                        <label class="flex items-start gap-2 text-xs text-gray-500"><input type="checkbox" required class="mt-0.5"> I agree to be contacted about MAP Nexus (early validation)</label>
+                        <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Send Message</button>
+                        <p id="formStatus" class="text-sm text-center hidden"></p>
+                    </form>
+                </div>
+
+                <!-- Contact Info -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Connect with us</h2>
+                    <div class="space-y-8">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 mb-1">Email</h3>
+                                <p class="text-gray-600"><a href="mailto:hello@mapnexus.co.uk" class="text-blue-600 hover:underline">hello@mapnexus.co.uk</a></p>
+                                <p class="text-xs text-gray-500 mt-1">Shared inbox → Edward (monitored daily)</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 mb-1">LinkedIn</h3>
+                                <p class="text-gray-600"><a href="https://www.linkedin.com/company/map-nexus" target="_blank" class="text-blue-600 hover:underline">LinkedIn (Company)</a></p>
+                                <p class="text-xs text-gray-500 mt-1"><a href="https://www.linkedin.com/in/edward-odewale-a817ba9/" target="_blank" class="text-blue-600 hover:underline">LinkedIn (Founder)</a></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900 mb-1">Location</h3>
+                                <p class="text-gray-600">United Kingdom</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="col-span-2 md:col-span-1">
+                    <h3 class="text-2xl font-bold gradient-text mb-4">MAP</h3>
+                    <p class="text-gray-400 text-sm mb-4">Migration Assurance Platform - Enterprise governance, assurance, validation, and intelligence for migration programmes.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition">LinkedIn</a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Platform</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="platform.html" class="hover:text-white transition">Overview</a></li>
+                        <li><a href="platform.html#discovery" class="hover:text-white transition">Discovery</a></li>
+                        <li><a href="platform.html#validation" class="hover:text-white transition">Validation</a></li>
+                        <li><a href="platform.html#governance" class="hover:text-white transition">Governance</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="about.html" class="hover:text-white transition">About</a></li>
+                        <li><a href="roadmap.html" class="hover:text-white transition">Roadmap</a></li>
+                        <li><a href="contact.html" class="hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Connect</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition">LinkedIn</a></li>
+                        <li><a href="contact.html" class="hover:text-white transition">Email Us</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">&copy; 2026 Migration Assurance Platform. All rights reserved.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-white transition text-sm">Privacy Policy</a>
+                    <a href="#" class="text-gray-400 hover:text-white transition text-sm">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        async function handleFormSubmit(e, source) {
+            e.preventDefault();
+            const form = e.target;
+            const data = Object.fromEntries(new FormData(form).entries());
+            data.source_form = source || 'request_demo';
+            data.utm_source = new URLSearchParams(window.location.search).get('utm_source') || '';
+            data.referrer = document.referrer || '';
+            const status = document.getElementById('formStatus');
+            if (status) { status.textContent = 'Sending...'; status.classList.remove('hidden'); status.className = 'text-sm text-center text-blue-600'; }
+            const apiBase = window.API_BASE || (window.location.hostname.includes('mapnexus.co.uk') || window.location.hostname.includes('azurestaticapps.net') ? '' : 'http://localhost:8000');
+            try {
+                if (!apiBase) throw new Error('No API — use mailto');
+                const res = await fetch(apiBase + '/api/v1/leads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const j = await res.json();
+                if (!res.ok || !j.success) throw new Error(j.detail || j.error || 'Failed');
+                if (status) { status.textContent = 'Thank you! We will be in touch shortly. — Stored as ' + (j.data.source_form || source); status.className = 'text-sm text-center text-green-600'; }
+                form.reset();
+            } catch (err) {
+                const subject = encodeURIComponent('MAP Nexus ' + (source === 'get_started' ? 'Get Started' : 'Request a Demo') + ' — ' + (data.industry || ''));
+                const body = encodeURIComponent(`Full Name: ${data.full_name}\nWork Email: ${data.work_email}\nOrganisation: ${data.company || ''}\nIndustry: ${data.industry || ''}\nRole: ${data.role || ''}\nOrg Size: ${data.org_size || ''}\nChallenge: ${data.challenge || ''}\nMessage: ${data.message || ''}\nSource: ${source}`);
+                window.location.href = `mailto:hello@mapnexus.co.uk?subject=${subject}&body=${body}`;
+                if (status) { status.textContent = 'Opening email client — or email hello@mapnexus.co.uk directly.'; status.className = 'text-sm text-center text-green-600'; }
+                console.error(err);
+            }
+        }
+        const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('scroll-fade'); observer.unobserve(entry.target); } }); }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
