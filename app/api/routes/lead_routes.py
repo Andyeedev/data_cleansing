@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from app.services.lead_service import LeadService
+from app.api.core.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/v1/leads", tags=["Leads"])
 
@@ -27,7 +28,10 @@ def create_lead(payload: LeadCreateRequest, request: Request):
 
 @router.get("")
 @router.get("/")
-def list_leads():
+def list_leads(current_user: dict = Depends(get_current_user)):
+    roles = current_user.get("roles", [])
+    if not any("admin" in r.lower() for r in roles):
+        raise HTTPException(status_code=403, detail="Admin access required")
     from app.db.connection import get_db_connection
     db = get_db_connection()
     rows = db.execute("SELECT lead_id, full_name, work_email, company, industry, role, challenge, source_form, created_at FROM core.leads ORDER BY created_at DESC LIMIT 50")
