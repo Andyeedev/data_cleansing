@@ -28,13 +28,11 @@ class LeadService:
         referrer = payload.get("referrer")
 
         db = get_db_connection()
-        # work_email_hash for dedupe (crypt) — simple lower hash, not crypt for now
-        work_email_hash = work_email  # could be hashed
         query = """
-        INSERT INTO core.leads (full_name, work_email, work_email_hash, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        INSERT INTO core.leads (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         RETURNING lead_id, created_at
         """
-        row = db.execute(query, (full_name, work_email, work_email_hash, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer))
+        row = db.execute(query, (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer))
         lead_id = row[0][0] if row else None
         return {"lead_id": str(lead_id), "source_form": source_form}
