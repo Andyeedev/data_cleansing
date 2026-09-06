@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from app.services.lead_service import LeadService
 from app.api.core.auth.dependencies import get_current_user
+from app.api.routes.rate_limit import rate_limit_leads
 
 router = APIRouter(prefix="/api/v1/leads", tags=["Leads"])
 
@@ -22,6 +23,8 @@ class LeadCreateRequest(BaseModel):
 @router.post("")
 @router.post("/")
 def create_lead(payload: LeadCreateRequest, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    rate_limit_leads(client_ip, max_requests=10, window_seconds=60)
     svc = LeadService()
     data = svc.create_lead(payload.dict())
     return {"success": True, "data": data}
