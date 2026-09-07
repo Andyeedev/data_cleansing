@@ -1,4 +1,4 @@
-import hashlib
+import bcrypt
 import secrets
 import uuid
 from datetime import datetime
@@ -84,7 +84,7 @@ class UserService:
         return {"success": True, "data": user}
 
     def create_user(self, payload, tenant_id=None):
-        password_hash = hashlib.sha256(payload.password.encode()).hexdigest()
+        password_hash = bcrypt.hashpw(payload.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         user_id = str(uuid.uuid4())
         effective_tenant = tenant_id or getattr(payload, 'tenant_id', None)
 
