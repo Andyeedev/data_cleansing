@@ -14,8 +14,8 @@
 | OC-GIT-004 | P0 | Create MAP_V3 | COMPLETE | Copied engineering/MAP_V2 → engineering/MAP_V3, preserved MAP_V2, tested vite build | APPROVED (local only) | feature/MAP_V3 7c4a3e1d, engineering/MAP_V3 (1212 files) | vite build ✓ |
 | OC-CTRL-001 | P0 | Determine TODO_LIST location | COMPLETE | Recommended engineering/MAP_V3/02_output/00_MAP_V3_Control/ (folder with MAP_V3_TODO_LIST.md) | APPROVED (proceed, preserve MAP_V2) | Created 00_MAP_V3_Control/ with MAP_V3_TODO_LIST.md + 00_Non_Negotiable_OpenCode_Rules.md | Verified — MAP_V2 untouched |
 | OC-GIT-003-FINAL | P0 | Mark MAP_V2 as Final Baseline (MAP_V2_FINAL_BASELINE) | COMPLETE | Recommended MAP_V2_FINAL_BASELINE on d5f42b86 | APPROVED | Tag MAP_V2_FINAL_BASELINE on d5f42b86, pushed | Verified |
-| OC-SEC-001 | P0 | Website Security Assessment | IMPLEMENTATION PROPOSAL | 2026-09-06: Revised implementation proposal — 10 items, P0/P1/P2, 13 files, test plan, rollback plan, deferred items, 4 architectural decisions | PENDING (proposal review) | — | — |
-| OC-SEC-002 | P0 | Product Security Assessment | REPORT | 2026-09-06: 6 findings (POST /leads no rate limit, JWT localStorage, no WAF, 6 npm vulns) | PENDING | — | — |
+| OC-SEC-001 | P0 | Website Security Assessment | IMPLEMENTED | 2026-09-06: Revised implementation proposal — 10 items, P0/P1/P2, 13 files, test plan, rollback plan, deferred items, 4 architectural decisions | APPROVED | 4 commits: `4a0803e4` (auth), `3dbb7973` (hardening), `28339d72` (rate limit) | 19+6 tests pass |
+| OC-SEC-002 | P0 | Product Security Assessment | REVISED REPORT | 2026-09-07: Revised — 3/6 findings remediated by OC-SEC-001 (rate limit, work_email_hash, CSP). WAF reclassified as cloud/production. Created OC-SEC-005/006/007. | PENDING (awaiting approval of OC-SEC-005/006/007) | — | — |
 | OC-SEC-003 | P0 | Privacy & Data Collection Assessment | ASSESSMENT | 2026-09-06: 13 gaps — no Privacy Policy, no lawful basis, no consent, no retention, no deletion, no SAR, GET /leads unauthenticated | PENDING | — | — |
 | OC-SEC-004 | P0 | Domain & Email Security Assessment | ASSESSMENT | 2026-09-06: No SPF/DKIM/DMARC, Porkbun forwarding breaks SPF, no email sending configured, DMARC monitor recommended | PENDING | — | — |
 | OC-COM-001 | P1 | Subscription, Charges & Tenant Assessment | SPLIT | 2026-09-06: 16 files, 9 gaps — split into 001a (model) + 001b (billing) | SPLIT | — | — |
@@ -26,6 +26,9 @@
 | OC-CLOUD-001 | P1 | Secure Cloud Architecture & Environment Assessment | NOT STARTED | — | — | — | — |
 | OC-DEMO-001 | P1/P2 | Customer Demo Security Assessment | NOT STARTED | — | — | — | — |
 | OC-READY-001 | P2 | Additional Commercial / Operational Readiness Gap Assessment | NOT STARTED | — | — | — | — |
+| OC-SEC-005 | P1 | Authentication & Session Architecture | NOT STARTED | 2026-09-07: Created from OC-SEC-002 — httpOnly cookies, account lockout, encryption key rotation, session audit, token refresh | PENDING (awaiting approval) | — | — |
+| OC-SEC-006 | P1 | Multi-Tenant Isolation Deep Audit | INVESTIGATION COMPLETE | 2026-09-07: 34 routes inspected. 27+ routes use get_current_user with NO tenant enforcement. CRITICAL: credential_routes, user_routes, role_routes, permissions_routes — zero tenant filtering. HIGH: control_routes, execution_control_routes, governance_routes, export_routes, mapping_routes (unprotected async). MEDIUM: all_tenants bypass, leads table no tenant_id, query param impersonation. Remediation proposal returned. | PENDING (awaiting approval of remediation proposal) | — | — |
+| OC-SEC-007 | P1 | Dependency & Supply-Chain Security | NOT STARTED | 2026-09-07: Created from OC-SEC-002 — npm audit fix, SAST/DAST pipeline, dependency pinning, SBOM | PENDING (awaiting approval) | — | — |
 
 ---
 
@@ -62,8 +65,11 @@ Do not remove completed tasks. Completed tasks retain Status, Decision, Commit/r
 * **OC-GIT-004:** Branch `feature/MAP_V3` `7c4a3e1d`, `engineering/MAP_V3` 1212 files, `npm install` + `vite build` verified.
 * **OC-CTRL-001:** Folder `00_MAP_V3_Control` with 2 files, `MAP_V2` untouched (`git diff` empty).
 * **OC-GIT-003-FINAL:** Tag `MAP_V2_FINAL_BASELINE` on `d5f42b86`, pushed.
-* **OC-SEC-001:** Report 2026-09-06, `Website_Prepared` + `lead_routes.py` + `frontend-mvp` 209 `.tsx` inspected. Findings: no CSP/X-Frame-Options, no rate limit on `/leads`, plain email hash, no `robots.txt`, no WAF Free SKU.
-* **OC-SEC-002:** Report 2026-09-06, `jwt_config` + `rbac` + `tenant_middleware` + `core.leads` + Snowflake JWT inspected. Findings: High POST /leads no rate limit, Medium JWT localStorage, Medium no WAF, 6 npm vulns.
+* **OC-SEC-001:** Report 2026-09-06, implemented 2026-09-07. 4 commits: `4a0803e4` (auth GET /leads), `3dbb7973` (Tailwind self-host, CSP report-only, security headers, robots.txt, work_email_hash removal), `28339d72` (POST /leads rate limiting 10/min). 19+6 tests pass.
+* **OC-SEC-002:** Report 2026-09-06, revised 2026-09-07. 3/6 findings remediated by OC-SEC-001 (rate limit, work_email_hash, CSP). WAF reclassified as cloud/production. Created OC-SEC-005/006/007.
+* **OC-SEC-005:** Created 2026-09-07 from OC-SEC-002 — Authentication & Session Architecture (httpOnly cookies, lockout, key rotation, session audit).
+* **OC-SEC-006:** Created 2026-09-07 from OC-SEC-002 — Multi-Tenant Isolation Deep Audit (object-level access, cross-tenant testing).
+* **OC-SEC-007:** Created 2026-09-07 from OC-SEC-002 — Dependency & Supply-Chain Security (npm audit, SAST/DAST, SBOM).
 * **OC-COM-001:** Report 2026-09-06, 16 files inspected. Findings: core.tenants VARCHAR(100) vs platform UUID mismatch, no subscriptions/plans tables, no tenant middleware, no billing, no entitlements. Split into 001a + 001b.
 * **OC-COM-001a:** Report 2026-09-06, 8 proposed changes — align tenant_id UUID, create `platform.plans` (3 tiers seeded), `platform.subscriptions`, tenant middleware, tenant routes, enforce tenant_id required on repositories.
 * **OC-COM-001b:** Report 2026-09-06, 8 proposed changes — Stripe service (checkout, portal, webhooks), billing routes, entitlement middleware, SubscriptionPage + BillingPage frontend, Stripe columns on core.tenants. Blocked on 001a.
@@ -73,5 +79,5 @@ Do not remove completed tasks. Completed tasks retain Status, Decision, Commit/r
 
 ## Status
 
-**Current Overall:** `OC-GIT-001` through `OC-CTRL-001` and `MAP_V2_FINAL_BASELINE` are **COMPLETE** — Stage 0 Baseline Protection is complete. `OC-SEC-001`, `OC-SEC-002`, `OC-COM-001a`, `OC-COM-001b`, `OC-PROD-001` are **REPORT** stage — awaiting CHATGPT REVIEW → APPROVAL. OC-PROD-001 confirms product is production-ready; commercial launch blocked on OC-COM-001a (subscription) + OC-SEC-001/002 (security).
+**Current Overall:** `OC-GIT-001` through `OC-CTRL-001` and `MAP_V2_FINAL_BASELINE` are **COMPLETE** — Stage 0 Baseline Protection is complete. `OC-SEC-001` is **IMPLEMENTED** (4 commits, 25 tests). `OC-SEC-002` is **REVISED REPORT** — 3/6 findings remediated, awaiting approval of OC-SEC-005/006/007. `OC-SEC-003`, `OC-SEC-004` are **ASSESSMENT** stage. `OC-COM-001a`, `OC-COM-001b`, `OC-PROD-001` are **REPORT** stage. `OC-SEC-005`, `OC-SEC-006`, `OC-SEC-007` are **NOT STARTED** — created from OC-SEC-002 revised assessment.
 
