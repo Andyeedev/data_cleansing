@@ -28,6 +28,7 @@ CREATE TABLE platform.users (
     password_changed_at TIMESTAMP WITH TIME ZONE,
     failed_login_attempts INTEGER DEFAULT 0,
     locked_until TIMESTAMP WITH TIME ZONE,
+    token_version INTEGER DEFAULT 0,
     mfa_enabled BOOLEAN DEFAULT FALSE,
     mfa_secret VARCHAR(255),
     metadata JSONB DEFAULT '{}',

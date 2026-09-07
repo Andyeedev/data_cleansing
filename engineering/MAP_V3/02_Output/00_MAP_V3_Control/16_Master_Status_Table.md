@@ -26,7 +26,7 @@
 | OC-CLOUD-001 | P1 | Secure Cloud Architecture & Environment Assessment | NOT STARTED | — | — | — | — |
 | OC-DEMO-001 | P1/P2 | Customer Demo Security Assessment | NOT STARTED | — | — | — | — |
 | OC-READY-001 | P2 | Additional Commercial / Operational Readiness Gap Assessment | NOT STARTED | — | — | — | — |
-| OC-SEC-005 | P1 | Authentication & Session Architecture | NOT STARTED | 2026-09-07: Created from OC-SEC-002 — httpOnly cookies, account lockout, encryption key rotation, session audit, token refresh | PENDING (awaiting approval) | — | — |
+| OC-SEC-005 | P1 | Authentication & Session Architecture | COMPLETE | 2026-09-07: JWT → httpOnly Secure cookie, account lockout (5 attempts/15-min), password policy (8+ chars, upper/lower/digit), session invalidation via token_version. Deferred: refresh tokens, key rotation. | APPROVED (with scope) | Cookie-based auth, lockout, password policy, token_version (22 tests) | 22/22 pass |
 | OC-SEC-006 | P1 | Multi-Tenant Isolation Deep Audit | COMPLETE | 2026-09-07: 34 routes inspected. 27+ routes use get_current_user with NO tenant enforcement. Staged: 006A (credentials), 006B (users/RBAC), 006C (operational), 006D (edge cases). | APPROVED | 006A: `5040e0a8` (20 tests). 006B: user/role/rbac (19 tests). 006C: operational routes (13 tests). 006D: edge cases (11 tests) | 006A+006B+006C+006D: 63/63 tests pass |
 | OC-SEC-007 | P1 | Dependency & Supply-Chain Security | NOT STARTED | 2026-09-07: Created from OC-SEC-002 — npm audit fix, SAST/DAST pipeline, dependency pinning, SBOM | PENDING (awaiting approval) | — | — |
 
@@ -67,7 +67,7 @@ Do not remove completed tasks. Completed tasks retain Status, Decision, Commit/r
 * **OC-GIT-003-FINAL:** Tag `MAP_V2_FINAL_BASELINE` on `d5f42b86`, pushed.
 * **OC-SEC-001:** Report 2026-09-06, implemented 2026-09-07. 4 commits: `4a0803e4` (auth GET /leads), `3dbb7973` (Tailwind self-host, CSP report-only, security headers, robots.txt, work_email_hash removal), `28339d72` (POST /leads rate limiting 10/min). 19+6 tests pass.
 * **OC-SEC-002:** Report 2026-09-06, revised 2026-09-07. 3/6 findings remediated by OC-SEC-001 (rate limit, work_email_hash, CSP). WAF reclassified as cloud/production. Created OC-SEC-005/006/007.
-* **OC-SEC-005:** Created 2026-09-07 from OC-SEC-002 — Authentication & Session Architecture (httpOnly cookies, lockout, key rotation, session audit).
+* **OC-SEC-005:** Created 2026-09-07, APPROVED with scope, COMPLETE. JWT → httpOnly Secure cookie, account lockout (5 attempts/15-min), password policy (8+ chars, upper/lower/digit), session invalidation via token_version. Deferred: refresh tokens, key rotation. 22 tests pass.
 * **OC-SEC-006:** Created 2026-09-07 from OC-SEC-002 — Multi-Tenant Isolation Deep Audit. COMPLETE: 006A credential isolation (`5040e0a8`, 20 tests), 006B user/RBAC isolation (19 tests), 006C operational routes (13 tests), 006D edge cases (11 tests). 63/63 tests pass. 18 route files deferred (documented in final isolation model).
 * **OC-SEC-007:** Created 2026-09-07 from OC-SEC-002 — Dependency & Supply-Chain Security (npm audit, SAST/DAST, SBOM).
 * **OC-COM-001:** Report 2026-09-06, 16 files inspected. Findings: core.tenants VARCHAR(100) vs platform UUID mismatch, no subscriptions/plans tables, no tenant middleware, no billing, no entitlements. Split into 001a + 001b.
@@ -79,5 +79,5 @@ Do not remove completed tasks. Completed tasks retain Status, Decision, Commit/r
 
 ## Status
 
-**Current Overall:** `OC-GIT-001` through `OC-CTRL-001` and `MAP_V2_FINAL_BASELINE` are **COMPLETE** — Stage 0 Baseline Protection is complete. `OC-SEC-001` is **IMPLEMENTED** (4 commits, 25 tests). `OC-SEC-002` is **REVISED REPORT** — 3/6 findings remediated, awaiting approval of OC-SEC-005/007. `OC-SEC-003`, `OC-SEC-004` are **ASSESSMENT** stage. `OC-COM-001a`, `OC-COM-001b`, `OC-PROD-001` are **REPORT** stage. `OC-SEC-005`, `OC-SEC-007` are **NOT STARTED** — awaiting approval. `OC-SEC-006` is **COMPLETE** — all 4 stages (006A-D) done, 63/63 tests pass, 18 route files deferred.
+**Current Overall:** `OC-GIT-001` through `OC-CTRL-001` and `MAP_V2_FINAL_BASELINE` are **COMPLETE** — Stage 0 Baseline Protection is complete. `OC-SEC-001` is **IMPLEMENTED** (4 commits, 25 tests). `OC-SEC-002` is **REVISED REPORT** — 3/6 findings remediated, awaiting approval of OC-SEC-007. `OC-SEC-003`, `OC-SEC-004` are **ASSESSMENT** stage. `OC-COM-001a`, `OC-COM-001b`, `OC-PROD-001` are **REPORT** stage. `OC-SEC-005` is **COMPLETE** (22 tests). `OC-SEC-006` is **COMPLETE** (63 tests). `OC-SEC-007` is **NOT STARTED** — awaiting approval.
 
