@@ -26,7 +26,7 @@ def require_permissions(*required: str):
             params = [user_id]
 
             if tenant_id:
-                query += " AND r.tenant_id = %s"
+                query += " AND (r.tenant_id = %s OR r.tenant_id IS NULL)"
                 params.append(tenant_id)
 
             cur.execute(query, params)
@@ -66,7 +66,7 @@ def require_role(*role_names: str):
             params = [user_id]
 
             if tenant_id:
-                query += " AND r.tenant_id = %s"
+                query += " AND (r.tenant_id = %s OR r.tenant_id IS NULL)"
                 params.append(tenant_id)
 
             cur.execute(query, params)
@@ -94,7 +94,7 @@ def require_admin(current_user=Depends(get_current_user)):
             JOIN platform.roles r ON ur.role_id = r.id
             JOIN platform.users u ON ur.user_id = u.id
             WHERE u.id = %s AND r.name = 'Super Admin' AND r.status = 'active'
-            AND r.tenant_id = %s
+            AND (r.tenant_id = %s OR r.tenant_id IS NULL)
             AND (ur.expires_at IS NULL OR ur.expires_at > NOW())
         """, (current_user.get("sub"), tenant_id))
         if not cur.fetchone():

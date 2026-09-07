@@ -228,24 +228,26 @@ class TestTenantMiddlewareEnhanced:
         assert "query_params" in content
 
 
-class TestSystemRepositoryEnforced:
-    """Verify system_repository requires tenant_id."""
+class TestSystemRepositoryTenantOptional:
+    """Verify system_repository accepts optional tenant_id (for admin view all)."""
 
-    def test_get_all_requires_tenant_id(self):
+    def test_get_all_accepts_optional_tenant_id(self):
         with open("app/db/repositories/system_repository.py") as f:
             content = f.read()
-        assert "tenant_id is required" in content
+        assert "def get_all(self, tenant_id=None):" in content
+        assert "if tenant_id:" in content
+        assert "tenant_id is required" not in content
 
-    def test_get_by_id_requires_tenant_id(self):
-        with open("app/db/repositories/system_repository.py") as f:
-            lines = content = f.read()
-        assert "def get_by_id(self, system_id, tenant_id):" in content
-
-    def test_no_optional_tenant_in_get_all(self):
+    def test_get_by_id_accepts_optional_tenant_id(self):
         with open("app/db/repositories/system_repository.py") as f:
             content = f.read()
-        assert "def get_all(self, tenant_id):" in content
-        assert "def get_all(self, tenant_id=None):" not in content
+        assert "def get_by_id(self, system_id, tenant_id=None):" in content
+        assert "tenant_id is required" not in content
+
+    def test_get_all_returns_all_when_none(self):
+        with open("app/db/repositories/system_repository.py") as f:
+            content = f.read()
+        assert "params = None" in content
 
 
 class TestMainPyRegistered:

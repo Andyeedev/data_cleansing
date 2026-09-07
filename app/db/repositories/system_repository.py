@@ -69,45 +69,65 @@ class SystemRepository:
         self.conn.commit()
 
     # =========================
-    # GET ALL (filtered by tenant — required)
+    # GET ALL (filtered by tenant — optional for admin "view all")
     # =========================
-    def get_all(self, tenant_id):
+    def get_all(self, tenant_id=None):
 
-        if not tenant_id:
-            raise ValueError("tenant_id is required")
-
-        query = """
-        SELECT system_id, system_name, system_role, database_type, credential_id
-        FROM core.system_registry
-        WHERE tenant_id = %s
-        """
+        if tenant_id:
+            query = """
+            SELECT system_id, system_name, system_role, database_type, credential_id
+            FROM core.system_registry
+            WHERE tenant_id = %s
+            """
+            params = (tenant_id,)
+        else:
+            query = """
+            SELECT system_id, system_name, system_role, database_type, credential_id
+            FROM core.system_registry
+            """
+            params = None
 
         with self.conn.cursor() as cur:
-            cur.execute(query, (tenant_id,))
+            if params:
+                cur.execute(query, params)
+            else:
+                cur.execute(query)
             return cur.fetchall()
 
     # =========================
-    # GET ONE (filtered by tenant — required)
+    # GET ONE (with optional tenant filter)
     # =========================
-    def get_by_id(self, system_id, tenant_id):
+    def get_by_id(self, system_id, tenant_id=None):
 
-        if not tenant_id:
-            raise ValueError("tenant_id is required")
-
-        query = """
-        SELECT
-            system_id,
-            system_name,
-            system_role,
-            database_type,
-            connection_config,
-            credential_id
-        FROM core.system_registry
-        WHERE system_id = %s AND tenant_id = %s
-        """
+        if tenant_id:
+            query = """
+            SELECT
+                system_id,
+                system_name,
+                system_role,
+                database_type,
+                connection_config,
+                credential_id
+            FROM core.system_registry
+            WHERE system_id = %s AND tenant_id = %s
+            """
+            params = (system_id, tenant_id)
+        else:
+            query = """
+            SELECT
+                system_id,
+                system_name,
+                system_role,
+                database_type,
+                connection_config,
+                credential_id
+            FROM core.system_registry
+            WHERE system_id = %s
+            """
+            params = (system_id,)
 
         with self.conn.cursor() as cur:
-            cur.execute(query, (system_id, tenant_id))
+            cur.execute(query, params)
             return cur.fetchone()
 
     # =========================
