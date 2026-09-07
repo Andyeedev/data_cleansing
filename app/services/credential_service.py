@@ -16,17 +16,21 @@ class CredentialService:
     # =========================
     # CREATE
     # =========================
-    def create_credential(self, system_id, username, password):
+    def create_credential(self, system_id, username, password, tenant_id=None):
 
         credential_id = str(uuid.uuid4())
         encrypted_password = self.encryption.encrypt(password)
 
-        self.repo.insert(
+        inserted = self.repo.insert(
             credential_id=credential_id,
             system_id=system_id,
             username=username,
-            password_encrypted=encrypted_password
+            password_encrypted=encrypted_password,
+            tenant_id=tenant_id
         )
+
+        if not inserted:
+            raise ValueError("System not found or access denied")
 
         self._link_to_system(system_id, credential_id)
 
@@ -38,15 +42,19 @@ class CredentialService:
     # =========================
     # UPDATE
     # =========================
-    def update_credential(self, credential_id, username, password):
+    def update_credential(self, credential_id, username, password, tenant_id=None):
 
         encrypted_password = self.encryption.encrypt(password)
 
-        self.repo.update(
+        updated = self.repo.update(
             credential_id=credential_id,
             username=username,
-            password_encrypted=encrypted_password
+            password_encrypted=encrypted_password,
+            tenant_id=tenant_id
         )
+
+        if not updated:
+            raise ValueError("Credential not found or access denied")
 
         return {
             "message": "Credential updated",
@@ -56,20 +64,20 @@ class CredentialService:
     # =========================
     # UPSERT (optional advanced)
     # =========================
-    def upsert_credentials(self, system_id, username, password):
+    def upsert_credentials(self, system_id, username, password, tenant_id=None):
 
-        existing = self.repo.get_by_system_id(system_id)
+        existing = self.repo.get_by_system_id(system_id, tenant_id=tenant_id)
         encrypted_password = self.encryption.encrypt(password)
 
         if existing:
             credential_id = existing[0]
             logger.info(f"Updating credentials for system {system_id}")
-            self.repo.update(credential_id, username, encrypted_password)
+            self.repo.update(credential_id, username, encrypted_password, tenant_id=tenant_id)
 
         else:
             credential_id = str(uuid.uuid4())
             logger.info(f"Creating new credentials for system {system_id}")
-            self.repo.insert(credential_id, system_id, username, encrypted_password)
+            self.repo.insert(credential_id, system_id, username, encrypted_password, tenant_id=tenant_id)
             self._link_to_system(system_id, credential_id)
 
         return credential_id
@@ -93,12 +101,12 @@ class CredentialService:
     # =========================
     # FETCH + DECRYPT
     # =========================
-    def get_decrypted_credentials(self, system_id):
+    def get_decrypted_credentials(self, system_id, tenant_id=None):
 
-        row = self.repo.get_by_system_id(system_id)
+        row = self.repo.get_by_system_id(system_id, tenant_id=tenant_id)
 
         if not row:
-            raise Exception("No credentials found")
+            raise Exception("No credentials found or access denied")
 
         _, username, encrypted_password = row
         password = self.encryption.decrypt(encrypted_password)
@@ -111,9 +119,9 @@ class CredentialService:
     # =========================
     # LIST
     # =========================
-    def list_credentials(self):
+    def list_credentials(self, tenant_id=None):
 
-        rows = self.repo.get_all()
+        rows = self.repo.get_all(tenant_id=tenant_id)
 
         return [
             {
@@ -126,10 +134,12 @@ class CredentialService:
     # =========================
     # DELETE
     # =========================
-    def delete_credential(self, credential_id):
+    def delete_credential(self, credential_id, tenant_id=None):
 
-        self.repo.delete(credential_id)
-        self.conn.commit()
+        deleted = self.repo.delete(credential_id, tenant_id=tenant_id)
+
+        if not deleted:
+            raise ValueError("Credential not found or access denied")
 
         return {"deleted": credential_id}
 
