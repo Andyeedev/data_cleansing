@@ -10,7 +10,7 @@
 | **OC-SEC-006A** | Credential cross-tenant isolation | ✅ APPROVED / COMPLETE | `5040e0a8` | 20/20 pass |
 | **OC-SEC-006B** | User/RBAC cross-tenant isolation | ✅ COMPLETE | — | 19/19 pass |
 | **OC-SEC-006C** | Operational routes (mapping, control, execution, governance, export) | ✅ COMPLETE | — | 13/13 pass |
-| **OC-SEC-006D** | Tenant edge cases (all_tenants, leads, query param validation) | ❌ NOT STARTED | — | — |
+| **OC-SEC-006D** | Tenant edge cases (all_tenants, leads, query param validation) | ✅ COMPLETE | — | 11/11 pass |
 
 ---
 
@@ -61,6 +61,15 @@
 
 ---
 
-## OC-SEC-006D — NOT STARTED
+## OC-SEC-006D — COMPLETE
 
-**Scope:** `all_tenants=true` bypass (restrict to Super Admin), `core.leads.tenant_id` investigation, query/body tenant_id validation, shared resources, final isolation model documentation
+**Scope:** `mapping_routes.py`, `discovery_routes.py`, `lead_routes.py`, `permissions_routes.py`, `dashboard_routes.py`, `validation_report_routes.py`
+
+**Outcome:**
+- `all_tenants=True` restricted to Super Admin role (mapping + discovery routes)
+- Query param `tenant_id` override validated against JWT (impersonation blocked)
+- `lead_routes.py` GET updated to `get_current_user_with_tenant`
+- `permissions_routes.py` all 5 routes updated to `get_current_user_with_tenant`
+- `dashboard_routes.py` local `_require_admin` replaced with `rbac.require_admin`
+- `validation_report_routes.py` 5 routes updated to `get_current_user_with_tenant`
+- 11 tests pass

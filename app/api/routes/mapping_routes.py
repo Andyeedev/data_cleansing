@@ -11,10 +11,22 @@ router = APIRouter(prefix="/api/v1/mappings", tags=["mappings"])
 
 
 def _resolve_tenant(tenant_id, all_tenants, current_user):
-    """Resolve which tenant to query. all_tenants=True means no filter."""
+    """Resolve which tenant to query. all_tenants=True requires Super Admin role."""
+    jwt_tenant_id = current_user.get("tenant_id")
+    roles = current_user.get("roles", [])
+    is_super_admin = any("super admin" in r.lower() for r in roles)
+
     if all_tenants:
+        if not is_super_admin:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=403, detail="all_tenants requires Super Admin role")
         return None
-    return tenant_id or current_user.get("tenant_id")
+
+    if tenant_id and tenant_id != jwt_tenant_id and not is_super_admin:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Cannot query tenant you do not belong to")
+
+    return tenant_id or jwt_tenant_id
 
 
 # =========================

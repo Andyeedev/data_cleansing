@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from app.api.core.auth.dependencies import get_current_user, get_current_user_with_tenant
+from app.api.core.auth.dependencies import get_current_user_with_tenant
 from app.api.models.responses import APIResponse
 from app.api.models.validation_report_models import (
     ValidationReportResponse,
@@ -116,7 +116,7 @@ def get_validation_dashboard(
 @router.get("/unscored-batches", response_model=APIResponse)
 def get_unscored_batches(
     tenant_id: str = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = validation_report_service.get_unscored_batches(tenant_id)
@@ -128,7 +128,7 @@ def get_unscored_batches(
 @router.get("/orphaned-batches", response_model=APIResponse)
 def get_orphaned_batches(
     tenant_id: str = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = validation_report_service.get_orphaned_batches(tenant_id)
@@ -140,7 +140,7 @@ def get_orphaned_batches(
 @router.get("/{batch_id}/report", response_model=APIResponse)
 def get_validation_report(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         report = validation_report_service.get_validation_report(batch_id)
@@ -156,7 +156,7 @@ def get_validation_report(
 @router.get("/{batch_id}/governance", response_model=APIResponse)
 def get_governance_decision(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         decision = validation_report_service.get_governance_decision(batch_id)
@@ -172,7 +172,7 @@ def get_governance_decision(
 @router.get("/risk-scores", response_model=APIResponse)
 def get_all_risk_scores(
     tenant_id: str = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = validation_report_service.get_all_risk_scores(tenant_id)
@@ -184,7 +184,7 @@ def get_all_risk_scores(
 @router.get("/migration-score-summary", response_model=APIResponse)
 def get_migration_score_summary(
     tenant_id: str = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = validation_report_service.get_migration_score_summary(tenant_id)
@@ -196,7 +196,7 @@ def get_migration_score_summary(
 @router.get("/{batch_id}/risk-score", response_model=APIResponse)
 def get_risk_score(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         risk = validation_report_service.get_risk_score(batch_id)
@@ -208,7 +208,7 @@ def get_risk_score(
 @router.get("/{batch_id}/compliance", response_model=APIResponse)
 def get_compliance_checks(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         compliance = validation_report_service.get_compliance_checks(batch_id)

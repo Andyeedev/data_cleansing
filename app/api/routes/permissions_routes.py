@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict
 from app.db.connection import get_db_connection
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user_with_tenant
 
 router = APIRouter(prefix="/api/v1/permissions", tags=["Permissions"])
 
@@ -22,7 +22,7 @@ def _get_db():
 
 
 @router.get("")
-def get_permissions(user=Depends(get_current_user)):
+def get_permissions(user=Depends(get_current_user_with_tenant)):
     try:
         db = _get_db()
         rows = db.execute(
@@ -39,7 +39,7 @@ def get_permissions(user=Depends(get_current_user)):
 
 
 @router.get("/roles")
-def get_roles(user=Depends(get_current_user)):
+def get_roles(user=Depends(get_current_user_with_tenant)):
     try:
         db = _get_db()
         rows = db.execute(
@@ -51,7 +51,7 @@ def get_roles(user=Depends(get_current_user)):
 
 
 @router.get("/packs")
-def get_packs(user=Depends(get_current_user)):
+def get_packs(user=Depends(get_current_user_with_tenant)):
     try:
         db = _get_db()
         rows = db.execute(
@@ -63,7 +63,7 @@ def get_packs(user=Depends(get_current_user)):
 
 
 @router.put("")
-def update_permissions(body: PermissionUpdate, user=Depends(get_current_user)):
+def update_permissions(body: PermissionUpdate, user=Depends(get_current_user_with_tenant)):
     try:
         db = _get_db()
         for p in body.permissions:
@@ -81,7 +81,7 @@ def update_permissions(body: PermissionUpdate, user=Depends(get_current_user)):
 
 
 @router.post("/reset")
-def reset_permissions(user=Depends(get_current_user)):
+def reset_permissions(user=Depends(get_current_user_with_tenant)):
     try:
         db = _get_db()
         packs = ['operational', 'executive', 'validation_pack', 'governance_pack', 'audit_pack']
