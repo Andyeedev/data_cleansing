@@ -8,7 +8,7 @@ Reuses System 1 service classes for all step implementations.
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Body, Query
 from typing import List, Optional
 from pydantic import BaseModel
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user_with_tenant
 from app.api.models.responses import APIResponse
 from app.services.run_orchestrator_service import orchestrator_service
 
@@ -26,7 +26,7 @@ class RunRequest(BaseModel):
 def start_run(
     body: RunRequest = Body(...),
     background_tasks: BackgroundTasks = None,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user_with_tenant),
 ):
     """
     Start an end-to-end validation run.
@@ -35,6 +35,10 @@ def start_run(
     rule execution, and governance check in sequence.
     Uses background tasks for long-running execution.
     """
+    jwt_tenant_id = current_user.get("tenant_id")
+    if body.tenant_id != jwt_tenant_id:
+        raise HTTPException(status_code=403, detail="tenant_id mismatch: cannot start run for another tenant")
+
     user_id = current_user.get("sub", "ANONYMOUS")
 
     # Register the run immediately (service generates run_id internally)
@@ -73,7 +77,7 @@ def start_run(
 @router.get("/run/{run_id}")
 def get_run_status(
     run_id: str,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user_with_tenant),
 ):
     """Get detailed status of a specific end-to-end run."""
     result = orchestrator_service.get_run_status(run_id)
@@ -91,11 +95,12 @@ def get_run_history(
     search: Optional[str] = Query(None),
     sort_by: str = Query("started_at"),
     sort_dir: str = Query("desc"),
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user_with_tenant),
 ):
     """Get paginated end-to-end run history with filtering and sorting."""
+    effective_tenant = tenant_id or current_user.get("tenant_id")
     result = orchestrator_service.get_history(
-        tenant_id=tenant_id,
+        tenant_id=effective_tenant,
         page=page,
         page_size=page_size,
         status=status,
@@ -109,17 +114,18 @@ def get_run_history(
 @router.get("/runs/status-breakdown")
 def get_run_status_breakdown(
     tenant_id: Optional[str] = Query(None),
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user_with_tenant),
 ):
     """Get status breakdown for KPI cards."""
-    result = orchestrator_service.get_status_breakdown(tenant_id)
+    effective_tenant = tenant_id or current_user.get("tenant_id")
+    result = orchestrator_service.get_status_breakdown(effective_tenant)
     return APIResponse(success=True, data=result)
 
 
 @router.post("/run/{run_id}/re-execute")
 def re_execute_run(
     run_id: str,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user_with_tenant),
 ):
     """Re-execute a completed or failed run."""
     # Get original run details first
@@ -145,7 +151,7 @@ def re_execute_run(
 @router.post("/run/{run_id}/cancel")
 def cancel_run(
     run_id: str,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user_with_tenant),
 ):
     """Cancel a running or pending run."""
     if not orchestrator_service.cancel_run(run_id):

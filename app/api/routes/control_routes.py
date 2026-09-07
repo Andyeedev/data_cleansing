@@ -1,6 +1,6 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user_with_tenant
 from app.api.models.responses import APIResponse
 from app.services.control_service import ControlService
 
@@ -12,7 +12,7 @@ control_service = ControlService()
 @router.get("/outcomes", response_model=APIResponse)
 def get_execution_outcomes(
     tenant_id: Optional[str] = Query(None, description="Filter by tenant"),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         summary = control_service.get_execution_outcomes(tenant_id=tenant_id)
@@ -28,7 +28,7 @@ def get_controls(
     severity: Optional[str] = Query(None, description="Filter by severity"),
     status: Optional[str] = Query(None, description="Filter by status: enabled, disabled, all"),
     tenant_id: Optional[str] = Query(None, description="Filter controls by tenant via project ownership"),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         data = control_service.get_all_controls(search=search, severity=severity, status=status, tenant_id=tenant_id)
@@ -40,7 +40,7 @@ def get_controls(
 @router.get("/{control_id}", response_model=APIResponse)
 def get_control(
     control_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         data = control_service.get_control_by_id(control_id)
@@ -57,7 +57,7 @@ def get_control(
 def update_control(
     control_id: str,
     updates: dict,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         existing = control_service.get_control_by_id(control_id)
@@ -80,7 +80,7 @@ def create_control(
     description: str,
     severity_level: str,
     enabled_flag: bool = True,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         success = control_service.create_control(control_id, control_name, description, severity_level, enabled_flag)
@@ -94,7 +94,7 @@ def create_control(
 @router.delete("/{control_id}", response_model=APIResponse)
 def delete_control(
     control_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         existing = control_service.get_control_by_id(control_id)

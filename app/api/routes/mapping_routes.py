@@ -229,7 +229,10 @@ def clear_all_mappings(
 
 
 @router.get("/{project_id}")
-async def get_mappings(project_id: str):
+async def get_mappings(
+    project_id: str,
+    current_user=Depends(get_current_user_with_tenant)
+):
     """Get all mappings for a project."""
     mapping_repo = MappingRepository(None)
     mappings = await mapping_repo.get_dataset_mappings(project_id)
@@ -237,7 +240,10 @@ async def get_mappings(project_id: str):
 
 
 @router.post("/{project_id}/auto")
-async def auto_map(project_id: str):
+async def auto_map(
+    project_id: str,
+    current_user=Depends(get_current_user_with_tenant)
+):
     """Auto-generate mappings based on discovery results."""
     mapping_service = MappingService(None)
     result = await mapping_service.auto_map(project_id)
@@ -245,7 +251,10 @@ async def auto_map(project_id: str):
 
 
 @router.get("/{mapping_id}")
-async def get_mapping(mapping_id: str):
+async def get_mapping(
+    mapping_id: str,
+    current_user=Depends(get_current_user_with_tenant)
+):
     """Get dataset mapping detail."""
     mapping_repo = MappingRepository(None)
     mapping = await mapping_repo.get_dataset_mapping(mapping_id)
@@ -255,7 +264,10 @@ async def get_mapping(mapping_id: str):
 
 
 @router.put("/{mapping_id}")
-async def update_mapping(mapping_id: str, updates: dict):
+async def update_mapping(
+    mapping_id: str, updates: dict,
+    current_user=Depends(get_current_user_with_tenant)
+):
     """Update dataset mapping."""
     mapping_repo = MappingRepository(None)
     await mapping_repo.update_dataset_mapping(mapping_id, updates)
@@ -263,7 +275,10 @@ async def update_mapping(mapping_id: str, updates: dict):
 
 
 @router.get("/{mapping_id}/columns")
-async def get_column_mappings(mapping_id: str):
+async def get_column_mappings(
+    mapping_id: str,
+    current_user=Depends(get_current_user_with_tenant)
+):
     """Get column mappings for a dataset mapping."""
     mapping_repo = MappingRepository(None)
     columns = await mapping_repo.get_column_mappings(mapping_id)
@@ -271,7 +286,10 @@ async def get_column_mappings(mapping_id: str):
 
 
 @router.post("/{mapping_id}/columns")
-async def create_column_mapping(mapping_id: str, column_mapping: dict):
+async def create_column_mapping(
+    mapping_id: str, column_mapping: dict,
+    current_user=Depends(get_current_user_with_tenant)
+):
     """Create a column mapping."""
     mapping_repo = MappingRepository(None)
     column_mapping_id = await mapping_repo.save_column_mapping(
@@ -282,7 +300,8 @@ async def create_column_mapping(mapping_id: str, column_mapping: dict):
 
 @router.put("/{mapping_id}/columns/{column_mapping_id}")
 async def update_column_mapping(
-    mapping_id: str, column_mapping_id: str, updates: dict
+    mapping_id: str, column_mapping_id: str, updates: dict,
+    current_user=Depends(get_current_user_with_tenant)
 ):
     """Update a column mapping."""
     mapping_repo = MappingRepository(None)
@@ -292,7 +311,8 @@ async def update_column_mapping(
 
 @router.delete("/{mapping_id}/columns/{column_mapping_id}")
 async def delete_column_mapping(
-    mapping_id: str, column_mapping_id: str
+    mapping_id: str, column_mapping_id: str,
+    current_user=Depends(get_current_user_with_tenant)
 ):
     """Delete a column mapping."""
     mapping_repo = MappingRepository(None)
@@ -301,7 +321,10 @@ async def delete_column_mapping(
 
 
 @router.post("/{mapping_id}/validate")
-async def validate_mapping(mapping_id: str):
+async def validate_mapping(
+    mapping_id: str,
+    current_user=Depends(get_current_user_with_tenant)
+):
     """Validate a mapping."""
     mapping_service = MappingService(None)
     result = await mapping_service.validate_mapping(mapping_id)

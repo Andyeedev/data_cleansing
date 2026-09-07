@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user_with_tenant
 from app.services.export_service import ExportService
 import io
 
@@ -12,7 +12,7 @@ export_service = ExportService()
 @router.get("/{batch_id}/csv")
 def export_csv(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         csv_data = export_service.export_csv(batch_id)
@@ -31,7 +31,7 @@ def export_csv(
 @router.get("/{batch_id}/pdf")
 def export_pdf(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         pdf_data = export_service.export_pdf(batch_id)

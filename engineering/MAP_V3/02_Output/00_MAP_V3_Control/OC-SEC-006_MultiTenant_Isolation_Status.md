@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | **OC-SEC-006A** | Credential cross-tenant isolation | ✅ APPROVED / COMPLETE | `5040e0a8` | 20/20 pass |
 | **OC-SEC-006B** | User/RBAC cross-tenant isolation | ✅ COMPLETE | — | 19/19 pass |
-| **OC-SEC-006C** | Operational routes (mapping, control, execution, governance, export) | ❌ NOT STARTED | — | — |
+| **OC-SEC-006C** | Operational routes (mapping, control, execution, governance, export) | ✅ COMPLETE | — | 13/13 pass |
 | **OC-SEC-006D** | Tenant edge cases (all_tenants, leads, query param validation) | ❌ NOT STARTED | — | — |
 
 ---
@@ -45,9 +45,19 @@
 
 ---
 
-## OC-SEC-006C — NOT STARTED
+## OC-SEC-006C — COMPLETE
 
-**Scope:** `mapping_routes.py` (unprotected async), `control_routes.py`, `execution_control_routes.py`, `governance_routes.py`, `export_routes.py`, `operations_execution_routes.py`
+**Scope:** `mapping_routes.py`, `control_routes.py`, `execution_control_routes.py`, `governance_routes.py`, `export_routes.py`, `operations_execution_routes.py`
+
+**Outcome:**
+- 9 legacy mapping routes (previously ZERO auth) now require `get_current_user_with_tenant`
+- 33 routes total across 6 files updated
+- control_routes: GLOBAL-PLATFORM controls now require tenant-auth
+- execution_control_routes: batch operations require tenant-auth
+- governance_routes: replaced local `_require_admin` with `rbac.require_admin` (tenant-scoped)
+- export_routes: CSV/PDF export requires tenant-auth
+- operations_execution_routes: `start_run` enforces `body.tenant_id == JWT tenant_id`; `get_run_history` and `status-breakdown` default tenant_id from JWT
+- 13 tests pass
 
 ---
 

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user_with_tenant
 from app.api.models.responses import APIResponse
 from app.api.models.execution_control_models import (
     ExecutionControlResponse,
@@ -15,7 +15,7 @@ execution_control_service = ExecutionControlService()
 @router.post("/{batch_id}/cancel", response_model=APIResponse)
 def cancel_execution(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = execution_control_service.cancel_execution(batch_id)
@@ -33,7 +33,7 @@ def cancel_execution(
 @router.post("/{batch_id}/pause", response_model=APIResponse)
 def pause_execution(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = execution_control_service.pause_execution(batch_id)
@@ -51,7 +51,7 @@ def pause_execution(
 @router.post("/{batch_id}/resume", response_model=APIResponse)
 def resume_execution(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = execution_control_service.resume_execution(batch_id)
@@ -69,7 +69,7 @@ def resume_execution(
 @router.post("/{batch_id}/retry", response_model=APIResponse)
 def retry_execution(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = execution_control_service.retry_execution(batch_id)
@@ -87,7 +87,7 @@ def retry_execution(
 @router.get("/{batch_id}/lifecycle", response_model=APIResponse)
 def get_lifecycle(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = execution_control_service.get_lifecycle(batch_id)
@@ -99,7 +99,7 @@ def get_lifecycle(
 @router.get("/{batch_id}/progress", response_model=APIResponse)
 def get_progress(
     batch_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant)
 ):
     try:
         result = execution_control_service.get_progress(batch_id)
