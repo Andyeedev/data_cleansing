@@ -1,4 +1,5 @@
 import secrets
+import uuid
 from typing import Optional
 
 
@@ -6,7 +7,7 @@ class RoleService:
     def __init__(self, conn):
         self.conn = conn
 
-    def list_roles(self, page: int = 1, page_size: int = 50, status: Optional[str] = None):
+    def list_roles(self, tenant_id=None, page: int = 1, page_size: int = 50, status: Optional[str] = None):
         offset = (page - 1) * page_size
         query = """
             SELECT id, name, description, type, is_system, is_default, 
@@ -15,6 +16,10 @@ class RoleService:
             WHERE deleted_at IS NULL
         """
         params = []
+
+        if tenant_id:
+            query += " AND tenant_id = %s"
+            params.append(tenant_id)
 
         if status:
             query += " AND status = %s"
@@ -29,7 +34,11 @@ class RoleService:
             roles = [dict(zip(columns, row)) for row in cur.fetchall()]
 
             count_query = "SELECT COUNT(*) FROM platform.roles WHERE deleted_at IS NULL"
-            cur.execute(count_query)
+            count_params = []
+            if tenant_id:
+                count_query += " AND tenant_id = %s"
+                count_params.append(tenant_id)
+            cur.execute(count_query, count_params)
             total = cur.fetchone()[0]
 
         return {
@@ -42,42 +51,49 @@ class RoleService:
             }
         }
 
-    def get_role(self, role_id: str):
+    def get_role(self, role_id: str, tenant_id=None):
         query = """
             SELECT id, name, description, type, is_system, is_default, 
                    status, metadata, created_at
             FROM platform.roles
             WHERE id = %s AND deleted_at IS NULL
         """
+        params = [role_id]
+
+        if tenant_id:
+            query += " AND tenant_id = %s"
+            params.append(tenant_id)
+
         with self.conn.cursor() as cur:
-            cur.execute(query, (role_id,))
+            cur.execute(query, params)
             columns = [desc[0] for desc in cur.description]
-            role = dict(zip(columns, cur.fetchone()))
+            row = cur.fetchone()
+            role = dict(zip(columns, row)) if row else None
 
         if not role:
             return {"success": False, "error": "Role not found"}
 
         return {"success": True, "data": role}
 
-    def create_role(self, payload):
-        role_id = secrets.token_uuid()
+    def create_role(self, payload, tenant_id=None):
+        role_id = str(uuid.uuid4())
 
         query = """
-            INSERT INTO platform.roles (id, name, description, type, parent_id, status)
-            VALUES (%s, %s, %s, %s, %s, 'active')
+            INSERT INTO platform.roles (id, name, description, type, parent_id, tenant_id, status)
+            VALUES (%s, %s, %s, %s, %s, %s, 'active')
             RETURNING id, name, description, type, created_at
         """
         with self.conn.cursor() as cur:
             cur.execute(query, (
                 role_id, payload.name, payload.description,
-                payload.type, payload.parent_id
+                payload.type, payload.parent_id, tenant_id
             ))
             columns = [desc[0] for desc in cur.description]
             role = dict(zip(columns, cur.fetchone()))
 
         return {"success": True, "data": role}
 
-    def update_role(self, role_id: str, payload):
+    def update_role(self, role_id: str, payload, tenant_id=None):
         updates = []
         params = []
 
@@ -99,35 +115,58 @@ class RoleService:
             UPDATE platform.roles
             SET {', '.join(updates)}
             WHERE id = %s AND deleted_at IS NULL
-            RETURNING id, name, description, type, status
         """
+        if tenant_id:
+            query += " AND tenant_id = %s"
+            params.append(tenant_id)
+
+        query += " RETURNING id, name, description, type, status"
+
         with self.conn.cursor() as cur:
             cur.execute(query, params)
             columns = [desc[0] for desc in cur.description]
-            role = dict(zip(columns, cur.fetchone()))
+            row = cur.fetchone()
+            role = dict(zip(columns, row)) if row else None
 
         if not role:
-            return {"success": False, "error": "Role not found"}
+            return {"success": False, "error": "Role not found or access denied"}
 
         return {"success": True, "data": role}
 
-    def delete_role(self, role_id: str):
+    def delete_role(self, role_id: str, tenant_id=None):
         query = """
             UPDATE platform.roles
             SET deleted_at = NOW()
             WHERE id = %s AND deleted_at IS NULL AND is_system = FALSE
-            RETURNING id
         """
+        params = [role_id]
+
+        if tenant_id:
+            query += " AND tenant_id = %s"
+            params.append(tenant_id)
+
+        query += " RETURNING id"
+
         with self.conn.cursor() as cur:
-            cur.execute(query, (role_id,))
+            cur.execute(query, params)
             result = cur.fetchone()
 
         if not result:
-            return {"success": False, "error": "Role not found or is a system role"}
+            return {"success": False, "error": "Role not found, is a system role, or access denied"}
 
         return {"success": True, "message": "Role deleted"}
 
-    def assign_permission(self, role_id: str, payload):
+    def assign_permission(self, role_id: str, payload, tenant_id=None):
+        if tenant_id:
+            role_check_query = """
+                SELECT id FROM platform.roles
+                WHERE id = %s AND tenant_id = %s AND deleted_at IS NULL
+            """
+            with self.conn.cursor() as cur:
+                cur.execute(role_check_query, (role_id, tenant_id))
+                if not cur.fetchone():
+                    return {"success": False, "error": "Role not found or access denied"}
+
         query = """
             INSERT INTO platform.role_permissions (role_id, permission_id, granted)
             VALUES (%s, %s, %s)
@@ -141,7 +180,17 @@ class RoleService:
 
         return {"success": True, "message": "Permission assigned"}
 
-    def remove_permission(self, role_id: str, permission_id: str):
+    def remove_permission(self, role_id: str, permission_id: str, tenant_id=None):
+        if tenant_id:
+            role_check_query = """
+                SELECT id FROM platform.roles
+                WHERE id = %s AND tenant_id = %s AND deleted_at IS NULL
+            """
+            with self.conn.cursor() as cur:
+                cur.execute(role_check_query, (role_id, tenant_id))
+                if not cur.fetchone():
+                    return {"success": False, "error": "Role not found or access denied"}
+
         query = """
             DELETE FROM platform.role_permissions
             WHERE role_id = %s AND permission_id = %s
@@ -156,7 +205,17 @@ class RoleService:
 
         return {"success": True, "message": "Permission removed"}
 
-    def get_role_permissions(self, role_id: str):
+    def get_role_permissions(self, role_id: str, tenant_id=None):
+        if tenant_id:
+            role_check_query = """
+                SELECT id FROM platform.roles
+                WHERE id = %s AND tenant_id = %s AND deleted_at IS NULL
+            """
+            with self.conn.cursor() as cur:
+                cur.execute(role_check_query, (role_id, tenant_id))
+                if not cur.fetchone():
+                    return {"success": False, "error": "Role not found or access denied"}
+
         query = """
             SELECT p.id, p.name, p.resource, p.action, p.category, rp.granted
             FROM platform.role_permissions rp

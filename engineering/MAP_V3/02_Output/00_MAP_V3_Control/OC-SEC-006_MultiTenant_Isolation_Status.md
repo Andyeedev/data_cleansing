@@ -8,7 +8,7 @@
 | Stage | Scope | Status | Commit | Tests |
 |---|---|---|---|---|
 | **OC-SEC-006A** | Credential cross-tenant isolation | ✅ APPROVED / COMPLETE | `5040e0a8` | 20/20 pass |
-| **OC-SEC-006B** | User/RBAC cross-tenant isolation | 🔄 IN PROGRESS | — | — |
+| **OC-SEC-006B** | User/RBAC cross-tenant isolation | ✅ COMPLETE | — | 19/19 pass |
 | **OC-SEC-006C** | Operational routes (mapping, control, execution, governance, export) | ❌ NOT STARTED | — | — |
 | **OC-SEC-006D** | Tenant edge cases (all_tenants, leads, query param validation) | ❌ NOT STARTED | — | — |
 
@@ -30,17 +30,18 @@
 
 ---
 
-## OC-SEC-006B — IN PROGRESS
+## OC-SEC-006B — COMPLETE
 
-**Scope:** `user_routes.py`, `role_routes.py`, `permissions_routes.py`
+**Scope:** `user_routes.py`, `role_routes.py`, `rbac.py`, `user_service.py`, `role_service.py`
 
-**Key decisions required:**
-- `platform.permissions` — classification: GLOBAL-PLATFORM (permission catalogue) or TENANT-OWNED?
-- `core.role_permissions` — classification: GLOBAL-PLATFORM or TENANT-OWNED?
-- `platform.user_roles` — must be TENANT-OWNED (user-role assignments)
-- `platform.roles` — must be TENANT-OWNED (role definitions per tenant)
-
-**Pending:** Pre-flight resource ownership classification (same pattern as 006A)
+**Outcome:**
+- All user and role queries enforce tenant boundary via `WHERE tenant_id = %s` in SQL
+- Route auth changed from `get_current_user` → `get_current_user_with_tenant` on all user/role endpoints
+- `rbac.py` (`require_permissions`, `require_role`, `require_admin`) scope by tenant from JWT
+- `UserCreateRequest` no longer accepts `tenant_id` in body — JWT only
+- `platform.permissions` classified as GLOBAL-PLATFORM (read-only catalogue, not tenant-scoped)
+- Replaced `secrets.token_uuid()` with `str(uuid.uuid4())` for Python 3.13 compat
+- 19 cross-tenant isolation tests pass
 
 ---
 
