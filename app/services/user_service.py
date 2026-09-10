@@ -84,6 +84,13 @@ class UserService:
         return {"success": True, "data": user}
 
     def create_user(self, payload, tenant_id=None):
+        # DEV-011: password policy enforced on creation paths, not just change-password.
+        from app.services.auth_service import validate_password_policy
+        validate_password_policy(payload.password)
+        # DEV-009: enforce tenant user limit before creating.
+        if tenant_id:
+            from app.services.tenant_service import TenantService
+            TenantService(self.conn).check_limit(tenant_id, "users")
         password_hash = bcrypt.hashpw(payload.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         user_id = str(uuid.uuid4())
         effective_tenant = tenant_id or getattr(payload, 'tenant_id', None)

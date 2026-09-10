@@ -99,9 +99,13 @@ class TestOperationsExecutionTenantEnforcement:
         assert "cannot start run for another tenant" in source
 
     def test_get_run_history_defaults_tenant(self):
+        # DEV-003: JWT tenant only — the ?tenant_id= override is removed.
         source = open("app/api/routes/operations_execution_routes.py", "r").read()
-        assert "effective_tenant = tenant_id or current_user.get(\"tenant_id\")" in source
+        assert "effective_tenant = tenant_id or current_user.get(\"tenant_id\")" not in source
+        assert "tenant_id=current_user.get(\"tenant_id\")" in source
 
     def test_status_breakdown_defaults_tenant(self):
+        # DEV-003: JWT tenant only — the ?tenant_id= override is removed.
         source = open("app/api/routes/operations_execution_routes.py", "r").read()
-        assert "effective_tenant = tenant_id or current_user.get(\"tenant_id\")" in source
+        assert "effective_tenant = tenant_id or current_user.get(\"tenant_id\")" not in source
+        assert "current_user.get(\"tenant_id\")" in source

@@ -1,0 +1,78 @@
+    def login(self, username: str, password: str):
+        db = get_db_connection()
+        try:
+            with db.conn.cursor() as cur:
+                cur.execute(
+                    """SELECT id, email, password_hash, tenant_id, status,
+                       failed_login_attempts, locked_until, token_version
+                    FROM platform.users WHERE email = %s AND deleted_at IS NULL""",
+                    (username,)
+                )
+                user = cur.fetchone()
+
+            if not user:
+                raise Exception("Invalid credentials")
+
+            user_id, email, password_hash, tenant_id, status, failed_attempts, locked_until, token_version = user
+
+            if status != "active":
+                raise Exception("Account is not active")
+
+            # DEV-006: suspended tenants cannot authenticate (Super Admins have no tenant).
+            if tenant_id:
+                try:
+                    with db.conn.cursor() as cur:
+                        cur.execute("SELECT status FROM core.tenants WHERE tenant_id = %s", (tenant_id,))
+                        tenant_row = cur.fetchone()
+                        if not tenant_row or tenant_row[0] != "ACTIVE":
+                            raise Exception("Tenant account is suspended")
+                except Exception as e:
+                    if str(e) == "Tenant account is suspended":
+                        raise
+
+            if locked_until and locked_until > datetime.utcnow():
+                remaining = (locked_until - datetime.utcnow()).seconds // 60 + 1
+                raise Exception(f"Account locked. Try again in {remaining} minutes")
+
+            if not bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
+                new_attempts = (failed_attempt_attempts or 0) + 1
+                lock_until = None
+                if new_attempts >= MAX_FAILED_ATTEMPTS:
+                    lock_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_MINUTES)
+                with db.conn.cursor() as cur:
+                    cur.execute(
+                        "UPDATE platform.users SET failed_login_attempts = %s, locked_until = %s WHERE id = %s",
+                        (new_attempts, lock_until, user_id)
+                    )
+                    db.conn.commit()
+                if new_attempts >= MAX_FAILED_ATTEMPTS:
+                    raise Exception(f"Account locked after {MAX_FAILED_ATTEMPTS} failed attempts. Try again in {LOCKOUT_MINUTES} minutes")
+                raise Exception("Invalid credentials")
+
+            with db.conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE platform.users SET last_login_at = NOW(), failed_login_attempts = 0, locked_until = NULL WHERE id = %s",
+                    (user_id,)
+                )
+                db.conn.commit()
+
+            with db.conn.cursor() as cur:
+                cur.execute("SELECT r.name FROM platform.user_roles ur JOIN platform.roles r ON ur.role_id = r.id WHERE ur.user_id = %s", (user_id,))
+                roles = [row[0] for row in cur.fetchall()]
+
+            payload = {
+                "sub": str(user_id),
+                "user": email,
+                "tenant_id": str(tenant_id) if tenant_id else None,
+                "roles": roles,
+                "token_version": token_version or 0,
+                "exp": datetime.utcnow() + timedelta(hours=2)
+            }
+            token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+            return {
+                "access_token": token,
+                "token_type": "bearer"
+            }
+        except Exception as e:
+            raise

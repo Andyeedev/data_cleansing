@@ -20,6 +20,9 @@ class TenantService:
             plan_id=plan["plan_id"]
         )
 
+        # DEV-011: password policy enforced on tenant provisioning path.
+        from app.services.auth_service import validate_password_policy
+        validate_password_policy(admin_password)
         password_hash = bcrypt.hashpw(admin_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         user_id = str(uuid.uuid4())
 
@@ -109,6 +112,53 @@ class TenantService:
     def list_plans(self):
         plans = self.repo.list_plans(status="active")
         return {"success": True, "data": plans}
+
+    # DEV-009: plan-limit enforcement on creation paths.
+    # Limits come from core.tenants.max_* (DDL defaults apply when NULL).
+    # Kinds allowlisted — no invented limits. Raises ValueError (mapped to 403).
+    LIMIT_COLUMNS = {
+        "users": ("max_users", 5, "users"),
+        "projects": ("max_projects", 3, "projects"),
+        "connections": ("max_connections", 5, "systems"),
+    }
+
+    def check_limit(self, tenant_id, kind):
+        column, default, label = self.LIMIT_COLUMNS[kind]
+        with self.conn.cursor() as cur:
+            cur.execute(
+                f"SELECT COALESCE({column}, %s) FROM core.tenants WHERE tenant_id = %s",
+                (default, tenant_id),
+            )
+            row = cur.fetchone()
+            if not row:
+                raise ValueError("Tenant not found")
+            maximum = row[0]
+            if kind == "users":
+                cur.execute(
+                    "SELECT COUNT(*) FROM platform.users "
+                    "WHERE tenant_id = %s AND deleted_at IS NULL AND status = 'active'",
+                    (tenant_id,),
+                )
+            elif kind == "projects":
+                cur.execute(
+                    "SELECT COUNT(*) FROM core.projects "
+                    "WHERE tenant_id = %s AND status <> 'ARCHIVED'",
+                    (tenant_id,),
+                )
+            else:
+                cur.execute(
+                    "SELECT COUNT(*) FROM core.system_registry sr "
+                    "JOIN core.projects p ON p.project_id = sr.project_id "
+                    "WHERE p.tenant_id = %s",
+                    (tenant_id,),
+                )
+            current = cur.fetchone()[0]
+            if current >= maximum:
+                raise ValueError(
+                    f"{label.capitalize()} limit reached ({current}/{maximum}). "
+                    "Upgrade your plan to add more."
+                )
+            return {"current": current, "maximum": maximum}
 
     def get_tenant_context(self, tenant_id):
         tenant = self.repo.get_tenant(tenant_id)

@@ -34,14 +34,14 @@ class DiagnosticsService:
         row = self.system_repo.get_by_id(system_id, tenant_id=tenant_id)
         if not row:
             raise Exception("System not found")
-        _, name, role, db_type, config, _ = row
+        _, name, role, db_type, config, _, _ = row
         if isinstance(config, str):
             config = json.loads(config)
         return name, role, db_type, config
 
-    def _get_credentials(self, system_id):
+    def _get_credentials(self, system_id, tenant_id=None):
         cred_service = CredentialService(self.conn)
-        return cred_service.get_decrypted_credentials(system_id)
+        return cred_service.get_decrypted_credentials(system_id, tenant_id=tenant_id)
 
     def _build_adapter_config(self, adapter_key, config, creds):
         from app.config import (
@@ -234,7 +234,7 @@ class DiagnosticsService:
 
     def run_full_diagnostics(self, system_id, tenant_id=None):
         name, role, db_type, config = self._get_system_config(system_id, tenant_id=tenant_id)
-        creds = self._get_credentials(system_id)
+        creds = self._get_credentials(system_id, tenant_id=tenant_id)
 
         adapter_key = DB_TYPE_MAP.get(db_type.upper())
         if not adapter_key:

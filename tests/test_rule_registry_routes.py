@@ -1,15 +1,24 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.api.main import app
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user, get_current_user_with_tenant
 
 client = TestClient(app)
 
-# Mock authentication
-def mock_get_current_user():
-    return {"user_id": "test-user", "tenant_id": "test-tenant", "roles": ["admin"]}
+# Mock authentication (tenant user, NOT Super Admin). Both dependencies
+# overridden so require_admin sees the non-admin JWT roles (→ 403).
+def mock_tenant_user():
+    return {"sub": "test-user", "tenant_id": "11111111-1111-1111-1111-111111111111", "roles": ["admin"]}
 
-app.dependency_overrides[get_current_user] = mock_get_current_user
+
+@pytest.fixture(autouse=True)
+def _hermetic_auth():
+    # DEV-003: auth overrides are security-relevant — set per-test so file
+    # execution order cannot leak or clear them.
+    app.dependency_overrides[get_current_user] = mock_tenant_user
+    app.dependency_overrides[get_current_user_with_tenant] = mock_tenant_user
+    yield
+    app.dependency_overrides.clear()
 
 
 class TestRuleRegistryRoutes:
@@ -46,6 +55,7 @@ class TestRuleRegistryRoutes:
         assert data["success"] is True
 
     def test_create_rule(self):
+        # DEV-010: global template mutation requires Super Admin — tenant admin gets 403.
         rule_data = {
             "rule_id": "TEST-RULE-001",
             "control_id": "C01",
@@ -54,18 +64,17 @@ class TestRuleRegistryRoutes:
             "enabled_flag": True
         }
         response = client.post("/api/v1/rules", json=rule_data)
-        # May succeed or fail depending on database state
-        assert response.status_code in [200, 500]
+        assert response.status_code == 403
 
     def test_update_rule(self):
+        # DEV-010: global template mutation requires Super Admin — tenant admin gets 403.
         update_data = {
             "rule_name": "Updated Rule Name"
         }
         response = client.put("/api/v1/rules/TEST-RULE-001", json=update_data)
-        # May succeed or fail depending on database state
-        assert response.status_code in [200, 404, 500]
+        assert response.status_code == 403
 
     def test_delete_rule(self):
+        # DEV-010: global template mutation requires Super Admin — tenant admin gets 403.
         response = client.delete("/api/v1/rules/TEST-RULE-001")
-        # May succeed or fail depending on database state
-        assert response.status_code in [200, 404, 500]
+        assert response.status_code == 403

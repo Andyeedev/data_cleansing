@@ -35,6 +35,7 @@ from app.api.routes import (
     migration_project_routes,
     migration_dataset_routes,
     schedule_routes,
+    migration_timeline_routes,
     rule_registry_routes,
     rule_discovery_routes,
     control_routes,
@@ -89,6 +90,19 @@ app.add_middleware(AuditLoggingMiddleware)
 
 
 # =========================
+# TENANT ENFORCEMENT MIDDLEWARE (DEV-003/DEV-006)
+# JWT-derived tenancy + suspended-tenant blocking. Registered after audit
+# middleware so it executes first and request.state.tenant_id is available.
+# =========================
+from app.api.core.middleware.tenant_middleware import tenant_middleware
+
+
+@app.middleware("http")
+async def tenant_enforcement_middleware(request: Request, call_next):
+    return await tenant_middleware(request, call_next)
+
+
+# =========================
 # REQUEST TIMING MIDDLEWARE
 # =========================
 @app.middleware("http")
@@ -106,13 +120,19 @@ async def add_timing_header(request: Request, call_next):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"success": False, "error": exc.detail}
+        )
+    if "connection pool" in str(exc).lower():
+        return JSONResponse(
+            status_code=503,
+            content={"success": False, "error": "Service temporarily unavailable. Please try again."}
+        )
     return JSONResponse(
         status_code=500,
-        content={
-            "success": False,
-            "error": "Internal server error",
-            "detail": str(exc)
-        }
+        content={"success": False, "error": "Internal server error"}
     )
 
 
@@ -201,6 +221,7 @@ app.include_router(dashboard_routes.router)
 app.include_router(migration_project_routes.router)
 app.include_router(migration_dataset_routes.router)
 app.include_router(schedule_routes.router)
+app.include_router(migration_timeline_routes.router)
 app.include_router(rule_registry_routes.router)
 app.include_router(rule_discovery_routes.router)
 app.include_router(control_routes.router)

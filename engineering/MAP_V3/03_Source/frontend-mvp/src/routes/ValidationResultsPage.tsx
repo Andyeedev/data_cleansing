@@ -87,7 +87,7 @@ export function ValidationResultsPage() {
     return Math.round((completed / total) * 100);
   };
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <PageContainer>
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">

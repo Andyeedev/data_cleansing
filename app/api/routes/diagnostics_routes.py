@@ -26,9 +26,9 @@ def get_summary(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, current_user)
-        db = get_db_connection()
-        service = DiagnosticsService(db.conn)
-        data = service.get_summary(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            service = DiagnosticsService(db.conn)
+            data = service.get_summary(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -45,9 +45,9 @@ def list_all_diagnostics(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, current_user)
-        db = get_db_connection()
-        service = DiagnosticsService(db.conn)
-        data = service.get_all_diagnostics(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            service = DiagnosticsService(db.conn)
+            data = service.get_all_diagnostics(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -64,9 +64,9 @@ def get_diagnostics(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, current_user)
-        db = get_db_connection()
-        service = DiagnosticsService(db.conn)
-        data = service.get_cached_result(system_id, tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            service = DiagnosticsService(db.conn)
+            data = service.get_cached_result(system_id, tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -83,9 +83,9 @@ def run_diagnostics(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, current_user)
-        db = get_db_connection()
-        service = DiagnosticsService(db.conn)
-        data = service.run_full_diagnostics(system_id, tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            service = DiagnosticsService(db.conn)
+            data = service.run_full_diagnostics(system_id, tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -101,9 +101,9 @@ def get_test_history(
     current_user=Depends(get_current_user_with_tenant),
 ):
     try:
-        db = get_db_connection()
-        service = DiagnosticsService(db.conn)
-        data = service.get_test_history(system_id)
+        with get_db_connection() as db:
+            service = DiagnosticsService(db.conn)
+            data = service.get_test_history(system_id)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

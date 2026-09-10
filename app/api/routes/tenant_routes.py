@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
 
@@ -39,16 +39,22 @@ def create_tenant(
     request: TenantCreateRequest,
     current_user=Depends(require_admin)
 ):
-    db = get_db_connection()
-    service = TenantService(db.conn)
-    result = service.create_tenant(
-        tenant_name=request.tenant_name,
-        admin_email=request.admin_email,
-        admin_password=request.admin_password,
-        billing_email=request.billing_email,
-        plan_tier=request.plan_tier
-    )
-    return standardize_response(result)
+    # DEV-011: weak admin passwords surface as 422 (policy enforced in service).
+    try:
+        db = get_db_connection()
+        service = TenantService(db.conn)
+        result = service.create_tenant(
+            tenant_name=request.tenant_name,
+            admin_email=request.admin_email,
+            admin_password=request.admin_password,
+            billing_email=request.billing_email,
+            plan_tier=request.plan_tier
+        )
+        return standardize_response(result)
+    except Exception as e:
+        if "Password" in str(e):
+            raise HTTPException(status_code=422, detail=str(e))
+        raise
 
 
 @router.get("")

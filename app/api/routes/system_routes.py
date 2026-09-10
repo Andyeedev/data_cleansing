@@ -5,7 +5,7 @@ from typing import Optional
 from app.db.connection import get_db_connection
 from app.services.system_service import SystemService
 from app.services.health_check_service import HealthCheckService
-from app.api.core.auth.dependencies import get_current_user, get_current_user_with_tenant
+from app.api.core.auth.dependencies import get_current_user, get_current_user_with_tenant, resolve_tenant, resolve_tenant
 from app.api.core.auth.rbac import require_admin
 from app.api.models.system_models import SystemCreateRequest
 
@@ -40,26 +40,40 @@ class UpdateSystemRequest(BaseModel):
 # =========================
 @router.get("")
 @router.get("/")
-def list_systems(tenant_id: str = Query(None), current_user=Depends(get_current_user_with_tenant)):
-    # Support empty string or "all" to return systems across all tenants (admin only)
-    if not tenant_id or tenant_id == 'all':
-        effective_tenant = None
-    else:
-        effective_tenant = tenant_id
-    db = get_db_connection()
-    data = SystemService(db.conn).list_systems(tenant_id=effective_tenant)
-    return {"success": True, "data": data}
+def list_systems(
+    project_id: str = Query(None),
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
+):
+    try:
+        db = get_db_connection()
+        data = SystemService(db.conn).list_systems(tenant_id=tenant_id, project_id=project_id)
+        return {"success": True, "data": data}
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
 
 # =========================
 # GET ONE
 # =========================
+def _not_found_or_500(e: Exception):
+    # Scoped lookups deny with 404 (unknown/foreign indistinguishable); real errors stay 500.
+    if "System not found" in str(e) or "Project not found" in str(e):
+        raise HTTPException(status_code=404, detail="System not found")
+    raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{system_id}")
-def get_system(system_id: str, tenant_id: str = Query(None), current_user=Depends(get_current_user_with_tenant)):
-    effective_tenant = tenant_id if tenant_id else current_user.get("tenant_id")
-    db = get_db_connection()
-    data = SystemService(db.conn).get_system(system_id, tenant_id=effective_tenant)
-    return {"success": True, "data": data}
+def get_system(system_id: str, current_user=Depends(get_current_user_with_tenant)):
+    # DEV-003: JWT tenant only — the system must belong to it via project ancestry.
+    try:
+        db = get_db_connection()
+        data = SystemService(db.conn).get_system(system_id, tenant_id=current_user.get("tenant_id"))
+        return {"success": True, "data": data}
+    except HTTPException:
+        raise
+    except Exception as e:
+        _not_found_or_500(e)
 
 
 # =========================
@@ -71,12 +85,17 @@ def create_system(
     payload: SystemCreateRequest,
     current_user=Depends(get_current_user_with_tenant)
 ):
+    # DEV-001: project_id is mandatory and must belong to the JWT tenant.
+    if not payload.project_id:
+        raise HTTPException(status_code=422, detail="project_id is required")
     try:
         tenant_id = current_user.get("tenant_id")
         db = get_db_connection()
         service = SystemService(db.conn)
         result = service.create_system(payload, tenant_id=tenant_id)
         return {"success": True, "data": result}
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -85,11 +104,19 @@ def create_system(
 # TEST CONNECTION
 # =========================
 @router.get("/{system_id}/test")
-def test_connection(system_id: str, tenant_id: str = Query(None), current_user=Depends(get_current_user_with_tenant)):
-    effective_tenant = tenant_id or current_user.get("tenant_id")
-    db = get_db_connection()
-    data = SystemService(db.conn).test_connection(system_id, tenant_id=effective_tenant)
-    return {"success": True, "data": data}
+def test_connection(
+    system_id: str,
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
+):
+    try:
+        db = get_db_connection()
+        data = SystemService(db.conn).test_connection(system_id, tenant_id=tenant_id)
+        return {"success": True, "data": data}
+    except HTTPException:
+        raise
+    except Exception as e:
+        _not_found_or_500(e)
 
 
 # =========================
@@ -107,8 +134,10 @@ def update_system(
         service = SystemService(db.conn)
         result = service.update_system(system_id, payload, tenant_id=tenant_id)
         return {"success": True, "data": result}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        _not_found_or_500(e)
 
 
 # =========================
@@ -122,8 +151,10 @@ def delete_system(system_id: str, current_user=Depends(get_current_user_with_ten
         service = SystemService(db.conn)
         result = service.delete_system(system_id, tenant_id=tenant_id)
         return {"success": True, "data": result}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        _not_found_or_500(e)
 
 
 # =========================
@@ -190,11 +221,16 @@ def get_health_check_history(
     limit: int = Query(50, ge=1, le=200),
     current_user=Depends(get_current_user_with_tenant)
 ):
-    """Get health check audit trail. Optional system_id filter."""
+    """Get health check audit trail. Optional system_id filter. DEV-001: JWT-tenant scoped."""
     try:
+        tenant_id = current_user.get("tenant_id")
         db = get_db_connection()
+        service = SystemService(db.conn)
+        if system_id:
+            # Verify the system belongs to the JWT tenant before exposing history.
+            service.get_system(system_id, tenant_id=tenant_id)
         hc = HealthCheckService(db.conn)
-        history = hc.get_history(system_id=system_id, limit=limit)
+        history = hc.get_history(system_id=system_id, limit=limit, tenant_id=tenant_id)
         return {"success": True, "data": history}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

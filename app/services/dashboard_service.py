@@ -7,6 +7,11 @@ class DashboardService:
         self.repository = DashboardRepository()
 
     def get_portfolio_summary(self, tenant_id: str = None):
+        if not tenant_id:
+            # DEV-003 fallback: if called without explicit tenant (should not happen 
+            # via /api/v1/dashboard/portfolio with current_user), return empty rather
+            # than expose cross-tenant data by accident.
+            return {"items": [], "total": 0}
         total_systems = self.repository.get_system_count(tenant_id)
         total_batches, active_batches = self.repository.get_batch_stats(tenant_id)
         total_controls = self.repository.get_total_controls(tenant_id)

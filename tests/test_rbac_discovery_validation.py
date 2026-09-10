@@ -7,6 +7,15 @@ from app.api.main import app
 client = TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def _no_leaked_auth():
+    # These tests assert unauthenticated behaviour — clear any overrides leaked
+    # by other test modules sharing the app object (DEV-003 hermeticity).
+    app.dependency_overrides.clear()
+    yield
+    app.dependency_overrides.clear()
+
+
 class TestRBACDiscoveryRoutes:
 
     @patch('app.api.routes.discovery_routes.discovery_service')

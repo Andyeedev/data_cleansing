@@ -21,7 +21,7 @@ export function ControlDependenciesPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ control: string; dependsOn: string } | null>(null);
   const [newDep, setNewDep] = useState({ control_id: '', depends_on: '' });
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <div>
         <ErrorState message="You do not have permission to view this page. Required role: admin" />

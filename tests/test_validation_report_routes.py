@@ -1,9 +1,9 @@
-import pytest
+﻿import pytest
 from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from app.api.routes.validation_report_routes import router
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user_with_tenant
 
 
 app = FastAPI()
@@ -12,17 +12,24 @@ app.include_router(router)
 client = TestClient(app)
 
 
-def override_get_current_user():
-    return {"user_id": "test-user", "roles": ["Super Admin"]}
+def override_get_current_user_with_tenant():
+    return {"sub": "test-user", "tenant_id": "11111111-1111-1111-1111-111111111111", "roles": ["admin"]}
 
 
-app.dependency_overrides[get_current_user] = override_get_current_user
+@pytest.fixture(autouse=True)
+def _hermetic_auth():
+    # DEV-003: auth overrides are security-relevant — set per-test so file
+    # execution order cannot leak or clear them.
+    app.dependency_overrides[get_current_user_with_tenant] = override_get_current_user_with_tenant
+    yield
+    app.dependency_overrides.clear()
 
 
 class TestValidationReportRoutes:
 
+    @patch('app.services.execution_history_service.ExecutionHistoryService.verify_batch_tenant', return_value={'project_id': 'proj-1'})
     @patch('app.api.routes.validation_report_routes.validation_report_service')
-    def test_get_validation_report_success(self, mock_service):
+    def test_get_validation_report_success(self, mock_service, mock_verify):
         mock_service.get_validation_report.return_value = {
             'batch_id': 'batch-1',
             'project_id': 'proj-1',
@@ -61,8 +68,9 @@ class TestValidationReportRoutes:
 
         assert response.status_code == 404
 
+    @patch('app.services.execution_history_service.ExecutionHistoryService.verify_batch_tenant', return_value={'project_id': 'proj-1'})
     @patch('app.api.routes.validation_report_routes.validation_report_service')
-    def test_get_governance_decision_success(self, mock_service):
+    def test_get_governance_decision_success(self, mock_service, mock_verify):
         mock_service.get_governance_decision.return_value = {
             'batch_id': 'batch-1',
             'project_id': 'proj-1',
@@ -87,8 +95,9 @@ class TestValidationReportRoutes:
 
         assert response.status_code == 404
 
+    @patch('app.services.execution_history_service.ExecutionHistoryService.verify_batch_tenant', return_value={'project_id': 'proj-1'})
     @patch('app.api.routes.validation_report_routes.validation_report_service')
-    def test_get_risk_score_success(self, mock_service):
+    def test_get_risk_score_success(self, mock_service, mock_verify):
         mock_service.get_risk_score.return_value = {
             'batch_id': 'batch-1',
             'risk_score': 75.0,
@@ -104,8 +113,9 @@ class TestValidationReportRoutes:
         assert data['data']['risk_score'] == 75.0
         assert data['data']['risk_level'] == 'MEDIUM'
 
+    @patch('app.services.execution_history_service.ExecutionHistoryService.verify_batch_tenant', return_value={'project_id': 'proj-1'})
     @patch('app.api.routes.validation_report_routes.validation_report_service')
-    def test_get_compliance_checks_success(self, mock_service):
+    def test_get_compliance_checks_success(self, mock_service, mock_verify):
         mock_service.get_compliance_checks.return_value = {
             'batch_id': 'batch-1',
             'total_exceptions': 2,
@@ -138,8 +148,9 @@ class TestValidationReportRoutes:
         assert data['data']['total_exceptions'] == 2
         assert len(data['data']['exceptions']) == 1
 
+    @patch('app.services.execution_history_service.ExecutionHistoryService.verify_batch_tenant', return_value={'project_id': 'proj-1'})
     @patch('app.api.routes.validation_report_routes.validation_report_service')
-    def test_get_compliance_checks_empty(self, mock_service):
+    def test_get_compliance_checks_empty(self, mock_service, mock_verify):
         mock_service.get_compliance_checks.return_value = {
             'batch_id': 'batch-1',
             'total_exceptions': 0,

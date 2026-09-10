@@ -36,6 +36,6 @@ def list_leads(current_user: dict = Depends(get_current_user_with_tenant)):
     if not any("admin" in r.lower() for r in roles):
         raise HTTPException(status_code=403, detail="Admin access required")
     from app.db.connection import get_db_connection
-    db = get_db_connection()
-    rows = db.execute("SELECT lead_id, full_name, work_email, company, industry, role, challenge, source_form, created_at FROM core.leads ORDER BY created_at DESC LIMIT 50")
+    with get_db_connection() as db:
+        rows = db.execute("SELECT lead_id, full_name, work_email, company, industry, role, challenge, source_form, created_at FROM core.leads ORDER BY created_at DESC LIMIT 50")
     return {"success": True, "data": [{"lead_id": str(r[0]), "full_name": r[1], "work_email": r[2], "company": r[3], "industry": r[4], "role": r[5], "challenge": r[6], "source_form": r[7], "created_at": str(r[8])} for r in rows]}

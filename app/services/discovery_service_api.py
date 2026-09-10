@@ -19,9 +19,9 @@ class DiscoveryService:
         return self._map_to_dict(mapping)
 
     def trigger_discovery(self, project_id: str):
-        engine_db = get_db_connection()
-        discovery_service = DatasetDiscoveryService(engine_db, project_id)
-        discovery_service.discover()
+        with get_db_connection() as engine_db:
+            discovery_service = DatasetDiscoveryService(engine_db, project_id)
+            discovery_service.discover()
 
         return {
             "message": "Discovery triggered successfully",

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from app.api.core.auth.dependencies import get_current_user_with_tenant
+from app.api.core.auth.dependencies import get_current_user_with_tenant, resolve_tenant
 from app.api.models.responses import APIResponse
 from app.api.models.validation_report_models import (
     ValidationReportResponse,
@@ -23,11 +23,10 @@ execution_history_service = ExecutionHistoryService()
 @router.get("/dashboard/")
 def get_validation_dashboard(
     current_user=Depends(get_current_user_with_tenant),
-    tenant_id: str = Query(None),
+    tenant_id: str = Depends(resolve_tenant),
 ):
-    """Aggregated validation dashboard data."""
     try:
-        effective_tenant = tenant_id or current_user.get("tenant_id")
+        effective_tenant = tenant_id
         
         # Get data from existing services
         risk_scores = validation_report_service.get_all_risk_scores(effective_tenant)
@@ -115,8 +114,8 @@ def get_validation_dashboard(
 
 @router.get("/unscored-batches", response_model=APIResponse)
 def get_unscored_batches(
-    tenant_id: str = Query(None),
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
 ):
     try:
         result = validation_report_service.get_unscored_batches(tenant_id)
@@ -127,8 +126,8 @@ def get_unscored_batches(
 
 @router.get("/orphaned-batches", response_model=APIResponse)
 def get_orphaned_batches(
-    tenant_id: str = Query(None),
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
 ):
     try:
         result = validation_report_service.get_orphaned_batches(tenant_id)
@@ -137,12 +136,19 @@ def get_orphaned_batches(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def _require_batch_tenant(batch_id: str, tenant_id: str):
+    # DEV-001: unknown/foreign batches 404 without leaking existence.
+    if not execution_history_service.verify_batch_tenant(batch_id, tenant_id):
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+
 @router.get("/{batch_id}/report", response_model=APIResponse)
 def get_validation_report(
     batch_id: str,
     current_user=Depends(get_current_user_with_tenant)
 ):
     try:
+        _require_batch_tenant(batch_id, current_user.get("tenant_id"))
         report = validation_report_service.get_validation_report(batch_id)
         if not report:
             raise HTTPException(status_code=404, detail="Batch not found")
@@ -159,6 +165,7 @@ def get_governance_decision(
     current_user=Depends(get_current_user_with_tenant)
 ):
     try:
+        _require_batch_tenant(batch_id, current_user.get("tenant_id"))
         decision = validation_report_service.get_governance_decision(batch_id)
         if not decision:
             raise HTTPException(status_code=404, detail="Governance decision not found")
@@ -171,8 +178,8 @@ def get_governance_decision(
 
 @router.get("/risk-scores", response_model=APIResponse)
 def get_all_risk_scores(
-    tenant_id: str = Query(None),
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
 ):
     try:
         result = validation_report_service.get_all_risk_scores(tenant_id)
@@ -183,8 +190,8 @@ def get_all_risk_scores(
 
 @router.get("/migration-score-summary", response_model=APIResponse)
 def get_migration_score_summary(
-    tenant_id: str = Query(None),
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
 ):
     try:
         result = validation_report_service.get_migration_score_summary(tenant_id)
@@ -199,6 +206,7 @@ def get_risk_score(
     current_user=Depends(get_current_user_with_tenant)
 ):
     try:
+        _require_batch_tenant(batch_id, current_user.get("tenant_id"))
         risk = validation_report_service.get_risk_score(batch_id)
         return APIResponse(success=True, data=risk)
     except Exception as e:
@@ -211,6 +219,7 @@ def get_compliance_checks(
     current_user=Depends(get_current_user_with_tenant)
 ):
     try:
+        _require_batch_tenant(batch_id, current_user.get("tenant_id"))
         compliance = validation_report_service.get_compliance_checks(batch_id)
         return APIResponse(success=True, data=compliance)
     except Exception as e:

@@ -50,6 +50,62 @@ class MigrationProjectService:
         project["datasets"] = [self._dataset_to_dict(d) for d in datasets]
         return project
 
+    def _write_to_dict(self, row):
+        if not row:
+            return None
+        return {
+            "project_id": str(row[0]),
+            "project_name": row[1],
+            "project_type": row[2],
+            "status": row[3],
+            "tenant_id": str(row[4]) if row[4] else None,
+            "created_at": str(row[5]) if row[5] else None,
+        }
+
+    def get_project_for_tenant(self, project_id: str, tenant_id: str):
+        """DEV-001/DEV-005: resolve a project strictly within the JWT tenant.
+        Returns None for unknown OR foreign projects (no existence leak)."""
+        owner = self.repository.get_project_tenant(project_id)
+        if not owner or str(owner) != str(tenant_id):
+            return None
+        return self.get_project(project_id)
+
+    def create_project(self, tenant_id: str, project_name: str, project_type: str = "MIGRATION"):
+        """DEV-005: minimum project creation with plan-limit enforcement (DEV-009)."""
+        if not project_name or not project_name.strip():
+            raise ValueError("project_name is required")
+        if project_type not in ("MIGRATION", "DATA_QUALITY"):
+            raise ValueError("project_type must be MIGRATION or DATA_QUALITY")
+        from app.services.tenant_service import TenantService
+        TenantService(self.repository.db.conn).check_limit(tenant_id, "projects")
+        row = self.repository.create_project(tenant_id, project_name.strip(), project_type)
+        if not row:
+            raise Exception("Project creation failed")
+        return self._write_to_dict(row)
+
+    def update_project(self, project_id: str, tenant_id: str, project_name=None,
+                       project_type=None, status=None):
+        """DEV-005: tenant-scoped update. Unknown/foreign → ValueError (403)."""
+        if project_type is not None and project_type not in ("MIGRATION", "DATA_QUALITY"):
+            raise ValueError("project_type must be MIGRATION or DATA_QUALITY")
+        row = self.repository.update_project(project_id, tenant_id, project_name,
+                                             project_type, status)
+        if not row:
+            raise ValueError("Project not found or access denied")
+        return self._write_to_dict(row)
+
+    def delete_project(self, project_id: str, tenant_id: str, mode: str = "archive"):
+        """DEV-005: default archive (status); hard delete only when explicitly requested."""
+        if mode == "hard":
+            deleted = self.repository.delete_project(project_id, tenant_id)
+            if not deleted:
+                raise ValueError("Project not found or access denied")
+            return {"deleted": str(deleted)}
+        row = self.repository.archive_project(project_id, tenant_id)
+        if not row:
+            raise ValueError("Project not found or access denied")
+        return self._write_to_dict(row)
+
     def get_tenants(self):
         rows = self.repository.get_unique_tenants()
         return [{"tenant_id": str(r[0]), "tenant_name": r[1] or str(r[0])[:8]} for r in rows]

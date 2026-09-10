@@ -162,3 +162,50 @@ class MigrationProjectRepository:
         """
         params.append(limit)
         return self.db.execute(query, tuple(params))
+
+    # =========================
+    # DEV-005: project lifecycle writes (Tenant-owned; tenant enforced by callers
+    # via get_project_tenant checks and tenant-scoped UPDATE/DELETE below)
+    # =========================
+    def create_project(self, tenant_id, project_name, project_type="MIGRATION", status="ACTIVE"):
+        query = """
+            INSERT INTO core.projects (project_id, tenant_id, project_name, project_type, status)
+            VALUES (gen_random_uuid(), %s, %s, %s, %s)
+            RETURNING project_id, project_name, project_type, status, tenant_id, created_at
+        """
+        rows = self.db.execute(query, (tenant_id, project_name, project_type, status))
+        return rows[0] if rows else None
+
+    def update_project(self, project_id, tenant_id, project_name=None, project_type=None, status=None):
+        sets, params = [], []
+        for column, value in (("project_name", project_name),
+                              ("project_type", project_type),
+                              ("status", status)):
+            if value is not None:
+                sets.append(f"{column} = %s")
+                params.append(value)
+        if not sets:
+            return None
+        query = f"""
+            UPDATE core.projects SET {", ".join(sets)}
+            WHERE project_id = %s AND tenant_id = %s
+            RETURNING project_id, project_name, project_type, status, tenant_id, created_at
+        """
+        rows = self.db.execute(query, (*params, project_id, tenant_id))
+        return rows[0] if rows else None
+
+    def archive_project(self, project_id, tenant_id):
+        return self.update_project(project_id, tenant_id, status="ARCHIVED")
+
+    def delete_project(self, project_id, tenant_id):
+        query = """
+            DELETE FROM core.projects WHERE project_id = %s AND tenant_id = %s
+            RETURNING project_id
+        """
+        rows = self.db.execute(query, (project_id, tenant_id))
+        return rows[0][0] if rows else None
+
+    def get_project_tenant(self, project_id):
+        query = "SELECT tenant_id FROM core.projects WHERE project_id = %s"
+        rows = self.db.execute(query, (project_id,))
+        return rows[0][0] if rows else None

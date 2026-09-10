@@ -217,37 +217,45 @@ class TestTenantMiddlewareEnhanced:
             content = f.read()
         assert "Tenant is" in content
 
-    def test_middleware_supports_x_tenant_header(self):
+    def test_middleware_rejects_x_tenant_header_as_authority(self):
+        # DEV-003: client headers MUST NEVER establish tenancy.
         with open("app/api/core/middleware/tenant_middleware.py") as f:
             content = f.read()
-        assert "X-Tenant-ID" in content
+        assert 'request.headers.get("X-Tenant-ID")' not in content
 
-    def test_middleware_supports_query_param(self):
+    def test_middleware_rejects_query_param_as_authority(self):
+        # DEV-003: client query params MUST NEVER establish tenancy.
         with open("app/api/core/middleware/tenant_middleware.py") as f:
             content = f.read()
-        assert "query_params" in content
+        assert "request.query_params.get" not in content
+        assert "_extract_jwt_tenant" in content
 
 
 class TestSystemRepositoryTenantOptional:
-    """Verify system_repository accepts optional tenant_id (for admin view all)."""
+    """DEV-001: tenancy derived via project join; sr.tenant_id never authoritative."""
 
     def test_get_all_accepts_optional_tenant_id(self):
         with open("app/db/repositories/system_repository.py") as f:
             content = f.read()
-        assert "def get_all(self, tenant_id=None):" in content
-        assert "if tenant_id:" in content
-        assert "tenant_id is required" not in content
+        assert "def get_all(self, tenant_id=None, project_id=None):" in content
+        assert "JOIN core.projects p ON p.project_id = sr.project_id" in content
+        assert "p.tenant_id = %s" in content
 
     def test_get_by_id_accepts_optional_tenant_id(self):
         with open("app/db/repositories/system_repository.py") as f:
             content = f.read()
-        assert "def get_by_id(self, system_id, tenant_id=None):" in content
+        assert "def get_by_id(self, system_id, tenant_id=None, project_id=None):" in content
         assert "tenant_id is required" not in content
 
     def test_get_all_returns_all_when_none(self):
         with open("app/db/repositories/system_repository.py") as f:
             content = f.read()
-        assert "params = None" in content
+        # No direct sr.tenant_id filtering remains (comment mentions excepted).
+        code = "\n".join(
+            line for line in content.splitlines()
+            if not line.strip().startswith("#")
+        )
+        assert "sr.tenant_id" not in code
 
 
 class TestMainPyRegistered:

@@ -53,31 +53,41 @@ class HealthCheckService:
         )
         return result
 
-    def get_history(self, system_id: str = None, limit: int = 50) -> list:
-        """Get recent health check history."""
+    def get_history(self, system_id: str = None, limit: int = 50, tenant_id: str = None) -> list:
+        """Get recent health check history. DEV-001: tenant scoped via system → project → tenant."""
+        tenant_join = ""
+        tenant_filter = ""
+        params: list = []
+        if tenant_id:
+            tenant_join = "JOIN core.projects p ON p.project_id = s.project_id"
+            tenant_filter = "AND p.tenant_id = %s"
+            params.append(tenant_id)
         if system_id:
-            query = """
+            query = f"""
             SELECT h.check_id, h.system_id, s.system_name, h.check_time,
                    h.status, h.initiated_by, h.error_message, h.latency_ms,
                    h.checked_by_user
             FROM engine.connection_health_checks h
             LEFT JOIN core.system_registry s ON h.system_id = s.system_id
-            WHERE h.system_id = %s
+            {tenant_join}
+            WHERE h.system_id = %s {tenant_filter}
             ORDER BY h.check_time DESC
             LIMIT %s
             """
-            rows = self.engine_db.execute(query, (system_id, limit))
+            rows = self.engine_db.execute(query, (system_id, *params, limit))
         else:
-            query = """
+            query = f"""
             SELECT h.check_id, h.system_id, s.system_name, h.check_time,
                    h.status, h.initiated_by, h.error_message, h.latency_ms,
                    h.checked_by_user
             FROM engine.connection_health_checks h
             LEFT JOIN core.system_registry s ON h.system_id = s.system_id
+            {tenant_join}
+            {"WHERE " + tenant_filter[4:] if tenant_filter else ""}
             ORDER BY h.check_time DESC
             LIMIT %s
             """
-            rows = self.engine_db.execute(query, (limit,))
+            rows = self.engine_db.execute(query, (*params, limit))
 
         return [self._row_to_dict(r) for r in rows]
 

@@ -208,7 +208,7 @@ export function DiscoveryTreeTablePage() {
     modified: 'warning',
   };
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <PageContainer>
         <h1 className="text-xl font-bold text-gray-900 mb-4">Discovery</h1>

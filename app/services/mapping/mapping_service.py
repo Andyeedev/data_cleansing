@@ -23,9 +23,10 @@ class MappingService:
             query += " WHERE dm.project_id = %s AND dm.is_active = true"
             params.append(project_id)
         elif tenant_id:
+            # DEV-001: tenancy derived via project join (dataset_mappings.project_id).
             query += """
-                JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
-                WHERE sr.tenant_id = %s AND dm.is_active = true
+                JOIN core.projects p ON p.project_id = dm.project_id
+                WHERE p.tenant_id = %s AND dm.is_active = true
             """
             params.append(tenant_id)
         else:

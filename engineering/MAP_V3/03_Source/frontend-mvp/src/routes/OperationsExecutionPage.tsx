@@ -278,7 +278,7 @@ export function OperationsExecutionPage() {
 
   const isRunActive = isRunning || (runResults && ['RUNNING', 'PENDING'].includes(runResults.status));
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <PageContainer>
         <h1 className="text-xl font-bold text-gray-900 mb-4">Operations Execution</h1>

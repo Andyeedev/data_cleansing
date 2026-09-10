@@ -46,7 +46,7 @@ export function SettingsPage() {
     refetchFlags();
   };
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <div style={{ padding: 'var(--space-lg)' }}>
         <h1 style={{ fontSize: 'var(--font-size-h2)', marginBottom: 'var(--space-md)' }}>Settings</h1>

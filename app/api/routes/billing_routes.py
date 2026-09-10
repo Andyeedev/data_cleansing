@@ -36,19 +36,19 @@ def create_checkout(
     if not tenant_id:
         return standardize_response({"success": False, "error": "Tenant context required"})
 
-    db = get_db_connection()
-    service = StripeService(db.conn)
-    try:
-        result = service.create_checkout_session(
-            tenant_id=tenant_id,
-            tier=request.tier,
-            billing_cycle=request.billing_cycle,
-            success_url=request.success_url,
-            cancel_url=request.cancel_url
-        )
-        return standardize_response({"success": True, "data": result})
-    except Exception as e:
-        return standardize_response({"success": False, "error": str(e)})
+    with get_db_connection() as db:
+        service = StripeService(db.conn)
+        try:
+            result = service.create_checkout_session(
+                tenant_id=tenant_id,
+                tier=request.tier,
+                billing_cycle=request.billing_cycle,
+                success_url=request.success_url,
+                cancel_url=request.cancel_url
+            )
+            return standardize_response({"success": True, "data": result})
+        except Exception as e:
+            return standardize_response({"success": False, "error": str(e)})
 
 
 @router.post("/portal")
@@ -60,16 +60,16 @@ def create_portal(
     if not tenant_id:
         return standardize_response({"success": False, "error": "Tenant context required"})
 
-    db = get_db_connection()
-    service = StripeService(db.conn)
-    try:
-        result = service.create_portal_session(
-            tenant_id=tenant_id,
-            return_url=request.return_url
-        )
-        return standardize_response({"success": True, "data": result})
-    except Exception as e:
-        return standardize_response({"success": False, "error": str(e)})
+    with get_db_connection() as db:
+        service = StripeService(db.conn)
+        try:
+            result = service.create_portal_session(
+                tenant_id=tenant_id,
+                return_url=request.return_url
+            )
+            return standardize_response({"success": True, "data": result})
+        except Exception as e:
+            return standardize_response({"success": False, "error": str(e)})
 
 
 @router.post("/webhook")
@@ -80,13 +80,13 @@ async def stripe_webhook(request: Request):
     if not sig_header:
         raise HTTPException(status_code=400, detail="Missing stripe-signature header")
 
-    db = get_db_connection()
-    service = StripeService(db.conn)
-    try:
-        result = service.handle_webhook(payload, sig_header)
-        return JSONResponse(content=result)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Webhook error: {str(e)}")
+    with get_db_connection() as db:
+        service = StripeService(db.conn)
+        try:
+            result = service.handle_webhook(payload, sig_header)
+            return JSONResponse(content=result)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Webhook error: {str(e)}")
 
 
 @router.get("/invoices")
@@ -97,13 +97,13 @@ def list_invoices(
     if not tenant_id:
         return standardize_response({"success": False, "error": "Tenant context required"})
 
-    db = get_db_connection()
-    service = StripeService(db.conn)
-    try:
-        result = service.list_invoices(tenant_id)
-        return standardize_response({"success": True, "data": result})
-    except Exception as e:
-        return standardize_response({"success": False, "error": str(e)})
+    with get_db_connection() as db:
+        service = StripeService(db.conn)
+        try:
+            result = service.list_invoices(tenant_id)
+            return standardize_response({"success": True, "data": result})
+        except Exception as e:
+            return standardize_response({"success": False, "error": str(e)})
 
 
 @router.post("/upgrade")
@@ -115,17 +115,17 @@ def upgrade_subscription(
     if not tenant_id:
         return standardize_response({"success": False, "error": "Tenant context required"})
 
-    db = get_db_connection()
-    service = StripeService(db.conn)
-    try:
-        result = service.upgrade_subscription(
-            tenant_id=tenant_id,
-            new_tier=request.new_tier,
-            billing_cycle=request.billing_cycle
-        )
-        return standardize_response({"success": True, "data": result})
-    except Exception as e:
-        return standardize_response({"success": False, "error": str(e)})
+    with get_db_connection() as db:
+        service = StripeService(db.conn)
+        try:
+            result = service.upgrade_subscription(
+                tenant_id=tenant_id,
+                new_tier=request.new_tier,
+                billing_cycle=request.billing_cycle
+            )
+            return standardize_response({"success": True, "data": result})
+        except Exception as e:
+            return standardize_response({"success": False, "error": str(e)})
 
 
 @router.post("/cancel")
@@ -136,10 +136,10 @@ def cancel_subscription(
     if not tenant_id:
         return standardize_response({"success": False, "error": "Tenant context required"})
 
-    db = get_db_connection()
-    service = StripeService(db.conn)
-    try:
-        result = service.cancel_subscription(tenant_id)
-        return standardize_response({"success": True, "data": result})
-    except Exception as e:
-        return standardize_response({"success": False, "error": str(e)})
+    with get_db_connection() as db:
+        service = StripeService(db.conn)
+        try:
+            result = service.cancel_subscription(tenant_id)
+            return standardize_response({"success": True, "data": result})
+        except Exception as e:
+            return standardize_response({"success": False, "error": str(e)})

@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from app.api.routes.execution_history_routes import router
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user_with_tenant
 
 
 app = FastAPI()
@@ -12,11 +12,17 @@ app.include_router(router)
 client = TestClient(app)
 
 
-def override_get_current_user():
-    return {"user_id": "test-user", "roles": ["Super Admin"]}
+def override_get_current_user_with_tenant():
+    return {"sub": "test-user", "tenant_id": "11111111-1111-1111-1111-111111111111", "roles": ["admin"]}
 
 
-app.dependency_overrides[get_current_user] = override_get_current_user
+@pytest.fixture(autouse=True)
+def _hermetic_auth():
+    # DEV-003: auth overrides are security-relevant — set per-test so file
+    # execution order cannot leak or clear them.
+    app.dependency_overrides[get_current_user_with_tenant] = override_get_current_user_with_tenant
+    yield
+    app.dependency_overrides.clear()
 
 
 class TestExecutionHistoryRoutes:

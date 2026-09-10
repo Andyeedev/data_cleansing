@@ -33,13 +33,27 @@ class SystemService:
     # =========================
     def create_system(self, payload, tenant_id=None):
 
+        # DEV-001: project_id is mandatory — no orphan systems.
+        # The project must belong to the authenticated tenant.
+        project_id = getattr(payload, "project_id", None)
+        if not project_id:
+            raise ValueError("project_id is required")
+        owner_tenant = self.repo.get_project_tenant(project_id)
+        if not owner_tenant or (tenant_id and str(owner_tenant) != str(tenant_id)):
+            raise ValueError("Project not found or access denied")
+
+        # DEV-009: enforce tenant connection limit before creating.
+        if tenant_id:
+            from app.services.tenant_service import TenantService
+            TenantService(self.conn).check_limit(tenant_id, "connections")
+
         system_id = str(uuid.uuid4())
 
         config_json = json.dumps(payload.connection_config.dict())
 
         self.repo.insert(
             system_id=system_id,
-            project_id=payload.project_id or str(uuid.uuid4()),
+            project_id=project_id,
             system_name=payload.system_name,
             system_role=payload.system_role,
             database_type=payload.database_type,
@@ -89,9 +103,15 @@ class SystemService:
     # =========================
     # LIST
     # =========================
-    def list_systems(self, tenant_id=None):
+    def list_systems(self, tenant_id=None, project_id=None):
 
-        rows = self.repo.get_all(tenant_id=tenant_id)
+        # DEV-001: a requested project must belong to the authenticated tenant.
+        if project_id and tenant_id:
+            owner_tenant = self.repo.get_project_tenant(project_id)
+            if not owner_tenant or str(owner_tenant) != str(tenant_id):
+                raise ValueError("Project not found or access denied")
+
+        rows = self.repo.get_all(tenant_id=tenant_id, project_id=project_id)
 
         return [
             {
@@ -99,7 +119,8 @@ class SystemService:
                 "system_name": r[1],
                 "system_role": r[2],
                 "database_type": r[3],
-                "credential_id": r[4]
+                "credential_id": r[4],
+                "project_id": str(r[5]) if r[5] is not None else None
             }
             for r in rows
         ]
@@ -107,9 +128,9 @@ class SystemService:
     # =========================
     # GET ONE
     # =========================
-    def get_system(self, system_id, tenant_id=None):
+    def get_system(self, system_id, tenant_id=None, project_id=None):
 
-        row = self.repo.get_by_id(system_id, tenant_id=tenant_id)
+        row = self.repo.get_by_id(system_id, tenant_id=tenant_id, project_id=project_id)
 
         if not row:
             raise Exception("System not found")
@@ -124,20 +145,21 @@ class SystemService:
             "system_role": row[2],
             "database_type": row[3],
             "connection_config": config,
-            "credential_id": row[5]
+            "credential_id": row[5],
+            "project_id": str(row[6]) if row[6] is not None else None
         }
 
     # =========================
     # TEST CONNECTION
     # =========================
-    def test_connection(self, system_id, tenant_id=None):
+    def test_connection(self, system_id, tenant_id=None, project_id=None):
 
-        row = self.repo.get_by_id(system_id, tenant_id=tenant_id)
+        row = self.repo.get_by_id(system_id, tenant_id=tenant_id, project_id=project_id)
 
         if not row:
             raise Exception("System not found")
 
-        _, name, _, db_type, config, _ = row
+        _, name, _, db_type, config, _, _ = row
 
         if isinstance(config, str):
             config = json.loads(config)
@@ -147,7 +169,7 @@ class SystemService:
             raise Exception(f"Unsupported database type: {db_type}")
 
         cred_service = CredentialService(self.conn)
-        creds = cred_service.get_decrypted_credentials(system_id)
+        creds = cred_service.get_decrypted_credentials(system_id, tenant_id=tenant_id)
 
         adapter_class = AdapterRegistry.get(adapter_key)
         adapter = adapter_class()
@@ -234,14 +256,14 @@ class SystemService:
         else:
             raise Exception(f"No config builder for adapter: {adapter_key}")
 
-    def list_tables(self, system_id, tenant_id=None):
+    def list_tables(self, system_id, tenant_id=None, project_id=None):
 
-        row = self.repo.get_by_id(system_id, tenant_id=tenant_id)
+        row = self.repo.get_by_id(system_id, tenant_id=tenant_id, project_id=project_id)
 
         if not row:
             raise Exception("System not found")
 
-        _, name, db_type, connection_config, credential_id = row
+        _, name, _, db_type, connection_config, credential_id, _ = row
 
         import json
         config = json.loads(connection_config)

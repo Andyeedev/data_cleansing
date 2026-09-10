@@ -126,19 +126,48 @@ class TestUserServiceTenantFiltering:
         from app.services.user_service import UserService
         from unittest.mock import MagicMock
         conn, cursor = mock_conn
-        cursor.fetchone.return_value = ("user-1", "test@test.com", "Test", "User")
+        # DEV-009 limit check (limit row, count row) then INSERT RETURNING row.
+        cursor.fetchone.side_effect = [
+            (5,), (1,), ("user-1", "test@test.com", "Test", "User")
+        ]
         service = UserService(conn)
         payload = MagicMock()
         payload.email = "test@test.com"
-        payload.password = "pass123"
+        payload.password = "Pass1234"
         payload.first_name = "Test"
         payload.last_name = "User"
         payload.display_name = None
         payload.phone = None
         payload.department = None
         result = service.create_user(payload, tenant_id=tenant_a)
-        query = cursor.execute.call_args[0][0]
-        assert "tenant_id" in query
+        queries = [call[0][0] for call in cursor.execute.call_args_list]
+        assert any("tenant_id" in q for q in queries)
+        assert result["success"] is True
+
+    def test_create_user_enforces_plan_limit(self, mock_conn, tenant_a):
+        # DEV-009: at-limit tenants are rejected before INSERT.
+        from app.services.user_service import UserService
+        from unittest.mock import MagicMock
+        conn, cursor = mock_conn
+        cursor.fetchone.side_effect = [(1,), (5,)]
+        service = UserService(conn)
+        payload = MagicMock()
+        payload.email = "full@test.com"
+        payload.password = "Pass1234"
+        with pytest.raises(ValueError, match="limit reached"):
+            service.create_user(payload, tenant_id=tenant_a)
+
+    def test_create_user_rejects_weak_password(self, mock_conn, tenant_a):
+        # DEV-011: policy enforced on creation paths.
+        from app.services.user_service import UserService
+        from unittest.mock import MagicMock
+        conn, cursor = mock_conn
+        service = UserService(conn)
+        payload = MagicMock()
+        payload.email = "weak@test.com"
+        payload.password = "pass123"
+        with pytest.raises(Exception, match="uppercase"):
+            service.create_user(payload, tenant_id=tenant_a)
 
 
 # =========================

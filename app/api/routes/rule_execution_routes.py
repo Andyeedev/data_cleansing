@@ -119,8 +119,7 @@ def get_latest_batch_for_control(
 ):
     """Get the latest batch_id that executed a specific control within a project."""
     from app.db.connection import get_db_connection
-    db = get_db_connection()
-    try:
+    with get_db_connection() as db:
         query = """
             SELECT mce.batch_id
             FROM engine.migration_control_execution mce
@@ -133,10 +132,6 @@ def get_latest_batch_for_control(
         if not rows:
             return APIResponse(success=True, data={"batch_id": None, "message": f"No execution found for control {control_id} in project {project_id}"})
         return APIResponse(success=True, data={"batch_id": str(rows[0][0])})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()
 
 
 @router.post("/{batch_id}/apply-fix", response_model=APIResponse)

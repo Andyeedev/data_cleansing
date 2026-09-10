@@ -30,9 +30,9 @@ class UpdateCredentialRequest(BaseModel):
 def list_credentials(current_user=Depends(get_current_user_with_tenant)):
     try:
         tenant_id = current_user.get("tenant_id")
-        db = get_db_connection()
-        service = CredentialService(db.conn)
-        data = service.list_credentials(tenant_id=tenant_id)
+        with get_db_connection() as db:
+            service = CredentialService(db.conn)
+            data = service.list_credentials(tenant_id=tenant_id)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -48,14 +48,14 @@ def create_credential(
 ):
     try:
         tenant_id = current_user.get("tenant_id")
-        db = get_db_connection()
-        service = CredentialService(db.conn)
-        result = service.create_credential(
-            system_id=payload.system_id,
-            username=payload.username,
-            password=payload.password,
-            tenant_id=tenant_id
-        )
+        with get_db_connection() as db:
+            service = CredentialService(db.conn)
+            result = service.create_credential(
+                system_id=payload.system_id,
+                username=payload.username,
+                password=payload.password,
+                tenant_id=tenant_id
+            )
         return {"success": True, "data": result}
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
@@ -74,14 +74,14 @@ def update_credential(
 ):
     try:
         tenant_id = current_user.get("tenant_id")
-        db = get_db_connection()
-        service = CredentialService(db.conn)
-        result = service.update_credential(
-            credential_id=credential_id,
-            username=payload.username,
-            password=payload.password,
-            tenant_id=tenant_id
-        )
+        with get_db_connection() as db:
+            service = CredentialService(db.conn)
+            result = service.update_credential(
+                credential_id=credential_id,
+                username=payload.username,
+                password=payload.password,
+                tenant_id=tenant_id
+            )
         return {"success": True, "data": result}
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
@@ -99,9 +99,9 @@ def delete_credential(
 ):
     try:
         tenant_id = current_user.get("tenant_id")
-        db = get_db_connection()
-        service = CredentialService(db.conn)
-        result = service.delete_credential(credential_id, tenant_id=tenant_id)
+        with get_db_connection() as db:
+            service = CredentialService(db.conn)
+            result = service.delete_credential(credential_id, tenant_id=tenant_id)
         return {"success": True, "data": result}
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))

@@ -134,8 +134,9 @@ if (!section || !SECTIONS.some((s) => s.key === section)) {
 
         <nav aria-label="Report sections" className="flex items-center flex-wrap gap-x-1 gap-y-2 pb-3 mb-6 border-b border-gray-200 overflow-x-auto">
           {SECTIONS.map((s, i) => {
-            const allowedRoles = sectionRoleMap[s.key];
-            const show = allowedRoles?.includes(userRoles[0] ?? 'viewer') ?? true;
+            const allowedRoles = sectionRoleMap[s.key] ?? [];
+            const userRole = userRoles[0] ?? 'viewer';
+            const show = allowedRoles.includes(userRole) || (userRole === 'Super Admin' && allowedRoles.includes('admin')) || allowedRoles.length === 0;
             return (
               <span key={s.key} className="flex items-center">
                 {i > 0 && <span className="text-gray-300 mx-2 select-none" aria-hidden="true">/</span>}

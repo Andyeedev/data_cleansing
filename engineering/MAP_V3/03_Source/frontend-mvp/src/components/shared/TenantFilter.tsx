@@ -10,7 +10,14 @@ export function TenantFilter({ selectedTenant, onChange, style }: TenantFilterPr
   const { tenants, loading } = useMigrationTenants();
 
   if (loading) {
-    return null;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', ...style }}>
+        <label style={labelStyle}>Tenant:</label>
+        <select style={selectStyle} disabled aria-label="Filter by tenant">
+          <option value="">Loading tenants...</option>
+        </select>
+      </div>
+    );
   }
 
   return (

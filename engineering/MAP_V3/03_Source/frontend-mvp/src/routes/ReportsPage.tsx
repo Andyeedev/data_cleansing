@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiGet } from '../utils/apiClient';
 import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
+import { TenantFilter } from '../components/shared/TenantFilter';
 
 interface ExecutionHistoryItem {
   batch_id: string;
@@ -82,20 +83,33 @@ export function ReportsPage() {
   const [reportLoading, setReportLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTenant, setSelectedTenant] = useState('');
+
   const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
   const [governanceDecision, setGovernanceDecision] = useState<GovernanceDecision | null>(null);
   const [riskScore, setRiskScore] = useState<RiskScore | null>(null);
   const [complianceCheck, setComplianceCheck] = useState<ComplianceCheck | null>(null);
 
-  const isAdmin = userRoles.includes('admin');
+  const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin');
 
   useEffect(() => {
     if (!isAdmin) return;
     let cancelled = false;
+    setLoading(true);
 
-    apiGet<{ items: ExecutionHistoryItem[]; total: number }>('/execution/history?page_size=50')
+    const params = new URLSearchParams({ page_size: '50' });
+    if (statusFilter) params.set('status', statusFilter);
+    if (searchQuery) params.set('search', searchQuery);
+    if (selectedTenant) params.set('tenant_id', selectedTenant);
+
+    apiGet<{ items: ExecutionHistoryItem[]; total: number }>(`/execution/history?${params.toString()}`)
       .then((data) => {
-        if (!cancelled) setBatches(data.items || []);
+        if (!cancelled) {
+          setBatches(data.items || []);
+          setSelectedBatch(null);
+        }
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
@@ -105,7 +119,7 @@ export function ReportsPage() {
       });
 
     return () => { cancelled = true; };
-  }, [isAdmin]);
+  }, [isAdmin, statusFilter, searchQuery, selectedTenant]);
 
   useEffect(() => {
     if (!selectedBatch) return;
@@ -182,6 +196,50 @@ export function ReportsPage() {
       <p style={{ color: 'var(--color-text-secondary)', marginBottom: 24 }}>
         Generate and view validation reports for completed executions.
       </p>
+
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Status</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: '6px 10px',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              fontSize: 13,
+              minWidth: 140,
+            }}
+          >
+            <option value="">All Statuses</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="FAILED">Failed</option>
+            <option value="RUNNING">Running</option>
+            <option value="PENDING">Pending</option>
+          </select>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Search</label>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by batch name..."
+            style={{
+              padding: '6px 10px',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
+              fontSize: 13,
+              minWidth: 200,
+            }}
+          />
+        </div>
+      </div>
 
       <div style={{ marginBottom: 24 }}>
         <label style={{ display: 'block', fontSize: 14, fontWeight: 500, marginBottom: 8 }}>

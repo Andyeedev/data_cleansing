@@ -84,7 +84,7 @@ export function TaskDetailPage() {
     return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <div style={{ padding: 24 }}>
         <h1 style={{ fontSize: 24, marginBottom: 16 }}>Task Detail</h1>

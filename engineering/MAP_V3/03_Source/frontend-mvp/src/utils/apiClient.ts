@@ -124,9 +124,10 @@ export async function apiGet<T>(path: string, params?: Record<string, string | n
     });
   }
 
-  return request<T>(url.toString(), {
+    return request<T>(url.toString(), {
     method: 'GET',
     headers: buildHeaders(),
+    credentials: 'include',
   });
 }
 

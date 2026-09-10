@@ -32,26 +32,26 @@ def list_approvals(
     assigned_to: Optional[str] = None,
     current_user=Depends(require_permissions("approvals:read"))
 ):
-    db = get_db_connection()
-    service = ApprovalService(db.conn, current_user.get("tenant_id"))
-    return standardize_response(service.list_approvals(
-        page=page, page_size=page_size,
-        status=status, assigned_to=assigned_to
-    ))
+    with get_db_connection() as db:
+        service = ApprovalService(db.conn, current_user.get("tenant_id"))
+        return standardize_response(service.list_approvals(
+            page=page, page_size=page_size,
+            status=status, assigned_to=assigned_to
+        ))
 
 
 @router.get("/pending/count")
 def get_pending_count(current_user=Depends(require_permissions("approvals:read"))):
-    db = get_db_connection()
-    service = ApprovalService(db.conn, current_user.get("tenant_id"))
-    return standardize_response(service.get_pending_count(current_user.get("sub")))
+    with get_db_connection() as db:
+        service = ApprovalService(db.conn, current_user.get("tenant_id"))
+        return standardize_response(service.get_pending_count(current_user.get("sub")))
 
 
 @router.get("/{approval_id}")
 def get_approval(approval_id: str, current_user=Depends(require_permissions("approvals:read"))):
-    db = get_db_connection()
-    service = ApprovalService(db.conn, current_user.get("tenant_id"))
-    return standardize_response(service.get_approval(approval_id))
+    with get_db_connection() as db:
+        service = ApprovalService(db.conn, current_user.get("tenant_id"))
+        return standardize_response(service.get_approval(approval_id))
 
 
 @router.post("")
@@ -59,9 +59,9 @@ def create_approval(
     payload: ApprovalCreateRequest,
     current_user=Depends(require_permissions("approvals:create"))
 ):
-    db = get_db_connection()
-    service = ApprovalService(db.conn, current_user.get("tenant_id"))
-    return standardize_response(service.create_approval(payload, current_user.get("sub")))
+    with get_db_connection() as db:
+        service = ApprovalService(db.conn, current_user.get("tenant_id"))
+        return standardize_response(service.create_approval(payload, current_user.get("sub")))
 
 
 @router.put("/{approval_id}/approve")
@@ -70,11 +70,11 @@ def approve_request(
     payload: ApprovalDecisionRequest,
     current_user=Depends(require_permissions("approvals:approve"))
 ):
-    db = get_db_connection()
-    service = ApprovalService(db.conn, current_user.get("tenant_id"))
-    return standardize_response(service.approve_request(
-        approval_id, current_user.get("sub"), payload.notes
-    ))
+    with get_db_connection() as db:
+        service = ApprovalService(db.conn, current_user.get("tenant_id"))
+        return standardize_response(service.approve_request(
+            approval_id, current_user.get("sub"), payload.notes
+        ))
 
 
 @router.put("/{approval_id}/reject")
@@ -83,8 +83,8 @@ def reject_request(
     payload: ApprovalDecisionRequest,
     current_user=Depends(require_permissions("approvals:reject"))
 ):
-    db = get_db_connection()
-    service = ApprovalService(db.conn, current_user.get("tenant_id"))
-    return standardize_response(service.reject_request(
-        approval_id, current_user.get("sub"), payload.notes
-    ))
+    with get_db_connection() as db:
+        service = ApprovalService(db.conn, current_user.get("tenant_id"))
+        return standardize_response(service.reject_request(
+            approval_id, current_user.get("sub"), payload.notes
+        ))

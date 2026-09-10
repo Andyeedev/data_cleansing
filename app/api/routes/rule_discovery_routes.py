@@ -87,8 +87,7 @@ def get_latest_batch_for_rule_mapping(
     from app.db.connection import get_db_connection
     from app.api.models.responses import APIResponse
     
-    db = get_db_connection()
-    try:
+    with get_db_connection() as db:
         # First, get the actual dataset_mappings.mapping_id from rule_dataset_mapping.id
         mapping_query = """
             SELECT rdm.mapping_id
@@ -136,7 +135,3 @@ def get_latest_batch_for_rule_mapping(
             "tenant_id": str(row[6]),
             "results_url": f"/validation/results/{row[0]}?from_rules=true&rule_id={rule_id}&mapping_id={mapping_id}"
         })
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()

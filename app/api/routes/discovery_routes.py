@@ -48,9 +48,9 @@ def get_summary(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
-        db = get_db_connection()
-        repo = DiscoveryRepository(db)
-        data = repo.get_summary(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            repo = DiscoveryRepository(db)
+            data = repo.get_summary(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -68,9 +68,9 @@ def get_tree(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
-        db = get_db_connection()
-        repo = DiscoveryRepository(db)
-        data = repo.get_tree(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            repo = DiscoveryRepository(db)
+            data = repo.get_tree(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -88,9 +88,9 @@ def get_tables(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
-        db = get_db_connection()
-        repo = DiscoveryRepository(db)
-        data = repo.get_tables(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            repo = DiscoveryRepository(db)
+            data = repo.get_tables(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -107,10 +107,9 @@ def clear_all_discovery(
         if not tenant_id:
             raise HTTPException(status_code=400, detail="tenant_id is required. Select a tenant before clearing.")
 
-        db = get_db_connection()
-        repo = DiscoveryRepository(db)
-
-        deleted = repo.soft_delete_all_discovery(tenant_id=tenant_id)
+        with get_db_connection() as db:
+            repo = DiscoveryRepository(db)
+            deleted = repo.soft_delete_all_discovery(tenant_id=tenant_id)
 
         return {"success": True, "data": {
             "deleted_count": deleted,

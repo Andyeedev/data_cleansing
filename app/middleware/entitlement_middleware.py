@@ -27,31 +27,37 @@ def get_tenant_entitlements(tenant_id):
         return set()
 
     try:
-        db = get_db_connection()
-        with db.conn.cursor() as cur:
-            cur.execute(
-                """SELECT p.entitlements, p.tier
-                   FROM platform.subscriptions s
-                   JOIN platform.plans p ON s.plan_id = p.plan_id
-                   WHERE s.tenant_id = %s AND s.status IN ('active', 'trialing')
-                   ORDER BY s.created_at DESC LIMIT 1""",
-                (tenant_id,)
-            )
-            row = cur.fetchone()
-            if not row:
-                return set()
+        with get_db_connection() as db:
+            with db.conn.cursor() as cur:
+                cur.execute(
+                    """SELECT p.entitlements, p.tier
+                       FROM platform.subscriptions s
+                       JOIN platform.plans p ON s.plan_id = p.plan_id
+                       WHERE s.tenant_id = %s AND s.status IN ('active', 'trialing')
+                       ORDER BY s.created_at DESC LIMIT 1""",
+                    (tenant_id,)
+                )
+                row = cur.fetchone()
+                if not row:
+                    return set()
 
-            entitlements_json, tier = row
-            if entitlements_json and isinstance(entitlements_json, dict):
-                return set(entitlements_json.keys())
-            return DEFAULT_ENTITLEMENTS.get(tier, set())
+                entitlements_json, tier = row
+                if entitlements_json and isinstance(entitlements_json, dict):
+                    return set(entitlements_json.keys())
+                return DEFAULT_ENTITLEMENTS.get(tier, set())
     except Exception:
         return set()
 
 
 def require_entitlement(feature_name):
-    def dependency(request: Request):
-        tenant_id = getattr(request.state, "tenant_id", None)
+    # DEV-009: tenant derived from the authenticated JWT (never request.state,
+    # which was previously set by unwired/dead middleware). Declared as a
+    # proper FastAPI sub-dependency so auth applies uniformly (incl. overrides).
+    from fastapi import Depends
+    from app.api.core.auth.dependencies import get_current_user_with_tenant
+
+    def dependency(current_user=Depends(get_current_user_with_tenant)):
+        tenant_id = current_user.get("tenant_id")
         if not tenant_id:
             raise HTTPException(status_code=400, detail="Tenant context required")
 

@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useValidationFilter } from '../context/ValidationFilterContext';
 import { apiGet } from '../utils/apiClient';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { EmptyState } from '../components/shared/EmptyState';
-import CascadeDropdowns from '../components/shared/CascadeDropdowns';
+import { TenantFilter } from '../components/shared/TenantFilter';
 import { PageContainer } from '../components/PageContainer/PageContainer';
 import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 
@@ -57,7 +56,7 @@ const AUTO_REFRESH_MS = 15000;
 
 export function DashboardPage() {
   const { userRoles } = useAuth();
-  const { tenantId } = useValidationFilter();
+  const [selectedTenant, setSelectedTenant] = useState('');
   const [loading, setLoading] = useState(true);
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
@@ -67,19 +66,20 @@ export function DashboardPage() {
   const [isLive, setIsLive] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const isAdmin = userRoles.includes('admin');
+  const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin');
   const isManager = userRoles.includes('manager');
   const isExecutive = isAdmin || isManager;
 
   const fetchData = useCallback(async () => {
     let cancelled = false;
+    const tid = selectedTenant || undefined;
 
     const [portfolioData, activityData, migrationData, controlData, execData] = await Promise.all([
-      apiGet<PortfolioSummary>('/dashboard/portfolio', tenantId ? { tenant_id: tenantId } : undefined).catch(() => null),
-      isExecutive ? apiGet<{ entries: ActivityEntry[]; total: number }>('/dashboard/activity', { limit: 10, ...(tenantId ? { tenant_id: tenantId } : {}) }).catch(() => null) : Promise.resolve(null),
-      apiGet<{ migration_scores: MigrationScoreEntry[] }>('/execution/migration-score-summary', tenantId ? { tenant_id: tenantId } : undefined).catch(() => null),
-      apiGet<{ controls: ControlResult[] }>('/dashboard/control-results', { limit: 20, ...(tenantId ? { tenant_id: tenantId } : {}) }).catch(() => null),
-      apiGet<{ executions: RecentExecution[] }>('/dashboard/recent-executions', { limit: 10, ...(tenantId ? { tenant_id: tenantId } : {}) }).catch(() => null),
+      apiGet<PortfolioSummary>('/dashboard/portfolio', tid ? { tenant_id: tid } : undefined).catch(() => null),
+      isExecutive ? apiGet<{ entries: ActivityEntry[]; total: number }>('/dashboard/activity', { limit: 10, ...(tid ? { tenant_id: tid } : {}) }).catch(() => null) : Promise.resolve(null),
+      apiGet<{ migration_scores: MigrationScoreEntry[] }>('/execution/migration-score-summary', tid ? { tenant_id: tid } : undefined).catch(() => null),
+      apiGet<{ controls: ControlResult[] }>('/dashboard/control-results', { limit: 20, ...(tid ? { tenant_id: tid } : {}) }).catch(() => null),
+      apiGet<{ executions: RecentExecution[] }>('/dashboard/recent-executions', { limit: 10, ...(tid ? { tenant_id: tid } : {}) }).catch(() => null),
     ]);
 
     if (cancelled) return;
@@ -91,7 +91,7 @@ export function DashboardPage() {
     setLoading(false);
 
     return () => { cancelled = true; };
-  }, [tenantId, isExecutive]);
+  }, [selectedTenant, isExecutive]);
 
   useEffect(() => {
     setLoading(true);
@@ -131,7 +131,7 @@ export function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {isExecutive && <CascadeDropdowns showProject={false} showBatch={false} />}
+          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
           <button
             onClick={() => setIsLive(!isLive)}
             className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
@@ -178,8 +178,8 @@ export function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {controlResults.slice(0, 10).map((c) => (
-                        <tr key={c.control_id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      {controlResults.slice(0, 10).map((c, idx) => (
+                        <tr key={`${c.control_id}-${idx}`} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                           <td className="px-3 py-2.5 font-mono text-xs text-gray-500">{c.control_id}</td>
                           <td className="px-3 py-2.5 font-medium text-gray-900 max-w-[200px] truncate">{c.control_name}</td>
                           <td className="px-3 py-2.5"><StatusPill status={c.severity} /></td>

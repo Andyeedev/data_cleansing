@@ -19,6 +19,28 @@ class ExecutionHistoryService:
             "page_size": page_size
         }
 
+    def verify_batch_tenant(self, batch_id: str, tenant_id: str, db=None):
+        """DEV-001: confirm a batch belongs to the JWT tenant via
+        batch → project → tenant in a SINGLE query on an EXISTING connection
+        (no extra pool checkouts). Returns {"project_id"} or None for
+        unknown/foreign batches (callers 404 without leaking existence).
+        Non-UUID batch ids can never match the uuid-typed registry: deny early."""
+        import uuid as uuidlib
+        try:
+            uuidlib.UUID(str(batch_id))
+        except ValueError:
+            return None
+        db = db or self.repository.db
+        rows = db.execute(
+            """SELECT p.project_id FROM engine.migration_batch_registry r
+               JOIN core.projects p ON p.project_id::text = r.project_id
+               WHERE r.batch_id = %s AND p.tenant_id::text = %s""",
+            (str(batch_id), str(tenant_id)),
+        )
+        if not rows:
+            return None
+        return {"project_id": str(rows[0][0])}
+
     def get_execution_detail(self, batch_id: str):
         batch = self.repository.get_execution_detail(batch_id)
         if not batch:

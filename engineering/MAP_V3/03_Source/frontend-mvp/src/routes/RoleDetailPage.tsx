@@ -64,7 +64,7 @@ export function RoleDetailPage() {
   const assignedPermissionIds = new Set(rolePermissions.map(p => p.id));
   const availablePermissions = allPermissions.filter(p => !assignedPermissionIds.has(p.id));
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <div style={{ padding: 24 }}>
         <h1 style={{ fontSize: 24, marginBottom: 16 }}>Role Detail</h1>

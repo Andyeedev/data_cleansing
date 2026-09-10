@@ -9,8 +9,9 @@ class DiscoveryRepository:
 
     def get_summary(self, tenant_id=None, all_tenants=False):
         """Aggregate counts for discovery summary from dataset_mappings."""
+        # DEV-001: system tenancy derived via project join (sr.tenant_id never authoritative).
         if tenant_id:
-            systems_clause = "WHERE sr.tenant_id = %s"
+            systems_clause = "JOIN core.projects p_sys ON p_sys.project_id = sr.project_id WHERE p_sys.tenant_id = %s"
             mappings_clause = "WHERE p.tenant_id = %s"
             params = (tenant_id, tenant_id, tenant_id, tenant_id)
         else:

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
 
@@ -64,10 +64,17 @@ def create_user(
     payload: UserCreateRequest,
     current_user=Depends(get_current_user_with_tenant)
 ):
-    tenant_id = current_user.get("tenant_id")
-    db = get_db_connection()
-    service = UserService(db.conn)
-    return standardize_response(service.create_user(payload, tenant_id=tenant_id))
+    # DEV-009/DEV-011: plan-limit and password-policy violations surface as 403/422.
+    try:
+        tenant_id = current_user.get("tenant_id")
+        db = get_db_connection()
+        service = UserService(db.conn)
+        return standardize_response(service.create_user(payload, tenant_id=tenant_id))
+    except ValueError as e:
+        msg = str(e)
+        if "Password" in msg:
+            raise HTTPException(status_code=422, detail=msg)
+        raise HTTPException(status_code=403, detail=msg)
 
 
 @router.put("/{user_id}")

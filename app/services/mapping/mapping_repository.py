@@ -14,15 +14,15 @@ class MappingRepository:
             WITH mapped_tables AS (
                 SELECT dm.mapping_id, dm.source_table, dm.target_table
                 FROM core.dataset_mappings dm
-                JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
-                WHERE sr.tenant_id = %s AND dm.is_active = true
+                JOIN core.projects p ON p.project_id = dm.project_id
+                WHERE p.tenant_id = %s AND dm.is_active = true
             ),
             col_maps AS (
                 SELECT cm.column_mapping_id, cm.match_status, cm.mapping_id
                 FROM core.column_mappings cm
                 JOIN core.dataset_mappings dm ON dm.mapping_id = cm.mapping_id
-                JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
-                WHERE sr.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
+                JOIN core.projects p ON p.project_id = dm.project_id
+                WHERE p.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
             )
             SELECT
                 (SELECT COUNT(*) FROM mapped_tables) AS tables_mapped,
@@ -68,7 +68,8 @@ class MappingRepository:
             SELECT dd.table_name, dd.schema_name, sr.system_name, dd.system_id
             FROM core.discovered_datasets dd
             JOIN core.system_registry sr ON sr.system_id = dd.system_id
-            WHERE sr.tenant_id = %s
+            JOIN core.projects p ON p.project_id = dd.project_id
+            WHERE p.tenant_id = %s
             ORDER BY dd.table_name
             """
             params = (tenant_id,)
@@ -109,9 +110,10 @@ class MappingRepository:
             FROM core.column_mappings cm
             JOIN core.dataset_mappings dm ON dm.mapping_id = cm.mapping_id
             JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
+            JOIN core.projects p ON p.project_id = dm.project_id
             LEFT JOIN core.dataset_columns src_col ON src_col.column_id = cm.source_column_id
             LEFT JOIN core.dataset_columns tgt_col ON tgt_col.column_id = cm.target_column_id
-            WHERE sr.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
+            WHERE p.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
             ORDER BY dm.source_table, src_col.column_position
             """
             params = (tenant_id,)
@@ -314,16 +316,16 @@ class MappingRepository:
                        %s, NOW()
                 FROM core.column_mappings cm
                 JOIN core.dataset_mappings dm ON dm.mapping_id = cm.mapping_id
-                JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
-                WHERE sr.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
+                JOIN core.projects p ON p.project_id = dm.project_id
+                WHERE p.tenant_id = %s AND (cm.is_active IS NULL OR cm.is_active = true)
             """
             update_query = """
-                UPDATE core.column_mappings 
+                UPDATE core.column_mappings
                 SET is_active = false, updated_at = NOW()
                 WHERE mapping_id IN (
                     SELECT dm.mapping_id FROM core.dataset_mappings dm
-                    JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
-                    WHERE sr.tenant_id = %s
+                    JOIN core.projects p ON p.project_id = dm.project_id
+                    WHERE p.tenant_id = %s
                 ) AND (is_active IS NULL OR is_active = true)
             """
             with self.db.conn.cursor() as cur:
@@ -394,11 +396,12 @@ class MappingRepository:
                 tgt_col.data_type AS target_data_type
             FROM core.dataset_mappings dm
             JOIN core.system_registry sr ON sr.system_id = dm.source_system_id
-            LEFT JOIN core.column_mappings cm ON cm.mapping_id = dm.mapping_id 
+            JOIN core.projects p ON p.project_id = dm.project_id
+            LEFT JOIN core.column_mappings cm ON cm.mapping_id = dm.mapping_id
                 AND (cm.is_active IS NULL OR cm.is_active = true)
             LEFT JOIN core.dataset_columns src_col ON src_col.column_id = cm.source_column_id
             LEFT JOIN core.dataset_columns tgt_col ON tgt_col.column_id = cm.target_column_id
-            WHERE sr.tenant_id = %s AND dm.is_active = true
+            WHERE p.tenant_id = %s AND dm.is_active = true
             ORDER BY dm.source_table, src_col.column_position
             """
             params = (tenant_id,)

@@ -27,12 +27,12 @@ class LeadService:
         utm_source = payload.get("utm_source")
         referrer = payload.get("referrer")
 
-        db = get_db_connection()
-        query = """
-        INSERT INTO core.leads (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        RETURNING lead_id, created_at
-        """
-        row = db.execute(query, (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer))
-        lead_id = row[0][0] if row else None
+        with get_db_connection() as db:
+            query = """
+            INSERT INTO core.leads (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            RETURNING lead_id, created_at
+            """
+            row = db.execute(query, (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer))
+            lead_id = row[0][0] if row else None
         return {"lead_id": str(lead_id), "source_form": source_form}

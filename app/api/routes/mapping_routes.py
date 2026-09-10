@@ -41,9 +41,9 @@ def get_mapping_summary(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
-        db = get_db_connection()
-        repo = MappingRepository(db)
-        data = repo.get_summary(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            repo = MappingRepository(db)
+            data = repo.get_summary(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -61,9 +61,9 @@ def get_mapping_schema(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
-        db = get_db_connection()
-        repo = MappingRepository(db)
-        data = repo.get_schema(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            repo = MappingRepository(db)
+            data = repo.get_schema(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -81,9 +81,9 @@ def get_all_columns(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
-        db = get_db_connection()
-        repo = MappingRepository(db)
-        data = repo.get_all_columns(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            repo = MappingRepository(db)
+            data = repo.get_all_columns(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -101,9 +101,9 @@ async def auto_map(
 ):
     try:
         effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
-        db = get_db_connection()
-        service = MappingService(db)
-        result = await service.auto_map(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            service = MappingService(db)
+            result = await service.auto_map(tenant_id=effective_tenant)
         return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -116,12 +116,12 @@ async def auto_map(
 @router.post("/columns/")
 def bulk_save_columns(payload: list = Body(...), current_user=Depends(get_current_user_with_tenant)):
     try:
-        db = get_db_connection()
-        repo = MappingRepository(db)
-        saved = 0
-        for col in payload:
-            repo.save_column_mapping(col)
-            saved += 1
+        with get_db_connection() as db:
+            repo = MappingRepository(db)
+            saved = 0
+            for col in payload:
+                repo.save_column_mapping(col)
+                saved += 1
         return {"success": True, "data": {"saved": saved}}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -135,9 +135,9 @@ def bulk_save_columns(payload: list = Body(...), current_user=Depends(get_curren
 def validate_all(current_user=Depends(get_current_user_with_tenant)):
     try:
         tenant_id = current_user.get("tenant_id")
-        db = get_db_connection()
-        repo = MappingRepository(db)
-        columns = repo.get_all_columns(tenant_id=tenant_id)
+        with get_db_connection() as db:
+            repo = MappingRepository(db)
+            columns = repo.get_all_columns(tenant_id=tenant_id)
         issues = []
         for col in columns:
             if col["source_data_type"] and col["target_data_type"] and col["source_data_type"] != col["target_data_type"]:
@@ -171,9 +171,9 @@ def get_all_columns_with_pending(
     """Get all column mappings including empty table pairs from dataset_mappings."""
     try:
         effective_tenant = _resolve_tenant(tenant_id, all_tenants, current_user)
-        db = get_db_connection()
-        repo = MappingRepository(db)
-        data = repo.get_all_columns_with_pending(tenant_id=effective_tenant)
+        with get_db_connection() as db:
+            repo = MappingRepository(db)
+            data = repo.get_all_columns_with_pending(tenant_id=effective_tenant)
         return {"success": True, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -194,15 +194,15 @@ def clear_pair_mapping(
         if not mapping_id:
             raise HTTPException(status_code=400, detail="mapping_id is required")
         
-        db = get_db_connection()
-        repo = MappingRepository(db)
-        user_email = current_user.get("user", current_user.get("email", "unknown"))
-        
-        # Count before delete
-        count_before = repo.get_column_mapping_count_by_pair(mapping_id)
-        
-        # Soft delete
-        deleted = repo.soft_delete_column_mappings_by_pair(mapping_id, user_email)
+        with get_db_connection() as db:
+            repo = MappingRepository(db)
+            user_email = current_user.get("user", current_user.get("email", "unknown"))
+            
+            # Count before delete
+            count_before = repo.get_column_mapping_count_by_pair(mapping_id)
+            
+            # Soft delete
+            deleted = repo.soft_delete_column_mappings_by_pair(mapping_id, user_email)
         
         return {"success": True, "data": {
             "mapping_id": mapping_id,
@@ -226,11 +226,11 @@ def clear_all_mappings(
         if not tenant_id:
             raise HTTPException(status_code=400, detail="tenant_id is required. Select a tenant before clearing.")
         
-        db = get_db_connection()
-        repo = MappingRepository(db)
-        user_email = current_user.get("user", current_user.get("email", "unknown"))
-        
-        deleted = repo.soft_delete_all_column_mappings(user_email, tenant_id=tenant_id)
+        with get_db_connection() as db:
+            repo = MappingRepository(db)
+            user_email = current_user.get("user", current_user.get("email", "unknown"))
+            
+            deleted = repo.soft_delete_all_column_mappings(user_email, tenant_id=tenant_id)
         
         return {"success": True, "data": {
             "deleted_count": deleted,

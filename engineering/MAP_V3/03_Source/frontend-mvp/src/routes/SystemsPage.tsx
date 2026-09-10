@@ -49,6 +49,8 @@ export function SystemsPage() {
   const { data: systems, loading, error, refetch } = useSystemList(selectedTenant || undefined);
   const { data: diagSummary, refetch: refetchDiag } = useDiagnosticSummary(selectedTenant || undefined);
   const { testConnection, loading: testingId } = useTestConnection();
+  const [testError, setTestError] = useState<string | null>(null);
+  const [testingSystemId, setTestingSystemId] = useState<string | null>(null);
   const { create, loading: creating } = useCreateSystem();
   const { update, loading: updating } = useUpdateSystem();
   const { remove, loading: deleting } = useDeleteSystem();
@@ -77,8 +79,19 @@ export function SystemsPage() {
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleTestConnection = async (systemId: string) => {
-    const result = await testConnection(systemId, selectedTenant || undefined);
-    setTestResults((prev) => ({ ...prev, [systemId]: result }));
+    setTestError(null);
+    setTestingSystemId(systemId);
+    try {
+      const result = await testConnection(systemId, selectedTenant || undefined);
+      if (result) {
+        setTestResults((prev) => ({ ...prev, [systemId]: result }));
+      } else {
+        setTestError('Connection test failed — check credentials and network');
+        setTimeout(() => setTestError(null), 5000);
+      }
+    } finally {
+      setTestingSystemId(null);
+    }
   };
 
   const toggleExpand = (systemId: string) => {
@@ -119,7 +132,7 @@ export function SystemsPage() {
     }
   };
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <PageContainer>
         <h1 className="text-xl font-bold text-gray-900 mb-4">Connection Management</h1>
@@ -176,6 +189,11 @@ export function SystemsPage() {
           selectedTenant={selectedTenant}
           onChange={(val) => { setSelectedTenant(val); setPage(1); }}
         />
+        {testError && (
+          <span className="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded">
+            {testError}
+          </span>
+        )}
         <select
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
@@ -222,7 +240,6 @@ export function SystemsPage() {
                 {paged.map((system) => {
                   const testResult = testResults[system.system_id];
                   const isExpanded = expandedRows[system.system_id];
-                  const isTesting = testingId;
 
                   return (
                     <div key={system.system_id}>
@@ -246,10 +263,10 @@ export function SystemsPage() {
                           )}
                           <button
                             onClick={() => handleTestConnection(system.system_id)}
-                            disabled={!!isTesting}
+                            disabled={testingSystemId === system.system_id}
                             className="px-2.5 py-1 text-xs font-medium text-gray-600 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {isTesting ? 'Testing...' : 'Test'}
+                            {testingSystemId === system.system_id ? 'Testing...' : 'Test'}
                           </button>
                           <button
                             onClick={() => navigate('/migration/connections/diagnostics')}

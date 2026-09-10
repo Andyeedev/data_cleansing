@@ -8,8 +8,7 @@ class MigrationTimelineService:
         self.repository = ScheduleRepository()
 
     def get_timeline_summary(self, tenant_id: str = None):
-        conn = get_db_connection()
-        try:
+        with get_db_connection() as conn:
             if tenant_id:
                 query = """
                     SELECT
@@ -39,12 +38,9 @@ class MigrationTimelineService:
                 "failed_total": row[2] or 0,
                 "scheduled": row[3] or 0,
             }
-        finally:
-            conn.close()
 
     def get_timeline(self, tenant_id: str = None, limit: int = 50, offset: int = 0):
-        conn = get_db_connection()
-        try:
+        with get_db_connection() as conn:
             if tenant_id:
                 query = """
                     SELECT
@@ -134,5 +130,3 @@ class MigrationTimelineService:
                 grouped[date_key]["events"].append(event)
 
             return list(grouped.values())
-        finally:
-            conn.close()

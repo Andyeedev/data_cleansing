@@ -69,28 +69,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
       let message = `Login failed (${response.status})`;
       try {
         const json = JSON.parse(text);
-        message = json.detail || json.message || message;
+        message = json.detail || json.error || json.message || message;
       } catch {}
       setState((prev) => ({ ...prev, isLoading: false }));
       throw new Error(message);
     }
 
-    const { access_token } = await response.json();
+    // JWT is HttpOnly cookie — not in response body. Get user info via /me.
+    const meResponse = await fetch('/api/v1/auth/me', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
 
-    const payload = decodeJwtPayload(access_token);
+    if (!meResponse.ok) {
+      setState((prev) => ({ ...prev, isLoading: false }));
+      throw new Error('Login succeeded but failed to load user profile');
+    }
+
+    const meResult = await meResponse.json();
+    const meData = meResult.data || meResult;
+
     const user: User = {
-      id: '1',
-      email: credentials.email,
-      name: credentials.email.split('@')[0],
-      roles: ['admin'],
-      permissions: ['read', 'write', 'delete', 'admin'],
-      tenantId: (payload?.tenant_id as string) || undefined,
+      id: meData.user_id || 'unknown',
+      email: meData.email || credentials.email,
+      name: (meData.email || credentials.email || '').split('@')[0],
+      roles: meData.roles || ['viewer'],
+      permissions: ['read'],
+      tenantId: meData.tenant_id || undefined,
     };
 
-    localStorage.setItem('access_token', access_token);
+    // Store in localStorage for page-refresh persistence.
+    // 'cookie-based' placeholder lets getInitialAuthState() detect valid session.
+    localStorage.setItem('access_token', 'cookie-based');
     localStorage.setItem('map_nexus_user', JSON.stringify(user));
 
-    setState({ user, token: access_token, isAuthenticated: true, isLoading: false });
+    setState({ user, token: 'cookie-based', isAuthenticated: true, isLoading: false });
   }, []);
 
   const logout = useCallback(async () => {

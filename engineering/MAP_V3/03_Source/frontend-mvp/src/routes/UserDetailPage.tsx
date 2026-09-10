@@ -50,7 +50,7 @@ export function UserDetailPage() {
     if (success) navigate('/administration/users');
   };
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <div style={{ padding: 24 }}>
         <h1 style={{ fontSize: 24, marginBottom: 16 }}>User Detail</h1>

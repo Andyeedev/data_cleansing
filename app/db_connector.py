@@ -50,7 +50,17 @@ class PooledDBConnector:
     """
     Connection from a shared psycopg2 ThreadedConnectionPool.
     Used by the FastAPI application server (get_db_connection).
-    Connections are returned to the pool on close() or __del__.
+
+    Usage (preferred):
+        with get_db_connection() as db:
+            db.execute("SELECT 1")
+
+    Usage (legacy — works but caller MUST call db.close()):
+        db = get_db_connection()
+        try:
+            db.execute("SELECT 1")
+        finally:
+            db.close()
     """
 
     _pool = None
@@ -63,7 +73,7 @@ class PooledDBConnector:
                 PooledDBConnector._pool_config = db_config
                 PooledDBConnector._pool = psycopg2.pool.ThreadedConnectionPool(
                     minconn=2,
-                    maxconn=20,
+                    maxconn=50,
                     host=db_config["host"],
                     port=db_config["port"],
                     database=db_config["database"],
@@ -71,7 +81,7 @@ class PooledDBConnector:
                     password=db_config["password"],
                 )
                 logger.info(
-                    "Created connection pool: %s@%s:%s/%s (min=2, max=20)",
+                    "Created connection pool: %s@%s:%s/%s (min=2, max=50)",
                     db_config["user"], db_config["host"], db_config["port"], db_config["database"],
                 )
         self.conn = PooledDBConnector._pool.getconn()
@@ -109,6 +119,13 @@ class PooledDBConnector:
         if not self._returned and PooledDBConnector._pool is not None:
             PooledDBConnector._pool.putconn(self.conn)
             self._returned = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return False
 
     def __del__(self):
         """Safety net: return connection to pool on GC."""

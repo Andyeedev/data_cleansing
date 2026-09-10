@@ -1,6 +1,7 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
-from app.api.core.auth.dependencies import get_current_user
+from app.api.core.auth.dependencies import get_current_user, get_current_user_with_tenant, resolve_tenant
+from app.api.core.auth.rbac import require_admin
 from app.api.models.responses import APIResponse
 from app.api.models.rule_registry_models import (
     RuleRegistryResponse,
@@ -22,8 +23,8 @@ rule_registry_service = RuleRegistryService()
 @router.get("", response_model=APIResponse)
 @router.get("/", response_model=APIResponse)
 def list_rules(
-    tenant_id: str = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
 ):
     try:
         rules = rule_registry_service.get_all_rules(tenant_id)
@@ -37,8 +38,9 @@ def list_rules(
 # =========================
 @router.get("/tenants", response_model=APIResponse)
 def get_tenants(
-    current_user=Depends(get_current_user)
+    current_user=Depends(require_admin)
 ):
+    # DEV-003: tenant enumeration is an explicit Super Admin operation.
     try:
         tenants = rule_registry_service.get_tenants()
         return APIResponse(success=True, data=tenants)
@@ -51,12 +53,11 @@ def get_tenants(
 # =========================
 @router.get("/projects", response_model=APIResponse)
 def get_projects_for_tenant(
-    tenant_id: str = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
 ):
     try:
-        effective_tenant = tenant_id or current_user.get("tenant_id")
-        projects = rule_registry_service.get_projects_for_tenant(effective_tenant)
+        projects = rule_registry_service.get_projects_for_tenant(tenant_id)
         return APIResponse(success=True, data=projects)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -67,8 +68,8 @@ def get_projects_for_tenant(
 # =========================
 @router.get("/usage-stats", response_model=APIResponse)
 def get_rule_usage_stats(
-    tenant_id: str = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
 ):
     try:
         stats = rule_registry_service.get_rule_usage_stats(tenant_id)
@@ -83,8 +84,8 @@ def get_rule_usage_stats(
 @router.get("/{rule_id}/mappings", response_model=APIResponse)
 def get_rule_mappings(
     rule_id: str,
-    tenant_id: str = Query(None),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_with_tenant),
+    tenant_id: str = Depends(resolve_tenant),
 ):
     try:
         mappings = rule_registry_service.get_mappings_for_rule(rule_id, tenant_id)
@@ -134,8 +135,9 @@ def get_rules_by_control(
 @router.post("/", response_model=APIResponse)
 def create_rule(
     request: RuleRegistryCreateRequest,
-    current_user=Depends(get_current_user)
+    current_user=Depends(require_admin)
 ):
+    # DEV-010: global rule templates mutate only via explicit Super Admin.
     try:
         rule_data = request.model_dump()
         rule = rule_registry_service.create_rule(rule_data)
@@ -151,8 +153,9 @@ def create_rule(
 def update_rule(
     rule_id: str,
     request: RuleRegistryUpdateRequest,
-    current_user=Depends(get_current_user)
+    current_user=Depends(require_admin)
 ):
+    # DEV-010: global rule templates mutate only via explicit Super Admin.
     try:
         rule_data = request.model_dump(exclude_unset=True)
         rule = rule_registry_service.update_rule(rule_id, rule_data)
@@ -171,8 +174,9 @@ def update_rule(
 @router.delete("/{rule_id}", response_model=APIResponse)
 def delete_rule(
     rule_id: str,
-    current_user=Depends(get_current_user)
+    current_user=Depends(require_admin)
 ):
+    # DEV-010: global rule templates mutate only via explicit Super Admin.
     try:
         success = rule_registry_service.delete_rule(rule_id)
         if not success:

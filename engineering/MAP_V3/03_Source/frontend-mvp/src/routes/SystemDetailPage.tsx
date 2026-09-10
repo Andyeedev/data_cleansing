@@ -23,7 +23,7 @@ export function SystemDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string; latency_ms?: number; server_version?: string } | null>(null);
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <PageContainer>
         <h1 className="text-xl font-bold text-gray-900 mb-4">System Detail</h1>

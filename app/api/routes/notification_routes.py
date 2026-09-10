@@ -29,27 +29,27 @@ def list_notifications(
     type: Optional[str] = None,
     current_user=Depends(require_permissions("tasks:read"))
 ):
-    db = get_db_connection()
-    service = NotificationService(db.conn)
-    return standardize_response(service.list_notifications(
-        user_id=current_user.get("sub"),
-        page=page, page_size=page_size,
-        is_read=is_read, type=type
-    ))
+    with get_db_connection() as db:
+        service = NotificationService(db.conn)
+        return standardize_response(service.list_notifications(
+            user_id=current_user.get("sub"),
+            page=page, page_size=page_size,
+            is_read=is_read, type=type
+        ))
 
 
 @router.get("/unread/count")
 def get_unread_count(current_user=Depends(require_permissions("tasks:read"))):
-    db = get_db_connection()
-    service = NotificationService(db.conn)
-    return standardize_response(service.get_unread_count(current_user.get("sub")))
+    with get_db_connection() as db:
+        service = NotificationService(db.conn)
+        return standardize_response(service.get_unread_count(current_user.get("sub")))
 
 
 @router.get("/preferences/list")
 def get_preferences(current_user=Depends(require_permissions("tasks:read"))):
-    db = get_db_connection()
-    service = NotificationService(db.conn)
-    return standardize_response(service.get_preferences(current_user.get("sub")))
+    with get_db_connection() as db:
+        service = NotificationService(db.conn)
+        return standardize_response(service.get_preferences(current_user.get("sub")))
 
 
 @router.put("/preferences")
@@ -57,23 +57,23 @@ def update_preference(
     payload: PreferenceUpdateRequest,
     current_user=Depends(require_permissions("tasks:update"))
 ):
-    db = get_db_connection()
-    service = NotificationService(db.conn)
-    return standardize_response(service.update_preference(current_user.get("sub"), payload))
+    with get_db_connection() as db:
+        service = NotificationService(db.conn)
+        return standardize_response(service.update_preference(current_user.get("sub"), payload))
 
 
 @router.put("/read-all")
 def mark_all_as_read(current_user=Depends(require_permissions("tasks:update"))):
-    db = get_db_connection()
-    service = NotificationService(db.conn)
-    return standardize_response(service.mark_all_as_read(current_user.get("sub")))
+    with get_db_connection() as db:
+        service = NotificationService(db.conn)
+        return standardize_response(service.mark_all_as_read(current_user.get("sub")))
 
 
 @router.get("/{notification_id}")
 def get_notification(notification_id: str, current_user=Depends(require_permissions("tasks:read"))):
-    db = get_db_connection()
-    service = NotificationService(db.conn)
-    return standardize_response(service.get_notification(notification_id))
+    with get_db_connection() as db:
+        service = NotificationService(db.conn)
+        return standardize_response(service.get_notification(notification_id))
 
 
 @router.put("/{notification_id}/read")
@@ -81,13 +81,13 @@ def mark_as_read(
     notification_id: str,
     current_user=Depends(require_permissions("tasks:update"))
 ):
-    db = get_db_connection()
-    service = NotificationService(db.conn)
-    return standardize_response(service.mark_as_read(notification_id))
+    with get_db_connection() as db:
+        service = NotificationService(db.conn)
+        return standardize_response(service.mark_as_read(notification_id))
 
 
 @router.delete("/{notification_id}")
 def delete_notification(notification_id: str, current_user=Depends(require_permissions("tasks:delete"))):
-    db = get_db_connection()
-    service = NotificationService(db.conn)
-    return standardize_response(service.delete_notification(notification_id))
+    with get_db_connection() as db:
+        service = NotificationService(db.conn)
+        return standardize_response(service.delete_notification(notification_id))

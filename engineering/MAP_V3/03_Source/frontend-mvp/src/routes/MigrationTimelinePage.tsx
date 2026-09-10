@@ -138,7 +138,7 @@ export function MigrationTimelinePage() {
     scheduled: 'warning' as const,
   };
 
-  if (!userRoles.includes('admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
     return (
       <div className="p-6">
         <h1 className="text-h1 mb-4">Migration Timeline</h1>
