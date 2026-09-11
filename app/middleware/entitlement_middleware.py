@@ -33,7 +33,8 @@ def get_tenant_entitlements(tenant_id):
                     """SELECT p.entitlements, p.tier
                        FROM platform.subscriptions s
                        JOIN platform.plans p ON s.plan_id = p.plan_id
-                       WHERE s.tenant_id = %s AND s.status IN ('active', 'trialing')
+                       WHERE s.tenant_id = %s
+                         AND s.status IN ('active', 'trialing', 'past_due', 'pending_cancellation')
                        ORDER BY s.created_at DESC LIMIT 1""",
                     (tenant_id,)
                 )

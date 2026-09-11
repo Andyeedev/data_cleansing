@@ -191,7 +191,7 @@ class TenantRepository:
                    p.max_users, p.max_projects, p.max_connections
             FROM platform.subscriptions s
             JOIN platform.plans p ON s.plan_id = p.plan_id
-            WHERE s.tenant_id = %s AND s.status IN ('active', 'trialing')
+            WHERE s.tenant_id = %s AND s.status IN ('active', 'trialing', 'pending_cancellation')
             ORDER BY s.created_at DESC
             LIMIT 1
         """

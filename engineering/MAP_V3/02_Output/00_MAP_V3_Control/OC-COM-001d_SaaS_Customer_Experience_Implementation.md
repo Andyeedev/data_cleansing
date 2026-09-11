@@ -200,6 +200,308 @@ Tenant service/repo + routes; user/role services + soft-delete pattern; plans li
 
 **SPECIFICATION COMPLETE. Phase 0 decision gate recorded below — implementation authorized in Phase order.**
 
+---
+
+## 17. Phase 2 Evidence — P1 Journey + Subscription Awareness (2026-09-10)
+
+**Status:** IN PROGRESS — Onboarding UI + subscription awareness built, pending Phase 3 for subscription pages
+
+### 17.1 Files Created / Modified
+
+| File | Status | Purpose |
+|------|--------|---------|
+| `app/api/routes/auth_routes.py` | MODIFIED | Enhanced `GET /me` to return `subscription` object with `plan_tier`, `plan_name`, `status`, `trial_end_date`, `billing_cycle`, `limits` (projects/users/connections current+max) |
+| `frontend-mvp/src/hooks/useSubscription.ts` | NEW | Hook: `isAtLimit()`, `isNearLimit()`, `usagePercent()`, `daysUntilTrialEnd()` — all derived from `/me` subscription data |
+| `frontend-mvp/src/hooks/useOnboardingProgress.ts` | NEW | 7-step progress hook from backend APIs (projects, systems, discovery, datasets, mappings, validation, reports) |
+| `frontend-mvp/src/components/onboarding/OnboardingProgress.tsx` | NEW | Progress bar with step labels |
+| `frontend-mvp/src/components/onboarding/OnboardingCard.tsx` | NEW | Card wrapper: empty/error/loading/content states |
+| `frontend-mvp/src/components/onboarding/OnboardingWizard.tsx` | NEW | Vertical sidebar stepper |
+| `frontend-mvp/src/components/onboarding/SetupSteps.tsx` | NEW | CreateProject, ConnectSource, ConnectTarget forms with `LimitWarning` component (progress bar + upgrade prompt at 90%+ usage) |
+| `frontend-mvp/src/routes/onboarding/WelcomePage.tsx` | NEW | Hub dashboard, split layout: status cards + subscription plan card (left panel) + quick actions (right panel) |
+| `frontend-mvp/src/routes/onboarding/OnboardingSetupPage.tsx` | NEW | Wizard embedded in route |
+| `frontend-mvp/src/routes/onboarding/OnboardingHubPage.tsx` | NEW | Post-setup hub with subscription limit strip + 7 spoke cards with progress indicators |
+| `frontend-mvp/src/routes/HomePage.tsx` | MODIFIED | Converted from dead stub to landing page |
+| `frontend-mvp/src/AppRoutes.tsx` | MODIFIED | 3 lazy imports, 3 routes, `HomeRedirect` with Super Admin exception (always show onboarding) |
+| `frontend-mvp/src/routes/DashboardPage.tsx` | MODIFIED | "Onboarding" banner for Super Admin + no-projects users |
+| `OC-COM-001e_Identity_Access_Lifecycle.md` | NEW | Identity workstream spec (invite/register/forgot-password/website registration) — 7 implementation phases |
+
+### 17.2 Subscription Awareness — What Was Built
+
+**User selections (from 2026-09-10):**
+- WelcomePage: Plan Card in Left Panel (Option A)
+- OnboardingHub: Limit Strip Above Cards (Option A)
+- SetupSteps: Progress Bar + Limit (Option B)
+
+**WelcomePage — Left Panel Subscription Card:**
+- Plan badge (e.g. "Professional") or "No active plan" state
+- Trial countdown (days remaining) with clock icon
+- Billing cycle label ("annual" / "monthly")
+- Usage bars for Projects, Systems, Users — color-coded (green < 70%, amber 70-89%, red ≥ 90%)
+
+**OnboardingHubPage — Limit Strip:**
+- Plan badge + trial timer (if trialing)
+- Three limit pills (Projects, Systems, Users) with color-coded borders
+- "No active subscription" amber banner (if no plan)
+
+**SetupSteps — LimitWarning Component:**
+- Appears before CreateProject, ConnectSource, ConnectTarget forms
+- Shows when user is at-limit (red) or near-limit (amber, ≥ 70% usage)
+- Progress bar below warning text
+- Buttons disabled at limit with "Limit Reached" label
+
+### 17.3 What Is NOT Built (Deferred to Phase 3)
+
+| Route | Purpose | Status |
+|-------|---------|--------|
+| `/subscription/plans` | Plan selection page | Not built — would cause 404 |
+| `/billing/subscription` | Subscription management | Not built |
+| `/billing/checkout` | Stripe checkout flow | Not built |
+| `/billing/portal` | Stripe customer portal | Not built |
+| `/billing/invoices` | Invoice history | Not built |
+
+**Note:** "View Plans" and "Manage" buttons were removed from WelcomePage and OnboardingHubPage to avoid dead links. These will be added when Phase 3 pages are built.
+
+### 17.4 Super Admin Exception
+
+- `HomeRedirect` in `AppRoutes.tsx` — Super Admin always sees `/onboarding/welcome` on login
+- Dashboard banner — "Onboarding" shown for Super Admin + users with no projects
+- Nav strategy: No nav entries for onboarding pages (Option C confirmed) — accessed via Dashboard banner + auto-redirect + direct URL
+
+### 17.5 TypeScript Compilation
+
+```
+npx tsc --noEmit → EXIT: 0 (zero errors)
+```
+
+### 17.6 Evidence Files
+
+| File | Purpose |
+|------|---------|
+| `OC-COM-001d_SaaS_Customer_Experience_Implementation.md` | This spec (updated with Phase 2 evidence) |
+| Git status | `git status` shows 14 modified/new files, uncommitted |
+
+---
+
+## 18. Next Workstream — OC-COM-001e Identity & Access Lifecycle
+
+**Status:** DRAFT — PENDING REVIEW (spec complete, awaiting approval before implementation)
+
+### 18.1 Problem
+
+MAP Nexus has a **closed, admin-driven user provisioning model**:
+- Super Admin creates tenants (auto-creates admin with known password)
+- Admin creates users via `/administration/users` (setting passwords directly)
+- No invitation, registration, forgot-password, or reset-password flow exists
+- `change-password` backend route calls a non-existent service method (500 at runtime)
+- No email sending infrastructure (no SMTP, no email service)
+- Website (mapnexus.co.uk) has no integration for lead-to-customer conversion
+
+### 18.2 Scope (7 Phases)
+
+| Phase | What | Dependencies |
+|-------|------|-------------|
+| **Phase 1** | Email service (SMTP abstraction) + env config | None |
+| **Phase 2** | Invitation system (backend + frontend) | Phase 1 |
+| **Phase 3** | Forgot/reset password (backend + frontend) | Phase 1 |
+| **Phase 4** | Change password fix (backend + frontend) | None |
+| **Phase 5** | Self-service registration (backend + frontend) | Phase 1 |
+| **Phase 6** | Website registration integration (backend + admin panel) | Phase 5 |
+| **Phase 7** | Tests + evidence | All phases |
+
+### 18.3 Key Decisions (8 Architecture Decisions)
+
+- **ID-001:** Invitation tokens — UUID-based, 7-day expiry, single-use
+- **ID-002:** Password reset tokens — UUID-based, 1-hour expiry, single-use
+- **ID-003:** Email verification — UUID token, 24-hour expiry, sent on registration
+- **ID-004:** Email service — Abstract `EmailService` with SMTP backend
+- **ID-005:** Website registration — mapnexus.co.uk POST → `POST /api/v1/public/register`
+- **ID-006:** Tenant self-provisioning — NOT in 001e; Super Admin creates tenants
+- **ID-007:** Token storage — httpOnly cookies for session; invitation/reset tokens in DB
+- **ID-008:** Rate limiting — Public endpoints: 5/hour per IP
+
+### 18.4 Database Changes (4 New Tables)
+
+- `platform.invitations` — Invitation tokens
+- `platform.password_resets` — Password reset tokens
+- `platform.email_verifications` — Email verification tokens
+- `platform.website_registrations` — Website registration leads
+- Modified: `platform.users` — add `email_verified`, `invitation_id` columns
+
+### 18.5 New API Endpoints (11 Endpoints)
+
+- `POST /api/v1/invitations` — Send invitation email
+- `GET /api/v1/invitations` — List pending invitations
+- `DELETE /api/v1/invitations/{id}` — Revoke invitation
+- `POST /api/v1/invitations/accept` — Accept invitation, set password
+- `POST /api/v1/auth/register` — Self-service registration
+- `POST /api/v1/auth/verify-email` — Verify email via token
+- `POST /api/v1/auth/forgot-password` — Request password reset
+- `POST /api/v1/auth/reset-password` — Reset password via token
+- `POST /api/v1/auth/change-password` — Change password (FIX broken endpoint)
+- `POST /api/v1/public/register` — Website registration (public)
+- `GET /api/v1/public/plans` — List plans (public)
+
+### 18.6 New Frontend Pages (7 Pages)
+
+- `/register` — Self-service registration
+- `/verify-email` — Email verification confirmation
+- `/forgot-password` — Request password reset
+- `/reset-password` — Set new password via token
+- `/invites/accept` — Accept invitation, set password
+- `/administration/invitations` — Admin: manage pending invitations
+- `/administration/registrations` — Super Admin: process website leads
+
+### 18.7 Open Questions (5)
+
+1. Email provider: existing SMTP vs SendGrid/SES?
+2. Website registration: direct API or middleware/webhook?
+3. Tenant self-provisioning: include in 001e or defer?
+4. Password change: require re-login or allow continued session?
+5. Invitation role: specify at invite time or assign after acceptance?
+
+---
+
+**NEXT STEP:** Review and approve OC-COM-001e spec → then implement Phase 1 (Email service) as first workstream.
+
+---
+
+## 19. Phase 3 Evidence — P2 Subscription/Billing (2026-09-10)
+
+**Status:** APPROVED WITH REQUIRED FINAL CHECKS — all checks passed
+
+### 19.1 Architecture Corrections Applied
+
+| Bug | Before | After |
+|-----|--------|-------|
+| Stripe upgrade doesn't sync tenant | `max_*` and `plan_id` stay stale after Stripe upgrade | `upgrade_subscription()` queries new plan limits and updates `core.tenants` + `platform.subscriptions` |
+| Cancel sets cancelled immediately | Entitlements revoked before period end | Sets `pending_cancellation` — active until Stripe confirms deletion |
+| invoice_paid is no-op | `WHERE status = 'active'` — never reactivates | `WHERE status IN ('suspended', 'past_due')` — correctly reactivates |
+| past_due maps to suspended | Immediate entitlement revocation during grace | Maps to `past_due` — entitlements preserved during grace period |
+
+### 19.2 Files Changed (Phase 3 only)
+
+| File | Change |
+|------|--------|
+| `app/services/stripe_service.py` | Fix 1: upgrade syncs tenant max_*/plan_id; Fix 2: cancel uses pending_cancellation; Fix 3: invoice_paid WHERE corrected; webhook past_due mapping updated |
+| `app/middleware/entitlement_middleware.py` | Added past_due, pending_cancellation to entitled statuses |
+| `app/db/repositories/tenant_repository.py` | get_active_subscription includes pending_cancellation |
+| `app/api/routes/auth_routes.py` | /me includes pending_cancellation in subscription query |
+| `app/api/routes/billing_routes.py` | require_admin wired to checkout/portal/upgrade/cancel |
+| `engineering/.../migrations/OC-COM-001d_Phase3_subscription_status.sql` | DDL: adds past_due, pending_cancellation to CHECK |
+| `engineering/.../frontend-mvp/src/routes/billing/SubscriptionPlansPage.tsx` | Plan comparison with checkout |
+| `engineering/.../frontend-mvp/src/routes/billing/BillingSubscriptionPage.tsx` | Subscription management + invoices |
+| `engineering/.../frontend-mvp/src/routes/billing/BillingSuccessPage.tsx` | Checkout success redirect |
+| `engineering/.../frontend-mvp/src/routes/billing/BillingCancelPage.tsx` | Checkout cancel redirect |
+| `engineering/.../frontend-mvp/src/AppRoutes.tsx` | 4 billing routes + lazy imports |
+| `engineering/.../frontend-mvp/src/routes/onboarding/WelcomePage.tsx` | View Plans + Manage buttons wired |
+| `engineering/.../frontend-mvp/src/routes/onboarding/OnboardingHubPage.tsx` | View Plans button wired |
+| `tests/test_subscription_lifecycle.py` | 13 lifecycle tests |
+
+### 19.3 Migration Applied
+
+```
+OC-COM-001d_Phase3_subscription_status.sql applied to migration_engine DB.
+CHECK constraint now includes: active, trialing, past_due, pending_cancellation, suspended, cancelled, expired, pending
+```
+
+### 19.4 RBAC
+
+| Route | Mechanism | Rationale |
+|-------|-----------|-----------|
+| POST /billing/checkout | require_admin | Creates subscription |
+| POST /billing/portal | require_admin | Stripe portal access |
+| POST /billing/upgrade | require_admin | Changes plan |
+| POST /billing/cancel | require_admin | Cancels subscription |
+| GET /billing/invoices | get_current_user_with_tenant | Read-only |
+| POST /billing/webhook | None (Stripe signature) | External webhook |
+
+**No new permissions created.** Existing `require_admin` from `app/api/core/auth/rbac.py` reused.
+
+### 19.5 Tests
+
+```
+97 passed in 4.43s
+84 existing (test_commercial_schema + test_billing_entitlements): ALL PASSED
+13 new (test_subscription_lifecycle): ALL PASSED
+```
+
+**New test coverage:**
+
+| Category | Tests | All Pass |
+|----------|-------|----------|
+| Status transitions | ACTIVE→PENDING_CANCELLATION, PENDING_CANCELLATION→CANCELLED, PAST_DUE→ACTIVE, ACTIVE→PAST_DUE, ACTIVE→SUSPENDED | YES |
+| Entitlement behavior | pending_cancellation retains, past_due retains, suspended revokes, cancelled revokes, active grants, trialing grants | YES |
+| Downgrade path | tenant limits sync, get_active_subscription includes pending_cancellation | YES |
+
+### 19.6 Downgrade Evidence
+
+Downgrade uses existing `TenantService.change_subscription()` path:
+1. Cancel old subscription (status = 'cancelled')
+2. Create new subscription with lower-tier plan_id
+3. Update `core.tenants` with new plan_id + max_*/max_projects/max_connections
+
+**Verified in test:** enterprise→professional downgrade correctly syncs:
+- `core.tenants.plan_id` → professional
+- `core.tenants.max_users` → 5 (was 20)
+- `core.tenants.max_projects` → 3 (was 10)
+- `core.tenants.max_connections` → 5 (was 20)
+- `platform.subscriptions.plan_id` → professional
+
+Stripe upgrade path also syncs (fixed in Phase 3): `upgrade_subscription()` queries `platform.plans` and updates `core.tenants` + `platform.subscriptions`.
+
+### 19.7 Subscription Lifecycle
+
+```
+TRIALING → ACTIVE (checkout completed)
+ACTIVE → PAST_DUE (payment failed, grace period — entitlements preserved)
+PAST_DUE → ACTIVE (invoice paid, recovery)
+PAST_DUE → SUSPENDED (grace period exceeded — entitlements revoked)
+ACTIVE → PENDING_CANCELLATION (cancel_at_period_end — entitlements preserved until period end)
+PENDING_CANCELLATION → CANCELLED (Stripe confirms deletion)
+ACTIVE → CANCELLED (immediate or Stripe webhook)
+Any → EXPIRED (end_date passed)
+```
+
+### 19.8 Frontend Routes
+
+| Route | Page | Status |
+|-------|------|--------|
+| `/subscription/plans` | SubscriptionPlansPage | BUILT |
+| `/billing/subscription` | BillingSubscriptionPage | BUILT |
+| `/billing/success` | BillingSuccessPage | BUILT |
+| `/billing/cancel` | BillingCancelPage | BUILT |
+
+**WelcomePage:** View Plans (no-plan) + Manage (active) — WIRED
+**OnboardingHubPage:** View Plans (no-plan) — WIRED
+
+### 19.9 Canonical Relationship Preserved
+
+```
+platform.subscriptions (authoritative)
+  → plan_id → platform.plans (source of truth for limits/entitlements)
+
+core.tenants (compatibility cache)
+  → plan_id (mirrors active subscription)
+  → max_users, max_projects, max_connections (mirrors plan limits)
+```
+
+Both Stripe upgrade and DB-only change_subscription paths now sync these fields.
+
+### 19.10 Entitlement Status Map
+
+| Status | Entitled | Rationale |
+|--------|----------|-----------|
+| active | YES | Full access |
+| trialing | YES | Full access during trial |
+| past_due | YES | Grace period — preserve access to recover |
+| pending_cancellation | YES | Paid until period end |
+| suspended | NO | Payment failure beyond grace |
+| cancelled | NO | Terminated |
+| expired | NO | Past end_date |
+| pending | NO | Awaiting first payment |
+
+---
+
 ## 16. Decision Gate Record (AUTHORIZED 2026-09-08)
 
 DECISION GATE / IMPLEMENTATION AUTHORISATION accepted. Audit accepted as authoritative repository assessment. Resolutions:

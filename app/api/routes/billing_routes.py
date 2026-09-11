@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.db.connection import get_db_connection
 from app.api.core.auth.dependencies import get_current_user_with_tenant
+from app.api.core.auth.rbac import require_admin
 from app.api.helpers import standardize_response
 from app.services.stripe_service import StripeService
 
@@ -30,7 +31,7 @@ class UpgradeRequest(BaseModel):
 @router.post("/checkout")
 def create_checkout(
     request: CheckoutRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_admin)
 ):
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
@@ -54,7 +55,7 @@ def create_checkout(
 @router.post("/portal")
 def create_portal(
     request: PortalRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_admin)
 ):
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
@@ -109,7 +110,7 @@ def list_invoices(
 @router.post("/upgrade")
 def upgrade_subscription(
     request: UpgradeRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_admin)
 ):
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
@@ -130,7 +131,7 @@ def upgrade_subscription(
 
 @router.post("/cancel")
 def cancel_subscription(
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_admin)
 ):
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:

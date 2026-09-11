@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useProject } from '../context/ProjectContext';
+import { useSubscription } from '../hooks/useSubscription';
 import { apiGet } from '../utils/apiClient';
 import { LoadingSkeleton } from '../components/shared/LoadingSkeleton';
 import { EmptyState } from '../components/shared/EmptyState';
@@ -54,8 +57,44 @@ interface RecentExecution {
 
 const AUTO_REFRESH_MS = 15000;
 
+function UsageLimitCard({ label, current, max, usagePercent, isNearLimit }: {
+  label: string;
+  current: number;
+  max: number;
+  usagePercent: number;
+  isNearLimit: boolean;
+}) {
+  const pct = max > 0 ? Math.min(100, Math.round((current / max) * 100)) : 0;
+  const color = pct >= 100 ? 'bg-red-500 border-red-200 text-red-700' : pct >= 80 ? 'bg-amber-500 border-amber-200 text-amber-700' : 'bg-green-500 border-green-200 text-green-700';
+  const bgColor = pct >= 100 ? 'bg-red-50' : pct >= 80 ? 'bg-amber-50' : 'bg-green-50';
+  const borderColor = pct >= 100 ? 'border-red-200' : pct >= 80 ? 'border-amber-200' : 'border-green-200';
+
+  return (
+    <div className={`p-4 rounded-lg border ${borderColor} ${bgColor}`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-900">{label}</span>
+        <span className="text-sm font-bold text-gray-900 tabular-nums">{current}/{max}</span>
+      </div>
+      <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${color}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-between text-xs">
+        <span className={`font-medium ${color}`}>
+          {pct >= 100 ? 'Limit reached' : pct >= 80 ? 'Near limit' : 'Within limits'}
+        </span>
+        <span className="text-gray-500">{pct}% used</span>
+      </div>
+    </div>
+  );
+}
+
 export function DashboardPage() {
+  const navigate = useNavigate();
   const { userRoles } = useAuth();
+  const { availableProjects } = useProject();
   const [selectedTenant, setSelectedTenant] = useState('');
   const [loading, setLoading] = useState(true);
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
@@ -69,6 +108,7 @@ export function DashboardPage() {
   const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin');
   const isManager = userRoles.includes('manager');
   const isExecutive = isAdmin || isManager;
+  const { subscription, isNearLimit, usagePercent } = useSubscription();
 
   const fetchData = useCallback(async () => {
     let cancelled = false;
@@ -145,6 +185,55 @@ export function DashboardPage() {
           </button>
         </div>
       </div>
+
+      {(availableProjects.length === 0 || userRoles.some(r => r === 'Super Admin')) && (
+        <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div>
+            <h2 className="text-lg font-bold text-blue-900">Welcome to MAP Nexus</h2>
+            <p className="text-sm text-blue-700">
+              {availableProjects.length === 0
+                ? 'Get started by creating your first migration project.'
+                : 'Access onboarding wizard to set up projects across tenants.'}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/onboarding/welcome')}
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
+          >
+            Onboarding →
+          </button>
+        </div>
+      )}
+
+      {/* Usage Limit Cards — Phase 4 P3 Usage UX */}
+      {subscription && (
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">Usage Limits</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <UsageLimitCard
+              label="Projects"
+              current={subscription.limits.projects.current}
+              max={subscription.limits.projects.max}
+              usagePercent={usagePercent('projects')}
+              isNearLimit={isNearLimit('projects')}
+            />
+            <UsageLimitCard
+              label="Users"
+              current={subscription.limits.users.current}
+              max={subscription.limits.users.max}
+              usagePercent={usagePercent('users')}
+              isNearLimit={isNearLimit('users')}
+            />
+            <UsageLimitCard
+              label="Systems"
+              current={subscription.limits.connections.current}
+              max={subscription.limits.connections.max}
+              usagePercent={usagePercent('connections')}
+              isNearLimit={isNearLimit('connections')}
+            />
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <LoadingSkeleton rows={4} variant="card" />

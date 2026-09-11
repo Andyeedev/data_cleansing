@@ -9,6 +9,8 @@ import { LoginPage } from './routes/LoginPage';
 import { SessionExpiredPage } from './routes/SessionExpiredPage';
 import { LoadingSpinner } from './components/LoadingSpinner/LoadingSpinner';
 import { ValidationFilterProvider } from './context/ValidationFilterContext';
+import { useProject } from './context/ProjectContext';
+import { useAuth } from './context/AuthContext';
 
 const DashboardPage = lazy(() => import('./routes/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const MigrationPage = lazy(() => import('./routes/MigrationPage').then(m => ({ default: m.MigrationPage })));
@@ -50,6 +52,22 @@ const AboutPage = lazy(() => import('./routes/AboutPage').then(m => ({ default: 
 const ValidationCentrePage = lazy(() => import('./routes/ValidationCentrePage').then(m => ({ default: m.ValidationCentrePage })));
 const ReportSuitePage = lazy(() => import('./routes/reports/ReportSuitePage').then(m => ({ default: m.ReportSuitePage })));
 const PermissionsPage = lazy(() => import('./routes/PermissionsPage').then(m => ({ default: m.PermissionsPage })));
+const WelcomePage = lazy(() => import('./routes/onboarding/WelcomePage').then(m => ({ default: m.WelcomePage })));
+const OnboardingSetupPage = lazy(() => import('./routes/onboarding/OnboardingSetupPage').then(m => ({ default: m.OnboardingSetupPage })));
+const OnboardingHubPage = lazy(() => import('./routes/onboarding/OnboardingHubPage').then(m => ({ default: m.OnboardingHubPage })));
+const SubscriptionPlansPage = lazy(() => import('./routes/billing/SubscriptionPlansPage').then(m => ({ default: m.SubscriptionPlansPage })));
+const BillingSubscriptionPage = lazy(() => import('./routes/billing/BillingSubscriptionPage').then(m => ({ default: m.BillingSubscriptionPage })));
+const BillingSuccessPage = lazy(() => import('./routes/billing/BillingSuccessPage').then(m => ({ default: m.BillingSuccessPage })));
+const BillingCancelPage = lazy(() => import('./routes/billing/BillingCancelPage').then(m => ({ default: m.BillingCancelPage })));
+
+function HomeRedirect() {
+  const { availableProjects, isLoading } = useProject();
+  const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
+  if (isLoading) return <LoadingSpinner />;
+  if (isSuperAdmin) return <Navigate to="/onboarding/welcome" replace />;
+  return <Navigate to={availableProjects.length === 0 ? '/onboarding/welcome' : '/dashboard'} replace />;
+}
 
 export function AppRoutes() {
   return (
@@ -60,8 +78,17 @@ export function AppRoutes() {
         <Route path="/access-denied" element={<AccessDeniedPage />} />
 
         <Route element={<ProtectedRoute><ErrorBoundary><Shell /></ErrorBoundary></ProtectedRoute>}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<HomeRedirect />} />
           <Route path="/dashboard" element={<ValidationFilterProvider><DashboardPage /></ValidationFilterProvider>} />
+
+          <Route path="/onboarding/welcome" element={<WelcomePage />} />
+          <Route path="/onboarding/setup" element={<OnboardingSetupPage />} />
+          <Route path="/onboarding/hub" element={<OnboardingHubPage />} />
+
+          <Route path="/subscription/plans" element={<SubscriptionPlansPage />} />
+          <Route path="/billing/subscription" element={<BillingSubscriptionPage />} />
+          <Route path="/billing/success" element={<BillingSuccessPage />} />
+          <Route path="/billing/cancel" element={<BillingCancelPage />} />
 
           <Route path="/migration" element={<MigrationPage />} />
           <Route path="/migration/overview" element={<MigrationOverviewPage />} />

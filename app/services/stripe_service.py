@@ -133,9 +133,12 @@ class StripeService:
                 row = cur.fetchone()
                 if row:
                     cur.execute(
-                        "UPDATE platform.subscriptions SET status = 'active', updated_at = NOW() WHERE tenant_id = %s AND status = 'active'",
+                        """UPDATE platform.subscriptions
+                           SET status = 'active', updated_at = NOW()
+                           WHERE tenant_id = %s AND status IN ('suspended', 'past_due')""",
                         (row[0],)
                     )
+                    logger.info(f"Subscription reactivated for tenant {row[0]}")
             self.conn.commit()
             logger.info(f"Invoice paid for customer {customer_id}")
 
@@ -160,11 +163,20 @@ class StripeService:
         stripe_sub_id = subscription.get("id")
         status = subscription.get("status")
         if stripe_sub_id:
-            status_map = {"active": "active", "past_due": "suspended", "canceled": "cancelled", "unpaid": "suspended"}
+            status_map = {
+                "active": "active",
+                "past_due": "past_due",
+                "canceled": "cancelled",
+                "unpaid": "suspended",
+                "trialing": "trialing",
+            }
             db_status = status_map.get(status, "active")
             with self.conn.cursor() as cur:
                 cur.execute(
-                    "UPDATE platform.subscriptions SET status = %s, updated_at = NOW() WHERE stripe_subscription_id = %s",
+                    """UPDATE platform.subscriptions
+                       SET status = %s, updated_at = NOW()
+                       WHERE stripe_subscription_id = %s
+                         AND status NOT IN ('cancelled', 'expired')""",
                     (db_status, stripe_sub_id)
                 )
             self.conn.commit()
@@ -193,12 +205,14 @@ class StripeService:
 
         with self.conn.cursor() as cur:
             cur.execute(
-                "UPDATE platform.subscriptions SET status = 'cancelled', updated_at = NOW() WHERE tenant_id = %s AND status = 'active'",
+                """UPDATE platform.subscriptions
+                   SET status = 'pending_cancellation', updated_at = NOW()
+                   WHERE tenant_id = %s AND status IN ('active', 'trialing')""",
                 (tenant_id,)
             )
         self.conn.commit()
 
-        return {"message": "Subscription cancelled. Active until period end."}
+        return {"message": "Subscription will cancel at period end. Active until then."}
 
     def upgrade_subscription(self, tenant_id, new_tier, billing_cycle="annual"):
         self._check_stripe()
@@ -224,9 +238,26 @@ class StripeService:
 
         with self.conn.cursor() as cur:
             cur.execute(
-                "UPDATE platform.subscriptions SET updated_at = NOW() WHERE stripe_subscription_id = %s",
-                (stripe_sub_id,)
+                """SELECT plan_id, max_users, max_projects, max_connections
+                   FROM platform.plans WHERE tier = %s AND status = 'active'""",
+                (new_tier,)
             )
+            plan_row = cur.fetchone()
+            if plan_row:
+                plan_id, max_users, max_projects, max_connections = plan_row
+                cur.execute(
+                    """UPDATE platform.subscriptions
+                       SET plan_id = %s, updated_at = NOW()
+                       WHERE stripe_subscription_id = %s""",
+                    (plan_id, stripe_sub_id)
+                )
+                cur.execute(
+                    """UPDATE core.tenants
+                       SET plan_id = %s, max_users = %s, max_projects = %s, max_connections = %s, updated_at = NOW()
+                       WHERE tenant_id = %s""",
+                    (plan_id, max_users, max_projects, max_connections, tenant_id)
+                )
+                logger.info(f"Tenant {tenant_id} limits synced: {max_users}/{max_projects}/{max_connections}")
         self.conn.commit()
 
         return {"message": f"Upgraded to {new_tier}"}
