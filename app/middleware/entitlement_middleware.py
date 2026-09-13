@@ -6,18 +6,24 @@ from app.db.connection import get_db_connection
 DEFAULT_ENTITLEMENTS = {
     "professional": {
         "discovery", "mapping", "validation", "basic_reporting",
-        "single_project", "email_support"
+        "single_project", "email_support", "post_migration_assurance",
+        "core_governance", "multi_project", "api_access", "priority_support"
     },
     "enterprise": {
         "discovery", "mapping", "validation", "advanced_reporting",
         "multi_project", "api_access", "audit_trail", "governance",
-        "priority_support"
+        "priority_support", "pre_migration_assurance",
+        "post_migration_assurance", "pre_post_migration_assurance",
+        "advanced_governance", "reconciliation"
     },
     "enterprise_plus": {
         "discovery", "mapping", "validation", "advanced_reporting",
-        "multi_project", "api_access", "audit_trail", "governance",
-        "ai_insights", "custom_integrations", "dedicated_support",
-        "multi_region", "sla"
+        "enterprise_reporting", "multi_project", "api_access",
+        "audit_trail", "governance", "advanced_governance",
+        "enterprise_governance", "ai_insights", "custom_integrations",
+        "dedicated_support", "multi_region", "sla",
+        "pre_migration_assurance", "post_migration_assurance",
+        "pre_post_migration_assurance", "reconciliation"
     },
 }
 

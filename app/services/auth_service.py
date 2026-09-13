@@ -110,3 +110,36 @@ class AuthService:
             "access_token": token,
             "token_type": "bearer"
         }
+
+    def change_password(self, user_id: str, current_password: str, new_password: str):
+        validate_password_policy(new_password)
+
+        with get_db_connection() as db:
+            with db.conn.cursor() as cur:
+                cur.execute(
+                    "SELECT password_hash, token_version FROM platform.users WHERE id = %s AND deleted_at IS NULL",
+                    (user_id,)
+                )
+                user = cur.fetchone()
+
+                if not user:
+                    raise Exception("User not found")
+
+                password_hash, token_version = user
+
+                if not bcrypt.checkpw(current_password.encode("utf-8"), password_hash.encode("utf-8")):
+                    raise Exception("Current password is incorrect")
+
+                new_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode()
+                new_version = (token_version or 0) + 1
+
+                with db.conn.cursor() as cur:
+                    cur.execute(
+                        """UPDATE platform.users
+                           SET password_hash = %s, token_version = %s, password_changed_at = NOW()
+                           WHERE id = %s""",
+                        (new_hash, new_version, user_id)
+                    )
+                db.conn.commit()
+
+        return {"message": "Password changed successfully"}

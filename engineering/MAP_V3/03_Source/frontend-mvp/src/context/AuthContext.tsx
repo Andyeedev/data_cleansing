@@ -123,11 +123,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
   }, []);
 
+  const refetchUser = useCallback(async () => {
+    const meResponse = await fetch('/api/v1/auth/me', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!meResponse.ok) {
+      throw new Error('Failed to load user profile');
+    }
+
+    const meResult = await meResponse.json();
+    const meData = meResult.data || meResult;
+
+    const user: User = {
+      id: meData.user_id || 'unknown',
+      email: meData.email || '',
+      name: (meData.email || '').split('@')[0],
+      roles: meData.roles || ['viewer'],
+      permissions: ['read'],
+      tenantId: meData.tenant_id || undefined,
+    };
+
+    localStorage.setItem('map_nexus_user', JSON.stringify(user));
+    setState((prev) => ({ ...prev, user, tenantId: meData.tenant_id }));
+  }, []);
+
   const userRoles = state.user?.roles ?? [];
   const tenantId = state.user?.tenantId;
 
   return (
-    <AuthContext.Provider value={{ ...state, userRoles, tenantId, login, logout, switchRole }}>
+    <AuthContext.Provider value={{ ...state, userRoles, tenantId, login, logout, switchRole, refetchUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -28,4 +28,5 @@ export interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   switchRole: (role: string) => void;
+  refetchUser: () => Promise<void>;
 }
