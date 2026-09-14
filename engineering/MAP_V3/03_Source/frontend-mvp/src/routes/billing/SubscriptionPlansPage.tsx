@@ -12,6 +12,7 @@ interface Plan {
   tier: string;
   annual_price: string | number;
   monthly_price: string | number | null;
+  list_price: string | number | null;
   max_users: number;
   max_projects: number;
   max_connections: number;
@@ -21,13 +22,39 @@ interface Plan {
 
 const TIER_ORDER = ['professional', 'enterprise', 'enterprise_plus'];
 
-function PriceTag({ price, cycle }: { price: string | number; cycle: string }) {
-  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+function PriceTag({ plan, cycle }: { plan: Plan; cycle: string }) {
+  const annual = typeof plan.annual_price === 'string' ? parseFloat(plan.annual_price) : plan.annual_price;
+  const list = plan.list_price ? (typeof plan.list_price === 'string' ? parseFloat(plan.list_price) : plan.list_price) : Math.round(annual / 0.8);
+  const monthly = plan.monthly_price
+    ? (typeof plan.monthly_price === 'string' ? parseFloat(plan.monthly_price) : plan.monthly_price)
+    : Math.round(list / 12);
+  const annualDiscountedMonthly = Math.round(annual / 12);
+
   if (cycle === 'monthly') {
-    const monthly = Math.round(numPrice / 12);
-    return <span className="text-3xl font-bold text-gray-900">£{monthly.toLocaleString()}<span className="text-sm font-normal text-gray-500">/mo</span></span>;
+    return (
+      <div className="text-left">
+        <span className="text-3xl font-bold text-gray-900">£{monthly.toLocaleString()}<span className="text-sm font-normal text-gray-500">/mo</span></span>
+        <p className="text-xs text-gray-500 mt-1">
+          Undiscounted monthly price (no annual discount)
+        </p>
+      </div>
+    );
   }
-  return <span className="text-3xl font-bold text-gray-900">£{numPrice.toLocaleString()}<span className="text-sm font-normal text-gray-500">/yr</span></span>;
+  const savings = Math.round(list - annual);
+  const savingsPct = Math.round((savings / list) * 100);
+  return (
+    <div className="text-left">
+      <div className="flex items-baseline gap-2">
+        <span className="text-3xl font-bold text-gray-900">£{annual.toLocaleString()}</span>
+        <span className="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded">
+          Save 20%
+        </span>
+      </div>
+      <p className="text-xs text-gray-500 mt-1">
+        List price: £{list.toLocaleString()}/yr | Monthly: £{Math.round(list / 12).toLocaleString()}/mo
+      </p>
+    </div>
+  );
 }
 
 function EntitlementCheck({ included }: { included: boolean }) {
@@ -141,7 +168,6 @@ export function SubscriptionPlansPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         {plans.map((plan) => {
           const isCurrent = plan.tier === currentTier;
-          const price = cycle === 'annual' ? plan.annual_price : (plan.monthly_price || Math.round(plan.annual_price / 12));
           const isPopular = plan.tier === 'enterprise';
 
           return (
@@ -171,7 +197,7 @@ export function SubscriptionPlansPage() {
               <div className="text-center mb-6 pt-2">
                 <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.name}</h3>
                 <p className="text-xs text-gray-500 mb-4 h-8">{plan.description}</p>
-                <PriceTag price={price} cycle={cycle} />
+                <PriceTag plan={plan} cycle={cycle} />
               </div>
 
               <div className="space-y-3 mb-6">
