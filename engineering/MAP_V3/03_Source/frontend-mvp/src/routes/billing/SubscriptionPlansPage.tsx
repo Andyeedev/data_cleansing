@@ -114,12 +114,23 @@ export function SubscriptionPlansPage() {
     { label: 'Users', getValue: (p: Plan) => p.max_users },
     { label: 'Systems', getValue: (p: Plan) => p.max_connections },
     { label: 'Discovery', getValue: (p: Plan) => !!p.entitlements?.discovery },
+    { label: 'Mapping', getValue: (p: Plan) => !!p.entitlements?.mapping },
     { label: 'Validation', getValue: (p: Plan) => !!p.entitlements?.validation },
-    { label: 'Advanced Reporting', getValue: (p: Plan) => !!p.entitlements?.advanced_reporting || !!p.entitlements?.reporting },
-    { label: 'Governance', getValue: (p: Plan) => !!p.entitlements?.governance },
+    { label: 'Reconciliation', getValue: (p: Plan) => !!p.entitlements?.reconciliation },
+    { label: 'Post-Migration Assurance', getValue: (p: Plan) => !!p.entitlements?.post_migration_assurance },
+    { label: 'Pre-Migration Assurance', getValue: (p: Plan) => !!p.entitlements?.pre_migration_assurance },
+    { label: 'Pre + Post Assurance', getValue: (p: Plan) => !!p.entitlements?.pre_post_migration_assurance },
+    { label: 'Standard Reporting', getValue: (p: Plan) => !!p.entitlements?.basic_reporting },
+    { label: 'Advanced Reporting', getValue: (p: Plan) => !!p.entitlements?.advanced_reporting },
+    { label: 'Enterprise Reporting', getValue: (p: Plan) => !!p.entitlements?.enterprise_reporting },
+    { label: 'Core Governance', getValue: (p: Plan) => !!p.entitlements?.core_governance },
+    { label: 'Advanced Governance', getValue: (p: Plan) => !!p.entitlements?.advanced_governance },
+    { label: 'Enterprise Governance', getValue: (p: Plan) => !!p.entitlements?.enterprise_governance },
     { label: 'Multi-Project', getValue: (p: Plan) => !!p.entitlements?.multi_project },
     { label: 'API Access', getValue: (p: Plan) => !!p.entitlements?.api_access },
-    { label: 'Priority Support', getValue: (p: Plan) => !!p.entitlements?.priority_support || !!p.entitlements?.support },
+    { label: 'Custom Integrations', getValue: (p: Plan) => !!p.entitlements?.custom_integrations },
+    { label: 'Priority Support', getValue: (p: Plan) => !!p.entitlements?.priority_support },
+    { label: 'Dedicated/Enterprise Support', getValue: (p: Plan) => !!p.entitlements?.dedicated_support },
   ];
 
   if (loading) {
@@ -169,6 +180,7 @@ export function SubscriptionPlansPage() {
         {plans.map((plan) => {
           const isCurrent = plan.tier === currentTier;
           const isPopular = plan.tier === 'enterprise';
+          const isEnterprisePlus = plan.tier === 'enterprise_plus';
 
           return (
             <div
@@ -197,6 +209,16 @@ export function SubscriptionPlansPage() {
               <div className="text-center mb-6 pt-2">
                 <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.name}</h3>
                 <p className="text-xs text-gray-500 mb-4 h-8">{plan.description}</p>
+                {isEnterprisePlus && (
+                  <p className="text-xs text-gray-500 mb-2">
+                    <span className="font-medium">Starting price:</span> £200,000/year
+                  </p>
+                )}
+                {isEnterprisePlus && (
+                  <p className="text-xs text-blue-600 mb-2">
+                    Custom integrations subject to agreed technical scope
+                  </p>
+                )}
                 <PriceTag plan={plan} cycle={cycle} />
               </div>
 

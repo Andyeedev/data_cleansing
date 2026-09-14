@@ -133,7 +133,7 @@ class TenantRepository:
 
     def list_plans(self, status=None):
         query = """
-            SELECT plan_id, name, tier, monthly_price, annual_price,
+            SELECT plan_id, name, tier, monthly_price, annual_price, list_price,
                    entitlements, max_users, max_projects, max_connections,
                    status, description
             FROM platform.plans
