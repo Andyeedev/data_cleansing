@@ -28,8 +28,13 @@ export function LoginPage() {
     try {
       await login({ email, password, rememberMe });
       navigate(from, { replace: true });
-    } catch {
-      setError('Invalid email or password');
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || err?.message || 'Invalid email or password';
+      if (msg.includes('Email not verified') || msg.includes('email_verified')) {
+        setError('Email not verified. Please verify your email address first.');
+      } else {
+        setError(msg);
+      }
     }
   };
 

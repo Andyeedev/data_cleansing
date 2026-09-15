@@ -34,6 +34,14 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
 @router.post("/login")
 def login(request: Request, payload: LoginRequest, response: Response):
     try:
@@ -192,3 +200,27 @@ def reset_password(payload: ResetPasswordRequest, request: Request):
         if "policy" in msg.lower():
             raise HTTPException(status_code=422, detail=msg)
         raise HTTPException(status_code=400, detail="Password reset failed")
+
+
+@router.post("/verify-email")
+def verify_email(payload: VerifyEmailRequest, request: Request):
+    client_ip = get_client_ip(request)
+    rate_limit_public_endpoint(client_ip, max_requests=5, window_seconds=3600)
+
+    try:
+        result = AuthService().verify_email(payload.token)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        msg = str(e)
+        if "Invalid or expired" in msg or "already verified" in msg.lower():
+            raise HTTPException(status_code=400, detail="Invalid or expired verification token")
+        raise HTTPException(status_code=400, detail="Email verification failed")
+
+
+@router.post("/resend-verification")
+def resend_verification(payload: ResendVerificationRequest, request: Request):
+    client_ip = get_client_ip(request)
+    rate_limit_public_endpoint(client_ip, max_requests=5, window_seconds=3600)
+
+    result = AuthService().resend_verification(payload.email)
+    return {"success": True, "message": result["message"]}

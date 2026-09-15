@@ -65,6 +65,8 @@ const AcceptInvitePage = lazy(() => import('./routes/invites/AcceptInvitePage').
 const InvitationsPage = lazy(() => import('./routes/administration/InvitationsPage').then(m => ({ default: m.InvitationsPage })));
 const ForgotPasswordPage = lazy(() => import('./routes/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./routes/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
+const VerifyEmailPage = lazy(() => import('./routes/auth/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
+const ResendVerificationPage = lazy(() => import('./routes/auth/ResendVerificationPage').then(m => ({ default: m.ResendVerificationPage })));
 
 function HomeRedirect() {
   const { availableProjects, isLoading } = useProject();
@@ -86,6 +88,8 @@ export function AppRoutes() {
         <Route path="/access-denied" element={<AccessDeniedPage />} />
         <Route path="/forgot-password" element={<AuthLayout><PublicRoute><ForgotPasswordPage /></PublicRoute></AuthLayout>} />
         <Route path="/reset-password" element={<AuthLayout><PublicRoute><ResetPasswordPage /></PublicRoute></AuthLayout>} />
+        <Route path="/verify-email" element={<AuthLayout><VerifyEmailPage /></AuthLayout>} />
+        <Route path="/resend-verification" element={<AuthLayout><ResendVerificationPage /></AuthLayout>} />
 
         <Route path="/invites/accept" element={<AuthLayout><AcceptInvitePage /></AuthLayout>} />
 

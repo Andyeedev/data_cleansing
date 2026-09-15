@@ -205,4 +205,49 @@ def accept_invitation(payload: InvitationAcceptRequest, request: Request):
             raise HTTPException(status_code=400, detail=error)
 
         db.conn.commit()
-        return result
+
+    # Send verification email (outside transaction)
+    email_sent = True
+    warning = None
+    try:
+        # Get the user email to send verification
+        with get_db_connection() as db:
+            with db.conn.cursor() as cur:
+                cur.execute("""
+                    SELECT u.email, ev.token 
+                    FROM platform.users u
+                    JOIN platform.email_verifications ev ON ev.user_id = u.id
+                    WHERE u.invitation_id = (
+                        SELECT i.invitation_id FROM platform.invitations i WHERE i.token = %s
+                    )
+                    AND ev.verified = FALSE
+                """, (payload.token,))
+                row = cur.fetchone()
+                if row:
+                    email, token = row
+                    verify_url = f"https://mapnexus.co.uk/verify-email?token={token}"
+                    from app.services.email_service import EmailServiceFactory, EmailMessage
+                    from app.services.email_templates import render_verification
+                    email_service = EmailServiceFactory.get_instance()
+                    html_body = render_verification(verify_url=verify_url, first_name=payload.first_name)
+                    email_result = email_service.send(EmailMessage(
+                        to=email,
+                        subject="Verify your MAP Nexus email address",
+                        html_body=html_body
+                    ))
+                    if not email_result.success:
+                        email_sent = False
+    except Exception as e:
+        email_sent = False
+        import logging
+        logging.getLogger(__name__).error(f"Verification email failed: {e}")
+
+    warning = None
+    if not email_sent:
+        warning = "Account created but verification email delivery failed. Use resend verification."
+
+    return {
+        "success": True,
+        "message": "Account created. Please verify your email address.",
+        "data": {"user_id": result["data"]["user_id"], "email_sent": email_sent, "warning": warning}
+    }

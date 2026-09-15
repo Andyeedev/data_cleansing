@@ -2,6 +2,7 @@ import uuid
 from typing import Optional, Dict, Any
 from app.services.user_service import UserService
 from app.db.repositories.invitation_repository import InvitationRepository
+from app.db.repositories.email_verification_repository import EmailVerificationRepository
 from app.services.auth_service import validate_password_policy
 
 
@@ -35,7 +36,7 @@ class InvitationService:
 
     def accept_invitation(self, token: str, password: str, first_name: str, last_name: str) -> Dict[str, Any]:
         """
-        Atomic: validate invitation + create user + mark invitation accepted + link invitation_id
+        Atomic: validate invitation + create user + mark invitation accepted + link invitation_id + create verification
         All operations share self.conn = same transaction.
         Caller (route) manages commit/rollback via `with get_db_connection() as db:`
         """
@@ -75,9 +76,13 @@ class InvitationService:
         if not updated:
             return {"success": False, "error": "Failed to link invitation to user"}
 
-        # 5. Mark invitation accepted
+        # 5. Create email verification record
+        verification_repo = EmailVerificationRepository(self.conn)
+        verification_repo.create_verification_token(user_id)
+
+        # 6. Mark invitation accepted
         accepted = self.repo.accept_invitation(invitation_id)
         if not accepted:
             return {"success": False, "error": "Failed to mark invitation accepted"}
 
-        return {"success": True, "data": {"user_id": user_id}}
+        return {"success": True, "data": {"user_id": user_id, "verification_required": True}}

@@ -367,9 +367,15 @@ class TestInvitationIntegration:
         service.repo.update_user_invitation_id = Mock(return_value=True)
         service.repo.accept_invitation = Mock(return_value=True)
 
-        accept_result = service.accept_invitation('valid-token', 'SecureP@ss1', 'John', 'Doe')
-        assert accept_result["success"] is True
-        assert accept_result["data"]["user_id"] == "user-uuid"
+        # Mock EmailVerificationRepository
+        with patch('app.services.invitation_service.EmailVerificationRepository') as mock_ver_repo:
+            mock_ver_instance = MagicMock()
+            mock_ver_instance.create_verification_token.return_value = 'verification-token-xyz'
+            mock_ver_repo.return_value = mock_ver_instance
+
+            accept_result = service.accept_invitation('valid-token', 'SecureP@ss1', 'John', 'Doe')
+            assert accept_result["success"] is True
+            assert accept_result["data"]["user_id"] == "user-uuid"
 
 
 # Pytest fixtures

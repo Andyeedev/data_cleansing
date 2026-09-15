@@ -76,7 +76,7 @@ export function AcceptInvitePage() {
 
       setSuccess(true);
       setTimeout(() => {
-        navigate('/login', { state: { message: 'Account created successfully. Please verify your email address.' } });
+        navigate('/verify-email', { state: { message: 'Account created successfully. Please verify your email address.' } });
       }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'Failed to accept invitation. The link may be invalid or expired.');
