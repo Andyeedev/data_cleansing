@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 import os
 from app.api.core.auth.dependencies import get_current_user, get_current_user_with_tenant
@@ -7,6 +7,7 @@ from app.api.core.auth.rbac import require_admin
 from app.api.models.responses import APIResponse
 from app.services.auth_service import AuthService
 from app.db.connection import get_db_connection
+from app.api.routes.rate_limit_phase1 import rate_limit_public_endpoint, get_client_ip
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
@@ -22,6 +23,15 @@ class LoginRequest(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
+    new_password: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
     new_password: str
 
 @router.post("/login")
@@ -136,3 +146,49 @@ def change_password(current_user: dict = Depends(get_current_user_with_tenant), 
     user_id = current_user.get("sub")
     result = AuthService().change_password(user_id=user_id, current_password=payload.current_password, new_password=payload.new_password)
     return APIResponse(success=True, data=result)
+
+
+@router.post("/forgot-password")
+def forgot_password(payload: ForgotPasswordRequest, request: Request):
+    client_ip = get_client_ip(request)
+    rate_limit_public_endpoint(client_ip, max_requests=5, window_seconds=3600)
+
+    token = AuthService().create_reset_token(payload.email)
+
+    # Send reset email if token was created (user eligible)
+    if token:
+        try:
+            reset_url = f"https://mapnexus.co.uk/reset-password?token={token}"
+            from app.services.email_service import EmailServiceFactory, EmailMessage
+            from app.services.email_templates import render_password_reset
+            email_service = EmailServiceFactory.get_instance()
+            html_body = render_password_reset(reset_url=reset_url, first_name=payload.email.split("@")[0])
+            email_service.send(EmailMessage(
+                to=payload.email,
+                subject="Reset your MAP Nexus password",
+                html_body=html_body
+            ))
+        except Exception as e:
+            # Log failure but don't expose to user (enumeration-safe)
+            import logging
+            logging.getLogger(__name__).error(f"Reset email failed for {payload.email}: {e}")
+
+    # Always return same response (enumeration-safe)
+    return {"success": True, "message": "If the email exists, a password reset link has been sent."}
+
+
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordRequest, request: Request):
+    client_ip = get_client_ip(request)
+    rate_limit_public_endpoint(client_ip, max_requests=5, window_seconds=3600)
+
+    try:
+        result = AuthService().reset_password(payload.token, payload.new_password)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        msg = str(e)
+        if "Invalid or expired" in msg:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        if "policy" in msg.lower():
+            raise HTTPException(status_code=422, detail=msg)
+        raise HTTPException(status_code=400, detail="Password reset failed")

@@ -1,10 +1,13 @@
 import os
 import re
+import uuid
 import bcrypt
+from typing import Optional
 from jose import jwt
 from datetime import datetime, timedelta
 from app.api.core.auth.jwt_config import SECRET_KEY, ALGORITHM
 from app.db.connection import get_db_connection
+from app.db.repositories.password_reset_repository import PasswordResetRepository
 
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
@@ -130,16 +133,90 @@ class AuthService:
                 if not bcrypt.checkpw(current_password.encode("utf-8"), password_hash.encode("utf-8")):
                     raise Exception("Current password is incorrect")
 
-                new_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode()
-                new_version = (token_version or 0) + 1
-
-                with db.conn.cursor() as cur:
-                    cur.execute(
-                        """UPDATE platform.users
-                           SET password_hash = %s, token_version = %s, password_changed_at = NOW()
-                           WHERE id = %s""",
-                        (new_hash, new_version, user_id)
-                    )
+                self._update_password(db.conn, user_id, new_password)
                 db.conn.commit()
 
         return {"message": "Password changed successfully"}
+
+    def _update_password(self, conn, user_id: str, new_password: str):
+        """Internal password update — shared by change_password() and reset_password().
+        Caller manages transaction (connection context).
+        """
+        validate_password_policy(new_password)
+        new_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode()
+        new_version = (self._get_token_version(conn, user_id) or 0) + 1
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE platform.users
+                SET password_hash = %s, token_version = %s, password_changed_at = NOW()
+                WHERE id = %s
+            """, (new_hash, new_version, user_id))
+
+    def _get_token_version(self, conn, user_id: str) -> int:
+        with conn.cursor() as cur:
+            cur.execute("SELECT token_version FROM platform.users WHERE id = %s AND deleted_at IS NULL", (user_id,))
+            row = cur.fetchone()
+            return row[0] if row else 0
+
+    def create_reset_token(self, email: str) -> Optional[str]:
+        """Create a password reset token for the given email.
+        Returns token string if user is eligible, None otherwise.
+        """
+        with get_db_connection() as db:
+            with db.conn.cursor() as cur:
+                # Check if user exists and is eligible for reset
+                cur.execute("""
+                    SELECT u.id, u.status, u.tenant_id
+                    FROM platform.users u
+                    WHERE u.email = %s AND u.deleted_at IS NULL
+                """, (email,))
+                user = cur.fetchone()
+                if not user:
+                    return None  # Enumeration-safe: no token for non-existent
+
+                user_id, status, tenant_id = user
+
+                # Check user status
+                if status != "active":
+                    return None  # Enumeration-safe: no token for inactive
+
+                # Check tenant status
+                if tenant_id:
+                    cur.execute("SELECT status FROM core.tenants WHERE tenant_id = %s", (tenant_id,))
+                    tenant_row = cur.fetchone()
+                    if not tenant_row or tenant_row[0] != "ACTIVE":
+                        return None  # Enumeration-safe: no token for suspended tenant
+
+                # Create reset token (invalidates previous unused tokens)
+                repo = PasswordResetRepository(db.conn)
+                token = repo.create_reset_token(user_id)
+                db.conn.commit()
+                return token
+
+    def reset_password(self, token: str, new_password: str):
+        """Reset password using a valid reset token.
+        Atomic: validates token, updates password, marks token used, increments token_version.
+        """
+        validate_password_policy(new_password)
+
+        with get_db_connection() as db:
+            repo = PasswordResetRepository(db.conn)
+
+            # Get and lock reset record
+            reset = repo.get_pending_reset_for_update(token)
+            if not reset:
+                raise Exception("Invalid or expired reset token")
+
+            reset_id = reset["reset_id"]
+            user_id = reset["user_id"]
+
+            # Update password (includes token_version increment + password_changed_at)
+            self._update_password(db.conn, user_id, new_password)
+
+            # Mark token as used
+            repo.mark_reset_used(reset_id)
+
+            db.conn.commit()
+
+        return {"success": True, "message": "Password reset successfully. Please log in."}
