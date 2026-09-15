@@ -7,6 +7,8 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthLayout } from './components/AuthLayout';
 import { LoginPage } from './routes/LoginPage';
 import { SessionExpiredPage } from './routes/SessionExpiredPage';
+import { SuspendedTenantPage } from './routes/SuspendedTenantPage';
+import { BlockedTenantPage } from './routes/BlockedTenantPage';
 import { LoadingSpinner } from './components/LoadingSpinner/LoadingSpinner';
 import { ValidationFilterProvider } from './context/ValidationFilterContext';
 import { useProject } from './context/ProjectContext';
@@ -59,6 +61,8 @@ const SubscriptionPlansPage = lazy(() => import('./routes/billing/SubscriptionPl
 const BillingSubscriptionPage = lazy(() => import('./routes/billing/BillingSubscriptionPage').then(m => ({ default: m.BillingSubscriptionPage })));
 const BillingSuccessPage = lazy(() => import('./routes/billing/BillingSuccessPage').then(m => ({ default: m.BillingSuccessPage })));
 const BillingCancelPage = lazy(() => import('./routes/billing/BillingCancelPage').then(m => ({ default: m.BillingCancelPage })));
+const AcceptInvitePage = lazy(() => import('./routes/invites/AcceptInvitePage').then(m => ({ default: m.AcceptInvitePage })));
+const InvitationsPage = lazy(() => import('./routes/administration/InvitationsPage').then(m => ({ default: m.InvitationsPage })));
 
 function HomeRedirect() {
   const { availableProjects, isLoading } = useProject();
@@ -75,9 +79,13 @@ export function AppRoutes() {
       <Routes>
         <Route path="/login" element={<AuthLayout><PublicRoute><LoginPage /></PublicRoute></AuthLayout>} />
         <Route path="/session-expired" element={<AuthLayout><SessionExpiredPage /></AuthLayout>} />
+        <Route path="/suspended" element={<AuthLayout><SuspendedTenantPage /></AuthLayout>} />
+        <Route path="/blocked" element={<AuthLayout><BlockedTenantPage /></AuthLayout>} />
         <Route path="/access-denied" element={<AccessDeniedPage />} />
 
-        <Route element={<ProtectedRoute><ErrorBoundary><Shell /></ErrorBoundary></ProtectedRoute>}>
+        <Route path="/invites/accept" element={<AuthLayout><AcceptInvitePage /></AuthLayout>} />
+
+          <Route element={<ProtectedRoute><ErrorBoundary><Shell /></ErrorBoundary></ProtectedRoute>}>
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/dashboard" element={<ValidationFilterProvider><DashboardPage /></ValidationFilterProvider>} />
 
@@ -170,6 +178,7 @@ export function AppRoutes() {
           <Route path="/administration/security" element={<AdministrationPage />} />
           <Route path="/administration/notifications" element={<AdministrationPage />} />
           <Route path="/administration/maintenance" element={<AdministrationPage />} />
+          <Route path="/administration/invitations" element={<ValidationFilterProvider><InvitationsPage /></ValidationFilterProvider>} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>

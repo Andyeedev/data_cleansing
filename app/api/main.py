@@ -48,6 +48,7 @@ from app.api.routes import (
     lead_routes,
     tenant_routes,
     billing_routes,
+    invitation_routes,
 )
 
 # Import pool manager to reset on startup
@@ -234,6 +235,7 @@ app.include_router(diagnostics_routes.router)
 app.include_router(lead_routes.router)
 app.include_router(tenant_routes.router)
 app.include_router(billing_routes.router)
+app.include_router(invitation_routes.router)
 
 
 # =========================

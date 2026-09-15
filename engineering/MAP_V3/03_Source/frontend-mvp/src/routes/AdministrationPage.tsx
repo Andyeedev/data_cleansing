@@ -15,6 +15,8 @@ import {
   TabBar,
   MetricCard,
 } from '../components/shared';
+import { InvitationModal } from '../components/invitation/InvitationModal';
+import { apiPost } from '../utils/apiClient';
 
 type Tab = 'overview' | 'users' | 'roles' | 'settings' | 'feature-flags' | 'security' | 'maintenance';
 
@@ -270,6 +272,7 @@ function UsersTab({ usersData, loading, error, onRefetch, onNavigate }: {
   onNavigate: (path: string) => void;
 }) {
   const { remove, loading: deleting } = useDeleteUser();
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   const handleDelete = async (userId: string, userName: string) => {
     if (!confirm(`Delete user "${userName}"?`)) return;
@@ -277,10 +280,25 @@ function UsersTab({ usersData, loading, error, onRefetch, onNavigate }: {
     if (success) onRefetch();
   };
 
+  const handleCreateInvitation = async (email: string, message?: string) => {
+    await apiPost('/invitations', { email, message });
+    setInviteModalOpen(false);
+    onRefetch();
+  };
+
   if (loading) return <LoadingSkeleton variant="table" rows={8} />;
   if (error) return <ErrorState message={error} onRetry={onRefetch} />;
   if (!usersData || usersData.users.length === 0) {
-    return <EmptyState title="No users found" description="Create your first user to get started" />;
+    return (
+      <>
+        <EmptyState title="No users found" description="Create your first user to get started" />
+        <InvitationModal
+          isOpen={inviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+          onSubmit={handleCreateInvitation}
+        />
+      </>
+    );
   }
 
   return (
@@ -289,6 +307,24 @@ function UsersTab({ usersData, loading, error, onRefetch, onNavigate }: {
       borderRadius: 'var(--radius)',
       overflow: 'hidden',
     }}>
+      <div style={{ padding: 'var(--space-md)', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ fontSize: 'var(--font-size-h3)', margin: 0 }}>Users ({totalUsers})</h3>
+        <button
+          onClick={() => setInviteModalOpen(true)}
+          style={{
+            padding: 'var(--space-xs) var(--space-md)',
+            background: 'var(--color-primary)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 'var(--radius)',
+            cursor: 'pointer',
+            fontSize: 'var(--font-size-sm)',
+            fontWeight: 500,
+          }}
+        >
+          Invite User
+        </button>
+      </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
         <thead>
           <tr style={{ background: 'var(--color-background)' }}>
@@ -364,6 +400,11 @@ function UsersTab({ usersData, loading, error, onRefetch, onNavigate }: {
         </tbody>
       </table>
     </div>
+    <InvitationModal
+      isOpen={inviteModalOpen}
+      onClose={() => setInviteModalOpen(false)}
+      onSubmit={handleCreateInvitation}
+    />
   );
 }
 
