@@ -63,6 +63,7 @@ const BillingSuccessPage = lazy(() => import('./routes/billing/BillingSuccessPag
 const BillingCancelPage = lazy(() => import('./routes/billing/BillingCancelPage').then(m => ({ default: m.BillingCancelPage })));
 const AcceptInvitePage = lazy(() => import('./routes/invites/AcceptInvitePage').then(m => ({ default: m.AcceptInvitePage })));
 const InvitationsPage = lazy(() => import('./routes/administration/InvitationsPage').then(m => ({ default: m.InvitationsPage })));
+const RegistrationsPage = lazy(() => import('./routes/administration/RegistrationsPage').then(m => ({ default: m.RegistrationsPage })));
 const ForgotPasswordPage = lazy(() => import('./routes/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./routes/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 const VerifyEmailPage = lazy(() => import('./routes/auth/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
@@ -187,6 +188,7 @@ export function AppRoutes() {
           <Route path="/administration/notifications" element={<AdministrationPage />} />
           <Route path="/administration/maintenance" element={<AdministrationPage />} />
           <Route path="/administration/invitations" element={<ValidationFilterProvider><InvitationsPage /></ValidationFilterProvider>} />
+          <Route path="/administration/registrations" element={<ValidationFilterProvider><RegistrationsPage /></ValidationFilterProvider>} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>

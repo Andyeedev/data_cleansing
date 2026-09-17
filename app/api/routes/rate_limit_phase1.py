@@ -47,6 +47,27 @@ def rate_limit_plans_endpoint(ip: str, max_requests: int = 30, window_seconds: i
     _rate_limits_plans[ip].append(now)
 
 
+def rate_limit_authenticated_admin(ip: str, max_requests: int = 60, window_seconds: int = 60):
+    """
+    Rate limiter for authenticated admin endpoints.
+    Allows max_requests per window_seconds per IP.
+    Default: 60 requests per minute per IP.
+    """
+    now = time.time()
+    window_start = now - window_seconds
+    _rate_limits_authenticated_admin[ip] = [t for t in _rate_limits_authenticated_admin[ip] if t > window_start]
+    if len(_rate_limits_authenticated_admin[ip]) >= max_requests:
+        retry_after = int(_rate_limits_authenticated_admin[ip][0] - window_start) + 1
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please try again later.",
+            headers={"Retry-After": str(retry_after)}
+        )
+    _rate_limits_authenticated_admin[ip].append(now)
+
+
+_rate_limits_authenticated_admin: dict[str, list[float]] = defaultdict(list)
+
 def get_client_ip(request: Request) -> str:
     """Extract client IP from request, handling proxies."""
     forwarded = request.headers.get("X-Forwarded-For")
