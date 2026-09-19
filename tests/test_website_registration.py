@@ -17,6 +17,31 @@ def _get_client(user_override):
     return TestClient(app)
 
 
+# Rate limiter test isolation: clear module-level state before each test
+# to prevent accumulated state from causing 429 errors in subsequent tests.
+# This fixture is TEST-ONLY and does not alter production rate-limiter behaviour.
+import pytest
+
+import app.api.routes.rate_limit_phase1 as rate_limit_mod
+
+
+@pytest.fixture(autouse=True, scope="function")
+def reset_rate_limiter():
+    """Clear module-level _rate_limits_public before each test function."""
+    rate_limit_mod._rate_limits_public.clear()
+    yield
+    rate_limit_mod._rate_limits_public.clear()
+
+
+def _mock_team_member():
+    return {"sub": "member@test.com", "roles": ["Tenant Admin"], "email": "member@test.com"}
+
+
+def _get_client(user_override):
+    app.dependency_overrides = {"get_current_user": user_override} if user_override else {}
+    return TestClient(app)
+
+
 # ── Public endpoint tests ──────────────────────────────────────────────
 
 
