@@ -26,6 +26,7 @@ const SECTIONS = [
   { key: 'executive', label: 'Executive Summary', title: 'Executive Summary' },
   { key: 'operational', label: 'Operational', title: 'Operational Pack' },
   { key: 'migration', label: 'Migration', title: 'Migration Summary' },
+  { key: 'migration_pack', label: 'Migration Pack', title: 'Migration Pack' },
   { key: 'validation', label: 'Validation', title: 'Validation Summary' },
   { key: 'validation_pack', label: 'Validation Pack', title: 'Validation Pack' },
   { key: 'governance', label: 'Governance', title: 'Governance Summary' },
@@ -34,13 +35,14 @@ const SECTIONS = [
   { key: 'risk', label: 'Risk', title: 'Risk Summary' },
   { key: 'quality', label: 'Quality', title: 'Data Quality Summary' },
   { key: 'readiness', label: 'Readiness', title: 'Readiness Report' },
-  { key: 'issues', label: 'Issues', title: 'Issue Register' },
+  { key: 'issues', label: 'Exceptions', title: 'Exception Register by Control' },
 ] as const;
 
 const fallbackRoleMap: Record<string, string[]> = {
   executive:       ['admin', 'manager', 'operator', 'viewer'],
   operational:     ['admin', 'manager'],
   migration:       ['admin', 'manager', 'operator', 'viewer'],
+  migration_pack:  ['admin', 'manager'],
   validation:      ['admin', 'manager', 'operator'],
   validation_pack: ['admin', 'manager', 'operator'],
   governance:      ['admin', 'manager'],
@@ -82,6 +84,7 @@ export function ReportSuitePage() {
   const [selectedTenant, setSelectedTenant] = useState<string>('');
   const [selectedBatchId, setSelectedBatchId] = useState<string>('');
   const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const sectionRoleMap = usePackPermissions();
 
   const { data: batches } = useBatchList(selectedTenant || undefined);
@@ -109,7 +112,9 @@ if (!section || !SECTIONS.some((s) => s.key === section)) {
               <div className="text-xs text-gray-500">Executive Pack &mdash; live generated report suite</div>
             </div>
           <div className="flex items-center gap-3">
-            <TenantFilter selectedTenant={selectedTenant} onChange={handleTenantChange} />
+            {isSuperAdmin && (
+              <TenantFilter selectedTenant={selectedTenant} onChange={handleTenantChange} />
+            )}
             <select
               value={selectedBatchId}
               onChange={(e) => handleBatchChange(e.target.value)}
@@ -192,6 +197,7 @@ if (!section || !SECTIONS.some((s) => s.key === section)) {
 {active.key === 'executive' && suite.executive && <ExecutiveSectionView s={suite.executive} />}
            {active.key === 'operational' && suite.operational && <OperationalSectionView s={suite.operational} />}
            {active.key === 'migration' && suite.migration && <MigrationSectionView s={suite.migration} />}
+           {active.key === 'migration_pack' && suite.migration_pack && <MigrationPackSectionView s={suite.migration_pack} />}
            {active.key === 'validation' && suite.validation && <ValidationSectionView s={suite.validation} />}
            {active.key === 'validation_pack' && suite.validation_pack && <ValidationPackSectionView s={suite.validation_pack} />}
            {active.key === 'governance' && suite.governance && <GovernanceSectionView s={suite.governance} />}

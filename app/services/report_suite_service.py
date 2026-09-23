@@ -20,6 +20,19 @@ def _row_to_dict(row, columns):
     return {columns[i]: row[i] for i in range(len(columns))}
 
 
+def _get_mitigation(cause):
+    mitigations = {
+        "NO_NUMERIC_COLUMN": "Tag decimal/amount columns with inferred_role='NUMERIC_METRIC' in core.dataset_columns",
+        "NO_NUMERIC_COLUMNS": "Tag decimal/amount columns with inferred_role='NUMERIC_METRIC' in core.dataset_columns",
+        "NO_PRIMARY_KEY": "Tag identifier columns with inferred_role='PRIMARY_KEY' in core.dataset_columns",
+        "NO_FOREIGN_KEY": "Tag relationship columns with inferred_role='FOREIGN_KEY' in core.dataset_columns",
+        "EXECUTION_ERROR": "Investigate error logs and remediate the underlying issue",
+        "VALIDATION_FAILURE": "Review source and target data, remediate discrepancies",
+        "SKIPPED": "Ensure required metadata (inferred_role tags) are populated before next run",
+    }
+    return mitigations.get(cause, "Investigate root cause and remediate data")
+
+
 class ReportSuiteService:
     def __init__(self, db):
         self.db = db
@@ -84,7 +97,14 @@ class ReportSuiteService:
 
     def _fetch_exception_register(self, batch_id):
         return self._execute(
-            "SELECT * FROM engine.migration_exception_register WHERE batch_id = %s ORDER BY created_timestamp DESC LIMIT 200",
+            "SELECT * FROM engine.migration_control_exceptions WHERE batch_id = %s ORDER BY created_at DESC LIMIT 200",
+            (batch_id,),
+        )
+
+    def _fetch_control_execution_details(self, batch_id):
+        return self._execute(
+            """SELECT control_id, rule_id, entity_name, execution_status, detail_json
+               FROM engine.migration_control_execution WHERE batch_id = %s""",
             (batch_id,),
         )
 
@@ -138,8 +158,8 @@ class ReportSuiteService:
         industry = "Financial Services"
         source_platform = "N/A"
         target_platform = "N/A"
-        source_records = 0
-        target_records = 0
+        source_columns = 0
+        target_columns = 0
         entities_mapped = 0
         duration_seconds = None
 
@@ -192,8 +212,8 @@ class ReportSuiteService:
         else:
             src_rec = self._execute_one("SELECT COALESCE(SUM(array_length(source_columns, 1)), 0) as cnt FROM core.dataset_mappings")
             tgt_rec = self._execute_one("SELECT COALESCE(SUM(array_length(target_columns, 1)), 0) as cnt FROM core.dataset_mappings")
-        source_records = _safe_int(src_rec["cnt"]) if src_rec else 0
-        target_records = _safe_int(tgt_rec["cnt"]) if tgt_rec else 0
+        source_columns = _safe_int(src_rec["cnt"]) if src_rec else 0
+        target_columns = _safe_int(tgt_rec["cnt"]) if tgt_rec else 0
 
         return {
             "controls_summary": {"total": total, "passed": passed, "failed": failed, "error": error, "blocked": blocked},
@@ -219,8 +239,8 @@ class ReportSuiteService:
                 "industry": industry,
                 "source_platform": source_platform,
                 "target_platform": target_platform,
-                "source_records": source_records,
-                "target_records": target_records,
+                "source_columns": source_columns,
+                "target_columns": target_columns,
                 "entities_mapped": entities_mapped,
                 "duration_seconds": duration_seconds,
             },
@@ -298,12 +318,20 @@ class ReportSuiteService:
         if not dq_observations:
             dq_observations.append("All entity mappings have been validated successfully with no outstanding issues")
 
+        source_sys = self._execute_one("SELECT system_name, database_type FROM core.system_registry WHERE system_role = 'SOURCE' LIMIT 1")
+        target_sys = self._execute_one("SELECT system_name, database_type FROM core.system_registry WHERE system_role = 'TARGET' LIMIT 1")
+        source_platform = (source_sys or {}).get("database_type") or (source_sys or {}).get("system_name") or "Legacy System"
+        target_platform = (target_sys or {}).get("database_type") or (target_sys or {}).get("system_name") or "MAPNEXUS Target"
+
+        total_source_cols = sum(e.get("source_columns", 0) for e in entities)
+        total_target_cols = sum(e.get("target_columns", 0) for e in entities)
+
         return {
             "platform_overview": {
-                "source_platform": "Legacy System",
-                "target_platform": "MAPNEXUS Target",
-                "source_records": total_source_records,
-                "target_records": total_target_records,
+                "source_platform": source_platform,
+                "target_platform": target_platform,
+                "source_columns": total_source_cols,
+                "target_columns": total_target_cols,
                 "entities_mapped": len(entities),
                 "projects": project_count,
             },
@@ -380,22 +408,24 @@ class ReportSuiteService:
             meta = ctrl_meta.get(cid, {"type": "Data Quality", "owner": "Unassigned", "desc": "Validation finding detected"})
             ftype = meta["type"]
             owner = meta["owner"]
-            description = meta["desc"]
+            cause = ex.get("cause") or meta["desc"]
             f = {
-                "id": str(ex.get("exception_id", ""))[:8],
+                "id": str(ex.get("id", ""))[:8],
                 "control_id": cid,
                 "rule_id": ex.get("rule_id"),
                 "entity": ex.get("entity_name"),
-                "description": description,
+                "description": cause,
                 "type": ftype,
                 "severity": sev,
                 "owner": owner,
                 "status": "OPEN",
-                "date": str(ex.get("created_timestamp") or ""),
+                "date": str(ex.get("created_at") or ""),
                 "source_value": str(ex.get("source_value") or ""),
                 "target_value": str(ex.get("target_value") or ""),
-                "delta_value": str(ex.get("variance_value") or ""),
-                "created_at": str(ex.get("created_timestamp") or ""),
+                "delta_value": str(ex.get("delta_value") or ""),
+                "created_at": str(ex.get("created_at") or ""),
+                "cause": ex.get("cause"),
+                "failure_scope": ex.get("failure_scope"),
             }
             findings.append(f)
             type_counts[f["type"]] = type_counts.get(f["type"], 0) + 1
@@ -435,31 +465,44 @@ class ReportSuiteService:
             decision, level, reason = "NO-GO", "Medium", f"Pass rate {pass_rate}% is below 80% threshold."
         else:
             decision, level, reason = "NO-GO", "High", f"{crit_count} critical control(s) blocked; pass rate {pass_rate}%."
+
+        exec_details = self._fetch_control_execution_details(batch_id)
+
         risks = []
         rid = 0
         for c in controls:
             st = (c.get("overall_status") or "").upper()
             cid = c.get("control_id", "")
             if st in ("FAIL", "ERROR", "BLOCKED"):
+                ctrl_execs = [e for e in exec_details if e.get("control_id") == cid and e.get("execution_status") in ("FAIL", "ERROR")]
+                cause = ctrl_execs[0].get("cause") if ctrl_execs else None
+                message = ctrl_execs[0].get("message") if ctrl_execs else None
+                entity = ctrl_execs[0].get("entity_name") if ctrl_execs else "unknown"
+                impact = f"{cause}: {message}" if cause and message else f"Control {cid} failed with status {st}"
                 rid += 1
                 risks.append({
-                    "id": f"R-{rid:03d}", "risk": f"Control {cid} failed validation",
+                    "id": f"R-{rid:03d}", "risk": f"Control {cid} failed on {entity}",
                     "severity": "CRITICAL" if st in ("ERROR", "BLOCKED") else "HIGH",
-                    "impact": "Data integrity compromised", "detail": f"Status: {st}",
-                    "mitigation": "Investigate root cause and remediate data",
+                    "impact": impact, "detail": f"Status: {st}",
+                    "mitigation": _get_mitigation(cause),
                     "owner": "Migration Lead", "status": "OPEN",
                 })
         if skipped > 0:
             skipped_ctrls = [c for c in controls if (c.get("overall_status") or "").upper() == "SKIPPED"]
             for c in skipped_ctrls:
-                rid += 1
                 cid = c.get("control_id", "")
+                ctrl_execs = [e for e in exec_details if e.get("control_id") == cid and e.get("execution_status") == "SKIPPED"]
+                cause = ctrl_execs[0].get("cause") if ctrl_execs else None
+                message = ctrl_execs[0].get("message") if ctrl_execs else None
+                entity = ctrl_execs[0].get("entity_name") if ctrl_execs else "unknown"
+                impact = f"{cause}: {message}" if cause and message else f"Control {cid} skipped — no applicable data"
+                rid += 1
                 risks.append({
-                    "id": f"R-{rid:03d}", "risk": f"Control {cid} not executed — validation scope gap",
+                    "id": f"R-{rid:03d}", "risk": f"Control {cid} not executed on {entity}",
                     "severity": "MEDIUM",
-                    "impact": "Unvalidated data may contain undetected quality issues",
-                    "detail": "Control skipped during execution",
-                    "mitigation": "Include control in next validation batch or document exclusion rationale",
+                    "impact": impact,
+                    "detail": f"Cause: {cause}" if cause else "Control skipped during execution",
+                    "mitigation": _get_mitigation(cause),
                     "owner": "Migration Lead", "status": "OPEN",
                 })
         if pass_rate < 80 and pass_rate > 0:
@@ -503,6 +546,22 @@ class ReportSuiteService:
         ]
         best = max(dims, key=lambda d: d["score"])
         worst = min(dims, key=lambda d: d["score"])
+
+        exceptions = self._fetch_exception_register(batch_id)
+        rule_violations = []
+        for ex in exceptions[:20]:
+            rule_violations.append({
+                "control_id": ex.get("control_id"),
+                "rule_id": ex.get("rule_id"),
+                "entity": ex.get("entity_name"),
+                "source_value": str(ex.get("source_value") or ""),
+                "target_value": str(ex.get("target_value") or ""),
+                "delta_value": str(ex.get("delta_value") or ""),
+                "cause": ex.get("cause"),
+                "failure_scope": ex.get("failure_scope"),
+                "severity": ex.get("severity_level"),
+            })
+
         return {
             "overall_score": overall_score,
             "dimensions": dims,
@@ -514,6 +573,7 @@ class ReportSuiteService:
                 "strengths": f"Completeness and validity checks show {overall_score}% pass rate.",
                 "remediation": f"Focus on improving {worst['name']} which scored {worst['score']}%." if worst["score"] < 80 else "No critical remediation required.",
             },
+            "rule_violations": rule_violations,
         }
 
     def _build_readiness(self, batch_id):
@@ -617,24 +677,14 @@ class ReportSuiteService:
                 "created_at": str(b.get("created_at") or ""),
             })
 
-        if tenant_id:
-            ctrl_rows = self._execute(
-                """SELECT c.control_id, c.control_name, c.severity_level, c.enabled_flag,
-                   cs.overall_status, cs.total_rules, cs.passed_rules, cs.failed_rules, cs.error_rules, cs.skipped_rules
-                   FROM engine.control_registry c
-                   LEFT JOIN engine.migration_control_summary cs ON c.control_id = cs.control_id AND cs.batch_id = %s
-                   WHERE c.tenant_id = %s ORDER BY c.control_id""",
-                (batches[0].get("batch_id") if batches else None, tenant_id),
-            )
-        else:
-            ctrl_rows = self._execute(
-                """SELECT c.control_id, c.control_name, c.severity_level, c.enabled_flag,
-                   cs.overall_status, cs.total_rules, cs.passed_rules, cs.failed_rules, cs.error_rules, cs.skipped_rules
-                   FROM engine.control_registry c
-                   LEFT JOIN engine.migration_control_summary cs ON c.control_id = cs.control_id AND cs.batch_id = %s
-                   ORDER BY c.control_id""",
-                (batches[0].get("batch_id") if batches else None,),
-            )
+        ctrl_rows = self._execute(
+            """SELECT c.control_id, c.control_name, c.severity_level, c.enabled_flag,
+               cs.overall_status, cs.total_rules, cs.passed_rules, cs.failed_rules, cs.error_rules, cs.skipped_rules
+               FROM engine.control_registry c
+               LEFT JOIN engine.migration_control_summary cs ON c.control_id = cs.control_id AND cs.batch_id = %s
+               ORDER BY c.control_id""",
+            (batches[0].get("batch_id") if batches else None,),
+        )
 
         control_status = []
         for cr in ctrl_rows:
@@ -861,26 +911,15 @@ class ReportSuiteService:
 
     def _build_governance_pack(self, batch_id, tenant_id=None):
         if batch_id:
-            if tenant_id:
-                findings = self._execute(
-                    """SELECT er.*, cr.severity_level, cr.control_name
-                       FROM engine.migration_exception_register er
-                       JOIN engine.control_registry cr ON er.control_id = cr.control_id
-                       JOIN engine.migration_control_summary mcs ON er.batch_id = mcs.batch_id AND er.control_id = mcs.control_id
-                       WHERE er.batch_id = %s AND cr.tenant_id = %s
-                       ORDER BY cr.severity_level DESC, er.created_timestamp DESC""",
-                    (batch_id, tenant_id),
-                )
-            else:
-                findings = self._execute(
-                    """SELECT er.*, cr.severity_level, cr.control_name
-                       FROM engine.migration_exception_register er
-                       JOIN engine.control_registry cr ON er.control_id = cr.control_id
-                       JOIN engine.migration_control_summary mcs ON er.batch_id = mcs.batch_id AND er.control_id = mcs.control_id
-                       WHERE er.batch_id = %s
-                       ORDER BY cr.severity_level DESC, er.created_timestamp DESC""",
-                    (batch_id,),
-                )
+            findings = self._execute(
+                """SELECT er.*, cr.severity_level, cr.control_name
+                   FROM engine.migration_control_exceptions er
+                   JOIN engine.control_registry cr ON er.control_id = cr.control_id
+                   JOIN engine.migration_control_summary mcs ON er.batch_id = mcs.batch_id AND er.control_id = mcs.control_id
+                   WHERE er.batch_id = %s
+                   ORDER BY cr.severity_level DESC, er.created_at DESC""",
+                (batch_id,),
+            )
         else:
             findings = []
 
@@ -920,7 +959,7 @@ class ReportSuiteService:
                 "severity": sev,
                 "source_value": f.get("source_value", ""),
                 "target_value": f.get("target_value", ""),
-                "variance_value": f.get("variance_value", ""),
+                "variance_value": f.get("delta_value", ""),
                 "status": "Open",
             })
 

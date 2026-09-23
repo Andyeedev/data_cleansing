@@ -44,7 +44,8 @@ interface TimelineSummary {
 const PAGE_SIZE = 50;
 
 export function MigrationTimelinePage() {
-  const { userRoles, token } = useAuth();
+  const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [selectedTenant, setSelectedTenant] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,11 +139,11 @@ export function MigrationTimelinePage() {
     scheduled: 'warning' as const,
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <div className="p-6">
         <h1 className="text-h1 mb-4">Migration Timeline</h1>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </div>
     );
   }
@@ -185,7 +186,9 @@ export function MigrationTimelinePage() {
         description="Chronological view of all migration executions"
         actions={
           <div className="flex gap-2 items-center">
-            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+            {isSuperAdmin && (
+              <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+            )}
             <button
               onClick={fetchTimeline}
               className="px-3 py-1.5 bg-bg-secondary text-text border border-border rounded cursor-pointer text-sm hover:bg-bg-tertiary"

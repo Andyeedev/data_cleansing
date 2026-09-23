@@ -15,6 +15,7 @@ def _resolve_tenant(tenant_id, all_tenants, current_user):
     jwt_tenant_id = current_user.get("tenant_id")
     roles = current_user.get("roles", [])
     is_super_admin = any("super admin" in r.lower() for r in roles)
+    is_tenant_admin = any("tenant admin" in r.lower() for r in roles)
 
     if all_tenants:
         if not is_super_admin:
@@ -22,7 +23,7 @@ def _resolve_tenant(tenant_id, all_tenants, current_user):
             raise HTTPException(status_code=403, detail="all_tenants requires Super Admin role")
         return None
 
-    if tenant_id and tenant_id != jwt_tenant_id and not is_super_admin:
+    if tenant_id and tenant_id != jwt_tenant_id and not (is_super_admin or is_tenant_admin):
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Cannot query tenant you do not belong to")
 

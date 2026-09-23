@@ -76,6 +76,14 @@ class MigrationProjectRepository:
         """
         return self.db.execute(query)
 
+    def get_tenant_by_id(self, tenant_id: str):
+        query = """
+            SELECT t.tenant_id, t.tenant_name
+            FROM core.tenants t
+            WHERE t.tenant_id = %s
+        """
+        return self.db.execute(query, (tenant_id,))
+
     def get_overview_stats(self, tenant_id: str = None):
         tenant_filter = ""
         params = []

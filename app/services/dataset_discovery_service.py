@@ -168,6 +168,7 @@ class DatasetDiscoveryService:
 
         if mapping_id:
             self._save_columns(mapping_id, source_columns, target_columns)
+            self._infer_column_roles(mapping_id)
             self._bind_default_rules(mapping_id)
 
         return mapping_id
@@ -201,6 +202,12 @@ class DatasetDiscoveryService:
                     getattr(col, 'is_nullable', True),
                     getattr(col, 'is_primary_key', False),
                 ))
+
+    def _infer_column_roles(self, mapping_id):
+        from app.services.metadata_intelligence_service import MetadataIntelligenceService
+        service = MetadataIntelligenceService(self.engine_db)
+        service.infer_column_roles(mapping_id)
+        service.infer_foreign_keys(mapping_id)
 
     def _get_system(self, role):
         query = """

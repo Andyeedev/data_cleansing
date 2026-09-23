@@ -18,15 +18,16 @@ const TABS = [
 
 export function ValidationRulesPage() {
   const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [activeTab, setActiveTab] = useState('mappings');
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900">Validation Rules</h1>
         </div>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -40,7 +41,7 @@ export function ValidationRulesPage() {
           <p className="text-sm text-gray-500 mt-1">Rule definitions, dataset mappings, and execution usage</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <CascadeDropdowns showBatch={false} />
+          <CascadeDropdowns showBatch={false} isSuperAdmin={isSuperAdmin} />
         </div>
       </div>
 

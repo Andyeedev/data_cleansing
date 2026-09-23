@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
-from app.api.core.auth.dependencies import get_current_user_with_tenant, resolve_tenant
+from app.api.core.auth.dependencies import get_current_user_with_tenant, resolve_tenant, get_current_user
 from app.api.core.auth.rbac import require_admin
 from app.api.models.responses import APIResponse
 from app.services.migration_project_service import MigrationProjectService
@@ -39,9 +39,15 @@ def list_projects(
 
 
 @router.get("/tenants", response_model=APIResponse)
-def list_tenants(current_user=Depends(require_admin)):
+def list_tenants(current_user=Depends(get_current_user)):
     try:
-        tenants = migration_project_service.get_tenants()
+        roles = current_user.get("roles", [])
+        is_super_admin = "Super Admin" in roles
+        if is_super_admin:
+            tenants = migration_project_service.get_tenants()
+        else:
+            tenant_id = current_user.get("tenant_id")
+            tenants = migration_project_service.get_tenants_for_user(tenant_id)
         return APIResponse(success=True, data=tenants)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

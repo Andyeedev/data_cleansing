@@ -92,7 +92,8 @@ export function ReportsPage() {
   const [riskScore, setRiskScore] = useState<RiskScore | null>(null);
   const [complianceCheck, setComplianceCheck] = useState<ComplianceCheck | null>(null);
 
-  const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin');
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
+  const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin');
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -198,7 +199,9 @@ export function ReportsPage() {
       </p>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+        {isSuperAdmin && (
+          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+        )}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Status</label>
           <select

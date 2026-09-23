@@ -37,11 +37,11 @@ export function ValidationPage() {
     return Math.round((completed / total) * 100);
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <div style={{ padding: 'var(--space-lg)' }}>
         <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Validation</h1>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </div>
     );
   }

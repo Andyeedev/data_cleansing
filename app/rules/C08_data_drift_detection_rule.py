@@ -31,8 +31,10 @@ class C08DataDriftDetectionRule:
                     "status": "SKIPPED",
                     "delta": 0,
                     "cause": "NO_NUMERIC_COLUMNS",
-                    "message": f"No numeric columns found for {source_schema}.{source_table}. Tag decimal/numeric columns with inferred_role='NUMERIC_METRIC' in core.dataset_columns to enable drift analysis.",
-                    "failure_scope": "ENGINE"
+                    "message": f"Table {source_schema}.{source_table} has no numeric columns (decimal/numeric/float/real) to analyze for drift. Data drift analysis only applies to tables with numeric columns (decimal/numeric/float/real). Tables without numeric columns (e.g., lookup tables, dimension tables) are correctly skipped.",
+                    "cause_detail": "NO_NUMERIC_COLUMNS",
+                    "failure_scope": "ENGINE",
+                    "action_required": "No action required - this is expected for tables without numeric columns"
                 }
 
             max_drift = 0

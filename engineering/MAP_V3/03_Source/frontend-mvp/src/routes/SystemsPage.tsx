@@ -33,6 +33,7 @@ function getDbTypeIcon(dbType: string) {
 export function SystemsPage() {
   const navigate = useNavigate();
   const { userRoles, tenantId: userTenantId } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [selectedTenant, setSelectedTenant] = useState<string>(userTenantId || '');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [dbTypeFilter, setDbTypeFilter] = useState<string>('');
@@ -132,11 +133,11 @@ export function SystemsPage() {
     }
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <h1 className="text-xl font-bold text-gray-900 mb-4">Connection Management</h1>
-        <ErrorState title="Access Denied" message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState title="Access Denied" message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -185,10 +186,12 @@ export function SystemsPage() {
       )}
 
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <TenantFilter
-          selectedTenant={selectedTenant}
-          onChange={(val) => { setSelectedTenant(val); setPage(1); }}
-        />
+        {isSuperAdmin && (
+          <TenantFilter
+            selectedTenant={selectedTenant}
+            onChange={(val) => { setSelectedTenant(val); setPage(1); }}
+          />
+        )}
         {testError && (
           <span className="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded">
             {testError}

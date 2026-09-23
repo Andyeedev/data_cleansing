@@ -114,6 +114,7 @@ const STEP_LABELS: Record<string, string> = {
 
 export function OperationsExecutionPage() {
   const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const { tenantId, projectId, setTenantId, setProjectId, reset } = useValidationFilter();
 
   const [activeTab, setActiveTab] = useState<TabKey>('execution');
@@ -382,7 +383,7 @@ export function OperationsExecutionPage() {
 
           <div className="flex-1 min-w-0">
             <div className="mb-4">
-              <CascadeDropdowns showTenant={true} showProject={true} showBatch={false} />
+              <CascadeDropdowns showTenant={true} showProject={true} showBatch={false} isSuperAdmin={isSuperAdmin} />
             </div>
 
             <ReportCard title="Step Results">
@@ -468,7 +469,7 @@ export function OperationsExecutionPage() {
 
           <ReportCard title="Runs" className="mb-4">
             <div className="flex gap-3 items-center flex-wrap">
-              <CascadeDropdowns showTenant={true} showProject={true} showBatch={false} />
+              <CascadeDropdowns showTenant={true} showProject={true} showBatch={false} isSuperAdmin={isSuperAdmin} />
               <div className="flex-1 min-w-[200px]">
                 <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search by run ID, tenant, project, status..." />
               </div>

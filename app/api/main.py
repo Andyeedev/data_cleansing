@@ -51,6 +51,7 @@ from app.api.routes import (
     invitation_routes,
     public_routes,
     admin_registration_routes,
+    migration_alias_routes,
 )
 
 # Import pool manager to reset on startup
@@ -240,6 +241,7 @@ app.include_router(billing_routes.router)
 app.include_router(invitation_routes.router)
 app.include_router(public_routes.router)
 app.include_router(admin_registration_routes.router)
+app.include_router(migration_alias_routes.router)
 
 
 # =========================

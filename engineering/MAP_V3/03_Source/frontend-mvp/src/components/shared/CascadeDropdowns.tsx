@@ -14,9 +14,10 @@ interface CascadeDropdownsProps {
   showTenant?: boolean;
   showProject?: boolean;
   showBatch?: boolean;
+  isSuperAdmin?: boolean;
 }
 
-export default function CascadeDropdowns({ showTenant = true, showProject = true, showBatch = true }: CascadeDropdownsProps) {
+export default function CascadeDropdowns({ showTenant = true, showProject = true, showBatch = true, isSuperAdmin = false }: CascadeDropdownsProps) {
   const { tenantId, projectId, batchId, setTenantId, setProjectId, setBatchId } = useValidationFilter();
 
   const { tenants, loading: tenantsLoading, error: tenantsError } = useMigrationTenants();
@@ -55,7 +56,7 @@ export default function CascadeDropdowns({ showTenant = true, showProject = true
 
   return (
     <div className="flex gap-3 items-center flex-wrap">
-      {showTenant && (
+      {showTenant && isSuperAdmin && (
         <div>
           <label className="block text-xs text-gray-500 mb-1">Tenant</label>
           {tenantsError ? (

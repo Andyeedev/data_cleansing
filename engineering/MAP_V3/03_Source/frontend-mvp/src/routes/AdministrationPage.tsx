@@ -47,7 +47,7 @@ export function AdministrationPage() {
   const [auditLoading, setAuditLoading] = useState(true);
   const [auditError, setAuditError] = useState<string | null>(null);
 
-  const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin');
+  const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin');
 
   const { data: usersData, loading: usersLoading, error: usersError, refetch: refetchUsers } = useUserList({ page: 1, page_size: 100 });
   const { data: rolesData, loading: rolesLoading, error: rolesError } = useRoleList({ page: 1, page_size: 100 });

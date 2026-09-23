@@ -243,3 +243,74 @@ class MappingService:
             "total_columns": len(column_mappings),
             "type_mismatches": len([i for i in issues if i["type"] == "type_mismatch"]),
         }
+
+    def get_summary(self, tenant_id: str = None) -> dict:
+        """Get mapping summary for a tenant."""
+        if tenant_id:
+            query = """
+                SELECT 
+                    COUNT(*) AS tables_mapped,
+                    SUM(array_length(source_columns, 1)) AS columns_mapped,
+                    AVG(CASE WHEN array_length(source_columns, 1) > 0 
+                         THEN array_length(target_columns, 1)::float / array_length(source_columns, 1) * 100 
+                         ELSE 0 END) AS match_rate_percent
+                FROM core.dataset_mappings dm
+                JOIN core.projects p ON dm.project_id::text = p.project_id::text
+                WHERE p.tenant_id = %s
+            """
+            row = self.db.execute(query, (tenant_id,))[0]
+        else:
+            query = """
+                SELECT 
+                    COUNT(*) AS tables_mapped,
+                    SUM(array_length(source_columns, 1)) AS columns_mapped,
+                    AVG(CASE WHEN array_length(source_columns, 1) > 0 
+                         THEN array_length(target_columns, 1)::float / array_length(source_columns, 1) * 100 
+                         ELSE 0 END) AS match_rate_percent
+                FROM core.dataset_mappings
+            """
+            row = self.db.execute(query)[0]
+        
+        return {
+            "tables_mapped": row[0] or 0,
+            "columns_mapped": row[1] or 0,
+            "match_rate_percent": round(float(row[2] or 0), 1)
+        }
+
+    def get_schema(self, tenant_id: str = None) -> dict:
+        """Get schema comparison for tenant."""
+        if tenant_id:
+            query = """
+                SELECT 
+                    dm.source_schema, dm.source_table, dm.target_schema, dm.target_table,
+                    array_length(dm.source_columns, 1) as source_cols,
+                    array_length(dm.target_columns, 1) as target_cols
+                FROM core.dataset_mappings dm
+                JOIN core.projects p ON dm.project_id::text = p.project_id::text
+                WHERE p.tenant_id = %s
+                ORDER BY dm.source_table
+            """
+            rows = self.db.execute(query, (tenant_id,))
+        else:
+            query = """
+                SELECT 
+                    dm.source_schema, dm.source_table, dm.target_schema, dm.target_table,
+                    array_length(dm.source_columns, 1) as source_cols,
+                    array_length(dm.target_columns, 1) as target_cols
+                FROM core.dataset_mappings dm
+                ORDER BY dm.source_table
+            """
+            rows = self.db.execute(query)
+        
+        return {
+            "mappings": [
+                {
+                    "source_schema": r[0],
+                    "source_table": r[1],
+                    "target_schema": r[2],
+                    "target_table": r[3],
+                    "source_columns": r[4] or 0,
+                    "target_columns": r[5] or 0
+                } for r in rows
+            ]
+        }

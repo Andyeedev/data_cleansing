@@ -96,13 +96,15 @@ export function ValidationCentrePage() {
     return { segments, circumference };
   }, [outcomeDistribution]);
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
+
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900">Validation Centre</h1>
         </div>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -130,7 +132,7 @@ export function ValidationCentrePage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <CascadeDropdowns showProject={false} showBatch={false} />
+          <CascadeDropdowns showProject={false} showBatch={false} isSuperAdmin={isSuperAdmin} />
           <button
             onClick={() => setIsLive(!isLive)}
             className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${

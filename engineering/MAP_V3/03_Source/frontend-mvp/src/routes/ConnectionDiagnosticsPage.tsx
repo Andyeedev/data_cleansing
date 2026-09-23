@@ -34,6 +34,7 @@ const STATUS_PILL: Record<string, string> = {
 export function ConnectionDiagnosticsPage() {
   const navigate = useNavigate();
   const { userRoles, tenantId: userTenantId } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [selectedTenant, setSelectedTenant] = useState<string>(userTenantId || '');
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('health');
@@ -82,7 +83,9 @@ export function ConnectionDiagnosticsPage() {
     <div className="p-4 h-full flex flex-col">
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm font-semibold text-gray-900">Systems</div>
-        <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+        {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
       </div>
 
       {summary && (

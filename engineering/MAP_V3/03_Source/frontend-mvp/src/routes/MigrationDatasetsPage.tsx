@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useMigrationDatasets } from '../hooks/useMigration';
 import { PageContainer } from '../components/PageContainer/PageContainer';
 import { PageHeader } from '../components/PageHeader/PageHeader';
@@ -8,6 +9,8 @@ import { EmptyState } from '../components/shared/EmptyState';
 import { TenantFilter } from '../components/shared/TenantFilter';
 
 export function MigrationDatasetsPage() {
+  const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [selectedTenant, setSelectedTenant] = useState<string>('');
   const { datasets, loading, error, refetch } = useMigrationDatasets(undefined, selectedTenant || undefined);
 
@@ -31,7 +34,9 @@ export function MigrationDatasetsPage() {
         description="Manage discovered datasets for migration"
         actions={
           <div className="flex gap-2 items-center">
-            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+            {isSuperAdmin && (
+              <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+            )}
             <button className="px-3 py-1.5 bg-bg-secondary text-text border border-border rounded cursor-pointer text-sm hover:bg-bg-tertiary" onClick={refetch}>
               Refresh
             </button>

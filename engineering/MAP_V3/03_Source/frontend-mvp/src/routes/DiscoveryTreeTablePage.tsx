@@ -20,6 +20,7 @@ type FilterStatus = 'all' | 'matched' | 'unmatched_source' | 'unmatched_target' 
 
 export function DiscoveryTreeTablePage() {
   const { userRoles, tenantId: userTenantId } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [selectedTenant, setSelectedTenant] = useState<string>(userTenantId || '');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
@@ -208,11 +209,11 @@ export function DiscoveryTreeTablePage() {
     modified: 'warning',
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <h1 className="text-xl font-bold text-gray-900 mb-4">Discovery</h1>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -245,7 +246,9 @@ export function DiscoveryTreeTablePage() {
               )}
             </div>
           )}
-          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
           <button
             onClick={handleClearAllClick}
             disabled={clearingAll || !selectedTenant}

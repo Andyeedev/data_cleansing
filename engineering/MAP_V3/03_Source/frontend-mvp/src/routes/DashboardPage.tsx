@@ -105,7 +105,8 @@ export function DashboardPage() {
   const [isLive, setIsLive] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin');
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
+  const isAdmin = userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin');
   const isManager = userRoles.includes('manager');
   const isExecutive = isAdmin || isManager;
   const { subscription, isNearLimit, usagePercent } = useSubscription();
@@ -171,7 +172,9 @@ export function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
           <button
             onClick={() => setIsLive(!isLive)}
             className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${

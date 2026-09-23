@@ -174,7 +174,9 @@ export function MigrationSchedulesPage() {
           <p className="text-sm text-gray-500 mt-1">{schedules.length} schedules configured</p>
         </div>
         <div className="flex items-center gap-3">
-          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
           <button
             onClick={() => setShowCreateModal(true)}
             className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"

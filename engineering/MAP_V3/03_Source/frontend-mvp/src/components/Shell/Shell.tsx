@@ -40,7 +40,12 @@ const DEFAULT_NAV: MetadataNavItem[] = [
     { id: 'audit', label: 'Audit', path: '/governance/audit' },
   ]},
   { id: 'reports', label: 'Reports', path: '/reports', children: [
-    { id: 'executive', label: 'Executive', path: '/reports/executive', requiredRoles: ['admin', 'manager'] },
+    { id: 'executive', label: 'Executive Pack', path: '/reports/suite/executive', requiredRoles: ['admin', 'manager'] },
+    { id: 'operational-pack', label: 'Operational Pack', path: '/reports/suite/operational' },
+    { id: 'migration-pack', label: 'Migration Pack', path: '/reports/suite/migration_pack' },
+    { id: 'validation-pack', label: 'Validation Pack', path: '/reports/suite/validation_pack' },
+    { id: 'governance-pack', label: 'Governance Pack', path: '/reports/suite/governance_pack' },
+    { id: 'audit-pack', label: 'Audit Pack', path: '/reports/suite/audit_pack' },
   ]},
   { id: 'operations', label: 'Operations', path: '/operations', children: [
     { id: 'execution', label: 'Execution', path: '/operations/execution' },

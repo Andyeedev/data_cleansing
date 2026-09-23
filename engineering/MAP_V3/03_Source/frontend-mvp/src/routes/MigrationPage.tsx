@@ -123,11 +123,13 @@ export function MigrationPage() {
     }
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
+
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Migration</h1>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -167,7 +169,9 @@ export function MigrationPage() {
         </div>
         <div className="flex items-center gap-3">
           <TabBar tabs={tabs} activeTab={activeTab} onTabChange={(key) => setActiveTab(key as Tab)} />
-          <TenantFilter selectedTenant={selectedTenant} onChange={handleTenantChange} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={handleTenantChange} />
+          )}
         </div>
       </div>
 

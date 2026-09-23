@@ -20,6 +20,7 @@ const AUTO_REFRESH_MS = 15000;
 
 export function ValidationDiscoveryPage() {
   const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const { projectId } = useValidationFilter();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'enabled' | 'disabled'>('all');
@@ -178,13 +179,13 @@ export function ValidationDiscoveryPage() {
 
   const collapseAllDataset = useCallback(() => { setExpandedDatasetNodes({}); }, []);
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900">Rule Discovery</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Validation Discovery</h1>
         </div>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -202,7 +203,7 @@ export function ValidationDiscoveryPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <CascadeDropdowns showBatch={false} />
+          <CascadeDropdowns showBatch={false} isSuperAdmin={isSuperAdmin} />
           <button
             onClick={handleTrigger}
             disabled={loading || !projectId}

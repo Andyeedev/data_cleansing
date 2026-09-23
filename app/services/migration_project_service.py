@@ -110,6 +110,14 @@ class MigrationProjectService:
         rows = self.repository.get_unique_tenants()
         return [{"tenant_id": str(r[0]), "tenant_name": r[1] or str(r[0])[:8]} for r in rows]
 
+    def get_tenants_for_user(self, tenant_id: str):
+        if not tenant_id:
+            return []
+        rows = self.repository.get_tenant_by_id(tenant_id)
+        if rows:
+            return [{"tenant_id": str(rows[0][0]), "tenant_name": rows[0][1] or str(rows[0][0])[:8]}]
+        return []
+
     def get_overview(self, tenant_id: str = None):
         stats = self.repository.get_overview_stats(tenant_id)
         active_batches = self.repository.get_active_batches_count(tenant_id)

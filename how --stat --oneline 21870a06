@@ -1,0 +1,513 @@
+warning: in the working copy of 'engineering/MAP_V3/02_Output/00_MAP_V3_Control/OC-COM-001e_Identity_Access_Lifecycle.md', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/engineering/MAP_V3/02_Output/00_MAP_V3_Control/OC-COM-001e_Identity_Access_Lifecycle.md b/engineering/MAP_V3/02_Output/00_MAP_V3_Control/OC-COM-001e_Identity_Access_Lifecycle.md[m
+[1mindex 75f573be..aea2c280 100644[m
+[1m--- a/engineering/MAP_V3/02_Output/00_MAP_V3_Control/OC-COM-001e_Identity_Access_Lifecycle.md[m
+[1m+++ b/engineering/MAP_V3/02_Output/00_MAP_V3_Control/OC-COM-001e_Identity_Access_Lifecycle.md[m
+[36m@@ -1,86 +1,117 @@[m
+ # OC-COM-001e — Identity & Access Lifecycle (Invitation, Registration, Password Management)[m
+ [m
+[31m-**DATE:** 2026-09-10[m
+[31m-**STATUS:** DRAFT — PENDING REVIEW[m
+[31m-**PREDECESSOR:** OC-COM-001d — SaaS Customer Experience & Frontend Implementation (IN PROGRESS)[m
+[31m-**BASELINE:** OC-COM-001c — SaaS Product & Tenant Lifecycle Architecture (APPROVED / CANONICAL)[m
+[32m+[m[32m**DATE:** 2026-09-14[m[41m  [m
+[32m+[m[32m**STATUS:** REQUIRES FINAL REVIEW[m[41m  [m
+[32m+[m[32m**PREDECESSOR:** OC-COM-001d — SaaS Customer Experience & Frontend Implementation (COMPLETE)[m[41m  [m
+[32m+[m[32m**BASELINE:** OC-COM-001c — SaaS Product & Tenant Lifecycle Architecture (APPROVED / CANONICAL)[m[41m  [m
+[32m+[m[32m**DEPENDENCY:** OC-COM-001d Phase 5 (Suspension UX + Hardening) — COMPLETE[m[41m  [m
+ [m
+ **Conflict rule:** where this specification and OC-COM-001c conflict, **001c wins**.[m
+ [m
+[32m+[m[32m**NO CODE CHANGES AUTHORISED BY THIS TASK.** Implementation begins only after explicit approval of this corrected specification.[m
+[32m+[m
+ ---[m
+ [m
+[31m-## 1. Problem Statement[m
+[32m+[m[32m## 1. Document Control[m
+[32m+[m
+[32m+[m[32m| Field | Value |[m
+[32m+[m[32m|-------|-------|[m
+[32m+[m[32m| Document ID | OC-COM-001e |[m
+[32m+[m[32m| Title | Identity & Access Lifecycle |[m
+[32m+[m[32m| Version | 1.0 (Corrected) |[m
+[32m+[m[32m| Author | MAP Nexus Engineering |[m
+[32m+[m[32m| Reviewers | Edward Odewale (Founder), Technical Lead |[m
+[32m+[m[32m| Approval Gate | Explicit approval required before Phase 1 |[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+[32m+[m[32m## 2. Problem Statement[m
+ [m
+ MAP Nexus currently supports a **closed, admin-driven user provisioning model**:[m
+ [m
+[31m-- Super Admin creates tenants via API (which auto-creates an admin user with a known password)[m
+[31m-- Admin creates additional users via `/administration/users` (setting passwords directly)[m
+[32m+[m[32m- Super Admin creates tenants via API (`TenantService.create_tenant()`) — auto-creates an admin user with a caller-supplied password[m
+[32m+[m[32m- Admin creates additional users via `/administration/users` (`UserService.create_user()`) — admin sets password directly[m
+ - No self-service path exists for new users or tenants[m
+ - No invitation, registration, forgot-password, or reset-password flow exists[m
+[31m-- The `change-password` backend route calls a non-existent service method (will 500 at runtime)[m
+[31m-- No email sending infrastructure exists (no SMTP, no email service)[m
+[32m+[m[32m- **The `change-password` backend endpoint (`POST /api/v1/auth/change-password`) was broken** — called a non-existent service method — **FIXED in OC-COM-001d Phase 5 Step 2** via `AuthService.change_password()` (validates current password, enforces policy, increments `token_version`)[m
+[32m+[m[32m- No email sending infrastructure exists (no SMTP, no email service abstraction)[m
+ - The public website (mapnexus.co.uk) has no integration with the platform for lead-to-customer conversion[m
+ [m
+ **Impact:**[m
+ - Potential customers registering on mapnexus.co.uk have no path into the platform[m
+ - Existing users cannot self-serve password resets[m
+ - Admins must know and communicate passwords directly (security risk)[m
+[31m-- No audit trail for user provisioning[m
+[32m+[m[32m- No audit trail for user provisioning events[m
+ [m
+ ---[m
+ [m
+[31m-## 2. Scope[m
+[32m+[m[32m## 3. Scope[m
+ [m
+[31m-Deliver the complete identity and access lifecycle for MAP Nexus:[m
+[32m+[m[32m### In Scope (OC-COM-001e)[m
+ [m
+[31m-```[m
+[31m-Website Registration → Email Verification → Tenant Provisioning → Admin Setup[m
+[31m-→ User Invitation → Accept Invite → Set Password → Login[m
+[31m-→ Forgot Password → Reset Token → New Password → Login[m
+[31m-→ Change Password (while logged in)[m
+[31m-```[m
+[32m+[m[32m| Item | Description |[m
+[32m+[m[32m|------|-------------|[m
+[32m+[m[32m| **Invitation system** | Admin invites user by email → user receives email → accepts invitation → sets password → activates account |[m
+[32m+[m[32m| **Forgot password flow** | User requests reset email → receives token → sets new password → logs in |[m
+[32m+[m[32m| **Reset password flow** | Validates token, sets new password, invalidates existing sessions via `token_version` |[m
+[32m+[m[32m| **Email service** | Abstract `EmailService` interface with SMTP implementation; provider selected via deployment config |[m
+[32m+[m[32m| **Website registration integration** | mapnexus.co.uk POSTs to `POST /api/v1/public/register` → creates lead in `platform.website_registrations` → Super Admin reviews/converts via canonical `TenantService.create_tenant()` |[m
+[32m+[m[32m| **First-admin bootstrapping** | Define mechanism for first admin to establish password without ever emailing credentials |[m
+[32m+[m[32m| **Audit** | All identity events logged via existing audit architecture |[m
+ [m
+[31m-### In Scope (001e)[m
+[31m-- Invitation system (admin invites user via email)[m
+[31m-- Self-service registration (public signup page)[m
+[31m-- Email verification (verify email before account activation)[m
+[31m-- Forgot password flow (token-based reset via email)[m
+[31m-- Reset password flow (validate token, set new password)[m
+[31m-- Change password flow (while logged in — fix broken endpoint)[m
+[31m-- Email sending service (SMTP abstraction)[m
+[31m-- Website registration integration (mapnexus.co.uk → platform)[m
+[31m-- Tenant self-provisioning (optional: public create-tenant flow)[m
+[31m-- First admin bootstrapping (improve env-var / invite mechanism)[m
+[31m-[m
+[31m-### Out of Scope[m
+[31m-- SSO/SAML/OIDC integration (future)[m
+[31m-- Multi-factor authentication (future)[m
+[31m-- Social login (Google, Microsoft) (future)[m
+[31m-- Role-based invitation (invite as specific role) — admin assigns roles after acceptance[m
+[31m-- Automated tenant offboarding / user purge (future workstream)[m
+[31m-- OC-COM-001d onboarding journey (separate workstream)[m
+[32m+[m[32m### Out of Scope (Explicit)[m
+[32m+[m
+[32m+[m[32m| Item | Future Workstream |[m
+[32m+[m[32m|------|-------------------|[m
+[32m+[m[32m| SSO/SAML/OIDC integration | Identity Federation |[m
+[32m+[m[32m| Multi-factor authentication | MFA Workstream |[m
+[32m+[m[32m| Social login (Google, Microsoft) | Social Auth |[m
+[32m+[m[32m| **Role-based invitation** (invite as specific role) | RBAC Enhancement — admin assigns roles after acceptance using existing RBAC |[m
+[32m+[m[32m| **Tenant self-provisioning** (public create-tenant flow) | Self-Service Tenant |[m
+[32m+[m[32m| **Self-service user registration** (public `/auth/register`) | Deferred — requires tenant self-provisioning |[m
+[32m+[m[32m| Automated tenant offboarding / user purge | Retention/Purge |[m
+[32m+[m[32m| OC-COM-001d onboarding journey | Separate workstream (complete) |[m
+[32m+[m[32m| Email templates customization | Branding Workstream |[m
+ [m
+ ---[m
+ [m
+[31m-## 3. Architecture Decisions[m
+[32m+[m[32m## 4. Existing / Completed Dependencies[m
+[32m+[m
+[32m+[m[32m| Component | Status | Notes |[m
+[32m+[m[32m|-----------|--------|-------|[m
+[32m+[m[32m| `platform.users.email_verified` | **EXISTS** (live schema line 15) | Boolean, DEFAULT FALSE — do not re-add |[m
+[32m+[m[32m| `AuthService.change_password()` | **IMPLEMENTED** (Phase 5 Step 2) | Validates current password, enforces policy, bcrypt hashes, increments `token_version` |[m
+[32m+[m[32m| `UserService.create_user()` | **EXISTS** | Enforces password policy (DEV-011), checks tenant user limits (DEV-009) |[m
+[32m+[m[32m| `TenantService.create_tenant()` | **EXISTS** | Creates tenant + admin user + trial subscription; canonical path |[m
+[32m+[m[32m| `platform.users.token_version` | **EXISTS** (live schema line 31) | Integer, DEFAULT 0 — used for session invalidation |[m
+[32m+[m[32m| JWT + httpOnly cookie + `token_version` | **EXISTS** | Authenticated session mechanism — must not be replaced |[m
+[32m+[m[32m| Audit middleware (`AuditLoggingMiddleware`) | **EXISTS** | Logs method, path, user_id, status, duration, redacted request body |[m
+[32m+[m[32m| Rate limiting (`slowapi` + `rate_limit_leads`) | **EXISTS** | Applied to `/api/v1/leads` (10/min); pattern available for extension |[m
+[32m+[m[32m| Password policy (`validate_password_policy`) | **EXISTS** | Min 8 chars, upper, lower, digit — enforced on create/change/reset |[m
+[32m+[m[32m| RBAC (`platform.roles`, `platform.permissions`, `platform.user_roles`) | **EXISTS** | Role assignment via `UserService.assign_role()` after user creation |[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+[32m+[m[32m## 5. Architecture Decisions[m
+ [m
+ | ID | Decision | Rationale |[m
+ |----|----------|-----------|[m
+[31m-| ID-001 | **Invitation tokens** — UUID-based, stored in `platform.invitations` table, 7-day expiry, single-use | Standard pattern; UUIDs are unguessable; expiry limits exposure |[m
+[31m-| ID-002 | **Password reset tokens** — UUID-based, stored in `platform.password_resets` table, 1-hour expiry, single-use | Shorter expiry for security; separate table from invitations |[m
+[31m-| ID-003 | **Email verification** — UUID token stored in `platform.email_verifications` table, 24-hour expiry, sent on registration | Separate from invitation (different flows) |[m
+[31m-| ID-004 | **Email service** — Abstract `EmailService` with SMTP backend, configurable via env vars | Pluggable; can swap to SendGrid/SES later without code changes |[m
+[31m-| ID-005 | **Website registration** — mapnexus.co.uk POST to `POST /api/v1/public/register` → creates invitation or pending user | Public endpoint (no auth required); rate-limited |[m
+[31m-| ID-006 | **Tenant self-provisioning** — NOT in 001e; Super Admin still creates tenants | Keeps admin control; self-provisioning = future |[m
+[31m-| ID-007 | **Token storage** — httpOnly cookies for session tokens; invitation/reset tokens in DB only (not JWT) | Reset tokens must be server-validated; JWT cannot be revoked |[m
+[31m-| ID-008 | **Rate limiting** — Public endpoints (register, forgot-password) rate-limited to 5/hour per IP | Prevent abuse |[m
+[31m-| ID-009 | **Provisioning convergence** — All user/tenant provisioning flows MUST reuse existing `TenantService.create_tenant()` and `UserService.create_user()`. No second provisioning paths. | Enforces canonical lifecycle (001c); prevents duplicate models; ensures subscription/plan sync |[m
+[32m+[m[32m| **ID-001** | **Invitation tokens** — UUID-based, stored in `platform.invitations` table, 7-day expiry, single-use | Standard pattern; UUIDs unguessable; expiry limits exposure |[m
+[32m+[m[32m| **ID-002** | **Password reset tokens** — UUID-based, stored in `platform.password_resets` table, 1-hour expiry, single-use | Shorter expiry for security; separate table from invitations |[m
+[32m+[m[32m| **ID-003** | **Email verification tokens** — UUID-based, stored in `platform.email_verifications` table, 24-hour expiry, single-use | Separate from invitation/reset; tracks verification independently |[m
+[32m+[m[32m| **ID-004** | **Email service** — Abstract `EmailService` interface with pluggable implementations (SMTP, SendGrid, SES); provider selected via `EMAIL_PROVIDER` deployment config | No provider lock-in; swap without code changes |[m
+[32m+[m[32m| **ID-005** | **Website registration** — mapnexus.co.uk POSTs directly to `POST /api/v1/public/register` (public, no auth) → creates `platform.website_registrations` lead only | No tenant/user created at submission; Super Admin converts via canonical path |[m
+[32m+[m[32m| **ID-006** | **Tenant self-provisioning** — NOT in 001e; Super Admin creates tenants via existing API | Preserves admin control; self-provisioning = future workstream |[m
+[32m+[m[32m| **ID-007** | **Token storage** — Session tokens: JWT in httpOnly cookie + `token_version`; Invitation/reset/verification tokens: server-side one-time DB tokens only (never JWT) | Reset/invitation tokens must be server-validated and revocable |[m
+[32m+[m[32m| **ID-008** | **Rate limiting** — All public state-changing endpoints rate-limited (see §12) | Prevent abuse/enumeration |[m
+[32m+[m[32m| **ID-009** | **Provisioning convergence** — All user/tenant provisioning MUST reuse existing `TenantService.create_tenant()` and `UserService.create_user()`. No second provisioning paths. | Enforces canonical lifecycle (001c); prevents duplicate models; ensures subscription/plan sync |[m
+[32m+[m[32m| **ID-010** | **Session architecture** — JWT + httpOnly cookie + `token_version` remains the authenticated session mechanism. Invitation/reset/verification use separate server-side one-time DB tokens. | Preserves existing auth architecture; no session disruption |[m
+ [m
+ ---[m
+ [m
+[31m-## 4. Database Changes[m
+[32m+[m[32m## 6. Database Changes[m
+ [m
+[31m-### New Tables[m
+[32m+[m[32m### New Tables (do not exist in live schema)[m
+ [m
+ ```sql[m
+ -- Invitation tokens[m
+[36m@@ -88,9 +119,8 @@[m [mCREATE TABLE IF NOT EXISTS platform.invitations ([m
+     invitation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),[m
+     tenant_id UUID NOT NULL REFERENCES core.tenants(tenant_id) ON DELETE CASCADE,[m
+     email VARCHAR(255) NOT NULL,[m
+[31m-    role_name VARCHAR(100) DEFAULT 'viewer',[m
+     token VARCHAR(64) NOT NULL UNIQUE,[m
+[31m-    invited_by UUID REFERENCES platform.users(user_id),[m
+[32m+[m[32m    invited_by UUID REFERENCES platform.users(id),[m
+     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending','accepted','expired','revoked')),[m
+     expires_at TIMESTAMP NOT NULL,[m
+     accepted_at TIMESTAMP,[m
+[36m@@ -100,7 +130,7 @@[m [mCREATE TABLE IF NOT EXISTS platform.invitations ([m
+ -- Password reset tokens[m
+ CREATE TABLE IF NOT EXISTS platform.password_resets ([m
+     reset_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),[m
+[31m-    user_id UUID NOT NULL REFERENCES platform.users(user_id) ON DELETE CASCADE,[m
+[32m+[m[32m    user_id UUID NOT NULL REFERENCES platform.users(id) ON DELETE CASCADE,[m
+     token VARCHAR(64) NOT NULL UNIQUE,[m
+     expires_at TIMESTAMP NOT NULL,[m
+     used BOOLEAN DEFAULT FALSE,[m
+[36m@@ -110,7 +140,7 @@[m [mCREATE TABLE IF NOT EXISTS platform.password_resets ([m
+ -- Email verification tokens[m
+ CREATE TABLE IF NOT EXISTS platform.email_verifications ([m
+     verification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),[m
+[31m-    user_id UUID NOT NULL REFERENCES platform.users(user_id) ON DELETE CASCADE,[m
+[32m+[m[32m    user_id UUID NOT NULL REFERENCES platform.users(id) ON DELETE CASCADE,[m
+     token VARCHAR(64) NOT NULL UNIQUE,[m
+     expires_at TIMESTAMP NOT NULL,[m
+     verified BOOLEAN DEFAULT FALSE,[m
+[36m@@ -144,9 +174,9 @@[m [mALTER TABLE platform.users ADD COLUMN IF NOT EXISTS invitation_id UUID REFERENCE[m
+ [m
+ ---[m
+ [m
+[31m-## 5. Backend API Endpoints[m
+[32m+[m[32m## 7. Backend API Endpoints[m
+ [m
+[31m-### 5.1 Invitation System (Admin → User)[m
+[32m+[m[32m### 7.1 Invitation System (Admin → User)[m
+ [m
+ | Method | Path | Auth | Description |[m
+ |--------|------|------|-------------|[m
+[36m@@ -160,10 +190,10 @@[m [mALTER TABLE platform.users ADD COLUMN IF NOT EXISTS invitation_id UUID REFERENCE[m
+ POST /api/v1/invitations[m
+ {[m
+   "email": "user@example.com",[m
+[31m-  "role_name": "viewer",[m
+   "message": "Optional personal message"[m
+ }[m
+ ```[m
+[32m+[m[32m**Note:** `role_name` REMOVED from request — role-based invitation is OUT OF SCOPE. Role assignment uses existing RBAC after acceptance.[m
+ [m
+ **Accept Invite Request:**[m
+ ```json[m
+[36m@@ -176,29 +206,27 @@[m [mPOST /api/v1/invitations/accept[m
+ }[m
+ ```[m
+ [m
+[31m-### 5.2 Self-Service Registration — DEFERRED[m
+[31m-[m
+[31m-| Method | Path | Auth | Description |[m
+[31m-|--------|------|------|-------------|[m
+[31m-| `POST` | `/api/v1/auth/register` | Public | **DEFERRED** — not implemented in this workstream |[m
+[31m-| `POST` | `/api/v1/auth/verify-email` | Public | **DEFERRED** — not implemented in this workstream |[m
+[31m-[m
+[31m-**Rationale:** Per 001c canonical baseline, User → Tenant ownership is mandatory. Self-service registration without tenant context would require tenant self-provisioning (DEFERRED per ID-006). The only user creation path in 001e is **invitation acceptance** (`POST /invitations/accept`), which already has tenant context from the invitation record.[m
+[32m+[m[32m**Accept Invite Logic:**[m
+[32m+[m[32m1. Validate token (exists, not expired, status='pending', not used)[m
+[32m+[m[32m2. Call `UserService.create_user()` with provided details + `tenant_id` from invitation[m
+[32m+[m[32m3. Set `invitation_id` on new user record[m
+[32m+[m[32m4. Mark invitation `status='accepted'`, `accepted_at=NOW()`[m
+[32m+[m[32m5. Create `email_verifications` record for new user[m
+[32m+[m[32m6. Send verification email[m
+[32m+[m[32m7. Return success — user must verify email before login (see §8)[m
+ [m
+[31m-### 5.3 Password Management[m
+[32m+[m[32m### 7.2 Password Management[m
+ [m
+ | Method | Path | Auth | Description |[m
+ |--------|------|------|-------------|[m
+ | `POST` | `/api/v1/auth/forgot-password` | Public | Request password reset email |[m
+ | `POST` | `/api/v1/auth/reset-password` | Public | Reset password via token |[m
+[31m-| `POST` | `/api/v1/auth/change-password` | Authenticated | Change password while logged in (FIX) |[m
+[32m+[m[32m| `POST` | `/api/v1/auth/change-password` | Authenticated | Change password while logged in |[m
+ [m
+ **Forgot Password Request:**[m
+ ```json[m
+ POST /api/v1/auth/forgot-password[m
+[31m-{[m
+[31m-  "email": "user@example.com"[m
+[31m-}[m
+[32m+[m[32m{ "email": "user@example.com" }[m
+ ```[m
+ Always returns 200 (even if email doesn't exist — prevents enumeration).[m
+ [m
+[36m@@ -211,7 +239,7 @@[m [mPOST /api/v1/auth/reset-password[m
+ }[m
+ ```[m
+ [m
+[31m-**Change Password Request (FIX existing broken endpoint):**[m
+[32m+[m[32m**Change Password Request (ALREADY IMPLEMENTED in Phase 5 Step 2):**[m
+ ```json[m
+ POST /api/v1/auth/change-password[m
+ {[m
+[36m@@ -219,8 +247,27 @@[m [mPOST /api/v1/auth/change-password[m
+   "new_password": "NewSecureP@ss1"[m
+ }[m
+ ```[m
+[32m+[m[32mImplemented in `AuthService.change_password()`: validates current password, enforces policy, bcrypt hashes, increments `token_version`, commits.[m
+[32m+[m
+[32m+[m[32m### 7.3 Email Verification[m
+[32m+[m
+[32m+[m[32m| Method | Path | Auth | Description |[m
+[32m+[m[32m|--------|------|------|-------------|[m
+[32m+[m[32m| `POST` | `/api/v1/auth/verify-email` | Public | Verify email via token |[m
+[32m+[m
+[32m+[m[32m**Verify Email Request:**[m
+[32m+[m[32m```json[m
+[32m+[m[32mPOST /api/v1/auth/verify-email[m
+[32m+[m[32m{ "token": "abc123..." }[m
+[32m+[m[32m```[m
+ [m
+[31m-### 5.4 Website Registration (Public)[m
+[32m+[m[32m**Verification Logic:**[m
+[32m+[m[32m1. Validate token (exists, not expired, not used)[m
+[32m+[m[32m2. Set `platform.users.email_verified = TRUE` for associated `user_id`[m
+[32m+[m[32m3. Mark `email_verifications.verified = TRUE`[m
+[32m+[m[32m4. Return success — user can now login[m
+[32m+[m
+[32m+[m[32m### 7.4 Website Registration (Public)[m
+ [m
+ | Method | Path | Auth | Description |[m
+ |--------|------|------|-------------|[m
+[36m@@ -241,17 +288,32 @@[m [mPOST /api/v1/public/register[m
+ }[m
+ ```[m
+ [m
+[31m-**Response:** Creates a `website_registrations` row (status: `pending`). Super Admin processes via admin panel (converts to tenant + admin user).[m
+[32m+[m[32m**Response:** Creates `platform.website_registrations` row (status: `pending`). No tenant/user created. Super Admin processes via `/administration/registrations`.[m
+ [m
+ ---[m
+ [m
+[31m-## 6. Frontend Pages[m
+[32m+[m[32m## 8. Email Verification Lifecycle (Resolved)[m
+[32m+[m
+[32m+[m[32m| Event | Action |[m
+[32m+[m[32m|-------|--------|[m
+[32m+[m[32m| **User created via invitation acceptance** | `email_verifications` record created, verification email sent |[m
+[32m+[m[32m| **Verification email sent** | Contains link to `/verify-email?token=...` |[m
+[32m+[m[32m| **User clicks link → `POST /auth/verify-email`** | Token validated → `platform.users.email_verified = TRUE` → `email_verifications.verified = TRUE` |[m
+[32m+[m[32m| **Login attempt before verification** | Blocked — `AuthService.login()` checks `email_verified` and rejects if FALSE |[m
+[32m+[m[32m| **Token expires (24 hours)** | Record remains, `verified=FALSE` — user cannot login; new token can be issued via resend |[m
+[32m+[m[32m| **Token already consumed** | Returns error — single-use enforcement |[m
+[32m+[m[32m| **Resend verification** | New `email_verifications` record created, new email sent — old token invalidated by expiry |[m
+[32m+[m
+[32m+[m[32m**Rule:** No user may login until `email_verified = TRUE`. This applies to all user creation paths (invitation acceptance, future self-service).[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+[32m+[m[32m## 9. Frontend Pages[m
+ [m
+ ### New Pages[m
+ [m
+ | Route | Component | Purpose |[m
+ |-------|-----------|---------|[m
+[31m-| `/register` | `RegisterPage` | Self-service registration form |[m
+ | `/verify-email` | `VerifyEmailPage` | Email verification confirmation |[m
+ | `/forgot-password` | `ForgotPasswordPage` | Request password reset |[m
+ | `/reset-password` | `ResetPasswordPage` | Set new password via token |[m
+[36m@@ -263,13 +325,15 @@[m [mPOST /api/v1/public/register[m
+ [m
+ | Route | Component | Change |[m
+ |-------|-----------|--------|[m
+[31m-| `/login` | `LoginPage` | Add "Create account" link → `/register`; fix "Forgot password" link → `/forgot-password` |[m
+[31m-| `/profile` | `ProfilePage` | Wire "Change Password" button to actual API |[m
+[32m+[m[32m| `/login` | `LoginPage` | Fix "Forgot password" link → `/forgot-password`; remove "Create account" link (self-service DEFERRED) |[m
+[32m+[m[32m| `/profile` | `ProfilePage` | Wire "Change Password" button to `POST /auth/change-password` (already works) |[m
+ | `/administration/users` | `UsersPage` | Add "Invite User" button → invitation modal |[m
+ [m
+[32m+[m[32m**Note:** `/register` (RegisterPage) REMOVED — self-service registration is DEFERRED.[m
+[32m+[m
+ ---[m
+ [m
+[31m-## 7. Email Service[m
+[32m+[m[32m## 10. Email Service[m
+ [m
+ ### Architecture[m
+ [m
+[36m@@ -291,15 +355,15 @@[m [mEmailService (abstract interface)[m
+ | User requests password reset | `password_reset.html` | User |[m
+ | Email verification | `verification.html` | User |[m
+ [m
+[31m-### Environment Variables[m
+[32m+[m[32m### Environment Variables (Deployment Configuration)[m
+ [m
+ ```env[m
+ # Email Provider (deployment decision — NOT hardcoded in code)[m
+ EMAIL_PROVIDER=smtp[m
+ # SMTP config (used if EMAIL_PROVIDER=smtp)[m
+[31m-SMTP_HOST=smtp.mapnexus.co.uk[m
+[32m+[m[32mSMTP_HOST=<deployment-specific SMTP host>[m
+ SMTP_PORT=587[m
+[31m-SMTP_USER=noreply@mapnexus.co.uk[m
+[32m+[m[32mSMTP_USER=<deployment-specific SMTP user>[m
+ SMTP_PASS=<secret>[m
+ SMTP_FROM="MAP Nexus <noreply@mapnexus.co.uk>"[m
+ # SendGrid config (used if EMAIL_PROVIDER=sendgrid)[m
+[36m@@ -311,56 +375,68 @@[m [mAWS_SECRET_ACCESS_KEY=<secret>[m
+ APP_COOKIE_SECURE=true[m
+ ```[m
+ [m
+[31m-**Provider selection is a deployment/ops decision, not a code change.** The `EmailService` interface is implemented by the chosen provider at container startup.[m
+[32m+[m[32m**Provider selection is a deployment/ops decision, not a code change.** The `EmailService` interface is implemented by the chosen provider at container startup. `smtp.mapnexus.co.uk` does not currently exist and must not be assumed.[m
+ [m
+ ---[m
+ [m
+[31m-## 8. Security Considerations[m
+[32m+[m[32m## 11. Security Requirements[m
+ [m
+[31m-| Concern | Mituration |[m
+[31m-|---------|-----------|[m
+[31m-| Password enumeration | Forgot-password always returns 200; invitation accept always returns 200 |[m
+[32m+[m[32m| Concern | Mitigation |[m
+[32m+[m[32m|---------|------------|[m
+[32m+[m[32m| Password enumeration | `forgot-password` always returns 200; `invitations/accept` always returns 200 |[m
+ | Token brute-force | Rate limit: 5 requests/hour per IP on public endpoints |[m
+[31m-| Token reuse | Single-use tokens (marked `used=true` after consumption) |[m
+[32m+[m[32m| Token reuse | Single-use tokens (marked `used=true` / `verified=true` after consumption) |[m
+ | Token expiry | Invitations: 7 days; Password reset: 1 hour; Email verification: 24 hours |[m
+[31m-| Password policy | Enforced on all creation/reset paths (min 8, upper, lower, digit) |[m
+[31m-| Session after reset | Existing sessions invalidated via `token_version` increment |[m
+[31m-| Audit trail | All invitation/registration/reset events logged to `audit.*` |[m
+[31m-| Email delivery | Failed deliveries logged but don't expose internal errors to user |[m
+[32m+[m[32m| Password policy | Enforced on all creation/reset/change paths (min 8, upper, lower, digit) |[m
+[32m+[m[32m| Session after reset/change | Existing sessions invalidated via `token_version` increment |[m
+[32m+[m[32m| Audit trail | All identity events logged to existing audit architecture |[m
+[32m+[m[32m| Email delivery failures | Logged internally; never expose internal errors to user |[m
+[32m+[m[32m| Invitation token exposure | UUID tokens; HTTPS only; short expiry |[m
+ [m
+ ---[m
+ [m
+[31m-## 9. User Journey Flows[m
+[32m+[m[32m## 12. Rate Limiting (Explicit Endpoints)[m
+[32m+[m
+[32m+[m[32m| Endpoint | Limit | Window | Implementation |[m
+[32m+[m[32m|----------|-------|--------|----------------|[m
+[32m+[m[32m| `POST /api/v1/public/register` | 5 req/hour/IP | 1 hour | `slowapi` or `rate_limit_leads` pattern |[m
+[32m+[m[32m| `POST /api/v1/invitations/accept` | 5 req/hour/IP | 1 hour | `slowapi` or `rate_limit_leads` pattern |[m
+[32m+[m[32m| `POST /api/v1/auth/forgot-password` | 5 req/hour/IP | 1 hour | `slowapi` or `rate_limit_leads` pattern |[m
+[32m+[m[32m| `POST /api/v1/auth/reset-password` | 5 req/hour/IP | 1 hour | `slowapi` or `rate_limit_leads` pattern |[m
+[32m+[m[32m| `POST /api/v1/auth/verify-email` | 5 req/hour/IP | 1 hour | `slowapi` or `rate_limit_leads` pattern |[m
+[32m+[m[32m| `GET /api/v1/public/plans` | 30 req/min/IP | 1 minute | `slowapi` (read-only, higher limit) |[m
+[32m+[m
+[32m+[m[32m**Note:** Rate limiting for public endpoints does not currently exist — must be implemented in Phase 1 alongside email service. Existing `slowapi` middleware in `app/api/main.py` provides the framework.[m
+[32m+[m
+[32m+[m[32m---[m
+[32m+[m
+[32m+[m[32m## 13. User Journey Flows[m
+ [m
+ ### Flow A: Admin Invites User[m
+ ```[m
+ 1. Admin → /administration/users → "Invite User"[m
+[31m-2. Admin enters email + role → POST /invitations[m
+[32m+[m[32m2. Admin enters email + optional message → POST /invitations[m
+ 3. System creates invitation record + sends email[m
+ 4. User clicks link in email → /invites/accept?token=...[m
+ 5. User sets password + name → POST /invitations/accept[m
+[31m-6. Account activated → redirect to /login[m
+[31m-7. User logs in → JWT issued[m
+[32m+[m[32m6. System calls UserService.create_user() → creates user, sets invitation_id[m
+[32m+[m[32m7. System creates email_verifications record + sends verification email[m
+[32m+[m[32m8. User clicks verification link → /verify-email?token=... → POST /auth/verify-email[m
+[32m+[m[32m9. email_verified = TRUE → redirect to /login[m
+[32m+[m[32m10. User logs in → JWT issued[m
+ ```[m
+ [m
+ ### Flow B: Self-Service Registration[m
+[31m-```[m
+[31m-1. Visitor → /register (or link from mapnexus.co.uk)[m
+[31m-2. User fills form → POST /auth/register[m
+[31m-3. System creates pending user + sends verification email[m
+[31m-4. User clicks link → /verify-email?token=...[m
+[31m-5. Email verified → account activated[m
+[31m-6. User logs in → JWT issued[m
+[31m-```[m
+[32m+[m[32m**DEFERRED** — not implemented in this workstream. The only user-creation path is invitation acceptance.[m
+ [m
+ ### Flow C: Forgot Password[m
+ ```[m
+ 1. User → /login → "Forgot password?"[m
+ 2. User enters email → POST /auth/forgot-password[m
+[31m-3. System sends reset email (if user exists)[m
+[32m+[m[32m3. System creates password_resets record + sends reset email (if user exists)[m
+ 4. User clicks link → /reset-password?token=...[m
+ 5. User enters new password → POST /auth/reset-password[m
+[31m-6. Password updated + existing sessions invalidated[m
+[32m+[m[32m6. Password updated + existing sessions invalidated (token_version++)[m
+ 7. User logs in with new password[m
+ ```[m
+ [m
+[36m@@ -371,70 +447,90 @@[m [mAPP_COOKIE_SECURE=true[m
+ 3. System stores lead in website_registrations (status: pending)[m
+ 4. Super Admin reviews → /administration/registrations[m
+ 5. Super Admin clicks "Convert" → calls TenantService.create_tenant() (canonical path)[m
+[31m-6. Canonical tenant + admin user created (random password, email_verified=FALSE)[m
+[31m-7. First-login password setup mechanism — **TBD during 001e review** (not implemented by assumption)[m
+[32m+[m[32m6. Canonical tenant + admin user created (caller-supplied password, email_verified=FALSE)[m
+[32m+[m[32m7. First-admin password mechanism (see §17 — prerequisite decision)[m
+ ```[m
+ [m
+ **Critical Rules:**[m
+ - Website registration creates `website_registrations` row ONLY — no tenant/user created[m
+ - Conversion reuses existing `TenantService.create_tenant()` — no second provisioning path[m
+[31m-- **No passwords/default credentials ever emailed** — admin sets own password on first login[m
+[31m-- First-login mechanism (forced change, invitation flow, etc.) to be resolved during 001e review[m
+[32m+[m[32m- **No passwords/default credentials ever emailed** — admin sets own password at creation[m
+[32m+[m[32m- First-login mechanism to be resolved before Phase 6 implementation[m
+ [m
+[31m-### Flow E: Change Password (Logged In)[m
+[32m+[m[32m### Flow E: Change Password (Logged In) — **ALREADY IMPLEMENTED**[m
+ ```[m
+ 1. User → /profile → "Change Password"[m
+ 2. User enters current + new password → POST /auth/change-password[m
+ 3. System validates current password + policy[m
+ 4. Password updated + token_version incremented[m
+[31m-5. User continues session (or re-login required — configurable)[m
+[32m+[m[32m5. User re-logs in (session invalidated)[m
+ ```[m
+[32m+[m[32mImplemented in `AuthService.change_password()` (Phase 5 Step 2).[m
+ [m
+ ---[m
+ [m
+[31m-## 10. Implementation Phases[m
+[32m+[m[32m## 14. Implementation Phases[m
+[32m+[m
+[32m+[m[32m| Phase | Scope | Dependencies | Status |[m
+[32m+[m[32m|-------|-------|--------------|--------|[m
+[32m+[m[32m| **Phase 0** | Specification review / prerequisite verification | None | **THIS TASK** |[m
+[32m+[m[32m| **Phase 1** | EmailService abstraction + SMTP implementation + env config + rate limiting middleware for public endpoints | None | PLANNED |[m
+[32m+[m[32m| **Phase 2** | Invitation system (backend API + DB + frontend) | Phase 1 | PLANNED |[m
+[32m+[m[32m| **Phase 3** | Password reset (forgot/reset backend API + DB + frontend) | Phase 1 | PLANNED |[m
+[32m+[m[32m| **Phase 4** | Email verification lifecycle

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useMigrationOverview } from '../hooks/useMigration';
 import { useReportSuite } from '../hooks/useReports';
 import { PageContainer } from '../components/PageContainer/PageContainer';
@@ -9,6 +10,8 @@ import { TenantFilter } from '../components/shared/TenantFilter';
 import { KpiBox, ReportCard, StatusPill, EmptyState } from '../components/reports/reportWidgets';
 
 export function MigrationOverviewNew() {
+  const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const navigate = useNavigate();
   const [selectedTenant, setSelectedTenant] = useState<string>('');
   const { overview, loading, error, refetch } = useMigrationOverview(selectedTenant || undefined);
@@ -84,7 +87,9 @@ export function MigrationOverviewNew() {
           <p className="text-sm text-gray-500 mt-1">Summary of all migration activity across projects and batches</p>
         </div>
         <div className="flex items-center gap-3">
-          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
           <button
             className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             onClick={refetch}

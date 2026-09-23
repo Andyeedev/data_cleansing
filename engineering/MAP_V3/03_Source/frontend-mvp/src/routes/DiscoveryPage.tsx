@@ -75,11 +75,13 @@ export function DiscoveryPage() {
     return Math.round((completed / total) * 100);
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
+
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <h1 className="text-xl font-bold text-gray-900 mb-4">Discovery</h1>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -94,7 +96,9 @@ export function DiscoveryPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
           <button
             onClick={() => handleRunDiscovery('default')}
             disabled={running || polling}

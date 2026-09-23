@@ -41,6 +41,7 @@ const PAGE_SIZES = [10, 25, 50, 100];
 
 export function MappingSpreadsheetPage() {
   const { userRoles, tenantId: userTenantId } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [selectedTenant, setSelectedTenant] = useState<string>(userTenantId || '');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
@@ -316,11 +317,11 @@ export function MappingSpreadsheetPage() {
     ? confirmText.toLowerCase() === 'clear all'
     : confirmText === confirmModal.tableName;
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <h1 className="text-xl font-bold text-gray-900 mb-4">Migration Mappings</h1>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -339,7 +340,9 @@ export function MappingSpreadsheetPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
           <button onClick={handleRefresh} disabled={loading || isBusy} className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Refresh</button>
           <button onClick={handleAutoMap} disabled={autoMapping || !selectedTenant} className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{autoMapping ? 'Mapping...' : 'Auto Map'}</button>
           <button onClick={handleSave} disabled={saving || Object.keys(localChanges).length === 0} className={`px-3 py-1.5 text-xs font-medium rounded-md border ${Object.keys(localChanges).length > 0 ? 'bg-green-600 text-white border-green-600 hover:bg-green-700' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'} disabled:opacity-50 disabled:cursor-not-allowed`}>{saving ? 'Saving...' : `Save${Object.keys(localChanges).length > 0 ? ` (${Object.keys(localChanges).length})` : ''}`}</button>

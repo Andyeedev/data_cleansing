@@ -162,11 +162,13 @@ export function GovernancePage() {
     return () => { cancelled = true; };
   }, [activeTab, selectedTenant]);
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
+
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <div style={{ padding: 'var(--space-lg)' }}>
         <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Governance</h1>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </div>
     );
   }
@@ -316,7 +318,9 @@ export function GovernancePage() {
       <div style={{ display: 'flex', alignItems: 'flex-end', marginBottom: 'var(--space-md)' }}>
         <TabBar tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
         </div>
       </div>
 

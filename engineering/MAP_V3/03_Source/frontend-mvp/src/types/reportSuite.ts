@@ -44,6 +44,7 @@ export interface EntityMappingRow {
 }
 
 export interface MigrationSection {
+  platform_overview?: { source_platform: string; target_platform: string; source_columns: number; target_columns: number; entities_mapped: number; projects: number };
   platform: { projects: number; mapped_datasets: number; mapped_columns: number };
   entity_mapping: { entities: EntityMappingRow[]; total: number };
 }

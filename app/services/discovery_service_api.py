@@ -55,9 +55,27 @@ class DiscoveryService:
             "source_schema": row[4],
             "source_table": row[5],
             "source_columns": row[6],
-            "target_schema": row[7],
+            "target_schema": row[6],
             "target_table": row[8],
             "target_columns": row[9],
             "is_active": row[10],
             "created_at": str(row[11]) if row[11] else None
         }
+
+    def get_summary(self, tenant_id: str = None):
+        with get_db_connection() as db:
+            repo = DiscoveryRepository(db)
+            data = repo.get_summary(tenant_id=tenant_id)
+        return data
+
+    def get_tree(self, tenant_id: str = None):
+        with get_db_connection() as db:
+            repo = DiscoveryRepository(db)
+            data = repo.get_tree(tenant_id=tenant_id)
+        return data
+
+    def get_tables(self, tenant_id: str = None):
+        with get_db_connection() as db:
+            repo = DiscoveryRepository(db)
+            data = repo.get_tables(tenant_id=tenant_id)
+        return data

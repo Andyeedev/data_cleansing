@@ -28,8 +28,9 @@ export function ValidationResultsPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const { batchId: contextBatchId } = useValidationFilter();
-  const [selectedBatchId, setSelectedBatchId] = useState(urlBatchId || contextBatchId || '');
+  const [selectedBatchId, setSelectedBatchId] = useState(urlBatchId || '');
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [selectedControlId, setSelectedControlId] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(true);
@@ -87,13 +88,13 @@ export function ValidationResultsPage() {
     return Math.round((completed / total) * 100);
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
       <PageContainer>
         <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900">Validation Results</h1>
         </div>
-        <ErrorState message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState message="You do not have permission to view this page. Required role: admin or Tenant Admin" />
       </PageContainer>
     );
   }
@@ -121,7 +122,7 @@ export function ValidationResultsPage() {
               &larr; Back to Rules
             </button>
           )}
-          <CascadeDropdowns />
+          <CascadeDropdowns isSuperAdmin={isSuperAdmin} />
           <div className="flex items-center gap-2">
             <input
               type="text"

@@ -59,8 +59,8 @@ export function ExecutiveSectionView({ s }: { s: NonNullable<Suite['executive']>
               ['Industry', (scenario?.industry as string) ?? 'Financial Services'],
               ['Source Platform', (scenario?.source_platform as string) ?? 'N/A'],
               ['Target Platform', (scenario?.target_platform as string) ?? 'N/A'],
-              ['Source Records', String((scenario?.source_records as number) ?? 0)],
-              ['Target Records', String((scenario?.target_records as number) ?? 0)],
+              ['Source Columns', String((scenario?.source_columns as number) ?? 0)],
+              ['Target Columns', String((scenario?.target_columns as number) ?? 0)],
               ['Entities Mapped', String((scenario?.entities_mapped as number) ?? 0)],
               ['Execution Duration', (scenario?.duration_seconds as number) ? `${scenario.duration_seconds} seconds` : 'N/A'],
             ].map(([label, value]) => (
@@ -78,17 +78,17 @@ export function ExecutiveSectionView({ s }: { s: NonNullable<Suite['executive']>
 
 export function MigrationSectionView({ s }: { s: NonNullable<Suite['migration']> }) {
   const em = s.entity_mapping;
-  const po = (s as Record<string, unknown>).platform_overview as Record<string, unknown> | undefined;
+  const po = s.platform_overview;
   const dqObs = (s as Record<string, unknown>).data_quality_observations as string ?? '';
   return (
     <>
       <ReportCard title="Platform Overview" className="mb-6">
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-          <KpiBox label="Source Platform" value={(po?.source_platform as string) ?? 'Legacy System'} tone="info" />
-          <KpiBox label="Target Platform" value={(po?.target_platform as string) ?? 'MAPNEXUS Target'} tone="info" />
-          <KpiBox label="Source Records" value={(po?.source_records as number) ?? 0} tone="info" />
-          <KpiBox label="Target Records" value={(po?.target_records as number) ?? 0} tone="info" />
-          <KpiBox label="Entities Mapped" value={(po?.entities_mapped as number) ?? em.total} tone="info" />
+          <KpiBox label="Source Platform" value={po?.source_platform ?? 'Legacy System'} tone="info" />
+          <KpiBox label="Target Platform" value={po?.target_platform ?? 'MAPNEXUS Target'} tone="info" />
+          <KpiBox label="Source Columns" value={po?.source_columns ?? 0} tone="info" />
+          <KpiBox label="Target Columns" value={po?.target_columns ?? 0} tone="info" />
+          <KpiBox label="Entities Mapped" value={po?.entities_mapped ?? em.total} tone="info" />
           <KpiBox label="Projects" value={s.platform.projects} tone="info" />
         </div>
       </ReportCard>
@@ -186,6 +186,49 @@ export function ValidationSectionView({ s }: { s: NonNullable<Suite['validation'
 
 export function GovernanceSectionView({ s }: { s: NonNullable<Suite['governance']> }) {
   const ov = s.overview;
+  
+  // Group findings by control + type to avoid duplicates
+  const groupedFindings = Object.values(
+    s.findings.reduce((acc, f) => {
+      const key = `${f.control_id}|${f.type}`;
+      if (!acc[key]) {
+        acc[key] = {
+          control_id: f.control_id,
+          control_name: f.control_id, // Will be replaced with proper name if available
+          type: f.type,
+          description: f.description,
+          severity: f.severity,
+          owner: f.owner,
+          status: f.status,
+          count: 0,
+        };
+      }
+      acc[key].count++;
+      return acc;
+    }, {} as Record<string, any>)
+  ).sort((a, b) => {
+    const sevOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    return (sevOrder[a.severity as keyof typeof sevOrder] ?? 99) - (sevOrder[b.severity as keyof typeof sevOrder] ?? 99);
+  });
+
+  // Map control_id to readable names
+  const controlNames: Record<string, string> = {
+    'C01': 'Row Count Reconciliation',
+    'C02': 'Financial Value Integrity & Reconciliation',
+    'C03': 'Referential Integrity',
+    'C04': 'Column Count Validation',
+    'C05': 'Data Type Consistency',
+    'C06': 'Nullability Validation',
+    'C07': 'Duplicate Detection',
+    'C08': 'Schema Drift Detection',
+    'C09': 'Referential Coverage',
+    'C010': 'Schema Comparison',
+  };
+  
+  groupedFindings.forEach(f => {
+    f.control_name = controlNames[f.control_id] || f.control_id;
+  });
+
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
@@ -195,27 +238,27 @@ export function GovernanceSectionView({ s }: { s: NonNullable<Suite['governance'
         <KpiBox label="High" value={ov.high} tone={ov.high > 0 ? 'warning' : 'neutral'} />
         <KpiBox label="Medium" value={ov.medium} tone={ov.medium > 0 ? 'info' : 'neutral'} />
       </div>
-      <ReportCard title="All Findings" subtitle={`${s.total} findings (first 200 captured)`} className="mb-6">
-        {s.findings.length === 0 ? (
+      <ReportCard title="Findings (Grouped by Control & Type)" subtitle={`${groupedFindings.length} unique groups from ${s.total} findings`} className="mb-6">
+        {groupedFindings.length === 0 ? (
           <EmptyState message="No findings recorded for this batch. Select an earlier batch with exceptions to review its findings." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  {['ID', 'Type', 'Description', 'Severity', 'Control', 'Owner', 'Status'].map((h) => (
+                  {['Control Name', 'Type', 'Description', 'Severity', 'Count', 'Owner', 'Status'].map((h) => (
                     <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {s.findings.slice(0, 50).map((f) => (
-                  <tr key={f.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-2 font-mono text-xs text-gray-500">{f.id}</td>
+                {groupedFindings.map((f) => (
+                  <tr key={`${f.control_id}|${f.type}`} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="px-3 py-2 font-medium text-gray-900">{f.control_name || f.control_id}</td>
                     <td className="px-3 py-2 text-gray-700 max-w-[220px] truncate" title={f.type}>{f.type}</td>
                     <td className="px-3 py-2 text-gray-700" title={f.description}>{f.description}</td>
                     <td className="px-3 py-2"><StatusPill status={f.severity} /></td>
-                    <td className="px-3 py-2 font-mono text-xs text-gray-700">{f.control_id}</td>
+                    <td className="px-3 py-2 text-right tabular-nums font-semibold">{f.count}</td>
                     <td className="px-3 py-2 text-gray-700">{f.owner}</td>
                     <td className="px-3 py-2"><StatusPill status={f.status} /></td>
                   </tr>
@@ -415,18 +458,42 @@ export function ReadinessSectionView({ s }: { s: NonNullable<Suite['readiness']>
 
 export function IssuesSectionView({ s }: { s: NonNullable<Suite['issues']> }) {
   const sum = s.summary;
+  const openCritical = s.issues.filter(f => f.severity === 'CRITICAL' && f.status === 'OPEN');
+  const openHigh = s.issues.filter(f => f.severity === 'HIGH' && f.status === 'OPEN');
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
-        <KpiBox label="Total Issues" value={sum.total} tone={sum.total > 0 ? 'error' : 'success'} />
+        <KpiBox label="Total Exceptions" value={sum.total} tone={sum.total > 0 ? 'error' : 'success'} />
         <KpiBox label="Open" value={sum.open} tone={sum.open > 0 ? 'warning' : 'success'} />
         <KpiBox label="Critical" value={sum.critical} tone={sum.critical > 0 ? 'error' : 'neutral'} />
         <KpiBox label="High" value={sum.high} tone={sum.high > 0 ? 'warning' : 'neutral'} />
         <KpiBox label="Medium" value={sum.medium} tone={sum.medium > 0 ? 'info' : 'neutral'} />
       </div>
-      <ReportCard title="Issue Register" subtitle={`${s.issues.length} issues (first 200 captured)`} className="mb-6">
+      {(openCritical.length > 0 || openHigh.length > 0) && (
+        <ReportCard title="Immediate Action Required" className="mb-6">
+          <div className="rounded-lg border-2 border-red-600 bg-red-50 p-4 mb-4">
+            <div className="text-sm font-bold text-red-700 mb-2">OPEN CRITICAL/HIGH EXCEPTIONS</div>
+            <p className="text-sm text-red-800 mb-3">{openCritical.length} critical and {openHigh.length} high-severity exceptions require immediate remediation before production migration.</p>
+            <div className="space-y-2">
+              {[...openCritical, ...openHigh].slice(0, 5).map((f) => (
+                <div key={f.id} className="flex items-center gap-2 text-sm">
+                  <StatusPill status={f.severity} />
+                  <span className="font-mono text-xs text-gray-500">{f.id}</span>
+                  <span className="text-gray-700">{f.entity}</span>
+                  <span className="text-gray-500">-</span>
+                  <span className="text-gray-700">{f.type}</span>
+                </div>
+              ))}
+              {(openCritical.length + openHigh.length) > 5 && (
+                <p className="text-xs text-gray-500">...and {(openCritical.length + openHigh.length) - 5} more exceptions</p>
+              )}
+            </div>
+          </div>
+        </ReportCard>
+      )}
+      <ReportCard title="Exceptions by Control" subtitle={`${s.issues.length} exceptions (first 200 captured)`} className="mb-6">
         {s.issues.length === 0 ? (
-          <EmptyState message="No issues recorded for this batch. Select an earlier batch with exceptions to review its issue register." />
+          <EmptyState message="No exceptions recorded for this batch. Select an earlier batch with exceptions to review its exception register." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -454,32 +521,54 @@ export function IssuesSectionView({ s }: { s: NonNullable<Suite['issues']> }) {
           </div>
         )}
       </ReportCard>
-      <ReportCard title="Issues by Owner">
-        {s.by_owner.length === 0 ? (
-          <EmptyState message="No findings to allocate." />
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                {['Owner', 'Findings', 'Critical', 'High', 'Medium'].map((h, i) => (
-                  <th key={h} className={`px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {s.by_owner.map((o) => (
-                <tr key={o.owner} className="border-b border-gray-100">
-                  <td className="px-3 py-2 text-gray-800">{o.owner}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-semibold text-gray-900">{o.total}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-red-700">{o.critical}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-yellow-700">{o.high}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-blue-700">{o.medium}</td>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <ReportCard title="Exceptions by Owner">
+          {s.by_owner.length === 0 ? (
+            <EmptyState message="No findings to allocate." />
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Owner', 'Exceptions', 'Critical', 'High', 'Medium'].map((h, i) => (
+                    <th key={h} className={`px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </ReportCard>
+              </thead>
+              <tbody>
+                {s.by_owner.map((o) => (
+                  <tr key={o.owner} className="border-b border-gray-100">
+                    <td className="px-3 py-2 text-gray-800">{o.owner}</td>
+                    <td className="px-3 py-2 text-right tabular-nums font-semibold text-gray-900">{o.total}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-red-700">{o.critical}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-yellow-700">{o.high}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-blue-700">{o.medium}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </ReportCard>
+        <ReportCard title="Remediation Summary">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Critical exceptions blocking migration</span>
+              <span className="text-sm font-semibold text-red-700">{sum.critical}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">High exceptions requiring attention</span>
+              <span className="text-sm font-semibold text-yellow-700">{sum.high}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm text-gray-700">Medium exceptions for review</span>
+              <span className="text-sm font-semibold text-blue-700">{sum.medium}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-gray-700">Exceptions resolved</span>
+              <span className="text-sm font-semibold text-green-700">{sum.total - sum.open}</span>
+            </div>
+          </div>
+        </ReportCard>
+      </div>
     </>
   );
 }
@@ -649,6 +738,49 @@ export function ValidationPackSectionView({ s }: { s: NonNullable<import('../../
 export function GovernancePackSectionView({ s }: { s: NonNullable<import('../../types/reportSuite').GovernancePackSection> }) {
   const ov = s.overview;
   const hasCritical = ov.critical > 0;
+  
+  // Group findings by control + entity + type to avoid duplicates
+  const groupedFindings = Object.values(
+    s.findings.reduce((acc, f) => {
+      const key = `${f.control_id}|${f.entity_name}|${f.type}`;
+      if (!acc[key]) {
+        acc[key] = {
+          control_id: f.control_id,
+          control_name: f.control_id,
+          entity_name: f.entity_name,
+          type: f.type,
+          owner: f.owner,
+          severity: f.severity,
+          status: f.status,
+          count: 0,
+        };
+      }
+      acc[key].count++;
+      return acc;
+    }, {} as Record<string, any>)
+  ).sort((a, b) => {
+    const sevOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    return (sevOrder[a.severity as keyof typeof sevOrder] ?? 99) - (sevOrder[b.severity as keyof typeof sevOrder] ?? 99);
+  });
+
+  // Map control_id to readable names
+  const controlNames: Record<string, string> = {
+    'C01': 'Row Count Reconciliation',
+    'C02': 'Financial Value Integrity & Reconciliation',
+    'C03': 'Referential Integrity',
+    'C04': 'Column Count Validation',
+    'C05': 'Data Type Consistency',
+    'C06': 'Nullability Validation',
+    'C07': 'Duplicate Detection',
+    'C08': 'Schema Drift Detection',
+    'C09': 'Referential Coverage',
+    'C010': 'Schema Comparison',
+  };
+  
+  groupedFindings.forEach(f => {
+    f.control_name = controlNames[f.control_id] || f.control_id;
+  });
+
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
@@ -658,27 +790,28 @@ export function GovernancePackSectionView({ s }: { s: NonNullable<import('../../
         <KpiBox label="Medium" value={ov.medium} tone={ov.medium > 0 ? 'warning' : 'neutral'} />
         <KpiBox label="Low" value={ov.low} tone="neutral" />
       </div>
-      <ReportCard title="Findings" subtitle={`${s.findings.length} governance findings identified`} className="mb-6">
-        {s.findings.length === 0 ? (
+      <ReportCard title="Findings (Grouped by Control, Entity & Type)" subtitle={`${groupedFindings.length} unique groups from ${s.findings.length} findings`} className="mb-6">
+        {groupedFindings.length === 0 ? (
           <EmptyState message="No governance findings in current batch." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  {['Entity', 'Rule', 'Type', 'Owner', 'Severity', 'Status'].map((h) => (
+                  {['Control Name', 'Entity', 'Type', 'Owner', 'Severity', 'Count', 'Status'].map((h) => (
                     <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {s.findings.map((f, i) => (
-                  <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+                {groupedFindings.map((f) => (
+                  <tr key={`${f.control_id}|${f.entity_name}|${f.type}`} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{f.control_name}</td>
                     <td className="px-3 py-2.5 font-medium text-gray-900">{f.entity_name}</td>
-                    <td className="px-3 py-2.5 font-mono text-xs text-gray-500">{f.rule_id}</td>
                     <td className="px-3 py-2.5"><StatusPill status={f.type} /></td>
                     <td className="px-3 py-2.5 text-gray-700">{f.owner}</td>
                     <td className="px-3 py-2.5"><StatusPill status={f.severity} /></td>
+                    <td className="px-3 py-2.5 text-right tabular-nums font-semibold">{f.count}</td>
                     <td className="px-3 py-2.5"><StatusPill status={f.status} /></td>
                   </tr>
                 ))}

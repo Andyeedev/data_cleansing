@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useMigrationProjects } from '../hooks/useMigration';
 import { PageContainer } from '../components/PageContainer/PageContainer';
 import { LoadingOverlay } from '../components/LoadingOverlay/LoadingOverlay';
@@ -9,7 +10,8 @@ import { TenantFilter } from '../components/shared/TenantFilter';
 import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 
 export function MigrationProjectsPage() {
-  const navigate = useNavigate();
+  const { userRoles } = useAuth();
+  const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [selectedTenant, setSelectedTenant] = useState<string>('');
   const { projects, loading, error, refetch } = useMigrationProjects(undefined, selectedTenant || undefined);
 
@@ -42,7 +44,9 @@ export function MigrationProjectsPage() {
           <p className="text-sm text-gray-500 mt-1">{projects.length} projects</p>
         </div>
         <div className="flex items-center gap-3">
-          <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          {isSuperAdmin && (
+            <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
+          )}
           <button
             onClick={refetch}
             className="px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
