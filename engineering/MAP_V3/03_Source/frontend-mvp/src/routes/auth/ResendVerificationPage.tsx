@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import { apiPost } from '../../utils/apiClient';
 import { PageContainer } from '../../components/PageContainer/PageContainer';
 
 export function ResendVerificationPage() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

@@ -57,7 +57,7 @@ interface RecentExecution {
 
 const AUTO_REFRESH_MS = 15000;
 
-function UsageLimitCard({ label, current, max, usagePercent, isNearLimit }: {
+function UsageLimitCard({ label, current, max }: {
   label: string;
   current: number;
   max: number;

@@ -110,8 +110,8 @@ export function ScoreBar({ score }: { score: number | null }) {
   );
 }
 
-export function EmptyState({ message }: { message: string }) {
-  return <p className="text-sm text-gray-400 py-8 text-center">{message}</p>;
+export function EmptyState({ message, title, description }: { message?: string; title?: string; description?: string }) {
+  return <p className="text-sm text-gray-400 py-8 text-center">{title ?? message ?? description}</p>;
 }
 
 export function LineChart({ points }: { points: { label: string; value: number | null }[] }) {

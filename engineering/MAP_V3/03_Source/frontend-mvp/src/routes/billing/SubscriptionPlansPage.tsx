@@ -28,7 +28,6 @@ function PriceTag({ plan, cycle }: { plan: Plan; cycle: string }) {
   const monthly = plan.monthly_price
     ? (typeof plan.monthly_price === 'string' ? parseFloat(plan.monthly_price) : plan.monthly_price)
     : Math.round(list / 12);
-  const annualDiscountedMonthly = Math.round(annual / 12);
 
   if (cycle === 'monthly') {
     return (
@@ -40,8 +39,6 @@ function PriceTag({ plan, cycle }: { plan: Plan; cycle: string }) {
       </div>
     );
   }
-  const savings = Math.round(list - annual);
-  const savingsPct = Math.round((savings / list) * 100);
   return (
     <div className="text-left">
       <div className="flex items-baseline gap-2">

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Shell } from './components/Shell/Shell';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PublicRoute } from './components/PublicRoute';
@@ -17,7 +17,7 @@ import { useAuth } from './context/AuthContext';
 const DashboardPage = lazy(() => import('./routes/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const MigrationPage = lazy(() => import('./routes/MigrationPage').then(m => ({ default: m.MigrationPage })));
 const DiscoveryPage = lazy(() => import('./routes/DiscoveryPage').then(m => ({ default: m.DiscoveryPage })));
-const MappingPage = lazy(() => import('./routes/MappingPage').then(m => ({ default: m.MappingPage })));
+
 const ValidationPage = lazy(() => import('./routes/ValidationPage').then(m => ({ default: m.ValidationPage })));
 const ValidationResultsPage = lazy(() => import('./routes/ValidationResultsPage').then(m => ({ default: m.ValidationResultsPage })));
 const GovernancePage = lazy(() => import('./routes/GovernancePage').then(m => ({ default: m.GovernancePage })));
@@ -173,22 +173,24 @@ export function AppRoutes() {
           <Route path="/settings" element={<UserSettingsPage />} />
           <Route path="/about" element={<AboutPage />} />
 
-          <Route path="/administration" element={<AdministrationPage />} />
-          <Route path="/administration/users" element={<ValidationFilterProvider><UsersPage /></ValidationFilterProvider>} />
-          <Route path="/administration/users/new" element={<UserDetailPage />} />
-          <Route path="/administration/users/:id" element={<UserDetailPage />} />
-          <Route path="/administration/roles" element={<RolesPage />} />
-          <Route path="/administration/roles/new" element={<RoleDetailPage />} />
-          <Route path="/administration/roles/:id" element={<RoleDetailPage />} />
-          <Route path="/administration/tenants" element={<AdministrationPage />} />
-          <Route path="/administration/settings" element={<SettingsPage />} />
-          <Route path="/administration/permissions" element={<PermissionsPage />} />
-          <Route path="/administration/feature-flags" element={<SettingsPage />} />
-          <Route path="/administration/security" element={<AdministrationPage />} />
-          <Route path="/administration/notifications" element={<AdministrationPage />} />
-          <Route path="/administration/maintenance" element={<AdministrationPage />} />
-          <Route path="/administration/invitations" element={<ValidationFilterProvider><InvitationsPage /></ValidationFilterProvider>} />
-          <Route path="/administration/registrations" element={<ValidationFilterProvider><RegistrationsPage /></ValidationFilterProvider>} />
+          <Route element={<ProtectedRoute requiredRoles={['admin']}><Outlet /></ProtectedRoute>}>
+            <Route path="/administration" element={<AdministrationPage />} />
+            <Route path="/administration/users" element={<ValidationFilterProvider><UsersPage /></ValidationFilterProvider>} />
+            <Route path="/administration/users/new" element={<UserDetailPage />} />
+            <Route path="/administration/users/:id" element={<UserDetailPage />} />
+            <Route path="/administration/roles" element={<RolesPage />} />
+            <Route path="/administration/roles/new" element={<RoleDetailPage />} />
+            <Route path="/administration/roles/:id" element={<RoleDetailPage />} />
+            <Route path="/administration/tenants" element={<AdministrationPage />} />
+            <Route path="/administration/settings" element={<SettingsPage />} />
+            <Route path="/administration/permissions" element={<PermissionsPage />} />
+            <Route path="/administration/feature-flags" element={<SettingsPage />} />
+            <Route path="/administration/security" element={<AdministrationPage />} />
+            <Route path="/administration/notifications" element={<AdministrationPage />} />
+            <Route path="/administration/maintenance" element={<AdministrationPage />} />
+            <Route path="/administration/invitations" element={<ValidationFilterProvider><InvitationsPage /></ValidationFilterProvider>} />
+            <Route path="/administration/registrations" element={<ValidationFilterProvider><RegistrationsPage /></ValidationFilterProvider>} />
+          </Route>
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>

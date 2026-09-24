@@ -23,14 +23,14 @@ export function ValidationCentrePage() {
   const [historySearch, setHistorySearch] = useState('');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { data: dashboardData, loading: dashLoading, error: dashError, refetch: dashRefetch } = useValidationDashboard(tenantId || undefined);
+  const { loading: dashLoading, error: dashError, refetch: dashRefetch } = useValidationDashboard(tenantId || undefined);
   const { data: controlsData, loading: ctrlLoading, error: ctrlError } = useControls(tenantId || undefined);
   const { data: outcomesData, loading: outLoading, error: outError, refetch: outRefetch } = useExecutionOutcomes(tenantId || undefined);
   const { data: historyData, loading: histLoading, error: histError, refetch: histRefetch } = useExecutionHistory(
     historyPage, PAGE_SIZE, tenantId || undefined, undefined, historySearch || undefined
   );
 
-  const [controlSearch, setControlSearch] = useState('');
+  const [controlSearch] = useState('');
   const [hoveredSegment, setHoveredSegment] = useState<number | null>(null);
 
   const refetchAll = useCallback(() => {

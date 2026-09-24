@@ -25,20 +25,6 @@ interface RuleMapping {
   last_execution_at: string | null;
 }
 
-interface ControlRule {
-  id: number;
-  batch_id: string;
-  control_id: string;
-  rule_id: string;
-  entity_name: string;
-  execution_status: string;
-  delta_value: number | null;
-  execution_time_seconds: number | null;
-  severity_level: string | null;
-  created_at: string | null;
-  detail_json: Record<string, any> | null;
-}
-
 function ControlReportModal({ isOpen, onClose, controlId, controlName, projectId }: { isOpen: boolean; onClose: () => void; controlId: string; controlName: string; projectId: string }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,7 +46,7 @@ function ControlReportModal({ isOpen, onClose, controlId, controlName, projectId
           setData([]);
           return;
         }
-        const result = await apiGet<any[]>(
+        const result = await apiGet<any[] | { items?: any[] }>(
           `/execution/${batchId}/control/${controlId}/rules`
         );
         setData(Array.isArray(result) ? result : (result.items || []));
@@ -75,7 +61,7 @@ function ControlReportModal({ isOpen, onClose, controlId, controlName, projectId
   }, [isOpen, controlId, projectId]);
 
   return (
-    <Modal open={isOpen} title={`Control Rules: ${controlId}`} onClose={onClose}>
+    <Modal open={isOpen} title={`Control Rules: ${controlName}`} onClose={onClose}>
       {loading ? (
         <div className="py-12 text-center text-gray-500">Loading rules...</div>
       ) : error ? (

@@ -190,7 +190,7 @@ export function MigrationTimelinePage() {
               <TenantFilter selectedTenant={selectedTenant} onChange={setSelectedTenant} />
             )}
             <button
-              onClick={fetchTimeline}
+              onClick={() => fetchTimeline(0)}
               className="px-3 py-1.5 bg-bg-secondary text-text border border-border rounded cursor-pointer text-sm hover:bg-bg-tertiary"
             >
               Refresh
@@ -199,7 +199,7 @@ export function MigrationTimelinePage() {
         }
       />
 
-      {error && <ErrorState message={error} onRetry={fetchTimeline} />}
+      {error && <ErrorState message={error} onRetry={() => fetchTimeline(0)} />}
       {loading && <LoadingSkeleton rows={4} variant="card" />}
 
       {!loading && !error && summary && (
@@ -351,18 +351,4 @@ export function MigrationTimelinePage() {
       )}
     </div>
   );
-}
-
-function formatTimeAgo(dateStr: string): string {
-  if (!dateStr) return '-';
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return 'just now';
-  if (diffMin < 60) return `${diffMin} min ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} hr ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
 }

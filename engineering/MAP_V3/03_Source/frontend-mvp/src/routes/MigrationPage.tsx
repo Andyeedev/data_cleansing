@@ -35,7 +35,7 @@ const STATUS_OPTIONS = ['all', 'COMPLETED', 'RUNNING', 'FAILED'];
 
 export function MigrationPage() {
   const { userRoles } = useAuth();
-  const { items: historyItems, total, page: _page, pageSize, loading: historyLoading, error: historyError, fetchHistory } = useExecutionHistory();
+  const { items: historyItems, total, page: _page, loading: historyLoading, error: historyError, fetchHistory } = useExecutionHistory();
   const { tenants: allTenants, loading: tenantsLoading } = useMigrationTenants();
   const [confirmTenantIdInternal, setConfirmTenantId] = useState('');
   const { projects: tenantProjects } = useMigrationProjects(undefined, confirmTenantIdInternal);
@@ -151,8 +151,6 @@ export function MigrationPage() {
     }
     setServerPage(1);
   };
-
-  const totalPages = Math.ceil(total / pageSize);
 
   const handleTenantChange = (v: string) => {
     setSelectedTenant(v);

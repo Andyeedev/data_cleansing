@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Lock, AlertCircle, CheckCircle, Loader2, Mail, User } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2, Mail } from 'lucide-react';
 import { apiPost } from '../../utils/apiClient';
 import { PageContainer } from '../../components/PageContainer/PageContainer';
 
@@ -67,7 +67,7 @@ export function AcceptInvitePage() {
 
     setLoading(true);
     try {
-      const response = await apiPost('/invitations/accept', {
+      await apiPost('/invitations/accept', {
         token,
         password: formData.password,
         first_name: formData.first_name.trim(),

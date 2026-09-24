@@ -5,8 +5,6 @@ export function useAuthInterceptor() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const originalFetch = window.fetch.bind(window);
-
     const wrappedFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
       const method = init?.method || 'GET';

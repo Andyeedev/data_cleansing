@@ -33,9 +33,8 @@ export function useSystemDetail(systemId: string | null, tenantId?: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchSystem = useCallback(() => {
     if (!systemId) return;
-
     setLoading(true);
     setError(null);
     const qs = tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : '';
@@ -45,7 +44,11 @@ export function useSystemDetail(systemId: string | null, tenantId?: string) {
       .finally(() => setLoading(false));
   }, [systemId, tenantId]);
 
-  return { data, loading, error };
+  useEffect(() => {
+    fetchSystem();
+  }, [fetchSystem]);
+
+  return { data, loading, error, refetch: fetchSystem };
 }
 
 export function useTestConnection() {

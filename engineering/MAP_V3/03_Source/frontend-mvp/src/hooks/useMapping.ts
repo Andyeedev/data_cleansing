@@ -122,7 +122,7 @@ export function useValidateMapping() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiPost('/mappings/validate', {});
+      const result = await apiPost<{ valid: boolean; issues: unknown[]; total_columns: number; type_mismatches: number }>('/mappings/validate', {});
       return result;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Validation failed');

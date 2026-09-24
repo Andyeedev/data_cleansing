@@ -16,7 +16,6 @@ import {
   MetricCard,
 } from '../components/shared';
 import { InvitationModal } from '../components/invitation/InvitationModal';
-import { apiPost } from '../utils/apiClient';
 
 type Tab = 'overview' | 'users' | 'roles' | 'settings' | 'feature-flags' | 'security' | 'maintenance';
 
@@ -302,13 +301,14 @@ function UsersTab({ usersData, loading, error, onRefetch, onNavigate }: {
   }
 
   return (
+    <>
     <div style={{
       border: '1px solid var(--color-border)',
       borderRadius: 'var(--radius)',
       overflow: 'hidden',
     }}>
       <div style={{ padding: 'var(--space-md)', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: 'var(--font-size-h3)', margin: 0 }}>Users ({totalUsers})</h3>
+        <h3 style={{ fontSize: 'var(--font-size-h3)', margin: 0 }}>Users ({usersData.total})</h3>
         <button
           onClick={() => setInviteModalOpen(true)}
           style={{
@@ -405,6 +405,7 @@ function UsersTab({ usersData, loading, error, onRefetch, onNavigate }: {
       onClose={() => setInviteModalOpen(false)}
       onSubmit={handleCreateInvitation}
     />
+    </>
   );
 }
 

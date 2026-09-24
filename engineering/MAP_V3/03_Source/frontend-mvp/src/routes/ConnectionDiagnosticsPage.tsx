@@ -242,7 +242,7 @@ function SystemListInner({ searchQuery, selectedSystemId, onSelect, tenantId }: 
   );
 }
 
-function SystemDetailPanel({ systemId, detail, detailLoading, detailError, history, historyLoading, activeTab, onTabChange, onRunDiagnostic, onExport, running }: {
+function SystemDetailPanel({ detail, detailLoading, detailError, history, historyLoading, activeTab, onTabChange, onRunDiagnostic, onExport, running }: {
   systemId: string;
   detail: DiagnosticResult | null;
   detailLoading: boolean;

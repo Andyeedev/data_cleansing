@@ -25,13 +25,26 @@ export interface ExecutiveSection {
   readiness_pct: number;
   validation_score: number;
   data_quality_score: number | null;
+  validation_findings: number;
+  critical_issues: number;
   blocking_controls: number;
   total_failed_rules: number;
   total_error_rules: number;
   issues_by_severity: { severity: string; controls: number }[];
   recommendation: string;
+  executive_recommendation: string;
+  findings_detail: string[];
   next_steps: string[];
-  scenario: { entities_mapped: number | null; duration_seconds: number | null };
+  scenario: {
+    name: string;
+    industry: string;
+    source_platform: string;
+    target_platform: string;
+    source_columns: number;
+    target_columns: number;
+    entities_mapped: number;
+    duration_seconds: number | null;
+  };
 }
 
 export interface EntityMappingRow {
@@ -47,11 +60,13 @@ export interface MigrationSection {
   platform_overview?: { source_platform: string; target_platform: string; source_columns: number; target_columns: number; entities_mapped: number; projects: number };
   platform: { projects: number; mapped_datasets: number; mapped_columns: number };
   entity_mapping: { entities: EntityMappingRow[]; total: number };
+  data_quality_observations: string;
 }
 
 export interface ValidationSection {
   distribution: Record<string, number>;
   controls: ControlOutcomeRow[];
+  analysis: string;
 }
 
 export interface GovernanceFinding {
@@ -59,6 +74,8 @@ export interface GovernanceFinding {
   control_id: string;
   rule_id: string | null;
   entity: string | null;
+  description?: string;
+  date?: string;
   type: string;
   severity: string;
   owner: string;

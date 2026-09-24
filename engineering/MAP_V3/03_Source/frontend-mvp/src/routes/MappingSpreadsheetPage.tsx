@@ -108,7 +108,7 @@ export function MappingSpreadsheetPage() {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter((col) =>
-        col.source_column.toLowerCase().includes(q) ||
+        (col.source_column || '').toLowerCase().includes(q) ||
         (col.target_column && col.target_column.toLowerCase().includes(q)) ||
         col.source_table.toLowerCase().includes(q) ||
         (col.target_table && col.target_table.toLowerCase().includes(q))
@@ -124,7 +124,7 @@ export function MappingSpreadsheetPage() {
       let bVal = '';
       switch (sortField) {
         case 'source_table': aVal = a.source_table; bVal = b.source_table; break;
-        case 'source_column': aVal = a.source_column; bVal = b.source_column; break;
+        case 'source_column': aVal = a.source_column || ''; bVal = b.source_column || ''; break;
         case 'target_column': aVal = a.target_column || ''; bVal = b.target_column || ''; break;
         case 'match_status': aVal = a.match_status; bVal = b.match_status; break;
         case 'confidence_score': return ((a.confidence_score || 0) - (b.confidence_score || 0)) * (sortDir === 'asc' ? 1 : -1);
@@ -153,13 +153,12 @@ export function MappingSpreadsheetPage() {
     return Array.from(groupMap.values());
   }, [sortedColumns]);
 
-  const totalPages = Math.ceil(tableGroups.length / pageSize);
   const paginatedGroups = tableGroups.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const totalRows = filteredColumns.length;
 
   const unmappedSource = useMemo(() => {
     if (!mergedColumns) return [];
-    return mergedColumns.filter((c) => !c.target_column).map((c) => `${c.source_table}.${c.source_column}`);
+    return mergedColumns.filter((c) => !c.target_column).map((c) => `${c.source_table}.${c.source_column || ''}`);
   }, [mergedColumns]);
 
   const handleSort = (field: SortField) => {
@@ -315,7 +314,7 @@ export function MappingSpreadsheetPage() {
 
   const isConfirmValid = confirmModal.type === 'all'
     ? confirmText.toLowerCase() === 'clear all'
-    : confirmText === confirmModal.tableName;
+    : confirmModal.type === 'pair' && confirmModal.tableName !== undefined && confirmText === confirmModal.tableName;
 
   if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {
     return (
@@ -488,7 +487,7 @@ export function MappingSpreadsheetPage() {
                                   </select>
                                 </td>
                                 <td className="px-3 py-2 border-b border-gray-100" onClick={(e) => e.stopPropagation()}>
-                                  <input className="w-[100px] px-2 py-1 text-[10px] border border-gray-200 rounded bg-white text-gray-900 box-border" placeholder="rule..." value={localChanges[rowKey]?.transformation || ''} onChange={(e) => handleTransformChange(rowKey, e.target.value)} />
+                                  <input className="w-[100px] px-2 py-1 text-[10px] border border-gray-200 rounded bg-white text-gray-900 box-border" placeholder="rule..." value={localChanges[rowKey]?.transformation || ''} onChange={(e) => handleTransformChange(rowKey, e.target.value as TransformType)} />
                                 </td>
                                 <td className="px-3 py-2 font-mono text-xs font-medium text-gray-900 border-b border-gray-100">{col.target_column || '\u2014'}</td>
                                 <td className="px-3 py-2 text-xs text-gray-500 border-b border-gray-100">{col.target_data_type || '\u2014'}</td>
@@ -572,14 +571,16 @@ export function MappingSpreadsheetPage() {
               <label className="block text-sm font-medium text-gray-600 mb-2">
                 {confirmModal.type === 'all'
                   ? 'Type "clear all" to confirm:'
-                  : `Type "${confirmModal.tableName}" to confirm:`}
+                  : confirmModal.type === 'pair'
+                    ? `Type "${confirmModal.tableName}" to confirm:`
+                    : ''}
               </label>
               <input
                 type="text"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
                 className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-md text-sm bg-gray-50 text-gray-900 outline-none focus:border-blue-500"
-                placeholder={confirmModal.type === 'all' ? 'clear all' : confirmModal.tableName}
+                placeholder={confirmModal.type === 'all' ? 'clear all' : confirmModal.type === 'pair' ? confirmModal.tableName : ''}
                 autoFocus
               />
             </div>

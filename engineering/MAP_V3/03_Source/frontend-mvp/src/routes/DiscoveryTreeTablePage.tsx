@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useDiscoverySummary, useDiscoveryTree, useDiscoveryTables, triggerDiscovery, useClearAllDiscovery } from '../hooks/useDiscovery';
-import { useSystemList } from '../hooks/useSystems';
 import { useMigrationProjects, useMigrationTenants } from '../hooks/useMigration';
 import { SplitPane } from '../components/shared/SplitPane';
 import { EmptyState } from '../components/shared/EmptyState';
@@ -36,13 +35,11 @@ export function DiscoveryTreeTablePage() {
   const { data: summary, loading: summaryLoading, error: summaryError, refetch: refetchSummary } = useDiscoverySummary(selectedTenant || undefined);
   const { data: treeData, loading: treeLoading, error: treeError, refetch: refetchTree } = useDiscoveryTree(selectedTenant || undefined);
   const { data: tableData, loading: tableLoading, error: tableError, refetch: refetchTables } = useDiscoveryTables(selectedTenant || undefined);
-  const { data: systems } = useSystemList(selectedTenant || undefined);
-  const { projects } = useMigrationProjects(undefined, selectedTenant || undefined);
   const { tenants } = useMigrationTenants();
+  const { projects } = useMigrationProjects(undefined, selectedTenant || undefined);
 
   const selectedTenantName = tenants.find((t) => t.tenant_id === selectedTenant)?.tenant_name || selectedTenant;
 
-  const hasSystems = systems && systems.length > 0;
   const primaryProject = projects && projects.length > 0 ? projects[0] : null;
 
   const loading = summaryLoading || treeLoading || tableLoading;
@@ -199,14 +196,6 @@ export function DiscoveryTreeTablePage() {
     unmatched_target: 'Target Only',
     unmatched: 'Unmatched',
     modified: 'Modified',
-  };
-
-  const statusPillVariant: Record<string, string> = {
-    matched: 'success',
-    unmatched_source: 'error',
-    unmatched_target: 'warning',
-    unmatched: 'error',
-    modified: 'warning',
   };
 
   if (!userRoles.some(r => r === 'admin' || r === 'Super Admin' || r === 'Tenant Admin')) {

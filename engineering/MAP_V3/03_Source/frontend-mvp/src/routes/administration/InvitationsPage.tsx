@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Mail, XCircle, RotateCw, Trash2, Loader2, AlertCircle, Clock } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { Plus, Mail, RotateCcw, Trash2, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { apiGet, apiPost, apiDelete } from '../../utils/apiClient';
 import { PageContainer } from '../../components/PageContainer/PageContainer';
 import { InvitationModal } from '../../components/invitation/InvitationModal';
@@ -15,7 +14,6 @@ interface Invitation {
 }
 
 export function InvitationsPage() {
-  const { currentUser } = useAuth();
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +25,8 @@ export function InvitationsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiGet('/invitations');
-      setInvitations(response.data.invitations || []);
+      const response = await apiGet<{ invitations: Invitation[] }>('/invitations');
+      setInvitations(response.invitations || []);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load invitations');
     } finally {
@@ -178,7 +176,7 @@ export function InvitationsPage() {
                               {resendingId === inv.invitation_id ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                               ) : (
-                                <RotateCw className="w-5 h-5" />
+                                <RotateCcw className="w-5 h-5" />
                               )}
                             </button>
                           )}

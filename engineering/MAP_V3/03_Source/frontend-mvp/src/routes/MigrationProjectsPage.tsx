@@ -10,6 +10,7 @@ import { TenantFilter } from '../components/shared/TenantFilter';
 import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
 
 export function MigrationProjectsPage() {
+  const navigate = useNavigate();
   const { userRoles } = useAuth();
   const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
   const [selectedTenant, setSelectedTenant] = useState<string>('');

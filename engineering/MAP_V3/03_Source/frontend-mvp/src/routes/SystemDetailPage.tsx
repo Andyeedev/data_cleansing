@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSystemDetail, useUpdateSystem, useDeleteSystem, useTestConnection } from '../hooks/useSystems';
 import { LoadingSkeleton, ErrorState, ConfirmDialog } from '../components/shared';
 import { PageContainer } from '../components/PageContainer/PageContainer';
-import { KpiBox, ReportCard, StatusPill } from '../components/reports/reportWidgets';
+import { KpiBox, ReportCard } from '../components/reports/reportWidgets';
 import { SystemFormModal, type SystemFormData } from '../components/SystemFormModal';
 import { useAuth } from '../context/AuthContext';
 
@@ -67,7 +67,7 @@ export function SystemDetailPage() {
   };
 
   const handleDelete = async () => {
-    const ok = await remove(system.system_id, tenantId);
+    const ok = await remove(system.system_id);
     if (ok) navigate('/migration/connections');
   };
 

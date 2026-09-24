@@ -37,7 +37,7 @@ function LimitPill({ current, max, label }: { current: number; max: number; labe
 export function OnboardingHubPage() {
   const navigate = useNavigate();
   const { steps, percentage, isLoading } = useOnboardingProgress();
-  const { subscription, daysUntilTrialEnd, isAtLimit } = useSubscription();
+  const { subscription, daysUntilTrialEnd } = useSubscription();
 
   const getStepStatus = (key: string): 'complete' | 'active' | 'pending' => {
     const step = steps.find((s) => s.key === key);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiGet, apiPut, apiDelete } from '../utils/apiClient';
-import type { ControlItem, ControlsResponse, ExecutionOutcomesResponse } from '../types/controls';
+import type { ControlsResponse, ExecutionOutcomesResponse } from '../types/controls';
 
 export function useControls(tenantId?: string) {
   const [data, setData] = useState<ControlsResponse | null>(null);

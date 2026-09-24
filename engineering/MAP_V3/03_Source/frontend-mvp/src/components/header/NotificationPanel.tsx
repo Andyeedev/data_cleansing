@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCircle, AlertTriangle, Info, X, CheckCheck, Trash2 } from 'lucide-react';
 import { useNotificationList, useMarkAsRead, useMarkAllAsRead, useDeleteNotification, useUnreadCount } from '../../hooks/useNotifications';

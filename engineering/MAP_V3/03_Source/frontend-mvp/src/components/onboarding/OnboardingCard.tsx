@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { AlertTriangle } from 'lucide-react';
 import { LoadingSkeleton } from '../shared/LoadingSkeleton';

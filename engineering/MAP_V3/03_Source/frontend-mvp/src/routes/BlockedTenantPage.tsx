@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Lock, Shield, Mail, Phone } from 'lucide-react';
+import { Lock, Shield } from 'lucide-react';
 import { PageContainer } from '../components/PageContainer/PageContainer';
 
 export function BlockedTenantPage() {

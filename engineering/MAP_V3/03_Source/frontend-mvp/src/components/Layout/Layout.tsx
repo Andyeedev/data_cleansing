@@ -19,7 +19,7 @@ interface LayoutProps {
 
 export function Layout({ sidebar, children, breadcrumb, loading }: LayoutProps) {
   const { user, logout } = useAuth();
-  const { count: unreadCount, refetch: refetchCount } = useUnreadCount();
+  const { count: unreadCount } = useUnreadCount();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);

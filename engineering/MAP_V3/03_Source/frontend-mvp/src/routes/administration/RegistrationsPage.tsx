@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, XCircle, RotateCw, Loader2, AlertCircle, Clock, CheckCircle, User, Mail, Settings, Trash2 } from 'lucide-react';
+import { Plus, Loader2, Mail } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { apiGet, apiPost, apiDelete } from '../../utils/apiClient';
+import { apiGet, apiPost } from '../../utils/apiClient';
 import { PageContainer } from '../../components/PageContainer/PageContainer';
 
 interface Lead {
@@ -19,13 +19,8 @@ interface Lead {
   converted_at: string | null;
 }
 
-interface ConversionResult {
-  success: boolean;
-  error?: string;
-}
-
 export function RegistrationsPage() {
-  const { currentUser, tenantId } = useAuth();
+  const { userRoles } = useAuth();
 
   // State declarations - must come first (React rules of hooks)
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -40,8 +35,8 @@ export function RegistrationsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiGet('/admin/registrations');
-      setLeads(response.data.leads || []);
+      const response = await apiGet<{ leads: Lead[] }>('/admin/registrations');
+      setLeads(response.leads || []);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load registrations');
     } finally {
@@ -59,18 +54,18 @@ export function RegistrationsPage() {
     setModalOpen(true);
   };
 
-  const confirmConvert = async (adminPassword: string) => {
+  const confirmConvert = async (adminPassword: string | undefined) => {
     setConverting(true);
     setError(null);
     try {
-      const response = await apiPost(`/admin/registrations/${conversionId}/convert`, {
+      const response = await apiPost<{ tenant_id: string; admin_user_id: string; admin_email: string; verification_sent: boolean }>(`/admin/registrations/${conversionId}/convert`, {
         admin_password: adminPassword,
       });
-      if (response.data.success) {
+      if (response.tenant_id) {
         setModalOpen(false);
         await fetchLeads();
       } else {
-        setError(response.data.error || 'Conversion failed');
+        setError('Conversion failed');
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Conversion failed');
@@ -78,11 +73,6 @@ export function RegistrationsPage() {
       setConverting(false);
       setConversionId(null);
     }
-  };
-
-  const handleReject = (leadId: string) => {
-    // Could implement rejection logic here
-    setModalOpen(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -94,7 +84,7 @@ export function RegistrationsPage() {
     return <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
   };
 
-  const isExpired = (createdAt: string) => new Date(createdAt) < new Date();
+  const isSuperAdmin = userRoles.includes('Super Admin');
 
   return (
     <PageContainer>
@@ -107,7 +97,7 @@ export function RegistrationsPage() {
           <button
             onClick={() => setModalOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 flex items-center gap-2"
-            disabled={currentUser?.role !== 'super_admin'}
+            disabled={!isSuperAdmin}
           >
             <Plus className="w-5 h-5" />
             Convert Lead
@@ -134,7 +124,7 @@ export function RegistrationsPage() {
               <button
                 onClick={() => setModalOpen(true)}
                 className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-500"
-                disabled={currentUser?.role !== 'super_admin'}
+                disabled={!isSuperAdmin}
               >
                 Convert Lead
               </button>
@@ -184,7 +174,7 @@ export function RegistrationsPage() {
                             <button
                               onClick={() => handleConvert(lead.lead_id)}
                               className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-                              disabled={converting || currentUser?.role !== 'super_admin'}
+                              disabled={converting || !isSuperAdmin}
                               title="Convert lead to tenant"
                             >
                               {converting ? (
@@ -254,8 +244,8 @@ export function RegistrationsPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => confirmConvert(document.getElementById('adminPassword')?.value)}
-                  disabled={!document.getElementById('adminPassword')?.value || converting}
+                  onClick={() => confirmConvert((document.getElementById('adminPassword') as HTMLInputElement | null)?.value)}
+                  disabled={!(document.getElementById('adminPassword') as HTMLInputElement | null)?.value || converting}
                   className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
                 >
                   {converting ? 'Converting...' : 'Convert'}

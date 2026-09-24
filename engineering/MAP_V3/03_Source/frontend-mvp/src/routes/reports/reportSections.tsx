@@ -5,11 +5,11 @@ type Suite = ReportSuite;
 
 export function ExecutiveSectionView({ s }: { s: NonNullable<Suite['executive']> }) {
   const cs = s.controls_summary;
-  const issueCount = (s as Record<string, unknown>).validation_findings as number ?? 0;
-  const critCount = (s as Record<string, unknown>).critical_issues as number ?? 0;
-  const recText = (s as Record<string, unknown>).executive_recommendation as string ?? '';
-  const findings = (s as Record<string, unknown>).findings_detail as string[] ?? [];
-  const scenario = s.scenario as Record<string, unknown> | undefined;
+  const issueCount = s.validation_findings ?? 0;
+  const critCount = s.critical_issues ?? 0;
+  const recText = s.executive_recommendation ?? '';
+  const findings = s.findings_detail ?? [];
+  const scenario = s.scenario;
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
@@ -79,7 +79,7 @@ export function ExecutiveSectionView({ s }: { s: NonNullable<Suite['executive']>
 export function MigrationSectionView({ s }: { s: NonNullable<Suite['migration']> }) {
   const em = s.entity_mapping;
   const po = s.platform_overview;
-  const dqObs = (s as Record<string, unknown>).data_quality_observations as string ?? '';
+  const dqObs = s.data_quality_observations ?? '';
   return (
     <>
       <ReportCard title="Platform Overview" className="mb-6">
@@ -130,7 +130,7 @@ export function MigrationSectionView({ s }: { s: NonNullable<Suite['migration']>
 
 export function ValidationSectionView({ s }: { s: NonNullable<Suite['validation']> }) {
   const dist = s.distribution;
-  const analysis = (s as Record<string, unknown>).analysis as string ?? '';
+  const analysis = s.analysis ?? '';
   const hasCriticalFinding = analysis.toLowerCase().includes('critical finding');
   return (
     <>
@@ -513,7 +513,7 @@ export function IssuesSectionView({ s }: { s: NonNullable<Suite['issues']> }) {
                     <td className="px-3 py-2"><StatusPill status={f.severity} /></td>
                     <td className="px-3 py-2 text-gray-700">{f.owner}</td>
                     <td className="px-3 py-2"><StatusPill status={f.status} /></td>
-                    <td className="px-3 py-2 text-right text-xs text-gray-500 whitespace-nowrap">{(f as Record<string, unknown>).date as string ?? (f as Record<string, unknown>).created_at as string ?? '-'}</td>
+                    <td className="px-3 py-2 text-right text-xs text-gray-500 whitespace-nowrap">{f.date ?? f.created_at ?? '-'}</td>
                   </tr>
                 ))}
               </tbody>

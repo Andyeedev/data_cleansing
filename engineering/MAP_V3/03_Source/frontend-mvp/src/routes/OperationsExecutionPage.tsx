@@ -115,12 +115,12 @@ const STEP_LABELS: Record<string, string> = {
 export function OperationsExecutionPage() {
   const { userRoles } = useAuth();
   const isSuperAdmin = userRoles.some(r => r === 'Super Admin');
-  const { tenantId, projectId, setTenantId, setProjectId, reset } = useValidationFilter();
+  const { tenantId, projectId } = useValidationFilter();
 
   const [activeTab, setActiveTab] = useState<TabKey>('execution');
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [selectedSteps, setSelectedSteps] = useState<Set<string>>(new Set(STEPS.map(s => s.key)));
-  const [selectedControls, setSelectedControls] = useState<string[]>([]);
+  const [selectedControls] = useState<string[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [currentRunId, setCurrentRunId] = useState<string | null>(null);
   const [runResults, setRunResults] = useState<RunRecord | null>(null);
@@ -264,6 +264,16 @@ export function OperationsExecutionPage() {
     else setSelectedSteps(new Set(STEPS.map(s => s.key)));
   };
 
+  const handleViewRun = async (runId: string) => {
+    setError(null);
+    try {
+      const result = await apiGet<RunRecord>(`/operations/run/${runId}`);
+      setRunResults(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load run details');
+    }
+  };
+
   const getStepStatus = (result: RunRecord | null, stepKey: string): string => {
     if (!result?.step_results) return 'PENDING';
     const step = result.step_results.find(s => s.step === stepKey);
@@ -369,7 +379,7 @@ export function OperationsExecutionPage() {
               <ReportCard title="Recent Runs" className="mt-4">
                 <div className="flex flex-col gap-2">
                   {history.slice(0, 5).map(run => (
-                    <div key={run.run_id} className="border-b border-gray-100 pb-2 cursor-pointer hover:bg-gray-50 rounded px-1" onClick={() => setRunResults(run)}>
+                    <div key={run.run_id} className="border-b border-gray-100 pb-2 cursor-pointer hover:bg-gray-50 rounded px-1" onClick={() => handleViewRun(run.run_id)}>
                       <StatusPill status={run.status} />
                       <p className="text-[10px] text-gray-500 mt-1">
                         {run.tenant_id.slice(0, 8)}... · {run.started_at}

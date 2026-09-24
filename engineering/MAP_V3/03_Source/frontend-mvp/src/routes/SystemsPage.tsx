@@ -49,11 +49,11 @@ export function SystemsPage() {
 
   const { data: systems, loading, error, refetch } = useSystemList(selectedTenant || undefined);
   const { data: diagSummary, refetch: refetchDiag } = useDiagnosticSummary(selectedTenant || undefined);
-  const { testConnection, loading: testingId } = useTestConnection();
+  const { testConnection } = useTestConnection();
   const [testError, setTestError] = useState<string | null>(null);
   const [testingSystemId, setTestingSystemId] = useState<string | null>(null);
-  const { create, loading: creating } = useCreateSystem();
-  const { update, loading: updating } = useUpdateSystem();
+  const { create } = useCreateSystem();
+  const { update } = useUpdateSystem();
   const { remove, loading: deleting } = useDeleteSystem();
 
   useEffect(() => {

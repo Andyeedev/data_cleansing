@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, CheckCircle, Loader2, Mail, RotateCw } from 'lucide-react';
+import { AlertCircle, CheckCircle, Loader2, Mail, RotateCcw } from 'lucide-react';
 import { apiPost } from '../../utils/apiClient';
 import { PageContainer } from '../../components/PageContainer/PageContainer';
 
@@ -108,7 +108,7 @@ export function VerifyEmailPage() {
               onClick={handleResend}
               className="w-full py-2.5 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 flex items-center justify-center gap-2"
             >
-              <RotateCw className="w-5 h-5" />
+              <RotateCcw className="w-5 h-5" />
               Resend Verification Email
             </button>
           </div>

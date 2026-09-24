@@ -1,11 +1,11 @@
 export interface MappingRow {
-  column_mapping_id: string;
+  column_mapping_id: string | null;
   mapping_id: string;
-  source_column: string;
+  source_column: string | null;
   source_data_type: string;
   target_column: string | null;
   target_data_type: string | null;
-  match_status: 'AUTO_MATCHED' | 'MANUAL' | 'REVIEW_REQUIRED' | 'UNMAPPED';
+  match_status: 'AUTO_MATCHED' | 'MANUAL' | 'REVIEW_REQUIRED' | 'UNMAPPED' | 'PENDING';
   confidence_score: number | null;
   match_reason: string | null;
   source_table: string;

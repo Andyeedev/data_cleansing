@@ -1,11 +1,12 @@
 interface EmptyStateProps {
-  title: string;
+  title?: string;
+  message?: string;
   description?: string;
   action?: { label: string; onClick: () => void };
   icon?: string;
 }
 
-export function EmptyState({ title, description, action, icon }: EmptyStateProps) {
+export function EmptyState({ title, message, description, action, icon }: EmptyStateProps) {
   return (
     <div
       style={{
@@ -20,7 +21,7 @@ export function EmptyState({ title, description, action, icon }: EmptyStateProps
         </div>
       )}
       <h3 style={{ fontSize: 'var(--font-size-h3)', color: 'var(--color-text)', marginBottom: 'var(--space-sm)' }}>
-        {title}
+        {title ?? message}
       </h3>
       {description && (
         <p style={{ fontSize: 'var(--font-size-base)', maxWidth: 400, margin: '0 auto', marginBottom: action ? 'var(--space-lg)' : 0 }}>

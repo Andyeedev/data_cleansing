@@ -9,7 +9,7 @@ import { SearchBar } from '../components/shared/SearchBar';
 import { Modal } from '../components/shared/Modal';
 import CascadeDropdowns from '../components/shared/CascadeDropdowns';
 import { PageContainer } from '../components/PageContainer/PageContainer';
-import { KpiBox, ReportCard, StatusPill, EmptyState } from '../components/reports/reportWidgets';
+import { KpiBox, StatusPill, EmptyState } from '../components/reports/reportWidgets';
 import type { DiscoveredRule, DiscoveryMapping, DiscoveryTreeNode } from '../types/rule_discovery';
 
 type SortField = 'rule_id' | 'rule_name' | 'control_id' | 'dataset_name';

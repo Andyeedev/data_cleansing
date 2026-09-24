@@ -25,8 +25,6 @@ interface ConnectionEvent {
 
 export function ConnectionTestPanel({
   systemId,
-  connectionConfig,
-  dbType,
   onTestComplete,
   showHistory = false,
 }: ConnectionTestPanelProps) {
