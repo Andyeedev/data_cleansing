@@ -1,18 +1,22 @@
-from fastapi import APIRouter, Body, Request, status
+from fastapi import APIRouter, Body, Depends, Request, status
 from fastapi.responses import JSONResponse
 
 from app.services.tenant_service import TenantService
 from app.db.connection import get_db_connection
-from app.services.email_service import EmailServiceFactory
+from app.services.email_service import EmailServiceFactory, EmailMessage
 from app.services.email_templates import render_verification
 from app.db.repositories.email_verification_repository import EmailVerificationRepository
 from app.api.routes.rate_limit_phase1 import rate_limit_authenticated_admin
+from app.api.core.auth.rbac import require_admin
 
 router = APIRouter(prefix="/api/v1/admin", tags=["Admin"])
 
 
 @router.get("/registrations", summary="Super Admin: List pending lead registrations")
-def admin_list_registrations(request: Request):
+def admin_list_registrations(
+    request: Request,
+    current_user=Depends(require_admin),
+):
     """
     Super Admin endpoint to list pending lead registrations.
     Rate limited to authenticated admin calls.
@@ -36,18 +40,18 @@ def admin_list_registrations(request: Request):
     leads = []
     for row in rows:
         leads.append({
-            "lead_id": str(row[0]),
-            "full_name": row[1] or "",
-            "work_email": row[2] or "",
-            "company": row[3] or "",
-            "org_size": row[4] or "",
-            "industry": row[5] or "",
-            "role": row[6] or "",
-            "source_form": row[7] or "get_started",
-            "created_at": row[8].isoformat() if hasattr(row[8], 'isoformat') else str(row[8]),
-            "status": row[9] or "pending",
-            "converted_to_tenant": str(row[10]) if row[10] else None,
-            "converted_at": row[11].isoformat() if row[11] and hasattr(row[11], 'isoformat') else (str(row[11]) if row[11] else None),
+            "lead_id": str(row["lead_id"]),
+            "full_name": row["full_name"] or "",
+            "work_email": row["work_email"] or "",
+            "company": row["company"] or "",
+            "org_size": row["org_size"] or "",
+            "industry": row["industry"] or "",
+            "role": row["role"] or "",
+            "source_form": row["source_form"] or "get_started",
+            "created_at": row["created_at"].isoformat() if hasattr(row["created_at"], 'isoformat') else str(row["created_at"]),
+            "status": row["status"] or "pending",
+            "converted_to_tenant": str(row["converted_to_tenant"]) if row["converted_to_tenant"] else None,
+            "converted_at": row["converted_at"].isoformat() if row["converted_at"] and hasattr(row["converted_at"], 'isoformat') else (str(row["converted_at"]) if row["converted_at"] else None),
         })
 
     return JSONResponse(content={"success": True, "data": {"leads": leads}})
@@ -62,6 +66,7 @@ def admin_convert_lead(
     lead_id: str,
     admin_password: str = Body(..., description="Password for the first admin user"),
     request: Request = None,
+    current_user=Depends(require_admin),
 ):
     """
     Super Admin converts a lead to a tenant.
@@ -84,7 +89,7 @@ def admin_convert_lead(
         from psycopg2.extras import RealDictCursor
         with db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT lead_id, full_name, work_email, company, source_form
+                SELECT lead_id, full_name, work_email, company, source_form, plan_tier
                 FROM core.leads
                 WHERE lead_id = %s AND status = 'pending'
                 FOR UPDATE
@@ -99,11 +104,12 @@ def admin_convert_lead(
 
         # 2. Create tenant + first admin user
         # The admin_password is provided by Super Admin
+        tenant_service = TenantService(db.conn)
         create_result = tenant_service.create_tenant(
-            tenant_name=lead_row[1] or "New Tenant",
-            admin_email=lead_row[2] or "",
+            tenant_name=lead_row["full_name"] or "New Tenant",
+            admin_email=lead_row["work_email"] or "",
             admin_password=admin_password,
-            plan_tier=lead_row[7] or "professional",
+            plan_tier=lead_row["plan_tier"] or "professional",
         )
 
         if not create_result["success"]:

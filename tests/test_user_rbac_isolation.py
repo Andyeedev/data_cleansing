@@ -37,17 +37,17 @@ def tenant_b():
 # ROUTE AUTH TESTS
 # =========================
 class TestRouteAuthDependencies:
-    """Verify all RBAC routes use get_current_user_with_tenant."""
+    """Verify RBAC routes use canonical require_permissions auth."""
 
-    def test_user_routes_use_tenant_auth(self):
+    def test_user_routes_use_permission_auth(self):
         source = open("app/api/routes/user_routes.py", "r").read()
-        assert "get_current_user_with_tenant" in source
-        assert "get_current_user" not in source.replace("get_current_user_with_tenant", "")
+        assert "require_permissions" in source
+        assert "get_current_user_with_tenant" not in source
 
-    def test_role_routes_use_tenant_auth(self):
+    def test_role_routes_use_permission_auth(self):
         source = open("app/api/routes/role_routes.py", "r").read()
-        assert "get_current_user_with_tenant" in source
-        assert "get_current_user" not in source.replace("get_current_user_with_tenant", "")
+        assert "require_permissions" in source
+        assert "get_current_user_with_tenant" not in source
 
 
 # =========================

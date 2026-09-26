@@ -13,7 +13,18 @@ def _mock_team_member():
 
 
 def _get_client(user_override):
-    app.dependency_overrides = {"get_current_user": user_override} if user_override else {}
+    if not user_override:
+        app.dependency_overrides = {}
+    else:
+        # Callable-key overrides: string keys do not match FastAPI sub-dependency
+        # resolution. require_admin is overridden so its platform.user_roles
+        # verification does not 403 on the synthetic identity.
+        from app.api.core.auth.dependencies import get_current_user
+        from app.api.core.auth.rbac import require_admin
+        app.dependency_overrides = {
+            get_current_user: user_override,
+            require_admin: user_override,
+        }
     return TestClient(app)
 
 
@@ -38,7 +49,15 @@ def _mock_team_member():
 
 
 def _get_client(user_override):
-    app.dependency_overrides = {"get_current_user": user_override} if user_override else {}
+    if not user_override:
+        app.dependency_overrides = {}
+    else:
+        from app.api.core.auth.dependencies import get_current_user
+        from app.api.core.auth.rbac import require_admin
+        app.dependency_overrides = {
+            get_current_user: user_override,
+            require_admin: user_override,
+        }
     return TestClient(app)
 
 

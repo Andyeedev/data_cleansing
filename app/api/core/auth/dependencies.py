@@ -92,7 +92,7 @@ def resolve_tenant(
     Non-admin users are always scoped to their JWT tenant."""
     jwt_tenant = current_user.get("tenant_id")
     roles = current_user.get("roles", [])
-    is_super_admin = "Super Admin" in roles or "admin" in roles
+    is_super_admin = "Super Admin" in roles
 
     if tenant_id and tenant_id.strip() and is_super_admin:
         return tenant_id.strip()

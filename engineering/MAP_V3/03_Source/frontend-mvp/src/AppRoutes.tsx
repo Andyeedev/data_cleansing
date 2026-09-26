@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Shell } from './components/Shell/Shell';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PublicRoute } from './components/PublicRoute';
@@ -64,6 +64,11 @@ const BillingCancelPage = lazy(() => import('./routes/billing/BillingCancelPage'
 const AcceptInvitePage = lazy(() => import('./routes/invites/AcceptInvitePage').then(m => ({ default: m.AcceptInvitePage })));
 const InvitationsPage = lazy(() => import('./routes/administration/InvitationsPage').then(m => ({ default: m.InvitationsPage })));
 const RegistrationsPage = lazy(() => import('./routes/administration/RegistrationsPage').then(m => ({ default: m.RegistrationsPage })));
+const TenantsPage = lazy(() => import('./routes/administration/TenantsPage').then(m => ({ default: m.TenantsPage })));
+const SecurityPage = lazy(() => import('./routes/administration/SecurityPage').then(m => ({ default: m.SecurityPage })));
+const AdminNotificationsPage = lazy(() => import('./routes/administration/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
+const MaintenancePage = lazy(() => import('./routes/administration/MaintenancePage').then(m => ({ default: m.MaintenancePage })));
+const FeatureFlagsPage = lazy(() => import('./routes/administration/FeatureFlagsPage').then(m => ({ default: m.FeatureFlagsPage })));
 const ForgotPasswordPage = lazy(() => import('./routes/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
 const ResetPasswordPage = lazy(() => import('./routes/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 const VerifyEmailPage = lazy(() => import('./routes/auth/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
@@ -173,24 +178,22 @@ export function AppRoutes() {
           <Route path="/settings" element={<UserSettingsPage />} />
           <Route path="/about" element={<AboutPage />} />
 
-          <Route element={<ProtectedRoute requiredRoles={['admin']}><Outlet /></ProtectedRoute>}>
-            <Route path="/administration" element={<AdministrationPage />} />
-            <Route path="/administration/users" element={<ValidationFilterProvider><UsersPage /></ValidationFilterProvider>} />
-            <Route path="/administration/users/new" element={<UserDetailPage />} />
-            <Route path="/administration/users/:id" element={<UserDetailPage />} />
-            <Route path="/administration/roles" element={<RolesPage />} />
-            <Route path="/administration/roles/new" element={<RoleDetailPage />} />
-            <Route path="/administration/roles/:id" element={<RoleDetailPage />} />
-            <Route path="/administration/tenants" element={<AdministrationPage />} />
-            <Route path="/administration/settings" element={<SettingsPage />} />
-            <Route path="/administration/permissions" element={<PermissionsPage />} />
-            <Route path="/administration/feature-flags" element={<SettingsPage />} />
-            <Route path="/administration/security" element={<AdministrationPage />} />
-            <Route path="/administration/notifications" element={<AdministrationPage />} />
-            <Route path="/administration/maintenance" element={<AdministrationPage />} />
-            <Route path="/administration/invitations" element={<ValidationFilterProvider><InvitationsPage /></ValidationFilterProvider>} />
-            <Route path="/administration/registrations" element={<ValidationFilterProvider><RegistrationsPage /></ValidationFilterProvider>} />
-          </Route>
+          <Route path="/administration" element={<ProtectedRoute requiredRoles={['Super Admin', 'Tenant Admin']}><AdministrationPage /></ProtectedRoute>} />
+          <Route path="/administration/users" element={<ProtectedRoute requiredPermissions={['users:list']}><ValidationFilterProvider><UsersPage /></ValidationFilterProvider></ProtectedRoute>} />
+          <Route path="/administration/users/new" element={<ProtectedRoute requiredPermissions={['users:list']}><UserDetailPage /></ProtectedRoute>} />
+          <Route path="/administration/users/:id" element={<ProtectedRoute requiredPermissions={['users:list']}><UserDetailPage /></ProtectedRoute>} />
+          <Route path="/administration/roles" element={<ProtectedRoute requiredPermissions={['roles:list']}><RolesPage /></ProtectedRoute>} />
+          <Route path="/administration/roles/new" element={<ProtectedRoute requiredPermissions={['roles:list']}><RoleDetailPage /></ProtectedRoute>} />
+          <Route path="/administration/roles/:id" element={<ProtectedRoute requiredPermissions={['roles:list']}><RoleDetailPage /></ProtectedRoute>} />
+          <Route path="/administration/tenants" element={<ProtectedRoute requiredRoles={['Super Admin']}><TenantsPage /></ProtectedRoute>} />
+          <Route path="/administration/settings" element={<ProtectedRoute requiredPermissions={['settings:read']}><SettingsPage /></ProtectedRoute>} />
+          <Route path="/administration/permissions" element={<ProtectedRoute requiredRoles={['Super Admin']}><PermissionsPage /></ProtectedRoute>} />
+          <Route path="/administration/feature-flags" element={<ProtectedRoute requiredRoles={['Super Admin']}><FeatureFlagsPage /></ProtectedRoute>} />
+          <Route path="/administration/security" element={<ProtectedRoute requiredRoles={['Super Admin']}><SecurityPage /></ProtectedRoute>} />
+          <Route path="/administration/notifications" element={<ProtectedRoute requiredRoles={['Super Admin']}><AdminNotificationsPage /></ProtectedRoute>} />
+          <Route path="/administration/maintenance" element={<ProtectedRoute requiredRoles={['Super Admin']}><MaintenancePage /></ProtectedRoute>} />
+          <Route path="/administration/invitations" element={<ProtectedRoute requiredPermissions={['invitations:read']}><ValidationFilterProvider><InvitationsPage /></ValidationFilterProvider></ProtectedRoute>} />
+          <Route path="/administration/registrations" element={<ProtectedRoute requiredRoles={['Super Admin']}><ValidationFilterProvider><RegistrationsPage /></ValidationFilterProvider></ProtectedRoute>} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>

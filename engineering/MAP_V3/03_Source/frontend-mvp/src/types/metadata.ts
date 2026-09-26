@@ -8,6 +8,7 @@ export interface MetadataNavItem {
   navOrder?: number;
   visible?: boolean;
   requiredRoles?: string[];
+  requiredPermissions?: string[];
   children?: MetadataNavItem[];
 }
 

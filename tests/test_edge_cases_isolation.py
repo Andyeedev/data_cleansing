@@ -56,13 +56,16 @@ class TestLeadRoutesTenantAuth:
 
 
 class TestPermissionsRoutesTenantAuth:
-    """Verify permissions routes use get_current_user_with_tenant."""
+    """Verify permissions routes use canonical RBAC auth dependencies."""
 
-    def test_permissions_routes_use_tenant_auth(self):
+    def test_permissions_routes_use_permission_auth(self):
         source = open("app/api/routes/permissions_routes.py", "r").read()
-        assert "get_current_user_with_tenant" in source
-        remaining = source.replace("get_current_user_with_tenant", "")
-        assert "get_current_user" not in remaining
+        assert "require_permissions(\"roles:read\")" in source
+
+    def test_permissions_routes_writes_super_admin_only(self):
+        # Legacy core.role_permissions has no tenant dimension: writes are Super Admin only.
+        source = open("app/api/routes/permissions_routes.py", "r").read()
+        assert "require_admin" in source
 
 
 class TestDashboardRoutesRbacAdmin:

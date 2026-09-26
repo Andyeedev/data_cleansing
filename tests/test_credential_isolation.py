@@ -208,23 +208,18 @@ class TestCredentialServiceTenantFiltering:
 # ROUTE-LEVEL TESTS (mocked auth)
 # =========================
 class TestCredentialRouteAuth:
-    """Verify credential routes require tenant context."""
+    """Verify credential routes use canonical permission-based auth."""
 
-    def test_list_credentials_requires_tenant_auth(self):
-        """Route should use get_current_user_with_tenant, not get_current_user."""
-        import ast
-        import inspect
+    def test_list_credentials_requires_permission(self):
+        """Route should gate via require_permissions('systems:list')."""
         source_file = open("app/api/routes/credential_routes.py", "r").read()
-        assert "get_current_user_with_tenant" in source_file
-        assert "get_current_user" not in source_file.replace("get_current_user_with_tenant", "")
+        assert "systems:list" in source_file
 
-    def test_create_credential_requires_tenant_auth(self):
-        """Route should use get_current_user_with_tenant."""
-        import inspect
+    def test_create_credential_requires_permission(self):
+        """Route should gate via require_permissions('systems:update')."""
         source_file = open("app/api/routes/credential_routes.py", "r").read()
-        # Count occurrences of get_current_user_with_tenant
-        count = source_file.count("get_current_user_with_tenant")
-        assert count >= 4, f"Expected at least 4 occurrences of get_current_user_with_tenant, found {count}"
+        count = source_file.count("systems:update")
+        assert count >= 2, f"Expected at least 2 occurrences of systems:update, found {count}"
 
 
 # =========================

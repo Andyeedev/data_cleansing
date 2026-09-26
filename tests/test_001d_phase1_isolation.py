@@ -43,16 +43,31 @@ def _mock_conn():
 class TestSystemTenantProjectEnforcement:
     def _client(self):
         from app.api.routes.system_routes import router
+        from app.api.core.auth.dependencies import get_current_user
         from app.api.core.auth.dependencies import get_current_user_with_tenant
         app = FastAPI()
         app.include_router(router)
+        app.dependency_overrides[get_current_user] = lambda: _tenant_user()
         app.dependency_overrides[get_current_user_with_tenant] = lambda: _tenant_user()
         return TestClient(app)
+
+    def _granted(self):
+        from app.api.core.auth import rbac as rbac_module
+        return patch.object(
+            rbac_module,
+            "fetch_effective_permissions",
+            return_value=[
+                ("systems", "list"), ("systems", "read"),
+                ("systems", "create"), ("systems", "update"),
+                ("systems", "delete"), ("systems", "test"),
+            ],
+        )
 
     def test_list_ignores_query_tenant_override(self):
         from app.api.routes import system_routes
         client = self._client()
-        with patch.object(system_routes, "SystemService") as mock_svc_cls, \
+        with self._granted(), \
+             patch.object(system_routes, "SystemService") as mock_svc_cls, \
              patch.object(system_routes, "get_db_connection") as mock_dbc:
             mock_svc_cls.return_value.list_systems.return_value = []
             response = client.get("/api/v1/systems", params={"tenant_id": TENANT_B})
@@ -62,11 +77,12 @@ class TestSystemTenantProjectEnforcement:
 
     def test_create_requires_project_id(self):
         client = self._client()
-        response = client.post("/api/v1/systems", json={
-            "system_name": "LEGACY", "system_role": "SOURCE",
-            "database_type": "POSTGRES",
-            "connection_config": {"host": "h", "port": 5432, "database": "d"},
-        })
+        with self._granted():
+            response = client.post("/api/v1/systems", json={
+                "system_name": "LEGACY", "system_role": "SOURCE",
+                "database_type": "POSTGRES",
+                "connection_config": {"host": "h", "port": 5432, "database": "d"},
+            })
         assert response.status_code == 422
 
     def test_create_foreign_project_rejected(self):
@@ -90,7 +106,8 @@ class TestSystemTenantProjectEnforcement:
     def test_get_unknown_system_404(self):
         from app.api.routes import system_routes
         client = self._client()
-        with patch.object(system_routes, "SystemService") as mock_svc_cls, \
+        with self._granted(), \
+             patch.object(system_routes, "SystemService") as mock_svc_cls, \
              patch.object(system_routes, "get_db_connection"):
             mock_svc_cls.return_value.get_system.side_effect = Exception("System not found")
             response = client.get("/api/v1/systems/some-id")
@@ -195,27 +212,29 @@ class TestMeEndpoint:
 
     def test_me_returns_structure(self):
         from app.api.routes import auth_routes
-        from app.api.core.auth.dependencies import get_current_user
+        from app.api.core.auth.dependencies import get_current_user_with_tenant
         from fastapi import FastAPI as _F
         app = _F()
         app.include_router(auth_routes.router)
-        app.dependency_overrides[get_current_user] = lambda: {
+        app.dependency_overrides[get_current_user_with_tenant] = lambda: {
             "sub": "u1", "user": "a@b.c", "tenant_id": TENANT_A, "roles": ["admin"]}
-        with patch.object(auth_routes, "get_db_connection") as mock_dbc, \
-             patch("app.services.tenant_service.TenantService.get_subscription") as mock_sub:
+        with patch.object(auth_routes, "get_db_connection") as mock_dbc:
             conn, cursor = _mock_conn()
-            mock_dbc.return_value.conn = conn
-            cursor.fetchall.return_value = [("admin",)]
-            cursor.fetchone.return_value = (TENANT_A, "Acme", "ACTIVE")
-            mock_sub.return_value = {"success": True, "data": {"status": "trialing"}}
+            conn.__enter__.return_value = conn
+            conn.conn = conn
+            mock_dbc.return_value = conn
+            sub_row = ("professional", "Pro", 5, 3, 5, "ACTIVE", None, "monthly", None)
+            cursor.fetchone.side_effect = [sub_row, (5,), (2,), (3,)]
+            cursor.fetchall.side_effect = [[("admin",)], [("users:read", "reports:read")]]
             client = TestClient(app)
             response = client.get("/api/v1/auth/me")
             assert response.status_code == 200
             body = response.json()
-            assert body["tenant_id"] == TENANT_A
-            assert body["roles"] == ["admin"]
-            assert body["tenant"]["status"] == "ACTIVE"
-            assert body["subscription"]["status"] == "trialing"
+            data = body["data"]
+            assert data["tenant_id"] == TENANT_A
+            assert data["roles"] == ["admin"]
+            assert "users:read" in data["permissions"]
+            assert data["subscription"]["status"] == "ACTIVE"
 
 
 class TestEntitlementEnforcement:

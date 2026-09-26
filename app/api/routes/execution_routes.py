@@ -17,11 +17,13 @@ def run_execution(
     background_tasks: BackgroundTasks,
     batch_name: str = None,
     current_user=Depends(get_current_user_with_tenant),
-    _entitled=Depends(require_entitlement("migration"))
+    _entitled=Depends(require_entitlement("validation"))
 ):
     # DEV-003: tenancy from JWT only — the ?tenant_id= parameter is removed.
     # DEV-001: the project must belong to the JWT tenant.
-    # DEV-009: 'migration' entitlement required (all current plans include it).
+    # DEV-009: canonical 'validation' entitlement required (all plans include it).
+    # NOTE: previously gated on non-canonical 'migration' (not present in any plan
+    # seed), which made this endpoint unreachable for active subscriptions.
     jwt_tenant = current_user.get("tenant_id")
     project = MigrationProjectService().get_project_for_tenant(project_id, jwt_tenant)
     if not project:

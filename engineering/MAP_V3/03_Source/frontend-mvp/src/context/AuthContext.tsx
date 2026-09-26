@@ -95,7 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       email: meData.email || credentials.email,
       name: (meData.email || credentials.email || '').split('@')[0],
       roles: meData.roles || ['viewer'],
-      permissions: ['read'],
+      permissions: meData.permissions ?? [],
       tenantId: meData.tenant_id || undefined,
     };
 
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       email: meData.email || '',
       name: (meData.email || '').split('@')[0],
       roles: meData.roles || ['viewer'],
-      permissions: ['read'],
+      permissions: meData.permissions ?? [],
       tenantId: meData.tenant_id || undefined,
     };
 

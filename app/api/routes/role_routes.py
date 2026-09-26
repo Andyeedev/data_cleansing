@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from app.db.connection import get_db_connection
-from app.api.core.auth.dependencies import get_current_user_with_tenant
+from app.api.core.auth.rbac import require_permissions
 from app.api.helpers import standardize_response
 from app.services.role_service import RoleService
 
@@ -33,7 +33,7 @@ def list_roles(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     status: Optional[str] = None,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("roles:list"))
 ):
     tenant_id = current_user.get("tenant_id")
     with get_db_connection() as db:
@@ -45,7 +45,7 @@ def list_roles(
 
 
 @router.get("/{role_id}")
-def get_role(role_id: str, current_user=Depends(get_current_user_with_tenant)):
+def get_role(role_id: str, current_user=Depends(require_permissions("roles:read"))):
     tenant_id = current_user.get("tenant_id")
     with get_db_connection() as db:
         service = RoleService(db.conn)
@@ -55,60 +55,70 @@ def get_role(role_id: str, current_user=Depends(get_current_user_with_tenant)):
 @router.post("")
 def create_role(
     payload: RoleCreateRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("roles:create"))
 ):
     tenant_id = current_user.get("tenant_id")
     with get_db_connection() as db:
         service = RoleService(db.conn)
-        return standardize_response(service.create_role(payload, tenant_id=tenant_id))
+        return standardize_response(service.create_role(
+            payload, tenant_id=tenant_id, caller=current_user
+        ))
 
 
 @router.put("/{role_id}")
 def update_role(
     role_id: str,
     payload: RoleUpdateRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("roles:update"))
 ):
     tenant_id = current_user.get("tenant_id")
     with get_db_connection() as db:
         service = RoleService(db.conn)
-        return standardize_response(service.update_role(role_id, payload, tenant_id=tenant_id))
+        return standardize_response(service.update_role(
+            role_id, payload, tenant_id=tenant_id, caller=current_user
+        ))
 
 
 @router.delete("/{role_id}")
-def delete_role(role_id: str, current_user=Depends(get_current_user_with_tenant)):
+def delete_role(role_id: str, current_user=Depends(require_permissions("roles:delete"))):
     tenant_id = current_user.get("tenant_id")
     with get_db_connection() as db:
         service = RoleService(db.conn)
-        return standardize_response(service.delete_role(role_id, tenant_id=tenant_id))
+        return standardize_response(service.delete_role(
+            role_id, tenant_id=tenant_id, caller=current_user
+        ))
 
 
 @router.post("/{role_id}/permissions")
 def assign_permission(
     role_id: str,
     payload: PermissionAssignRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("roles:assign"))
 ):
     tenant_id = current_user.get("tenant_id")
     with get_db_connection() as db:
         service = RoleService(db.conn)
-        return standardize_response(service.assign_permission(role_id, payload, tenant_id=tenant_id))
+        return standardize_response(service.assign_permission(
+            role_id, payload, tenant_id=tenant_id, caller=current_user
+        ))
 
 
 @router.delete("/{role_id}/permissions/{permission_id}")
 def remove_permission(
     role_id: str,
     permission_id: str,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("roles:assign"))
 ):
     tenant_id = current_user.get("tenant_id")
     with get_db_connection() as db:
         service = RoleService(db.conn)
-        return standardize_response(service.remove_permission(role_id, permission_id, tenant_id=tenant_id))
+        return standardize_response(service.remove_permission(
+            role_id, permission_id, tenant_id=tenant_id, caller=current_user
+        ))
 
 
 @router.get("/{role_id}/permissions")
-def get_role_permissions(role_id: str, current_user=Depends(get_current_user_with_tenant)):
+def get_role_permissions(role_id: str, current_user=Depends(require_permissions("roles:read"))):
     tenant_id = current_user.get("tenant_id")
     with get_db_connection() as db:
         service = RoleService(db.conn)
@@ -116,7 +126,7 @@ def get_role_permissions(role_id: str, current_user=Depends(get_current_user_wit
 
 
 @router.get("/permissions/list")
-def list_all_permissions(current_user=Depends(get_current_user_with_tenant)):
+def list_all_permissions(current_user=Depends(require_permissions("roles:read"))):
     with get_db_connection() as db:
         service = RoleService(db.conn)
         return standardize_response(service.list_all_permissions())

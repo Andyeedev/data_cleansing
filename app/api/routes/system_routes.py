@@ -5,8 +5,8 @@ from typing import Optional
 from app.db.connection import get_db_connection
 from app.services.system_service import SystemService
 from app.services.health_check_service import HealthCheckService
-from app.api.core.auth.dependencies import get_current_user, get_current_user_with_tenant, resolve_tenant, resolve_tenant
-from app.api.core.auth.rbac import require_admin
+from app.api.core.auth.dependencies import resolve_tenant
+from app.api.core.auth.rbac import require_admin, require_permissions
 from app.api.models.system_models import SystemCreateRequest
 
 router = APIRouter(prefix="/api/v1/systems", tags=["Systems"])
@@ -42,7 +42,7 @@ class UpdateSystemRequest(BaseModel):
 @router.get("/")
 def list_systems(
     project_id: str = Query(None),
-    current_user=Depends(get_current_user_with_tenant),
+    current_user=Depends(require_permissions("systems:list")),
     tenant_id: str = Depends(resolve_tenant),
 ):
     try:
@@ -64,7 +64,7 @@ def _not_found_or_500(e: Exception):
 
 
 @router.get("/{system_id}")
-def get_system(system_id: str, current_user=Depends(get_current_user_with_tenant)):
+def get_system(system_id: str, current_user=Depends(require_permissions("systems:read"))):
     # DEV-003: JWT tenant only — the system must belong to it via project ancestry.
     try:
         db = get_db_connection()
@@ -83,7 +83,7 @@ def get_system(system_id: str, current_user=Depends(get_current_user_with_tenant
 @router.post("/")
 def create_system(
     payload: SystemCreateRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("systems:create"))
 ):
     # DEV-001: project_id is mandatory and must belong to the JWT tenant.
     if not payload.project_id:
@@ -106,7 +106,7 @@ def create_system(
 @router.get("/{system_id}/test")
 def test_connection(
     system_id: str,
-    current_user=Depends(get_current_user_with_tenant),
+    current_user=Depends(require_permissions("systems:test")),
     tenant_id: str = Depends(resolve_tenant),
 ):
     try:
@@ -126,7 +126,7 @@ def test_connection(
 def update_system(
     system_id: str,
     payload: UpdateSystemRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("systems:update"))
 ):
     try:
         tenant_id = current_user.get("tenant_id")
@@ -144,7 +144,7 @@ def update_system(
 # DELETE
 # =========================
 @router.delete("/{system_id}")
-def delete_system(system_id: str, current_user=Depends(get_current_user_with_tenant)):
+def delete_system(system_id: str, current_user=Depends(require_permissions("systems:delete"))):
     try:
         tenant_id = current_user.get("tenant_id")
         db = get_db_connection()
@@ -219,7 +219,7 @@ def run_health_check(
 def get_health_check_history(
     system_id: str = Query(None),
     limit: int = Query(50, ge=1, le=200),
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("systems:read"))
 ):
     """Get health check audit trail. Optional system_id filter. DEV-001: JWT-tenant scoped."""
     try:

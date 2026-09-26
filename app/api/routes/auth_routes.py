@@ -82,6 +82,16 @@ def get_me(current_user: dict = Depends(get_current_user_with_tenant)):
             cur.execute("SELECT r.name FROM platform.user_roles ur JOIN platform.roles r ON ur.role_id = r.id WHERE ur.user_id = %s", (user_id,))
             roles = [row[0] for row in cur.fetchall()]
 
+            cur.execute("""
+                SELECT DISTINCT p.resource || ':' || p.action
+                FROM platform.role_permissions rp
+                JOIN platform.roles r ON rp.role_id = r.id
+                JOIN platform.permissions p ON rp.permission_id = p.id
+                JOIN platform.user_roles ur ON ur.role_id = r.id
+                WHERE ur.user_id = %s AND rp.granted = TRUE
+            """, (user_id,))
+            permissions = [row[0] for row in cur.fetchall()]
+
             subscription = None
             if tenant_id:
                 cur.execute("""
@@ -140,6 +150,7 @@ def get_me(current_user: dict = Depends(get_current_user_with_tenant)):
         "user_id": user_id,
         "email": current_user.get("user"),
         "roles": roles,
+        "permissions": permissions,
         "tenant_id": tenant_id,
         "subscription": subscription
     })

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict
 from app.db.connection import get_db_connection
-from app.api.core.auth.dependencies import get_current_user_with_tenant
+from app.api.core.auth.rbac import require_admin, require_permissions
 
 router = APIRouter(prefix="/api/v1/permissions", tags=["Permissions"])
 
@@ -22,7 +22,7 @@ def _get_db():
 
 
 @router.get("")
-def get_permissions(user=Depends(get_current_user_with_tenant)):
+def get_permissions(user=Depends(require_permissions("roles:read"))):
     try:
         with get_db_connection() as db:
             rows = db.execute(
@@ -39,7 +39,7 @@ def get_permissions(user=Depends(get_current_user_with_tenant)):
 
 
 @router.get("/roles")
-def get_roles(user=Depends(get_current_user_with_tenant)):
+def get_roles(user=Depends(require_permissions("roles:read"))):
     try:
         with get_db_connection() as db:
             rows = db.execute(
@@ -51,7 +51,7 @@ def get_roles(user=Depends(get_current_user_with_tenant)):
 
 
 @router.get("/packs")
-def get_packs(user=Depends(get_current_user_with_tenant)):
+def get_packs(user=Depends(require_permissions("roles:read"))):
     try:
         with get_db_connection() as db:
             rows = db.execute(
@@ -63,7 +63,11 @@ def get_packs(user=Depends(get_current_user_with_tenant)):
 
 
 @router.put("")
-def update_permissions(body: PermissionUpdate, user=Depends(get_current_user_with_tenant)):
+def update_permissions(body: PermissionUpdate, user=Depends(require_admin)):
+    # core.role_permissions is the legacy report-pack projection (global, no
+    # tenant dimension). Writes are therefore Super Admin only; Tenant Admin
+    # permission edits flow through the canonical tenant-scoped platform store
+    # via POST/DELETE /api/v1/roles/{role_id}/permissions.
     try:
         with get_db_connection() as db:
             for p in body.permissions:
@@ -81,7 +85,7 @@ def update_permissions(body: PermissionUpdate, user=Depends(get_current_user_wit
 
 
 @router.post("/reset")
-def reset_permissions(user=Depends(get_current_user_with_tenant)):
+def reset_permissions(user=Depends(require_admin)):
     try:
         with get_db_connection() as db:
             packs = ['operational', 'executive', 'validation_pack', 'governance_pack', 'audit_pack']

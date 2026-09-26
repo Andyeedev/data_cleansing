@@ -5,6 +5,8 @@ from datetime import datetime
 from typing import Optional
 import json
 
+from app.api.core.auth.rbac import is_super_admin
+
 
 class UserService:
     def __init__(self, conn):
@@ -185,8 +187,47 @@ class UserService:
 
         return {"success": True, "message": "User deleted"}
 
-    def assign_role(self, user_id: str, payload, tenant_id=None):
-        if tenant_id:
+    def assign_role(self, user_id: str, payload, tenant_id=None, caller=None):
+        if caller is not None and not is_super_admin(caller):
+            check_query = """
+                SELECT id FROM platform.users
+                WHERE id = %s AND tenant_id = %s AND deleted_at IS NULL
+            """
+            with self.conn.cursor() as cur:
+                cur.execute(check_query, (user_id, tenant_id))
+                if not cur.fetchone():
+                    return {"success": False, "error": "User not found or access denied"}
+
+            role_check_query = """
+                SELECT id, is_system FROM platform.roles
+                WHERE id = %s AND tenant_id = %s AND deleted_at IS NULL
+            """
+            with self.conn.cursor() as cur:
+                cur.execute(role_check_query, (payload.role_id, tenant_id))
+                row = cur.fetchone()
+                if not row:
+                    return {"success": False, "error": "Role not found or access denied"}
+                if row[1]:
+                    return {"success": False, "error": "System roles can only be assigned by Super Admin"}
+        elif caller is not None:
+            check_query = """
+                SELECT id FROM platform.users
+                WHERE id = %s AND deleted_at IS NULL
+            """
+            with self.conn.cursor() as cur:
+                cur.execute(check_query, (user_id,))
+                if not cur.fetchone():
+                    return {"success": False, "error": "User not found or access denied"}
+
+            role_check_query = """
+                SELECT id FROM platform.roles
+                WHERE id = %s AND deleted_at IS NULL
+            """
+            with self.conn.cursor() as cur:
+                cur.execute(role_check_query, (payload.role_id,))
+                if not cur.fetchone():
+                    return {"success": False, "error": "Role not found or access denied"}
+        elif tenant_id:
             check_query = """
                 SELECT id FROM platform.users
                 WHERE id = %s AND tenant_id = %s AND deleted_at IS NULL

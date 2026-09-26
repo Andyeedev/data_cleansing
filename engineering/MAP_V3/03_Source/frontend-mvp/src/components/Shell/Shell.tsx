@@ -56,7 +56,19 @@ const DEFAULT_NAV: MetadataNavItem[] = [
     { id: 'health', label: 'Health', path: '/operations/health' },
   ]},
   { id: 'tasks', label: 'Task Management', path: '/tasks' },
-  { id: 'administration', label: 'Administration', path: '/administration', requiredRoles: ['admin'] },
+  { id: 'administration', label: 'Administration', path: '/administration', children: [
+    { id: 'admin-users', label: 'Users', path: '/administration/users', requiredPermissions: ['users:list'] },
+    { id: 'admin-roles', label: 'Roles', path: '/administration/roles', requiredPermissions: ['roles:list'] },
+    { id: 'admin-invitations', label: 'Invitations', path: '/administration/invitations', requiredPermissions: ['invitations:read'] },
+    { id: 'admin-settings', label: 'Settings', path: '/administration/settings', requiredPermissions: ['settings:read'] },
+    { id: 'admin-permissions', label: 'Permissions', path: '/administration/permissions', requiredPermissions: ['roles:read'] },
+    { id: 'admin-tenants', label: 'Tenants', path: '/administration/tenants', requiredRoles: ['Super Admin'] },
+    { id: 'admin-registrations', label: 'Registrations', path: '/administration/registrations', requiredRoles: ['Super Admin'] },
+    { id: 'admin-feature-flags', label: 'Feature Flags', path: '/administration/feature-flags', requiredRoles: ['Super Admin'] },
+    { id: 'admin-security', label: 'Security', path: '/administration/security', requiredRoles: ['Super Admin'] },
+    { id: 'admin-notifications', label: 'Notifications', path: '/administration/notifications', requiredRoles: ['Super Admin'] },
+    { id: 'admin-maintenance', label: 'Maintenance', path: '/administration/maintenance', requiredRoles: ['Super Admin'] },
+  ]},
 ];
 
 interface ShellProps {
@@ -65,7 +77,7 @@ interface ShellProps {
 }
 
 export function Shell({ navItems: overrideNavItems, userRoles: propRoles }: ShellProps) {
-  const { userRoles: ctxRoles } = useAuth();
+  const { userRoles: ctxRoles, user } = useAuth();
   const userRoles = propRoles ?? ctxRoles;
   const location = useLocation();
   const [rawNavItems, setRawNavItems] = useState<MetadataNavItem[]>(
@@ -89,7 +101,7 @@ export function Shell({ navItems: overrideNavItems, userRoles: propRoles }: Shel
       .finally(() => setLoading(false));
   }, [overrideNavItems]);
 
-  const navItems = filterByPermissions(rawNavItems, userRoles);
+  const navItems = filterByPermissions(rawNavItems, userRoles, user?.permissions ?? []);
 
   return (
     <Layout

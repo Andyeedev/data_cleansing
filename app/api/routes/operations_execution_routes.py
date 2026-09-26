@@ -29,7 +29,7 @@ def start_run(
     body: RunRequest = Body(...),
     background_tasks: BackgroundTasks = None,
     current_user=Depends(get_current_user_with_tenant),
-    _entitled=Depends(require_entitlement("migration")),
+    _entitled=Depends(require_entitlement("validation")),
 ):
     """
     Start an end-to-end validation run.
@@ -38,7 +38,8 @@ def start_run(
     rule execution, and governance check in sequence.
     Uses background tasks for long-running execution.
     DEV-003: body tenant must equal JWT tenant. DEV-001: project (if given)
-    must belong to the JWT tenant. DEV-009: 'migration' entitlement required.
+    must belong to the JWT tenant. DEV-009: canonical 'validation' entitlement
+    required (previously non-canonical 'migration', present in no plan seed).
     """
     jwt_tenant_id = current_user.get("tenant_id")
     if body.tenant_id != jwt_tenant_id:

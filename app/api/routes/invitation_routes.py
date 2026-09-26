@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from app.api.core.auth.dependencies import get_current_user_with_tenant
-from app.api.core.auth.rbac import require_admin
+from app.api.core.auth.rbac import require_permissions
 from app.api.routes.rate_limit_phase1 import rate_limit_public_endpoint, get_client_ip
 from app.services.invitation_service import InvitationService
 from app.services.email_service import EmailServiceFactory
@@ -26,8 +25,8 @@ class InvitationAcceptRequest(BaseModel):
 
 @router.post("")
 @router.post("/")
-def create_invitation(payload: InvitationCreateRequest, request: Request, current_user: dict = Depends(require_admin)):
-    """Admin sends invitation email to new user."""
+def create_invitation(payload: InvitationCreateRequest, request: Request, current_user: dict = Depends(require_permissions("invitations:create"))):
+    """Tenant-scoped admin sends invitation email to new user."""
     client_ip = get_client_ip(request)
     rate_limit_public_endpoint(client_ip, max_requests=5, window_seconds=3600)
 
@@ -94,9 +93,9 @@ def list_invitations(
     status: Optional[str] = None,
     page: int = 1,
     page_size: int = 50,
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(require_permissions("invitations:read"))
 ):
-    """Admin lists pending invitations for tenant."""
+    """Lists pending invitations for tenant."""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=403, detail="Admin tenant context required")
@@ -108,8 +107,8 @@ def list_invitations(
 
 
 @router.delete("/{invitation_id}")
-def revoke_invitation(invitation_id: str, current_user: dict = Depends(require_admin)):
-    """Admin revokes/cancels invitation."""
+def revoke_invitation(invitation_id: str, current_user: dict = Depends(require_permissions("invitations:revoke"))):
+    """Revokes/cancels invitation within tenant."""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=403, detail="Admin tenant context required")
@@ -126,8 +125,8 @@ def revoke_invitation(invitation_id: str, current_user: dict = Depends(require_a
 
 
 @router.post("/{invitation_id}/resend")
-def resend_invitation(invitation_id: str, request: Request, current_user: dict = Depends(require_admin)):
-    """Admin resends invitation with new token."""
+def resend_invitation(invitation_id: str, request: Request, current_user: dict = Depends(require_permissions("invitations:resend"))):
+    """Resends invitation with new token within tenant."""
     client_ip = get_client_ip(request)
     rate_limit_public_endpoint(client_ip, max_requests=5, window_seconds=3600)
 

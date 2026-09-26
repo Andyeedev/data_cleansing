@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from app.db.connection import get_db_connection
 from app.services.credential_service import CredentialService
-from app.api.core.auth.dependencies import get_current_user_with_tenant
+from app.api.core.auth.rbac import require_permissions
 
 router = APIRouter(prefix="/api/v1/credentials", tags=["Credentials"])
 
@@ -27,7 +27,7 @@ class UpdateCredentialRequest(BaseModel):
 # =========================
 @router.get("")
 @router.get("/")
-def list_credentials(current_user=Depends(get_current_user_with_tenant)):
+def list_credentials(current_user=Depends(require_permissions("systems:list"))):
     try:
         tenant_id = current_user.get("tenant_id")
         with get_db_connection() as db:
@@ -44,7 +44,7 @@ def list_credentials(current_user=Depends(get_current_user_with_tenant)):
 @router.post("/")
 def create_credential(
     payload: CreateCredentialRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("systems:update"))
 ):
     try:
         tenant_id = current_user.get("tenant_id")
@@ -70,7 +70,7 @@ def create_credential(
 def update_credential(
     credential_id: str,
     payload: UpdateCredentialRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("systems:update"))
 ):
     try:
         tenant_id = current_user.get("tenant_id")
@@ -95,7 +95,7 @@ def update_credential(
 @router.delete("/{credential_id}")
 def delete_credential(
     credential_id: str,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("systems:update"))
 ):
     try:
         tenant_id = current_user.get("tenant_id")

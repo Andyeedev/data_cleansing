@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from app.db.connection import get_db_connection
-from app.api.core.auth.dependencies import get_current_user_with_tenant
+from app.api.core.auth.rbac import require_permissions
 from app.api.helpers import standardize_response
 from app.services.user_service import UserService
 
@@ -39,7 +39,7 @@ def list_users(
     page_size: int = Query(50, ge=1, le=100),
     status: Optional[str] = None,
     search: Optional[str] = None,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("users:list"))
 ):
     tenant_id = current_user.get("tenant_id")
     db = get_db_connection()
@@ -52,7 +52,7 @@ def list_users(
 
 
 @router.get("/{user_id}")
-def get_user(user_id: str, current_user=Depends(get_current_user_with_tenant)):
+def get_user(user_id: str, current_user=Depends(require_permissions("users:read"))):
     tenant_id = current_user.get("tenant_id")
     db = get_db_connection()
     service = UserService(db.conn)
@@ -62,7 +62,7 @@ def get_user(user_id: str, current_user=Depends(get_current_user_with_tenant)):
 @router.post("")
 def create_user(
     payload: UserCreateRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("users:create"))
 ):
     # DEV-009/DEV-011: plan-limit and password-policy violations surface as 403/422.
     try:
@@ -81,7 +81,7 @@ def create_user(
 def update_user(
     user_id: str,
     payload: UserUpdateRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("users:update"))
 ):
     tenant_id = current_user.get("tenant_id")
     db = get_db_connection()
@@ -90,7 +90,7 @@ def update_user(
 
 
 @router.delete("/{user_id}")
-def delete_user(user_id: str, current_user=Depends(get_current_user_with_tenant)):
+def delete_user(user_id: str, current_user=Depends(require_permissions("users:delete"))):
     tenant_id = current_user.get("tenant_id")
     db = get_db_connection()
     service = UserService(db.conn)
@@ -101,19 +101,21 @@ def delete_user(user_id: str, current_user=Depends(get_current_user_with_tenant)
 def assign_role(
     user_id: str,
     payload: UserRoleAssignRequest,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("users:update"))
 ):
     tenant_id = current_user.get("tenant_id")
     db = get_db_connection()
     service = UserService(db.conn)
-    return standardize_response(service.assign_role(user_id, payload, tenant_id=tenant_id))
+    return standardize_response(service.assign_role(
+        user_id, payload, tenant_id=tenant_id, caller=current_user
+    ))
 
 
 @router.delete("/{user_id}/roles/{role_id}")
 def remove_role(
     user_id: str,
     role_id: str,
-    current_user=Depends(get_current_user_with_tenant)
+    current_user=Depends(require_permissions("users:update"))
 ):
     tenant_id = current_user.get("tenant_id")
     db = get_db_connection()
@@ -122,7 +124,7 @@ def remove_role(
 
 
 @router.get("/{user_id}/roles")
-def get_user_roles(user_id: str, current_user=Depends(get_current_user_with_tenant)):
+def get_user_roles(user_id: str, current_user=Depends(require_permissions("users:read"))):
     tenant_id = current_user.get("tenant_id")
     db = get_db_connection()
     service = UserService(db.conn)
