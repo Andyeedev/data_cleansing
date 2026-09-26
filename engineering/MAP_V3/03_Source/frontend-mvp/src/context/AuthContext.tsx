@@ -114,15 +114,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setState({ user: null, token: null, isAuthenticated: false, isLoading: false });
   }, []);
 
-  const switchRole = useCallback((role: string) => {
-    setState((prev) => {
-      if (!prev.user) return prev;
-      const updatedUser = { ...prev.user, roles: [role] };
-      localStorage.setItem('map_nexus_user', JSON.stringify(updatedUser));
-      return { ...prev, user: updatedUser };
-    });
-  }, []);
-
   const refetchUser = useCallback(async () => {
     const meResponse = await fetch('/api/v1/auth/me', {
       method: 'GET',
@@ -149,6 +140,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.setItem('map_nexus_user', JSON.stringify(user));
     setState((prev) => ({ ...prev, user, tenantId: meData.tenant_id }));
   }, []);
+
+  // Phase B (B5): the legacy RoleSwitcher alias vocabulary
+  // ('admin'/'manager'/'operator'/'viewer') must not fabricate roles that feed
+  // the administration route guards (spec §7 warns against a second taxonomy).
+  // Selecting a role re-asserts the server truth from /auth/me instead of
+  // rewriting roles locally. Broader alias-vocabulary removal outside the
+  // admin shell is documented and deferred.
+  const switchRole = useCallback((_role: string) => {
+    void refetchUser().catch(() => {});
+  }, [refetchUser]);
 
   const userRoles = state.user?.roles ?? [];
   const tenantId = state.user?.tenantId;

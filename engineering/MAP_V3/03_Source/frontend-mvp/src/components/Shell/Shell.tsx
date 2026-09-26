@@ -3,6 +3,8 @@ import { Layout } from '../Layout/Layout';
 import { DynamicNavigation } from '../Navigation/DynamicNavigation';
 import { Breadcrumb } from '../Breadcrumb/Breadcrumb';
 import { filterByPermissions } from '../../utils/filterByPermissions';
+import { adminSectionsAsNavItems } from '../../admin/adminSections';
+import { resolveServerNavItem } from '../../admin/capabilities';
 import { apiGet } from '../../utils/apiClient';
 import type { MetadataNavItem } from '../../types/metadata';
 import { Outlet, useLocation } from 'react-router-dom';
@@ -56,19 +58,10 @@ const DEFAULT_NAV: MetadataNavItem[] = [
     { id: 'health', label: 'Health', path: '/operations/health' },
   ]},
   { id: 'tasks', label: 'Task Management', path: '/tasks' },
-  { id: 'administration', label: 'Administration', path: '/administration', children: [
-    { id: 'admin-users', label: 'Users', path: '/administration/users', requiredPermissions: ['users:list'] },
-    { id: 'admin-roles', label: 'Roles', path: '/administration/roles', requiredPermissions: ['roles:list'] },
-    { id: 'admin-invitations', label: 'Invitations', path: '/administration/invitations', requiredPermissions: ['invitations:read'] },
-    { id: 'admin-settings', label: 'Settings', path: '/administration/settings', requiredPermissions: ['settings:read'] },
-    { id: 'admin-permissions', label: 'Permissions', path: '/administration/permissions', requiredPermissions: ['roles:read'] },
-    { id: 'admin-tenants', label: 'Tenants', path: '/administration/tenants', requiredRoles: ['Super Admin'] },
-    { id: 'admin-registrations', label: 'Registrations', path: '/administration/registrations', requiredRoles: ['Super Admin'] },
-    { id: 'admin-feature-flags', label: 'Feature Flags', path: '/administration/feature-flags', requiredRoles: ['Super Admin'] },
-    { id: 'admin-security', label: 'Security', path: '/administration/security', requiredRoles: ['Super Admin'] },
-    { id: 'admin-notifications', label: 'Notifications', path: '/administration/notifications', requiredRoles: ['Super Admin'] },
-    { id: 'admin-maintenance', label: 'Maintenance', path: '/administration/maintenance', requiredRoles: ['Super Admin'] },
-  ]},
+  // Phase B: the administration subtree renders from the single
+  // ADMIN_SECTIONS catalogue (authoritative model = spec §4.1 + enforced
+  // gates), never from a duplicated inline list.
+  { id: 'administration', label: 'Administration', path: '/administration', children: adminSectionsAsNavItems() },
 ];
 
 interface ShellProps {
@@ -92,7 +85,11 @@ export function Shell({ navItems: overrideNavItems, userRoles: propRoles }: Shel
     apiGet<MetadataNavItem[]>('/navigation')
       .then((data) => {
         if (Array.isArray(data)) {
-          setRawNavItems([...data, ...STATIC_NAV_ITEMS]);
+          // Phase B: server items pass through capability resolution so the
+          // administration subtree converges on the single catalogue instead
+          // of the mock's `["admin"]` alias gates. Non-admin items are
+          // untouched (out of Phase B scope).
+          setRawNavItems([...data.map(resolveServerNavItem), ...STATIC_NAV_ITEMS]);
         }
       })
       .catch(() => {

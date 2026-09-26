@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Shell } from './components/Shell/Shell';
+import { AdminConsole } from './components/AdminConsole/AdminConsole';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -30,7 +31,8 @@ const WorkflowsPage = lazy(() => import('./routes/WorkflowsPage').then(m => ({ d
 const NotificationsPage = lazy(() => import('./routes/NotificationsPage').then(m => ({ default: m.NotificationsPage })));
 const SystemsPage = lazy(() => import('./routes/SystemsPage').then(m => ({ default: m.SystemsPage })));
 const SystemDetailPage = lazy(() => import('./routes/SystemDetailPage').then(m => ({ default: m.SystemDetailPage })));
-const AdministrationPage = lazy(() => import('./routes/AdministrationPage').then(m => ({ default: m.AdministrationPage })));
+const MissionControlPage = lazy(() => import('./routes/administration/MissionControlPage').then(m => ({ default: m.MissionControlPage })));
+const SubscriptionsSectionPage = lazy(() => import('./routes/administration/SubscriptionsSectionPage').then(m => ({ default: m.SubscriptionsSectionPage })));
 const UsersPage = lazy(() => import('./routes/UsersPage').then(m => ({ default: m.UsersPage })));
 const UserDetailPage = lazy(() => import('./routes/UserDetailPage').then(m => ({ default: m.UserDetailPage })));
 const RolesPage = lazy(() => import('./routes/RolesPage').then(m => ({ default: m.RolesPage })));
@@ -178,22 +180,28 @@ export function AppRoutes() {
           <Route path="/settings" element={<UserSettingsPage />} />
           <Route path="/about" element={<AboutPage />} />
 
-          <Route path="/administration" element={<ProtectedRoute requiredRoles={['Super Admin', 'Tenant Admin']}><AdministrationPage /></ProtectedRoute>} />
-          <Route path="/administration/users" element={<ProtectedRoute requiredPermissions={['users:list']}><ValidationFilterProvider><UsersPage /></ValidationFilterProvider></ProtectedRoute>} />
-          <Route path="/administration/users/new" element={<ProtectedRoute requiredPermissions={['users:list']}><UserDetailPage /></ProtectedRoute>} />
-          <Route path="/administration/users/:id" element={<ProtectedRoute requiredPermissions={['users:list']}><UserDetailPage /></ProtectedRoute>} />
-          <Route path="/administration/roles" element={<ProtectedRoute requiredPermissions={['roles:list']}><RolesPage /></ProtectedRoute>} />
-          <Route path="/administration/roles/new" element={<ProtectedRoute requiredPermissions={['roles:list']}><RoleDetailPage /></ProtectedRoute>} />
-          <Route path="/administration/roles/:id" element={<ProtectedRoute requiredPermissions={['roles:list']}><RoleDetailPage /></ProtectedRoute>} />
-          <Route path="/administration/tenants" element={<ProtectedRoute requiredRoles={['Super Admin']}><TenantsPage /></ProtectedRoute>} />
-          <Route path="/administration/settings" element={<ProtectedRoute requiredPermissions={['settings:read']}><SettingsPage /></ProtectedRoute>} />
-          <Route path="/administration/permissions" element={<ProtectedRoute requiredRoles={['Super Admin']}><PermissionsPage /></ProtectedRoute>} />
-          <Route path="/administration/feature-flags" element={<ProtectedRoute requiredRoles={['Super Admin']}><FeatureFlagsPage /></ProtectedRoute>} />
-          <Route path="/administration/security" element={<ProtectedRoute requiredRoles={['Super Admin']}><SecurityPage /></ProtectedRoute>} />
-          <Route path="/administration/notifications" element={<ProtectedRoute requiredRoles={['Super Admin']}><AdminNotificationsPage /></ProtectedRoute>} />
-          <Route path="/administration/maintenance" element={<ProtectedRoute requiredRoles={['Super Admin']}><MaintenancePage /></ProtectedRoute>} />
-          <Route path="/administration/invitations" element={<ProtectedRoute requiredPermissions={['invitations:read']}><ValidationFilterProvider><InvitationsPage /></ValidationFilterProvider></ProtectedRoute>} />
-          <Route path="/administration/registrations" element={<ProtectedRoute requiredRoles={['Super Admin']}><ValidationFilterProvider><RegistrationsPage /></ValidationFilterProvider></ProtectedRoute>} />
+          {/* Phase B: administration console — persistent rail + detail pane.
+              /administration renders Mission Control; every section keeps its
+              own ProtectedRoute guard and the backend remains authoritative. */}
+          <Route path="/administration" element={<ProtectedRoute requiredRoles={['Super Admin', 'Tenant Admin']}><AdminConsole /></ProtectedRoute>}>
+            <Route index element={<MissionControlPage />} />
+            <Route path="users" element={<ProtectedRoute requiredPermissions={['users:list']}><ValidationFilterProvider><UsersPage /></ValidationFilterProvider></ProtectedRoute>} />
+            <Route path="users/new" element={<ProtectedRoute requiredPermissions={['users:list']}><UserDetailPage /></ProtectedRoute>} />
+            <Route path="users/:id" element={<ProtectedRoute requiredPermissions={['users:list']}><UserDetailPage /></ProtectedRoute>} />
+            <Route path="roles" element={<ProtectedRoute requiredPermissions={['roles:list']}><RolesPage /></ProtectedRoute>} />
+            <Route path="roles/new" element={<ProtectedRoute requiredPermissions={['roles:list']}><RoleDetailPage /></ProtectedRoute>} />
+            <Route path="roles/:id" element={<ProtectedRoute requiredPermissions={['roles:list']}><RoleDetailPage /></ProtectedRoute>} />
+            <Route path="tenants" element={<ProtectedRoute requiredRoles={['Super Admin']}><TenantsPage /></ProtectedRoute>} />
+            <Route path="settings" element={<ProtectedRoute requiredPermissions={['settings:read']}><SettingsPage /></ProtectedRoute>} />
+            <Route path="permissions" element={<ProtectedRoute requiredRoles={['Super Admin']}><PermissionsPage /></ProtectedRoute>} />
+            <Route path="feature-flags" element={<ProtectedRoute requiredRoles={['Super Admin']}><FeatureFlagsPage /></ProtectedRoute>} />
+            <Route path="security" element={<ProtectedRoute requiredRoles={['Super Admin']}><SecurityPage /></ProtectedRoute>} />
+            <Route path="notifications" element={<ProtectedRoute requiredRoles={['Super Admin']}><AdminNotificationsPage /></ProtectedRoute>} />
+            <Route path="maintenance" element={<ProtectedRoute requiredRoles={['Super Admin']}><MaintenancePage /></ProtectedRoute>} />
+            <Route path="invitations" element={<ProtectedRoute requiredPermissions={['invitations:read']}><ValidationFilterProvider><InvitationsPage /></ValidationFilterProvider></ProtectedRoute>} />
+            <Route path="registrations" element={<ProtectedRoute requiredRoles={['Super Admin']}><ValidationFilterProvider><RegistrationsPage /></ValidationFilterProvider></ProtectedRoute>} />
+            <Route path="subscriptions" element={<ProtectedRoute requiredRoles={['Super Admin']}><SubscriptionsSectionPage /></ProtectedRoute>} />
+          </Route>
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>
