@@ -6,7 +6,7 @@ from app.db.connection import get_db_connection
 from app.api.core.auth.dependencies import get_current_user_with_tenant, get_current_user
 from app.api.helpers import standardize_response
 from app.services.tenant_service import TenantService
-from app.api.core.auth.rbac import require_admin
+from app.api.core.auth.rbac import require_admin, is_super_admin
 
 router = APIRouter(prefix="/api/v1/tenants", tags=["Tenants"])
 
@@ -153,3 +153,38 @@ def change_subscription(
         billing_cycle=request.billing_cycle
     )
     return standardize_response(result)
+
+
+@router.get("/{tenant_id}/entitlements")
+def get_tenant_entitlements_view(
+    tenant_id: str,
+    current_user=Depends(get_current_user_with_tenant)
+):
+    """Phase D: read-only effective entitlements for dashboard display.
+
+    Super Admin may view any valid tenant; Tenant Admin only its own JWT
+    tenant; all other roles denied. Unknown tenant -> 404 (never a silent
+    aggregate). Returns the effective result of get_tenant_entitlements()
+    verbatim. Read-only: never changes the caller's JWT tenant.
+    """
+    from app.middleware.entitlement_middleware import get_tenant_entitlements
+
+    roles = current_user.get("roles", [])
+    jwt_tenant = current_user.get("tenant_id")
+    if not is_super_admin(current_user):
+        if "Tenant Admin" not in roles or not jwt_tenant or jwt_tenant != tenant_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+    db = get_db_connection()
+    service = TenantService(db.conn)
+    tenant = service.get_tenant(tenant_id)
+    if not tenant.get("success"):
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    return standardize_response({
+        "success": True,
+        "data": {
+            "tenant_id": tenant_id,
+            "entitlements": sorted(get_tenant_entitlements(tenant_id)),
+        },
+    })
