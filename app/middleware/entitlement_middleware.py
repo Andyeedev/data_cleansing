@@ -11,6 +11,7 @@ DEFAULT_ENTITLEMENTS = {
     },
     "enterprise": {
         "discovery", "mapping", "validation", "advanced_reporting",
+        "report_studio",
         "multi_project", "api_access", "audit_trail", "governance",
         "priority_support", "pre_migration_assurance",
         "post_migration_assurance", "pre_post_migration_assurance",
@@ -18,13 +19,23 @@ DEFAULT_ENTITLEMENTS = {
     },
     "enterprise_plus": {
         "discovery", "mapping", "validation", "advanced_reporting",
-        "enterprise_reporting", "multi_project", "api_access",
-        "audit_trail", "governance", "advanced_governance",
-        "enterprise_governance", "ai_insights", "custom_integrations",
-        "dedicated_support", "multi_region", "sla",
+        "report_studio", "enterprise_reporting",
+        "multi_project", "api_access", "audit_trail", "governance",
+        "advanced_governance", "enterprise_governance", "ai_insights",
+        "custom_integrations", "dedicated_support", "multi_region", "sla",
         "pre_migration_assurance", "post_migration_assurance",
         "pre_post_migration_assurance", "reconciliation"
     },
+}
+
+# OC-REPORT-001: the Report & Analytics Studio add-on is gated by exactly ONE new
+# key. The brief's five capability groups map onto existing keys rather than new
+# ones (see plan §9.3) — over-splitting the entitlement set is what produced the
+# original vocabulary drift that caused the OC-E2E-001 "migration" outage.
+REPORT_STUDIO_ENTITLEMENT = "report_studio"
+REPORTING_ENTITLEMENTS = {
+    "basic_reporting", "advanced_reporting", "enterprise_reporting",
+    "report_studio", "ai_insights",
 }
 
 
