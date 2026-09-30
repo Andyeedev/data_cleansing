@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from typing import Optional
 
 from app.db.connection import get_db_connection
-from app.api.core.auth.rbac import require_permissions
+from app.api.core.auth.rbac import require_permissions, is_super_admin
+from app.api.core.auth.dependencies import resolve_tenant
 from app.api.helpers import standardize_response
 from app.services.role_service import RoleService
 
@@ -33,23 +34,32 @@ def list_roles(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     status: Optional[str] = None,
-    current_user=Depends(require_permissions("roles:list"))
+    current_user=Depends(require_permissions("roles:list")),
+    tenant_id: str = Depends(resolve_tenant)
 ):
-    tenant_id = current_user.get("tenant_id")
+    # Phase C (D1): resolve_tenant encodes the approved rule (SA-only
+    # override, else JWT-bound). include_global lets Super Admin see the
+    # platform-global (tenant NULL) system roles; never set for others.
     with get_db_connection() as db:
         service = RoleService(db.conn)
         return standardize_response(service.list_roles(
             tenant_id=tenant_id,
-            page=page, page_size=page_size, status=status
+            page=page, page_size=page_size, status=status,
+            include_global=is_super_admin(current_user)
         ))
 
 
 @router.get("/{role_id}")
-def get_role(role_id: str, current_user=Depends(require_permissions("roles:read"))):
-    tenant_id = current_user.get("tenant_id")
+def get_role(
+    role_id: str,
+    current_user=Depends(require_permissions("roles:read")),
+    tenant_id: str = Depends(resolve_tenant)
+):
     with get_db_connection() as db:
         service = RoleService(db.conn)
-        return standardize_response(service.get_role(role_id, tenant_id=tenant_id))
+        return standardize_response(service.get_role(
+            role_id, tenant_id=tenant_id, include_global=is_super_admin(current_user)
+        ))
 
 
 @router.post("")
@@ -118,11 +128,16 @@ def remove_permission(
 
 
 @router.get("/{role_id}/permissions")
-def get_role_permissions(role_id: str, current_user=Depends(require_permissions("roles:read"))):
-    tenant_id = current_user.get("tenant_id")
+def get_role_permissions(
+    role_id: str,
+    current_user=Depends(require_permissions("roles:read")),
+    tenant_id: str = Depends(resolve_tenant)
+):
     with get_db_connection() as db:
         service = RoleService(db.conn)
-        return standardize_response(service.get_role_permissions(role_id, tenant_id=tenant_id))
+        return standardize_response(service.get_role_permissions(
+            role_id, tenant_id=tenant_id, include_global=is_super_admin(current_user)
+        ))
 
 
 @router.get("/permissions/list")

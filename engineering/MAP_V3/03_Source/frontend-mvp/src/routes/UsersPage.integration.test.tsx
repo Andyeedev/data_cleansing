@@ -50,7 +50,7 @@ describe('UsersPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -74,7 +74,7 @@ describe('UsersPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       const viewButtons = screen.getAllByText('View');
@@ -96,10 +96,12 @@ describe('UsersPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
+    // Mount fires the users list fetch plus the subscription fetch for seat
+    // limits (E1). The users fetch carries no search param yet.
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
     });
 
     const searchInput = screen.getByPlaceholderText('Search users...');
@@ -107,7 +109,7 @@ describe('UsersPage Integration', () => {
     fireEvent.keyDown(searchInput, { key: 'Enter' });
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(global.fetch).toHaveBeenCalledTimes(3);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('search=admin'),
         expect.anything()
@@ -129,17 +131,19 @@ describe('UsersPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
+    // Mount fires the users list fetch plus the subscription fetch for seat
+    // limits (E1).
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
     });
 
     const statusSelect = screen.getByDisplayValue('All Status');
     fireEvent.change(statusSelect, { target: { value: 'active' } });
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(global.fetch).toHaveBeenCalledTimes(3);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('status=active'),
         expect.anything()
@@ -161,7 +165,7 @@ describe('UsersPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('Previous')).toBeInTheDocument();
@@ -184,7 +188,7 @@ describe('UsersPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);

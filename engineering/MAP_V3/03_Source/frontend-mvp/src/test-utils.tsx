@@ -5,14 +5,18 @@ import { server } from './mocks';
 
 interface RenderWithProvidersOptions extends RenderOptions {
   initialRole?: string;
+  initialPermissions?: string[];
   initialEntries?: string[];
   useMockServer?: boolean;
 }
+
+const DEFAULT_MOCK_PERMISSIONS = ['read', 'write', 'delete', 'admin'];
 
 export function renderWithProviders(
   ui: React.ReactElement,
   {
     initialRole = 'admin',
+    initialPermissions = DEFAULT_MOCK_PERMISSIONS,
     initialEntries = ['/'],
     useMockServer = false,
     ...renderOptions
@@ -23,7 +27,7 @@ export function renderWithProviders(
     email: 'admin@test.com',
     name: 'admin',
     roles: [initialRole],
-    permissions: ['read', 'write', 'delete', 'admin'],
+    permissions: initialPermissions,
   };
   localStorage.setItem('access_token', 'mock-jwt-token-for-tests');
   localStorage.setItem('map_nexus_user', JSON.stringify(mockUser));

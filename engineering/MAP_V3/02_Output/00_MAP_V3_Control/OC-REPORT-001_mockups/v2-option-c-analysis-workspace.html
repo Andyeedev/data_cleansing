@@ -1,0 +1,208 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="mockup.css">
+<title>OC-REPORT-001 v2 — Option C Analysis Workspace (V2, richer assistant)</title>
+<style>
+.defer{background:#dbeafe;border-bottom:1px solid #93c5fd;padding:7px 16px;font-size:12px;color:#1e40af;display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.defer b{font-weight:700}
+.rail-l{width:236px;flex:0 0 236px;background:#fff;border-right:1px solid #e2e8f0;overflow:auto;padding:12px}
+.blk{margin-bottom:15px}
+.blk .bh{display:flex;align-items:center;gap:6px;font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:7px}
+.blk .bh .sp{flex:1}
+.chk{display:flex;align-items:center;gap:7px;padding:4px 5px;border-radius:5px;font-size:11.5px;color:#334155}
+.chk .bx{width:13px;height:13px;border-radius:3px;border:1.5px solid #cbd5e1;background:#fff;flex:0 0 13px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
+.chk .bx.on{background:#2563eb;border-color:#2563eb}
+.chk .bx.on2{background:#f59e0b;border-color:#f59e0b}
+.chk .bx.on3{background:#0ea5e9;border-color:#0ea5e9}
+.stagec{flex:1;background:#eef2f7;overflow:auto;display:flex;flex-direction:column}
+.vh{padding:10px 16px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px}
+.vh h1{font-size:14px;font-weight:700}
+.vhead{padding:14px 16px 0}
+.vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:11px}
+.vtabs{display:flex;gap:4px;background:#fff;padding:3px;border-radius:7px;border:1px solid #e2e8f0}
+.vtab{padding:6px 13px;border-radius:5px;font-size:11.5px;color:#64748b;font-weight:600}
+.vtab.on{background:#2563eb;color:#fff}
+.vpane{margin:12px 16px 0;background:#fff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;flex:1;display:flex;flex-direction:column;min-height:0}
+.pb{flex:1;display:flex;align-items:stretch;gap:14px;padding:12px 16px;min-height:0}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:4px 0}
+.brow{display:flex;align-items:center;gap:10px}
+.brow .nm{width:74px;font-size:11.5px;color:#334155;font-weight:600}
+.brow .bg{flex:1}
+.brow .vv{width:34px;text-align:right;font-size:11.5px;font-weight:700}
+.trend{flex:1;padding:6px 0 0;display:flex;flex-direction:column;min-width:0}
+.trend .th{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:6px}
+.trend svg{flex:1;min-height:0}
+.sbar{padding:9px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.unsaved{display:flex;align-items:center;gap:7px;padding:8px 16px;background:#fffbeb;border-top:1px solid #fde68a;font-size:11.5px;color:#92400e}
+</style></head>
+<body>
+<div class="app">
+  <nav class="rail">
+    <div class="rail-brand"><div class="rail-logo">MN</div><div><b>MAP Nexus</b><span>Report Studio</span></div></div>
+    <div class="rail-group"><label>Reporting</label>
+      <div class="rail-item sub">Board Packs</div>
+      <div class="rail-item sub">Report Suite</div>
+      <div class="rail-item"><span class="ic">▦</span>Studio <span class="pill ok" style="margin-left:auto;height:15px;font-size:9px">V1</span></div>
+      <div class="rail-item" style="background:#1e3a8a"><span class="ic">◱</span>Analysis Workspace <span class="pill info" style="margin-left:auto;height:15px;font-size:9px">V2</span></div>
+    </div>
+    <div class="rail-group"><label>Assistant</label>
+      <div class="rail-item"><span class="ic">✦</span>Basic (deterministic) <span class="pill ok" style="margin-left:auto;height:15px;font-size:9px">V1</span></div>
+      <div class="rail-item" style="opacity:.6"><span class="ic">✦</span>More sophisticated <span class="pill mute" style="margin-left:auto;height:15px;font-size:9px">V2</span></div>
+    </div>
+    <div class="rail-group"><label>Manage</label>
+      <div class="rail-item"><span class="ic">◎</span>My Reports</div>
+      <div class="rail-item"><span class="ic">◇</span>Data Sources</div>
+      <div class="rail-item"><span class="ic">▤</span>Schedules <span class="pill mute" style="margin-left:auto">V2</span></div>
+    </div>
+    <div class="rail-foot">Entitlement · Enterprise<br><b style="color:#4ade80">report_studio</b> active</div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">Reports <span>&rsaquo;</span> Studio <span>&rsaquo;</span> <b>Analysis Workspace</b></div>
+      <div class="spacer"></div>
+      <div class="select" style="width:150px">Acme Financial</div>
+      <div class="tbtn">Reset</div>
+      <div class="tbtn pri">Save as report</div>
+      <div class="avatar">SA</div>
+    </div>
+
+    <div class="defer">
+      <b>&#9432; Option C &mdash; targeted for V2.</b>
+      The analysis workspace is the highest-value surface for the Data Analyst persona and is scheduled for V2 alongside scatter / matrix / pivot
+      and a more sophisticated assistant. V1 ships Option B (template-driven Dashboard Studio) plus the built-in deterministic assistant.
+      Shown here for roadmap review.
+    </div>
+
+    <div class="content">
+      <aside class="rail-l">
+        <div class="blk">
+          <div class="bh">1 &middot; Data source <span class="sp"></span></div>
+          <div class="select" style="width:100%;height:30px;font-size:11.5px">migration.exceptions &mdash; v1</div>
+          <div class="hint" style="margin-top:5px">Allowlisted &middot; read-only &middot; tenant-scoped. No raw SQL.</div>
+        </div>
+
+        <div class="blk">
+          <div class="bh">2 &middot; Filters <span class="sp"></span><span class="chip x" style="height:18px;font-size:10px;white-space:nowrap">+ add</span></div>
+          <div style="font-size:10.5px;color:#64748b;margin:2px 0 3px 5px;font-weight:600">severity</div>
+          <div class="chk"><span class="bx on">✓</span>CRITICAL <span class="pill bad" style="margin-left:auto;height:15px;font-size:9px">17</span></div>
+          <div class="chk"><span class="bx on">✓</span>HIGH <span class="pill warn" style="margin-left:auto;height:15px;font-size:9px">107</span></div>
+          <div class="chk"><span class="bx"></span>MEDIUM</div>
+          <div class="chk"><span class="bx"></span>LOW</div>
+          <div style="font-size:10.5px;color:#64748b;margin:9px 0 3px 5px;font-weight:600">owner</div>
+          <div class="chk"><span class="bx on3">✓</span>Ann Batra</div>
+          <div class="chk"><span class="bx on3">✓</span>Raj Patel</div>
+          <div class="chk"><span class="bx"></span>Mei Lin</div>
+          <div class="chk"><span class="bx"></span>Tom Byrne</div>
+          <div style="font-size:10.5px;color:#64748b;margin:9px 0 3px 5px;font-weight:600">batch</div>
+          <div class="chk"><span class="bx on2">✓</span>last 10 batches</div>
+          <div class="chk"><span class="bx"></span>last 30 batches</div>
+        </div>
+
+        <div class="blk">
+          <div class="bh">3 &middot; Fields <span class="sp"></span><span class="chip x" style="height:18px;font-size:10px;white-space:nowrap">+ add</span></div>
+          <div style="font-size:10px;color:#8b5cf6;font-weight:700;letter-spacing:.5px;margin:2px 0 3px 5px">DIMENSIONS</div>
+          <div class="field dim"><span class="dot"></span>owner <span class="pill info" style="margin-left:auto;height:15px;font-size:9px">group by</span></div>
+          <div class="field dim"><span class="dot"></span>control_id</div>
+          <div class="field dim"><span class="dot"></span>entity</div>
+          <div class="field ts"><span class="dot"></span>detected_at</div>
+          <div style="font-size:10px;color:#8b5cf6;font-weight:700;letter-spacing:.5px;margin:9px 0 3px 5px">MEASURES</div>
+          <div class="field mea"><span class="dot"></span>failed_rules <span class="pill mute" style="margin-left:auto;height:15px;font-size:9px">sum</span></div>
+          <div class="field mea"><span class="dot"></span>pass_rate <span class="pill mute" style="margin-left:auto;height:15px;font-size:9px">avg</span></div>
+          <div class="field mea"><span class="dot"></span>delta_value</div>
+        </div>
+      </aside>
+
+      <div class="stagec">
+        <div class="vh">
+          <h1>Controls failed &mdash; last 10 batches</h1>
+          <span class="pill mute">ad-hoc view</span>
+          <div class="spacer" style="flex:1"></div>
+          <div style="display:flex;gap:7px;align-items:center;font-size:11.5px;color:#64748b">
+            <span>Group by</span><div class="select" style="height:27px;width:110px">owner</div>
+            <span>Sort</span><div class="select" style="height:27px;width:150px">failed_rules &mdash; desc</div>
+          </div>
+        </div>
+
+        <div class="vhead">
+          <div class="vtabs">
+            <div class="vtab on">KPI</div>
+            <div class="vtab">Table</div>
+            <div class="vtab on" style="background:#2563eb;color:#fff">Bar</div>
+            <div class="vtab">Line</div>
+            <div class="vtab">Donut</div>
+            <div class="vtab" style="opacity:.45">Scatter <span style="font-size:9px">V2</span></div>
+          </div>
+          <div class="hint" style="margin-left:10px">Same result set, different lens. Switch views without re-running the query.</div>
+        </div>
+
+        <div class="vgrid">
+          <div class="kpi"><div class="lbl">Controls run</div><div class="val">1,284</div><div class="sub">filtered set</div></div>
+          <div class="kpi g"><div class="lbl">Pass rate</div><div class="val">92.4%</div><div class="sub">avg across owners</div></div>
+          <div class="kpi r"><div class="lbl">Failed rules</div><div class="val">124</div><div class="sub">CRITICAL + HIGH</div></div>
+          <div class="kpi y"><div class="lbl">Largest delta</div><div class="val">64,684</div><div class="sub">GL_ACCOUNT &middot; C01</div></div>
+        </div>
+
+        <div class="vpane">
+          <div class="card-h"><b>Failed rules by owner</b><span class="sp"></span>
+            <span class="pill info">migration.exceptions v1</span>
+            <span class="pill mute">5 filters &middot; 2 dims &middot; 1 measure</span>
+            <span class="mini">Pin to report</span></div>
+          <div class="pb">
+            <div class="bar">
+              <div class="brow"><span class="nm">Ann Batra</span><div class="bg"><div class="bar-bg" style="height:24px"><div class="bar-fl" style="width:78%;background:#dc2626"></div></div></div><span class="vv" style="color:#b91c1c">24</span></div>
+              <div class="brow"><span class="nm">Raj Patel</span><div class="bg"><div class="bar-bg" style="height:24px"><div class="bar-fl" style="width:100%;background:#dc2626"></div></div></div><span class="vv" style="color:#b91c1c">31</span></div>
+              <div class="brow"><span class="nm">Mei Lin</span><div class="bg"><div class="bar-bg" style="height:24px"><div class="bar-fl" style="width:58%;background:#f59e0b"></div></div></div><span class="vv" style="color:#b45309">18</span></div>
+              <div class="brow"><span class="nm">Tom Byrne</span><div class="bg"><div class="bar-bg" style="height:24px"><div class="bar-fl" style="width:29%;background:#f59e0b"></div></div></div><span class="vv" style="color:#b45309">9</span></div>
+              <div class="brow"><span class="nm">Sara Nilsen</span><div class="bg"><div class="bar-bg" style="height:24px"><div class="bar-fl" style="width:16%;background:#94a3b8"></div></div></div><span class="vv" style="color:#64748b">5</span></div>
+            </div>
+            <div style="width:1px;background:#e2e8f0;align-self:stretch"></div>
+            <div class="trend" style="width:360px;flex:0 0 360px">
+              <div class="th">Fail rate over time</div>
+              <svg viewBox="0 0 360 196" style="width:100%;height:196px;flex:0 0 196px">
+                <g stroke="#eef2f7" stroke-width="1"><line x1="36" y1="12" x2="356" y2="12"/><line x1="36" y1="55" x2="356" y2="55"/><line x1="36" y1="98" x2="356" y2="98"/><line x1="36" y1="141" x2="356" y2="141"/></g>
+                <g stroke="#cbd5e1" stroke-width="1"><line x1="36" y1="12" x2="36" y2="141"/></g>
+                <g font-size="9" fill="#94a3b8" text-anchor="end"><text x="31" y="15">12%</text><text x="31" y="58">9%</text><text x="31" y="101">6%</text><text x="31" y="144">3%</text></g>
+                <path d="M36,64 L71,71 L106,56 L141,84 L176,75 L211,92 L246,83 L281,103 L316,96 L351,116 L351,141 L36,141 Z" fill="#dbeafe" opacity=".7"/>
+                <polyline points="36,64 71,71 106,56 141,84 176,75 211,92 246,83 281,103 316,96 351,116" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round"/>
+                <circle cx="351" cy="116" r="3.5" fill="#2563eb"/>
+                <g font-size="9" fill="#94a3b8" text-anchor="middle"><text x="36" y="160">b1</text><text x="106" y="160">b3</text><text x="176" y="160">b5</text><text x="246" y="160">b7</text><text x="316" y="160">b9</text><text x="351" y="160">b10</text></g>
+              </svg>
+            </div>
+          </div>
+          <div style="padding:0 16px 10px"><table><thead><tr><th style="width:110px">Owner</th><th style="width:90px">Controls</th><th style="width:80px">Failed</th><th style="width:90px">Pass rate</th><th style="width:100px">Max delta</th><th>Top control</th></tr></thead><tbody>
+            <tr><td>Ann Batra</td><td>312</td><td style="color:#b91c1c;font-weight:700">24</td><td>92.3%</td><td class="mono">64,684</td><td><span class="mono">C01</span> Sum compare</td></tr>
+            <tr><td>Raj Patel</td><td>298</td><td style="color:#b91c1c;font-weight:700">31</td><td>89.6%</td><td class="mono">1,208</td><td><span class="mono">C04</span> FK integrity</td></tr>
+            <tr><td>Mei Lin</td><td>241</td><td style="color:#b45309;font-weight:700">18</td><td>92.5%</td><td class="mono">412</td><td><span class="mono">C07</span> Null check</td></tr>
+            </tbody></table>
+            <div class="hint" style="margin-top:6px">Showing 3 of 5 groups &middot; 124 exception rows in the filtered set</div>
+          </div>
+        </div>
+
+        <div class="sbar">
+          <b style="font-size:11px">Runtime filters</b>
+          <span class="chip on">severity: CRITICAL, HIGH <span style="color:#94a3b8">&times;</span></span>
+          <span class="chip on">owner: Ann, Raj <span style="color:#94a3b8">&times;</span></span>
+          <span class="chip on">batch: last 10 <span style="color:#94a3b8">&times;</span></span>
+          <span class="chip x">+ add</span>
+          <div style="flex:1"></div>
+          <span class="hint">Runtime filters can only <b>narrow</b> the saved definition &mdash; never broaden it.</span>
+        </div>
+        <div class="unsaved">
+          <b>Unsaved definition</b> &mdash; 5 filters, 2 dimensions, 1 measure, bar view
+          <div style="flex:1"></div>
+          <span class="mini">Save as draft</span><span class="mini" style="background:#2563eb;color:#fff;border-color:#2563eb">Save &amp; publish</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot-bar">
+      <span>Data source <b style="color:#334155">migration.exceptions v1</b></span>
+      <span>Tenant <b style="color:#334155">Acme Financial</b></span>
+      <span>Server-side aggregation</span>
+      <span class="sp"></span>
+      <span>Query 41 ms</span>
+      <span>124 rows in result set</span>
+    </div>
+  </div>
+</div>
+</body></html>

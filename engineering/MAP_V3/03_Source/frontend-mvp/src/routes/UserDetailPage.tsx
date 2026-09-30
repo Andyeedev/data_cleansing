@@ -3,14 +3,25 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useUser, useUserRoles, useUpdateUser, useDeleteUser } from '../hooks/useUsers';
 import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import { useTenantScope } from '../tenant/TenantContext';
 
 export function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userRoles } = useAuth();
+  const { userRoles, user: currentUser } = useAuth();
+  // Phase C fix: detail reads follow the working scope like the lists do;
+  // otherwise a scoped SA view 404s on objects outside the JWT tenant.
+  const { scopeTenantId } = useTenantScope();
+  const detailTenant = scopeTenantId ?? undefined;
 
-  const { data: user, loading, error } = useUser(id ?? null);
-  const { data: roles, loading: rolesLoading, refetch: _refetchRoles } = useUserRoles(id ?? null);
+  // Phase E (E1): guards match the route guards; edit/delete affordances
+  // follow their grants (backend still enforces).
+  const grants = currentUser?.permissions ?? [];
+  const canEditUsers = grants.includes('users:update') || userRoles.includes('Super Admin');
+  const canDeleteUsers = grants.includes('users:delete') || userRoles.includes('Super Admin');
+
+  const { data: user, loading, error } = useUser(id ?? null, detailTenant);
+  const { data: roles, loading: rolesLoading, refetch: _refetchRoles } = useUserRoles(id ?? null, detailTenant);
   const { update, loading: updating } = useUpdateUser();
   const { remove, loading: deleting } = useDeleteUser();
 
@@ -50,11 +61,13 @@ export function UserDetailPage() {
     if (success) navigate('/administration/users');
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  const canViewUsers =
+    grants.includes('users:list') || userRoles.includes('Super Admin');
+  if (!canViewUsers) {
     return (
       <div style={{ padding: 24 }}>
         <h1 style={{ fontSize: 24, marginBottom: 16 }}>User Detail</h1>
-        <ErrorMessage message="You do not have permission to view this page. Required role: admin" />
+        <ErrorMessage message="You do not have permission to view this page. Required permission: users:list" />
       </div>
     );
   }
@@ -87,20 +100,22 @@ export function UserDetailPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {!editing ? (
-            <button
-              onClick={startEditing}
-              style={{
-                padding: '8px 16px',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                background: 'var(--color-background)',
-                color: 'var(--color-text)',
-                cursor: 'pointer',
-                fontSize: 14,
-              }}
-            >
-              Edit
-            </button>
+            canEditUsers && (
+              <button
+                onClick={startEditing}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius)',
+                  background: 'var(--color-background)',
+                  color: 'var(--color-text)',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                }}
+              >
+                Edit
+              </button>
+            )
           ) : (
             <>
               <button
@@ -134,21 +149,23 @@ export function UserDetailPage() {
               </button>
             </>
           )}
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            style={{
-              padding: '8px 16px',
-              background: 'rgba(239, 68, 68, 0.1)',
-              color: '#ef4444',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: 'var(--radius)',
-              cursor: 'pointer',
-              fontSize: 14,
-            }}
-          >
-            {deleting ? 'Deleting...' : 'Delete'}
-          </button>
+          {canDeleteUsers && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{
+                padding: '8px 16px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 'var(--radius)',
+                cursor: 'pointer',
+                fontSize: 14,
+              }}
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          )}
         </div>
       </div>
 

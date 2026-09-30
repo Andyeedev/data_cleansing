@@ -46,7 +46,7 @@ describe('UsersPage', () => {
       new Promise(() => {}) // Never resolves
     );
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
     expect(screen.getByText('Users')).toBeInTheDocument();
   });
 
@@ -64,7 +64,7 @@ describe('UsersPage', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('Admin User')).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe('UsersPage', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('No users found')).toBeInTheDocument();
@@ -98,7 +98,7 @@ describe('UsersPage', () => {
   it('renders error state on API failure', async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('HTTP 500'));
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe('UsersPage', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('active')).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('UsersPage', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('inactive')).toBeInTheDocument();
@@ -161,10 +161,88 @@ describe('UsersPage', () => {
       }),
     });
 
-    renderWithProviders(<UsersPage />, { initialRole: 'admin' });
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('Never')).toBeInTheDocument();
     });
+  });
+});
+
+describe('UsersPage action affordances (E1)', () => {
+  const listOk = {
+    ok: true,
+    json: async () => ({
+      success: true,
+      data: { users: mockUsers, total: 2, page: 1, page_size: 20 },
+    }),
+  };
+  const subscriptionOk = (current: number, max: number) => ({
+    ok: true,
+    json: async () => ({
+      success: true,
+      data: {
+        subscription: {
+          plan_tier: 'professional',
+          plan_name: 'Professional',
+          status: 'active',
+          trial_end_date: null,
+          billing_cycle: 'annual',
+          end_date: null,
+          limits: {
+            projects: { current: 1, max: 3 },
+            users: { current, max },
+            connections: { current: 1, max: 5 },
+          },
+        },
+      },
+    }),
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function mockApi(subUsers = { current: 2, max: 5 }) {
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation((url: unknown) => {
+      const u = typeof url === 'string' ? url : String((url as Request)?.url ?? url);
+      if (u.includes('/auth/me')) return Promise.resolve(subscriptionOk(subUsers.current, subUsers.max));
+      return Promise.resolve(listOk);
+    });
+  }
+
+  it('hides Add and Delete without their grants', async () => {
+    mockApi();
+    renderWithProviders(<UsersPage />, { initialRole: 'admin', initialPermissions: ['users:list'] });
+    await waitFor(() => {
+      expect(screen.getByText('Admin User')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Add User')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Delete Admin User')).not.toBeInTheDocument();
+  });
+
+  it('shows Add and Delete with their grants', async () => {
+    mockApi();
+    renderWithProviders(
+      <UsersPage />,
+      { initialRole: 'admin', initialPermissions: ['users:list', 'users:create', 'users:delete'] },
+    );
+    await waitFor(() => {
+      expect(screen.getByText('Add User')).toBeInTheDocument();
+    });
+    expect(screen.getByLabelText('Delete Admin User')).toBeInTheDocument();
+  });
+
+  it('disables Add User at the seat limit with an explanatory note', async () => {
+    mockApi({ current: 5, max: 5 });
+    renderWithProviders(
+      <UsersPage />,
+      { initialRole: 'admin', initialPermissions: ['users:list', 'users:create', 'users:delete'] },
+    );
+    await waitFor(() => {
+      expect(screen.getByText('Add User')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Add User')).toBeDisabled();
+    expect(screen.getByText(/seat limit reached/)).toBeInTheDocument();
   });
 });

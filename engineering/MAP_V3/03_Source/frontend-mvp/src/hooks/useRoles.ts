@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiClient';
 import type { Role, RoleListResponse, RoleCreateRequest, RoleUpdateRequest, Permission } from '../types/role';
 
-export function useRoleList(params?: { page?: number; page_size?: number; status?: string }) {
+export function useRoleList(params?: { page?: number; page_size?: number; status?: string; tenant_id?: string }) {
   const [data, setData] = useState<RoleListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +18,7 @@ export function useRoleList(params?: { page?: number; page_size?: number; status
     } finally {
       setLoading(false);
     }
-  }, [params?.page, params?.page_size, params?.status]);
+  }, [params?.page, params?.page_size, params?.status, params?.tenant_id]);
 
   useEffect(() => {
     fetchRoles();
@@ -27,7 +27,7 @@ export function useRoleList(params?: { page?: number; page_size?: number; status
   return { data, loading, error, refetch: fetchRoles };
 }
 
-export function useRole(roleId: string | null) {
+export function useRole(roleId: string | null, tenantId?: string) {
   const [data, setData] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,16 +37,16 @@ export function useRole(roleId: string | null) {
 
     setLoading(true);
     setError(null);
-    apiGet<Role>(`/roles/${roleId}`)
+    apiGet<Role>(`/roles/${roleId}`, tenantId ? { tenant_id: tenantId } : undefined)
       .then(setData)
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to fetch role'))
       .finally(() => setLoading(false));
-  }, [roleId]);
+  }, [roleId, tenantId]);
 
   return { data, loading, error };
 }
 
-export function useRolePermissions(roleId: string | null) {
+export function useRolePermissions(roleId: string | null, tenantId?: string) {
   const [data, setData] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,14 +57,17 @@ export function useRolePermissions(roleId: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiGet<Permission[]>(`/roles/${roleId}/permissions`);
+      const result = await apiGet<Permission[]>(
+        `/roles/${roleId}/permissions`,
+        tenantId ? { tenant_id: tenantId } : undefined,
+      );
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch role permissions');
     } finally {
       setLoading(false);
     }
-  }, [roleId]);
+  }, [roleId, tenantId]);
 
   useEffect(() => {
     fetchPermissions();

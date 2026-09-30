@@ -15,9 +15,16 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
 
         user_id = None
         auth = request.headers.get("Authorization")
+        token = None
         if auth and auth.startswith("Bearer ") and request.method != "OPTIONS":
+            token = auth.split(" ")[1]
+        if not token:
+            # Phase E (E13): cookie sessions carry the HttpOnly access_token
+            # cookie. Same JWT authority as the header path (mirrors the
+            # tenant middleware cookie handling); attribution only.
+            token = request.cookies.get("access_token")
+        if token and request.method != "OPTIONS":
             try:
-                token = auth.split(" ")[1]
                 payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
                 user_id = payload.get("sub") or payload.get("user")
                 request.state.user = payload

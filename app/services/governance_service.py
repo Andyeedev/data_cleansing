@@ -105,3 +105,55 @@ class GovernanceService:
                 "failed_controls": failed
             }
         return {"score": None, "total_controls": 0, "passed_controls": 0, "failed_controls": 0}
+
+    def get_reconciliation(self, tenant_id: str = None, batch_id: str = None):
+        """Get reconciliation data comparing source vs target for a batch."""
+        db = self.repository.db
+        
+        query = """
+            SELECT 
+                mce.entity_name,
+                mce.control_id,
+                mce.rule_id,
+                mce.cause,
+                mce.failure_scope,
+                mce.source_value,
+                mce.target_value,
+                mce.delta_value,
+                mce.created_at
+            FROM engine.migration_control_exceptions mce
+            JOIN engine.migration_batch_registry mbr ON mce.batch_id = mbr.batch_id
+            WHERE mbr.tenant_id = %s
+        """
+        params = [tenant_id]
+        
+        if batch_id:
+            query += " AND mce.batch_id = %s"
+            params = [tenant_id, batch_id]
+        else:
+            params = [tenant_id]
+            
+        query += " ORDER BY mce.created_at DESC LIMIT 1000"
+        
+        rows = self.repository.db.execute(query, tuple(params))
+        
+        discrepancies = []
+        for row in rows:
+            discrepancies.append({
+                "entity": row[0],
+                "control_id": row[1],
+                "rule_id": row[1],
+                "cause": row[3],
+                "failure_scope": row[4],
+                "source_value": row[5],
+                "target_value": row[6],
+                "delta": str(row[7]) if row[7] is not None else None,
+                "detected_at": str(row[8]) if row[8] else None,
+            })
+        
+        return {
+            "tenant_id": tenant_id,
+            "batch_id": batch_id,
+            "total_discrepancies": len(discrepancies),
+            "discrepancies": discrepancies
+        }

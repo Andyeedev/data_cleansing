@@ -42,7 +42,7 @@ describe('RolesPage', () => {
       new Promise(() => {})
     );
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
     expect(screen.getByText('Roles')).toBeInTheDocument();
   });
 
@@ -60,7 +60,7 @@ describe('RolesPage', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('Admin')).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe('RolesPage', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('No roles found')).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe('RolesPage', () => {
   it('renders error state on API failure', async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('HTTP 500'));
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -115,7 +115,7 @@ describe('RolesPage', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(screen.getByText('Yes')).toBeInTheDocument();
@@ -136,7 +136,7 @@ describe('RolesPage', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(screen.queryByText('Delete')).not.toBeInTheDocument();
@@ -157,10 +157,52 @@ describe('RolesPage', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list', 'roles:delete'] });
 
     await waitFor(() => {
       expect(screen.getByText('Delete')).toBeInTheDocument();
+    });
+  });
+
+  it('hides Add and Delete without their grants (E2)', async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          roles: [mockRoles[1]],
+          total: 1,
+          page: 1,
+          page_size: 20,
+        },
+      }),
+    });
+
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
+
+    await waitFor(() => {
+      expect(screen.getByText(mockRoles[1].name)).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Add Role')).not.toBeInTheDocument();
+    expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+  });
+
+  it('shows Add Role with the create grant (E2)', async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: { roles: [], total: 0, page: 1, page_size: 20 },
+      }),
+    });
+
+    renderWithProviders(
+      <RolesPage />,
+      { initialRole: 'admin', initialPermissions: ['roles:list', 'roles:create'] },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Add Role')).toBeInTheDocument();
     });
   });
 });

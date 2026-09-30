@@ -2,11 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoleList, useDeleteRole } from '../hooks/useRoles';
 import { useAuth } from '../context/AuthContext';
+import { useTenantScope } from '../tenant/TenantContext';
 import { ErrorState, LoadingSkeleton, StatusBadge, EmptyState, Pagination } from '../components/shared';
 
 export function RolesPage() {
   const navigate = useNavigate();
-  const { userRoles } = useAuth();
+  const { userRoles, user } = useAuth();
+  // Phase E (E2): action affordances follow the envelope — mutating actions
+  // render only with their grant (backend still enforces).
+  const grants = user?.permissions ?? [];
+  const canCreateRoles = grants.includes('roles:create') || userRoles.includes('Super Admin');
+  const canDeleteRoles = grants.includes('roles:delete') || userRoles.includes('Super Admin');
+  // Phase C: tenant working scope — see UsersPage. All-Tenants has no safe
+  // aggregate for the role directory (amendment 2).
+  const { scope, scopeTenantId, isSuperAdmin } = useTenantScope();
+  const isAllTenants = isSuperAdmin && scope.kind === 'all';
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
 
@@ -14,6 +24,7 @@ export function RolesPage() {
     page,
     page_size: 20,
     status: statusFilter || undefined,
+    tenant_id: scopeTenantId ?? undefined,
   });
 
   const { remove, loading: deleting } = useDeleteRole();
@@ -24,11 +35,27 @@ export function RolesPage() {
     if (success) refetch();
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  // Phase C (B5 completion): guard matches the route guard (roles:list), so
+  // Tenant Admin with the grant is not denied by a stale 'admin' alias.
+  const canListRoles =
+    (user?.permissions ?? []).includes('roles:list') || userRoles.includes('Super Admin');
+  if (!canListRoles) {
     return (
       <div style={{ padding: 'var(--space-lg)' }}>
         <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Roles</h1>
-        <ErrorState title="Access Denied" message="You do not have permission to view this page. Required role: admin" />
+        <ErrorState title="Access Denied" message="You do not have permission to view this page. Required permission: roles:list" />
+      </div>
+    );
+  }
+
+  if (isAllTenants) {
+    return (
+      <div style={{ padding: 'var(--space-lg)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-h1)', marginBottom: 'var(--space-md)' }}>Roles</h1>
+        <EmptyState
+          title="Not available for All Tenants"
+          description="Select a tenant scope to list roles. The aggregate role directory arrives in Stage D."
+        />
       </div>
     );
   }
@@ -37,20 +64,22 @@ export function RolesPage() {
     <div style={{ padding: 'var(--space-lg)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
         <h1 style={{ fontSize: 'var(--font-size-h1)', margin: 0 }}>Roles</h1>
-        <button
-          onClick={() => navigate('/administration/roles/new')}
-          style={{
-            padding: 'var(--space-sm) var(--space-md)',
-            background: 'var(--color-sidebar-active)',
-            color: 'white',
-            border: 'none',
-            borderRadius: 'var(--radius)',
-            cursor: 'pointer',
-            fontSize: 'var(--font-size-sm)',
-          }}
-        >
-          Add Role
-        </button>
+        {canCreateRoles && (
+          <button
+            onClick={() => navigate('/administration/roles/new')}
+            style={{
+              padding: 'var(--space-sm) var(--space-md)',
+              background: 'var(--color-sidebar-active)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 'var(--radius)',
+              cursor: 'pointer',
+              fontSize: 'var(--font-size-sm)',
+            }}
+          >
+            Add Role
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
@@ -82,7 +111,7 @@ export function RolesPage() {
             <EmptyState
               title="No roles found"
               description="Create your first role to get started"
-              action={{ label: 'Add Role', onClick: () => navigate('/administration/roles/new') }}
+              action={canCreateRoles ? { label: 'Add Role', onClick: () => navigate('/administration/roles/new') } : undefined}
             />
           ) : (
             <div style={{
@@ -150,7 +179,7 @@ export function RolesPage() {
                         >
                           View
                         </button>
-                        {!role.is_system && (
+                        {!role.is_system && canDeleteRoles && (
                           <button
                             onClick={() => handleDelete(role.id, role.name)}
                             disabled={deleting}

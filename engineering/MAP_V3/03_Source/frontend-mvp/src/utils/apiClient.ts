@@ -114,7 +114,9 @@ async function request<T>(
   }
 }
 
-export async function apiGet<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
+export type QueryParams = Record<string, string | number | undefined>;
+
+function buildUrl(path: string, params?: QueryParams): string {
   const url = new URL(`${API_BASE}${path}`, window.location.origin);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -123,32 +125,45 @@ export async function apiGet<T>(path: string, params?: Record<string, string | n
       }
     });
   }
+  return url.toString();
+}
 
-    return request<T>(url.toString(), {
+export async function apiGet<T>(path: string, params?: QueryParams): Promise<T> {
+  return request<T>(buildUrl(path, params), {
     method: 'GET',
     headers: buildHeaders(),
     credentials: 'include',
   });
 }
 
-export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
-  return request<T>(`${API_BASE}${path}`, {
+export async function apiPost<T>(path: string, body?: unknown, params?: QueryParams): Promise<T> {
+  return request<T>(buildUrl(path, params), {
     method: 'POST',
     headers: buildHeaders(),
     body: body ? JSON.stringify(body) : undefined,
   });
 }
 
-export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
-  return request<T>(`${API_BASE}${path}`, {
+export async function apiPut<T>(path: string, body?: unknown, params?: QueryParams): Promise<T> {
+  return request<T>(buildUrl(path, params), {
     method: 'PUT',
     headers: buildHeaders(),
     body: body ? JSON.stringify(body) : undefined,
   });
 }
 
-export async function apiDelete<T>(path: string): Promise<T> {
-  return request<T>(`${API_BASE}${path}`, {
+export async function apiPatch<T>(path: string, body?: unknown, params?: QueryParams): Promise<T> {
+  // Added for OC-REPORT-001 report lifecycle transitions
+  // (draft -> published -> archived -> deleted).
+  return request<T>(buildUrl(path, params), {
+    method: 'PATCH',
+    headers: buildHeaders(),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+export async function apiDelete<T>(path: string, params?: QueryParams): Promise<T> {
+  return request<T>(buildUrl(path, params), {
     method: 'DELETE',
     headers: buildHeaders(),
   });

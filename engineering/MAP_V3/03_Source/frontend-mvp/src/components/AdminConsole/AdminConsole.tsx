@@ -1,6 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { DynamicNavigation } from '../Navigation/DynamicNavigation';
+import { TenantSwitcher } from '../TenantSwitcher/TenantSwitcher';
 import { adminSectionForPath, visibleAdminSections } from '../../admin/capabilities';
 
 /**
@@ -26,7 +27,8 @@ export function AdminConsole() {
 
   return (
     <div>
-      <nav aria-label="Administration breadcrumb" style={{ padding: '8px 0', fontSize: 13 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-md)' }}>
+        <nav aria-label="Administration breadcrumb" style={{ padding: '8px 0', fontSize: 13 }}>
         <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', gap: 4 }}>
           <li style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <Link to="/administration" style={{ color: 'var(--color-text-secondary)', textDecoration: 'none' }}>
@@ -40,7 +42,9 @@ export function AdminConsole() {
             </li>
           )}
         </ol>
-      </nav>
+        </nav>
+        <TenantSwitcher />
+      </div>
 
       <div style={{ display: 'flex', gap: 'var(--space-lg)', alignItems: 'flex-start' }}>
         <nav aria-label="Administration sections" style={{ minWidth: 220 }}>

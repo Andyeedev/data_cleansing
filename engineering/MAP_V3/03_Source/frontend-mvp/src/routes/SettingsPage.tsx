@@ -18,9 +18,14 @@ const tabs = [
 ];
 
 export function SettingsPage() {
-  const { userRoles } = useAuth();
+  const { userRoles, user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('settings');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  // Phase E (E8): view guard matches the route guard (settings:read); edit
+  // affordances follow settings:update (backend still enforces).
+  const grants = user?.permissions ?? [];
+  const canEditSettings = grants.includes('settings:update') || userRoles.includes('Super Admin');
 
   const { data: allSettings, loading, error } = useSettingList();
   const { data: featureFlags, loading: flagsLoading, error: flagsError, refetch: refetchFlags } = useFeatureFlagList();
@@ -46,13 +51,15 @@ export function SettingsPage() {
     refetchFlags();
   };
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  const canViewSettings =
+    grants.includes('settings:read') || userRoles.includes('Super Admin');
+  if (!canViewSettings) {
     return (
       <div style={{ padding: 'var(--space-lg)' }}>
         <h1 style={{ fontSize: 'var(--font-size-h2)', marginBottom: 'var(--space-md)' }}>Settings</h1>
         <ErrorState
           title="Access Denied"
-          message="You do not have permission to view this page. Required role: admin"
+          message="You do not have permission to view this page. Required permission: settings:read"
         />
       </div>
     );
@@ -136,6 +143,7 @@ export function SettingsPage() {
                         setting={setting}
                         onUpdate={handleUpdateSetting}
                         updating={updatingSetting}
+                        canEdit={canEditSettings}
                       />
                     ))}
                   </div>
@@ -161,13 +169,14 @@ export function SettingsPage() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                   {featureFlags.map((flag) => (
-                    <FlagRow
-                      key={flag.key}
-                      flag={flag}
-                      onToggle={handleToggleFlag}
-                      onUpdateRollout={handleUpdateRollout}
-                      updating={updatingFlag}
-                    />
+                      <FlagRow
+                        key={flag.key}
+                        flag={flag}
+                        onToggle={handleToggleFlag}
+                        onUpdateRollout={handleUpdateRollout}
+                        updating={updatingFlag}
+                        canEdit={canEditSettings}
+                      />
                   ))}
                 </div>
               )}
@@ -179,10 +188,11 @@ export function SettingsPage() {
   );
 }
 
-function SettingRow({ setting, onUpdate, updating }: {
+function SettingRow({ setting, onUpdate, updating, canEdit }: {
   setting: { category: string; key: string; value: unknown; description: string | null; data_type: string; is_readonly: boolean };
   onUpdate: (category: string, key: string, value: unknown) => Promise<void>;
   updating: boolean;
+  canEdit: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(String(setting.value ?? ''));
@@ -277,7 +287,7 @@ function SettingRow({ setting, onUpdate, updating }: {
             <span style={{ fontSize: 'var(--font-size-base)', minWidth: 100, textAlign: 'right' }}>
               {String(setting.value ?? '—')}
             </span>
-            {!setting.is_readonly && (
+            {!setting.is_readonly && canEdit && (
               <button
                 onClick={() => { setEditValue(String(setting.value ?? '')); setEditing(true); }}
                 aria-label={`Edit ${setting.key}`}
@@ -301,11 +311,12 @@ function SettingRow({ setting, onUpdate, updating }: {
   );
 }
 
-function FlagRow({ flag, onToggle, onUpdateRollout, updating }: {
+function FlagRow({ flag, onToggle, onUpdateRollout, updating, canEdit }: {
   flag: { key: string; name: string; description: string | null; enabled: boolean; rollout_percentage: number; status: string };
   onToggle: (key: string, enabled: boolean) => Promise<void>;
   onUpdateRollout: (key: string, rollout: number) => Promise<void>;
   updating: boolean;
+  canEdit: boolean;
 }) {
   const [editingRollout, setEditingRollout] = useState(false);
   const [rolloutValue, setRolloutValue] = useState(String(flag.rollout_percentage));
@@ -373,11 +384,13 @@ function FlagRow({ flag, onToggle, onUpdateRollout, updating }: {
           ) : (
             <button
               onClick={() => setEditingRollout(true)}
+              disabled={!canEdit}
+              aria-label={`Edit rollout for ${flag.key}`}
               style={{
                 background: 'none',
                 border: 'none',
                 color: 'var(--color-sidebar-active)',
-                cursor: 'pointer',
+                cursor: canEdit ? 'pointer' : 'default',
                 fontSize: 'var(--font-size-xs)',
                 padding: 0,
               }}
@@ -389,12 +402,13 @@ function FlagRow({ flag, onToggle, onUpdateRollout, updating }: {
 
         <button
           onClick={() => onToggle(flag.key, !flag.enabled)}
-          disabled={updating}
+          disabled={updating || !canEdit}
+          aria-label={`${flag.enabled ? 'Disable' : 'Enable'} feature flag ${flag.key}`}
           style={{
             background: 'none',
             border: 'none',
             padding: 0,
-            cursor: updating ? 'not-allowed' : 'pointer',
+            cursor: updating || !canEdit ? 'not-allowed' : 'pointer',
           }}
         >
           <StatusBadge

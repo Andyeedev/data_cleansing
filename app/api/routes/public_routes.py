@@ -36,6 +36,7 @@ def public_register_lead(
     plan_interest: str = Body(
         None, description="Lead's plan interest (e.g., 'professional')"
     ),
+    phone: str = Body(None, description="Lead's phone number"),
 ):
     """
     Public endpoint to register a website lead.
@@ -68,6 +69,7 @@ def public_register_lead(
             "utm_source": utm_source,
             "referrer": referrer,
             "plan_interest": plan_interest,
+            "phone": phone,
         }
     )
 

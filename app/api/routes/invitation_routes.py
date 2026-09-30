@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from app.api.core.auth.rbac import require_permissions
+from app.api.core.auth.dependencies import resolve_tenant
 from app.api.routes.rate_limit_phase1 import rate_limit_public_endpoint, get_client_ip
 from app.services.invitation_service import InvitationService
 from app.services.email_service import EmailServiceFactory
@@ -93,10 +94,12 @@ def list_invitations(
     status: Optional[str] = None,
     page: int = 1,
     page_size: int = 50,
-    current_user: dict = Depends(require_permissions("invitations:read"))
+    current_user: dict = Depends(require_permissions("invitations:read")),
+    tenant_id: str = Depends(resolve_tenant)
 ):
     """Lists pending invitations for tenant."""
-    tenant_id = current_user.get("tenant_id")
+    # Phase C (D1): resolve_tenant encodes the approved rule (SA-only
+    # override, else JWT-bound). The tenant-context guard below is preserved.
     if not tenant_id:
         raise HTTPException(status_code=403, detail="Admin tenant context required")
 

@@ -53,7 +53,7 @@ describe('SettingsPage Integration', () => {
       json: async () => ({ success: true, data: mockSettings }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -69,7 +69,7 @@ describe('SettingsPage Integration', () => {
       json: async () => ({ success: true, data: mockSettings }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(screen.getByText('general')).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('SettingsPage Integration', () => {
       json: async () => ({ success: true, data: mockFlags }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(screen.getByText('Feature Flags')).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe('SettingsPage Integration', () => {
       json: async () => ({ success: true, data: mockFlags }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     fireEvent.click(screen.getByText('Feature Flags'));
 
@@ -125,7 +125,7 @@ describe('SettingsPage Integration', () => {
       json: async () => ({ success: true, data: mockFlags }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     fireEvent.click(screen.getByText('Feature Flags'));
 

@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Shell } from './components/Shell/Shell';
 import { AdminConsole } from './components/AdminConsole/AdminConsole';
+import { TenantProvider } from './tenant/TenantContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PublicRoute } from './components/PublicRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -55,6 +56,11 @@ const UserSettingsPage = lazy(() => import('./routes/UserSettingsPage').then(m =
 const AboutPage = lazy(() => import('./routes/AboutPage').then(m => ({ default: m.AboutPage })));
 const ValidationCentrePage = lazy(() => import('./routes/ValidationCentrePage').then(m => ({ default: m.ValidationCentrePage })));
 const ReportSuitePage = lazy(() => import('./routes/reports/ReportSuitePage').then(m => ({ default: m.ReportSuitePage })));
+// OC-REPORT-001 — Report Studio is a SIBLING of the curated Report Suite.
+// /reports/suite/** is deliberately untouched.
+const ReportListPage = lazy(() => import('./routes/reports/ReportListPage').then(m => ({ default: m.ReportListPage })));
+const ReportViewer = lazy(() => import('./routes/reports/ReportViewer').then(m => ({ default: m.ReportViewer })));
+const ReportEditorPage = lazy(() => import('./routes/reports/ReportEditorPage').then(m => ({ default: m.ReportEditorPage })));
 const PermissionsPage = lazy(() => import('./routes/PermissionsPage').then(m => ({ default: m.PermissionsPage })));
 const WelcomePage = lazy(() => import('./routes/onboarding/WelcomePage').then(m => ({ default: m.WelcomePage })));
 const OnboardingSetupPage = lazy(() => import('./routes/onboarding/OnboardingSetupPage').then(m => ({ default: m.OnboardingSetupPage })));
@@ -152,6 +158,18 @@ export function AppRoutes() {
 
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/reports/suite/:section" element={<ReportSuitePage />} />
+      {/* OC-REPORT-001 Report Studio.
+
+          Wrapped in TenantProvider, the same way /administration is, so the
+          Studio reads the real tenant scope. Without it, useTenantScope() falls
+          back to identity-derived behaviour, which for a Super Admin always
+          yields their OWN tenant - so a ?tenant_id= deep link was silently
+          ignored and a Super Admin could only ever be judged on their own
+          tenant's plan. */}
+      <Route path="/reports/studio" element={<TenantProvider><ReportListPage /></TenantProvider>} />
+      <Route path="/reports/studio/:reportId" element={<TenantProvider><ReportViewer /></TenantProvider>} />
+      <Route path="/reports/studio/:reportId/view" element={<TenantProvider><ReportViewer /></TenantProvider>} />
+      <Route path="/reports/studio/:reportId/edit" element={<TenantProvider><ReportEditorPage /></TenantProvider>} />
           <Route path="/reports/executive" element={<ReportsPage />} />
           <Route path="/reports/operational" element={<ReportsPage />} />
           <Route path="/reports/migration" element={<ReportsPage />} />
@@ -183,7 +201,7 @@ export function AppRoutes() {
           {/* Phase B: administration console — persistent rail + detail pane.
               /administration renders Mission Control; every section keeps its
               own ProtectedRoute guard and the backend remains authoritative. */}
-          <Route path="/administration" element={<ProtectedRoute requiredRoles={['Super Admin', 'Tenant Admin']}><AdminConsole /></ProtectedRoute>}>
+          <Route path="/administration" element={<ProtectedRoute requiredRoles={['Super Admin', 'Tenant Admin']}><TenantProvider><AdminConsole /></TenantProvider></ProtectedRoute>}>
             <Route index element={<MissionControlPage />} />
             <Route path="users" element={<ProtectedRoute requiredPermissions={['users:list']}><ValidationFilterProvider><UsersPage /></ValidationFilterProvider></ProtectedRoute>} />
             <Route path="users/new" element={<ProtectedRoute requiredPermissions={['users:list']}><UserDetailPage /></ProtectedRoute>} />

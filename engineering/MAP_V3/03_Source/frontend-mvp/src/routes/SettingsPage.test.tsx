@@ -1,4 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SettingsPage } from './SettingsPage';
 import { renderWithProviders } from '../test-utils';
@@ -45,7 +46,7 @@ describe('SettingsPage', () => {
       json: async () => ({ success: true, data: [] }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(screen.getByText('System Settings')).toBeInTheDocument();
@@ -59,7 +60,7 @@ describe('SettingsPage', () => {
       json: async () => ({ success: true, data: mockSettings }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(screen.getByText('site_name')).toBeInTheDocument();
@@ -73,7 +74,7 @@ describe('SettingsPage', () => {
       json: async () => ({ success: true, data: [] }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(screen.getByText('No settings found')).toBeInTheDocument();
@@ -83,7 +84,7 @@ describe('SettingsPage', () => {
   it('renders error state on API failure', async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('HTTP 500'));
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();
@@ -96,7 +97,7 @@ describe('SettingsPage', () => {
       json: async () => ({ success: true, data: [mockSettings[1]] }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(screen.getByText(/read-only/)).toBeInTheDocument();
@@ -109,11 +110,79 @@ describe('SettingsPage', () => {
       json: async () => ({ success: true, data: mockSettings }),
     });
 
-    renderWithProviders(<SettingsPage />, { initialRole: 'admin' });
+    renderWithProviders(<SettingsPage />, { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] });
 
     await waitFor(() => {
       expect(screen.getByText('All Categories')).toBeInTheDocument();
       expect(screen.getByText('general')).toBeInTheDocument();
     });
+  });
+});
+
+describe('SettingsPage edit affordances (E8)', () => {
+  const mockFlags = [
+    { key: 'flag_a', name: 'Flag A', description: null, enabled: true, rollout_percentage: 50, status: 'active' },
+  ];
+
+  function mockApi() {
+    (global.fetch as ReturnType<typeof vi.fn>).mockImplementation((url: unknown) => {
+      const u = typeof url === 'string' ? url : String((url as Request)?.url ?? url);
+      if (u.includes('/settings/flags')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true, data: mockFlags }) });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ success: true, data: [mockSettings[0]] }) });
+    });
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('renders for Tenant Admin with the read grant', async () => {
+    mockApi();
+    renderWithProviders(
+      <SettingsPage />,
+      { initialRole: 'Tenant Admin', initialPermissions: ['settings:read'] },
+    );
+    await waitFor(() => {
+      expect(screen.getByText('Settings')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+  });
+
+  it('hides Edit affordances without settings:update', async () => {
+    mockApi();
+    renderWithProviders(
+      <SettingsPage />,
+      { initialRole: 'Tenant Admin', initialPermissions: ['settings:read'] },
+    );
+    await waitFor(() => {
+      expect(screen.getByText('site_name')).toBeInTheDocument();
+    });
+    expect(screen.queryByLabelText('Edit site_name')).not.toBeInTheDocument();
+  });
+
+  it('shows Edit affordances with settings:update', async () => {
+    mockApi();
+    renderWithProviders(
+      <SettingsPage />,
+      { initialRole: 'admin', initialPermissions: ['settings:read', 'settings:update'] },
+    );
+    await waitFor(() => {
+      expect(screen.getByLabelText('Edit site_name')).toBeInTheDocument();
+    });
+  });
+
+  it('disables the flag toggle without settings:update', async () => {
+    mockApi();
+    renderWithProviders(
+      <SettingsPage />,
+      { initialRole: 'Tenant Admin', initialPermissions: ['settings:read'] },
+    );
+    fireEvent.click(screen.getByText('Feature Flags'));
+    await waitFor(() => {
+      expect(screen.getByText('Flag A')).toBeInTheDocument();
+    });
+    expect(screen.getByLabelText('Disable feature flag flag_a')).toBeDisabled();
   });
 });

@@ -26,13 +26,21 @@ class LeadService:
             source_form = "get_started"
         utm_source = payload.get("utm_source")
         referrer = payload.get("referrer")
+        # Phase 5 lead model: plan interest + phone flow into conversion.
+        # The dedup hash is accepted at the API boundary but deliberately
+        # NOT persisted (security decision, enforced by
+        # test_website_security.py::TestWorkEmailHashRemoved).
+        # New leads enter the pending triage queue (status CHECK includes
+        # 'pending').
+        plan_interest = (payload.get("plan_interest") or "").strip() or None
+        phone = (payload.get("phone") or "").strip() or None
 
         with get_db_connection() as db:
             query = """
-            INSERT INTO core.leads (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            INSERT INTO core.leads (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer, plan_interest, phone, status)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'pending')
             RETURNING lead_id, created_at
             """
-            row = db.execute(query, (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer))
+            row = db.execute(query, (full_name, work_email, company, org_size, industry, role, challenge, message, source_form, utm_source, referrer, plan_interest, phone))
             lead_id = row[0][0] if row else None
         return {"lead_id": str(lead_id), "source_form": source_form}

@@ -56,3 +56,7 @@ snowflake-certification/terraform/terraform.tfvars
 **/.terraform/
 **/*.tfstate.backup
 
+
+# OC-REPORT-001 test credentials (never commit)
+.ocreport001_test_creds.json
+.ocreport001_sa_probe.json

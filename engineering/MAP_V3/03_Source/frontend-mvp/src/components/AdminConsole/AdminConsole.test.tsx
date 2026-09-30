@@ -1,8 +1,9 @@
 import { screen, within } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { render } from '@testing-library/react';
 import { AuthProvider } from '../../context/AuthContext';
+import { TenantProvider } from '../../tenant/TenantContext';
 import { AdminConsole } from './AdminConsole';
 
 function seedUser(roles: string[], permissions: string[]) {
@@ -22,21 +23,35 @@ const TENANT_PERMS = ['users:list', 'roles:list', 'invitations:read', 'settings:
 
 function renderConsole(roles: string[], permissions: string[], path: string) {
   seedUser(roles, permissions);
+  global.fetch = vi.fn().mockImplementation(() => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      success: true,
+      data: { tenants: [{ tenant_id: 't1', tenant_name: 'Tenant One' }], total: 1 },
+    }),
+  }));
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
-        <Routes>
-          <Route element={<AdminConsole />}>
-            <Route path="/administration/roles" element={<div>Roles detail pane</div>} />
-            <Route path="/administration/tenants" element={<div>Tenants detail pane</div>} />
-          </Route>
-        </Routes>
+        <TenantProvider>
+          <Routes>
+            <Route element={<AdminConsole />}>
+              <Route path="/administration/roles" element={<div>Roles detail pane</div>} />
+              <Route path="/administration/tenants" element={<div>Tenants detail pane</div>} />
+            </Route>
+          </Routes>
+        </TenantProvider>
       </AuthProvider>
     </MemoryRouter>,
   );
 }
 
 describe('AdminConsole shell', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.clear();
+  });
   it('Super Admin rail shows the full surface with breadcrumb and detail', () => {
     renderConsole(['Super Admin'], SUPER_PERMS, '/administration/roles');
     expect(screen.getByText('Administration')).toBeInTheDocument();
@@ -85,5 +100,17 @@ describe('AdminConsole shell', () => {
     const crumbs = screen.getByLabelText('Administration breadcrumb');
     expect(crumbs).toHaveTextContent('Administration');
     expect(crumbs).toHaveTextContent('Tenants');
+  });
+
+  it('Super Admin gets the All-Tenants switcher; Tenant Admin gets a locked label', () => {
+    renderConsole(['Super Admin'], SUPER_PERMS, '/administration/roles');
+    expect(screen.getByLabelText('Select working tenant scope')).toBeInTheDocument();
+    expect(screen.getByText('All Tenants')).toBeInTheDocument();
+  });
+
+  it('Tenant Admin sees a non-switchable tenant label', () => {
+    renderConsole(['Tenant Admin'], TENANT_PERMS, '/administration/roles');
+    expect(screen.getByText('Tenant: Current Tenant')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Select working tenant scope')).not.toBeInTheDocument();
   });
 });

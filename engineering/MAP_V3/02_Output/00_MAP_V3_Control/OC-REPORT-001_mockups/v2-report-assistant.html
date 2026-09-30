@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="mockup.css">
+<title>OC-REPORT-001 v2 — Built-in Report Assistant (V1)</title>
+<style>
+.start{flex:1;overflow:auto;background:#f1f5f9;padding:18px 26px}
+.hd{max-width:1180px;margin:0 auto 14px}
+.hd h1{font-size:22px;font-weight:700;letter-spacing:-.4px}
+.hd p{font-size:12.5px;color:#64748b;margin-top:4px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start}
+.card2{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden}
+.ch{display:flex;align-items:center;gap:8px;padding:11px 13px;border-bottom:1px solid #e2e8f0}
+.ch b{font-size:12.5px}
+.ch .sp{flex:1}
+.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;padding:13px}
+.tc{border:1px solid #e2e8f0;border-radius:8px;padding:11px;background:#fff;cursor:default}
+.tc:hover{border-color:#93c5fd}
+.tc .n{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:5px}
+.tc .d{font-size:11px;color:#64748b;margin-top:3px;line-height:1.45;min-height:32px}
+.tc .pv{display:flex;gap:3px;margin:8px 0 7px;height:34px}
+.tc .pv i{flex:1;background:#f1f5f9;border-radius:2px}
+.tc .pv i.f{background:#dbeafe}
+.tc .ft{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:7px;border-top:1px solid #f1f5f9}
+.tc .lk{font-family:Consolas,monospace;font-size:9.5px;color:#94a3b8}
+.blank{grid-column:span 1;border-style:dashed;background:#f8fafc;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:118px}
+.aside{position:sticky;top:0}
+.msg{display:flex;gap:8px;margin-bottom:10px}
+.av{width:24px;height:24px;flex:0 0 24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.av.u{background:#c7d2fe;color:#3730a3}
+.av.a{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff}
+.bub{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:8px 10px;font-size:11.5px;line-height:1.5;flex:1}
+.bub.u{background:#eef2ff;border-color:#c7d2fe}
+.rec{display:flex;align-items:center;gap:7px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;margin-top:7px;background:#fff}
+.rec.on{border-color:#3b82f6;background:#eff6ff}
+.qrow{display:flex;align-items:center;gap:6px;padding:5px 7px;border-bottom:1px solid #f1f5f9;font-size:11px}
+.qrow .qn{color:#64748b;width:74px;flex:0 0 74px}
+.stepline{display:flex;align-items:center;gap:0;margin:14px 0 6px}
+.stepline .st{flex:1;height:3px;background:#e2e8f0;border-radius:2px}
+.stepline .st.on{background:#16a34a}
+.steplabels{display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:12px}
+.defcard{border:1px solid #bfdbfe;background:#eff6ff;border-radius:7px;padding:9px;margin-top:8px}
+.dl{display:flex;gap:6px;font-size:11px;padding:3px 0;align-items:flex-start}
+.dl .tk{font-family:Consolas,monospace;font-size:9.5px;color:#1e40af;background:#dbeafe;border-radius:3px;padding:1px 5px;flex:0 0 auto;margin-top:1px}
+.badge-row{display:flex;gap:6px;flex-wrap:wrap;padding:11px 13px;background:#f8fafc;border-top:1px solid #e2e8f0}
+</style></head>
+<body>
+<div class="app">
+  <nav class="rail">
+    <div class="rail-brand"><div class="rail-logo">MN</div><div><b>MAP Nexus</b><span>Report Studio</span></div></div>
+    <div class="rail-group"><label>Start</label>
+      <div class="rail-item active"><span class="ic">✦</span>Report Assistant</div>
+      <div class="rail-item"><span class="ic">▤</span>Templates</div>
+      <div class="rail-item"><span class="ic">▦</span>My Reports</div>
+    </div>
+    <div class="rail-group"><label>Reporting</label>
+      <div class="rail-item sub">Board Packs</div>
+      <div class="rail-item sub">Report Suite</div>
+    </div>
+    <div class="rail-foot">Entitlement · Enterprise<br><b style="color:#4ade80">report_studio</b> active</div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">Reports <span>&rsaquo;</span> Studio <span>&rsaquo;</span> <b>New report</b></div>
+      <div class="spacer"></div>
+      <div class="select" style="width:146px">Acme Financial</div>
+      <div class="tbtn">Cancel</div>
+      <div class="avatar">SA</div>
+    </div>
+
+    <div class="start">
+      <div class="hd">
+        <h1>Create a report</h1>
+        <p>Start from a curated template, or let the built-in assistant walk you through it. Everything you create is fully editable and owned by you.</p>
+        <div style="display:flex;gap:8px;margin-top:11px;align-items:center;flex-wrap:wrap">
+          <span class="pill info" style="height:20px;font-size:10px">✦ Built-in assistant &mdash; deterministic, no external AI, no API cost</span>
+          <span class="pill mute" style="height:20px;font-size:10px">5 curated templates</span>
+          <span class="pill mute" style="height:20px;font-size:10px">Blank report</span>
+          <span class="pill mute" style="height:20px;font-size:10px">Data source allowlist only</span>
+        </div>
+      </div>
+
+      <div class="wrap">
+        <div>
+          <div class="card2" style="margin-bottom:14px">
+            <div class="ch"><b>Curated templates</b><span class="pill mute" style="height:15px;font-size:9px">5</span><div class="sp"></div>
+              <span class="hint">Filtered to your entitlements &middot; mainlined by product &middot; versioned</span></div>
+            <div class="tgrid">
+              <div class="tc">
+                <div class="n">Migration Health &mdash; Weekly</div>
+                <div class="d">Validation, exceptions and trend for a weekly ops review</div>
+                <div class="pv"><i class="f h"></i><i></i><i></i></div>
+                <div class="ft"><span class="pill ok" style="height:15px;font-size:9px">basic</span><span class="lk">tpl.migration_health_weekly v3</span></div>
+              </div>
+              <div class="tc">
+                <div class="n">Control Failure Deep Dive</div>
+                <div class="d">Rules, owners and root causes behind failures</div>
+                <div class="pv"><i></i><i class="f h"></i><i></i></div>
+                <div class="ft"><span class="pill ok" style="height:15px;font-size:9px">basic</span><span class="lk">tpl.control_failure_deep_dive v2</span></div>
+              </div>
+              <div class="tc">
+                <div class="n">Reconciliation</div>
+                <div class="d">Source-to-target differences by dataset</div>
+                <div class="pv"><i></i><i></i><i class="f h"></i></div>
+                <div class="ft"><span class="pill ok" style="height:15px;font-size:9px">basic</span><span class="lk">tpl.reconciliation v2</span></div>
+              </div>
+              <div class="tc">
+                <div class="n">Executive Status</div>
+                <div class="d">Board-level summary, risk and next steps</div>
+                <div class="pv"><i class="f h"></i><i></i></div>
+                <div class="ft"><span class="pill warn" style="height:15px;font-size:9px">advanced_reporting</span><span class="lk">tpl.executive_status v4</span></div>
+              </div>
+              <div class="tc">
+                <div class="n">Governance Posture</div>
+                <div class="d">Controls, exceptions and approvals</div>
+                <div class="pv"><i></i><i></i><i></i></div>
+                <div class="ft"><span class="pill warn" style="height:15px;font-size:9px">governance</span><span class="lk">tpl.governance_posture v2</span></div>
+              </div>
+              <div class="tc blank">
+                <div class="tbtn" style="width:100%;justify-content:center">+ Blank report</div>
+                <div class="hint" style="margin-top:7px;text-align:center">Empty definition<br>you compose from scratch</div>
+              </div>
+            </div>
+            <div class="badge-row">
+              <span class="hint"><b>Template behaviour:</b> instantiating copies the full definition into a new report that you own and can edit. The template itself stays system-owned and immutable.</span>
+            </div>
+          </div>
+
+          <div class="card2">
+            <div class="ch"><b>How the assistant works</b><div class="sp"></div><span class="hint">no model, no API call, no per-use cost</span></div>
+            <div style="padding:13px;display:grid;grid-template-columns:repeat(3,1fr);gap:11px">
+              <div style="border:1px solid #e2e8f0;border-radius:7px;padding:10px">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span class="pill info" style="height:16px;font-size:9.5px">1</span><b style="font-size:11.5px">Match a recipe</b></div>
+                <div class="hint">Keywords map to one of the curated recipe rows. The match is shown to you &mdash; never applied silently.</div>
+              </div>
+              <div style="border:1px solid #e2e8f0;border-radius:7px;padding:10px">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span class="pill info" style="height:16px;font-size:9.5px">2</span><b style="font-size:11.5px">Answer 2&ndash;4 questions</b></div>
+                <div class="hint">Subject, group by, time window, severity. Each is a constrained choice &mdash; not free text, not a query.</div>
+              </div>
+              <div style="border:1px solid #e2e8f0;border-radius:7px;padding:10px">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span class="pill info" style="height:16px;font-size:9.5px">3</span><b style="font-size:11.5px">Get an editable report</b></div>
+                <div class="hint">It produces a definition, which passes the same validation and authorisation as anything you build by hand.</div>
+              </div>
+            </div>
+            <div class="badge-row">
+              <span class="hint"><b>Same input &rarr; same report, every time.</b> Deterministic by design, so it is fully testable and auditable. It proposes a definition &mdash; it never reads data directly and never bypasses the data-source allowlist.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="aside">
+          <div class="card2">
+            <div class="ch"><span style="color:#1d4ed8">✦</span><b>Report Assistant</b><span class="pill info" style="height:15px;font-size:9px">built-in</span><div class="sp"></div>
+              <span class="hint">no LLM</span></div>
+            <div style="padding:12px">
+              <div class="msg"><div class="av u">SA</div><div class="bub u">show me failed controls for the last 10 batches</div></div>
+              <div class="msg"><div class="av a">✦</div><div class="bub">
+                Matched recipe <b>rcp.migration_health_weekly</b> on <span class="mono">failed</span> + <span class="mono">controls</span> + <span class="mono">last N</span>. Confirm the choices below.
+                <div class="rec on"><span class="pill info" style="height:15px;font-size:9px">1</span> Subject &mdash; Control failures<div class="sp" style="flex:1"></div><span class="hint">change</span></div>
+                <div class="rec"><span class="pill info" style="height:15px;font-size:9px">2</span> Group by &mdash; Owner<div style="flex:1"></div><span class="hint">change</span></div>
+                <div class="rec"><span class="pill info" style="height:15px;font-size:9px">3</span> Window &mdash; Last 10 batches<div style="flex:1"></div><span class="hint">change</span></div>
+                <div class="rec"><span class="pill info" style="height:15px;font-size:9px">4</span> Severity &mdash; CRITICAL + HIGH<div style="flex:1"></div><span class="hint">change</span></div>
+              </div></div>
+
+              <div class="stepline"><div class="st on"></div><div class="st on"></div><div class="st on"></div><div class="st on"></div></div>
+              <div class="steplabels"><span>Match</span><span>Questions</span><span>Definition</span><span>Save</span></div>
+
+              <div class="pal-t">Resulting definition</div>
+              <div class="defcard">
+                <div class="dl"><span class="tk">template</span><span>tpl.migration_health_weekly v3</span></div>
+                <div class="dl"><span class="tk">source</span><span>migration.exceptions v1</span></div>
+                <div class="dl"><span class="tk">sections</span><span>3 &mdash; key metrics, owner table, trend line</span></div>
+                <div class="dl"><span class="tk">filters</span><span>2 saved &mdash; severity, batch window</span></div>
+                <div class="dl"><span class="tk">entitle</span><span>report_studio + basic_reporting</span></div>
+              </div>
+
+              <div style="display:flex;gap:7px;margin-top:11px">
+                <div class="tbtn" style="flex:1;justify-content:center">Discard</div>
+                <div class="tbtn pri" style="flex:1.4;justify-content:center">Create report</div>
+              </div>
+              <div class="hint" style="margin-top:7px;text-align:center">You will own and be able to edit every part of it.</div>
+            </div>
+          </div>
+
+          <div class="card2" style="margin-top:12px">
+            <div class="ch"><b>Roadmap</b></div>
+            <div style="padding:9px 11px">
+              <div class="qrow" style="align-items:flex-start"><span class="pill ok" style="height:16px;font-size:9px;flex:0 0 26px">V1</span><span style="font-size:10.5px;line-height:1.4">5 templates &middot; blank report &middot; built-in deterministic assistant</span></div>
+              <div class="qrow" style="align-items:flex-start"><span class="pill warn" style="height:16px;font-size:9px;flex:0 0 26px">V2</span><span style="font-size:10.5px;line-height:1.4">Richer analysis workspace &middot; scatter / matrix / pivot &middot; smarter assistant</span></div>
+              <div class="qrow" style="align-items:flex-start"><span class="pill mute" style="height:16px;font-size:9px;flex:0 0 26px">V3</span><span style="font-size:10.5px;line-height:1.4">Optional AI Analyst / Copilot &mdash; BYO LLM, governed tools</span></div>
+              <div class="hint" style="margin-top:7px;font-size:10px">V1 has no external AI dependency and no AI API cost.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

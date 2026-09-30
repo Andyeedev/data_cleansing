@@ -4,14 +4,26 @@ import { useRole, useRolePermissions, useUpdateRole, useDeleteRole } from '../ho
 import { usePermissionList, useAssignPermission, useRemovePermission } from '../hooks/usePermissions';
 import { LoadingSpinner, ErrorMessage } from '../components/LoadingSpinner/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import { useTenantScope } from '../tenant/TenantContext';
 
 export function RoleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userRoles } = useAuth();
+  const { userRoles, user: currentUser } = useAuth();
+  // Phase C fix: detail reads follow the working scope like the lists do;
+  // otherwise a scoped SA view 404s on objects outside the JWT tenant.
+  const { scopeTenantId } = useTenantScope();
+  const detailTenant = scopeTenantId ?? undefined;
 
-  const { data: role, loading, error } = useRole(id ?? null);
-  const { data: rolePermissions, loading: rolePermsLoading, refetch: refetchRolePerms } = useRolePermissions(id ?? null);
+  // Phase E (E2): guards match the route guards; edit/delete/assign
+  // affordances follow their grants (backend still enforces).
+  const grants = currentUser?.permissions ?? [];
+  const canEditRoles = grants.includes('roles:update') || userRoles.includes('Super Admin');
+  const canDeleteRoles = grants.includes('roles:delete') || userRoles.includes('Super Admin');
+  const canAssignRoles = grants.includes('roles:assign') || userRoles.includes('Super Admin');
+
+  const { data: role, loading, error } = useRole(id ?? null, detailTenant);
+  const { data: rolePermissions, loading: rolePermsLoading, refetch: refetchRolePerms } = useRolePermissions(id ?? null, detailTenant);
   const { data: allPermissions, loading: allPermsLoading } = usePermissionList();
   const { update, loading: updating } = useUpdateRole();
   const { remove, loading: deleting } = useDeleteRole();
@@ -64,11 +76,13 @@ export function RoleDetailPage() {
   const assignedPermissionIds = new Set(rolePermissions.map(p => p.id));
   const availablePermissions = allPermissions.filter(p => !assignedPermissionIds.has(p.id));
 
-  if (!userRoles.some(r => r === 'admin' || r === 'Super Admin')) {
+  const canViewRoles =
+    grants.includes('roles:list') || userRoles.includes('Super Admin');
+  if (!canViewRoles) {
     return (
       <div style={{ padding: 24 }}>
         <h1 style={{ fontSize: 24, marginBottom: 16 }}>Role Detail</h1>
-        <ErrorMessage message="You do not have permission to view this page. Required role: admin" />
+        <ErrorMessage message="You do not have permission to view this page. Required permission: roles:list" />
       </div>
     );
   }
@@ -99,20 +113,22 @@ export function RoleDetailPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {!editing ? (
-            <button
-              onClick={startEditing}
-              style={{
-                padding: '8px 16px',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius)',
-                background: 'var(--color-background)',
-                color: 'var(--color-text)',
-                cursor: 'pointer',
-                fontSize: 14,
-              }}
-            >
-              Edit
-            </button>
+            canEditRoles && (
+              <button
+                onClick={startEditing}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius)',
+                  background: 'var(--color-background)',
+                  color: 'var(--color-text)',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                }}
+              >
+                Edit
+              </button>
+            )
           ) : (
             <>
               <button
@@ -146,7 +162,7 @@ export function RoleDetailPage() {
               </button>
             </>
           )}
-          {!role.is_system && (
+          {!role.is_system && canDeleteRoles && (
             <button
               onClick={handleDelete}
               disabled={deleting}
@@ -320,7 +336,8 @@ export function RoleDetailPage() {
                 </div>
                 <button
                   onClick={() => handleRemovePermission(perm.id)}
-                  disabled={removing}
+                  disabled={removing || !canAssignRoles}
+                  title={canAssignRoles ? 'Remove permission' : 'Requires roles:assign'}
                   style={{
                     background: 'none',
                     border: '1px solid rgba(239, 68, 68, 0.3)',
@@ -381,7 +398,8 @@ export function RoleDetailPage() {
                 </div>
                 <button
                   onClick={() => handleAssignPermission(perm.id)}
-                  disabled={assigning}
+                  disabled={assigning || !canAssignRoles}
+                  title={canAssignRoles ? 'Assign permission' : 'Requires roles:assign'}
                   style={{
                     background: 'none',
                     border: '1px solid rgba(34, 197, 94, 0.3)',

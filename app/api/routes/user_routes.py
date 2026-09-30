@@ -4,6 +4,7 @@ from typing import Optional
 
 from app.db.connection import get_db_connection
 from app.api.core.auth.rbac import require_permissions
+from app.api.core.auth.dependencies import resolve_tenant
 from app.api.helpers import standardize_response
 from app.services.user_service import UserService
 
@@ -39,9 +40,12 @@ def list_users(
     page_size: int = Query(50, ge=1, le=100),
     status: Optional[str] = None,
     search: Optional[str] = None,
-    current_user=Depends(require_permissions("users:list"))
+    current_user=Depends(require_permissions("users:list")),
+    tenant_id: str = Depends(resolve_tenant)
 ):
-    tenant_id = current_user.get("tenant_id")
+    # Phase C (D1): tenant scope resolved by resolve_tenant — Super Admin may
+    # pass ?tenant_id= to view another tenant; everyone else is JWT-bound.
+    # Writes below intentionally stay JWT-bound (Stage A guards).
     db = get_db_connection()
     service = UserService(db.conn)
     return standardize_response(service.list_users(
@@ -52,8 +56,11 @@ def list_users(
 
 
 @router.get("/{user_id}")
-def get_user(user_id: str, current_user=Depends(require_permissions("users:read"))):
-    tenant_id = current_user.get("tenant_id")
+def get_user(
+    user_id: str,
+    current_user=Depends(require_permissions("users:read")),
+    tenant_id: str = Depends(resolve_tenant)
+):
     db = get_db_connection()
     service = UserService(db.conn)
     return standardize_response(service.get_user(user_id, tenant_id=tenant_id))
@@ -124,8 +131,11 @@ def remove_role(
 
 
 @router.get("/{user_id}/roles")
-def get_user_roles(user_id: str, current_user=Depends(require_permissions("users:read"))):
-    tenant_id = current_user.get("tenant_id")
+def get_user_roles(
+    user_id: str,
+    current_user=Depends(require_permissions("users:read")),
+    tenant_id: str = Depends(resolve_tenant)
+):
     db = get_db_connection()
     service = UserService(db.conn)
     return standardize_response(service.get_user_roles(user_id, tenant_id=tenant_id))

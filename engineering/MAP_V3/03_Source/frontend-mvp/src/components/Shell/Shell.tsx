@@ -12,6 +12,25 @@ import { useAuth } from '../../context/AuthContext';
 
 const STATIC_NAV_ITEMS: MetadataNavItem[] = [
   { id: 'about', label: 'About MAP', path: '/about' },
+  // OC-REPORT-001 Report Studio.
+  //
+  // It lives in STATIC_NAV_ITEMS, not inside DEFAULT_NAV, because once the
+  // server catalogue is fetched the rendered nav is `mergeNavItems(server,
+  // STATIC_NAV_ITEMS)` - DEFAULT_NAV is only the pre-fetch fallback. The server
+  // already owns a `reports` group, so a child added to DEFAULT_NAV's copy of
+  // that group is discarded at merge time.
+  //
+  // Gated on the canonical `reports:read` permission, which /auth/me already
+  // returns, so visibility derives from the existing RBAC store rather than a
+  // nav-local role list. The `report_studio` entitlement stays enforced where it
+  // always was, by /catalog, so a tenant without the add-on gets a named,
+  // actionable denial rather than a broken page.
+  {
+    id: 'report-studio',
+    label: 'Report Studio',
+    path: '/reports/studio',
+    requiredPermissions: ['reports:read'],
+  },
 ];
 
 const DEFAULT_NAV: MetadataNavItem[] = [
@@ -64,6 +83,57 @@ const DEFAULT_NAV: MetadataNavItem[] = [
   { id: 'administration', label: 'Administration', path: '/administration', children: adminSectionsAsNavItems() },
 ];
 
+/**
+ * Merge server navigation over the static catalogue.
+ *
+ * The previous implementation appended the two lists:
+ *
+ *     [...serverItems, ...STATIC_NAV_ITEMS]
+ *
+ * Both lists define an item with `id: 'reports'`, so React received two
+ * children with the same key and rendered only one of them - silently discarding
+ * the other. In practice the server's group always won, which is why additions to
+ * DEFAULT_NAV under an existing id never appeared in the sidebar.
+ *
+ * This merges BY ID instead: the server entry supplies the scalar fields, and
+ * children are unioned (server first, then any static child not already
+ * present). That keeps the server's extra entries such as Templates and
+ * Distribution while still allowing a static addition like Report Studio to
+ * appear, and it removes the duplicate-key defect for every other group too.
+ */
+export function mergeNavItems(
+  serverItems: MetadataNavItem[],
+  staticItems: MetadataNavItem[],
+): MetadataNavItem[] {
+  const byId = new Map<string, MetadataNavItem>();
+
+  for (const item of staticItems) byId.set(item.id, item);
+
+  for (const item of serverItems) {
+    const existing = byId.get(item.id);
+    if (!existing) {
+      byId.set(item.id, item);
+      continue;
+    }
+    const children: MetadataNavItem[] = [...(item.children ?? [])];
+    // Key on BOTH id and path: the two catalogues name the same page with
+    // different ids (`operational-reports` vs `operational-pack`), and merging on
+    // id alone would render that link twice.
+    const seenIds = new Set(children.map((c) => c.id));
+    const seenPaths = new Set(children.map((c) => c.path));
+    for (const child of existing.children ?? []) {
+      if (!seenIds.has(child.id) && !seenPaths.has(child.path)) {
+        children.push(child);
+        seenIds.add(child.id);
+        seenPaths.add(child.path);
+      }
+    }
+    byId.set(item.id, { ...existing, ...item, children });
+  }
+
+  return [...byId.values()];
+}
+
 interface ShellProps {
   navItems?: MetadataNavItem[];
   userRoles?: string[];
@@ -89,7 +159,8 @@ export function Shell({ navItems: overrideNavItems, userRoles: propRoles }: Shel
           // administration subtree converges on the single catalogue instead
           // of the mock's `["admin"]` alias gates. Non-admin items are
           // untouched (out of Phase B scope).
-          setRawNavItems([...data.map(resolveServerNavItem), ...STATIC_NAV_ITEMS]);
+          setRawNavItems(mergeNavItems(
+            data.map(resolveServerNavItem), STATIC_NAV_ITEMS));
         }
       })
       .catch(() => {

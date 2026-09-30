@@ -78,3 +78,16 @@ def get_compliance_status(
         return APIResponse(success=True, data=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/reconciliation", response_model=APIResponse)
+def get_reconciliation(
+    batch_id: str = Query(None),
+    current_user=Depends(require_tenant_admin),
+    tenant_id: str = Depends(resolve_tenant),
+):
+    try:
+        result = governance_service.get_reconciliation(tenant_id, batch_id)
+        return APIResponse(success=True, data=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

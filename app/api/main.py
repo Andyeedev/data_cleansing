@@ -8,6 +8,7 @@ from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
 import time
 import logging
+import asyncio
 
 load_dotenv()
 
@@ -43,6 +44,7 @@ from app.api.routes import (
     operations_execution_routes,
     control_dependencies_routes,
     report_suite_routes,
+    report_studio_routes,
     permissions_routes,
     diagnostics_routes,
     lead_routes,
@@ -72,6 +74,46 @@ async def startup_event():
     pool_manager = ConnectionPoolManager()
     pool_manager.reset()
     logger.info("Connection pool manager reset complete")
+
+    # OC-REPORT-001: report retention purge.
+    #
+    # Chosen approach: run on startup, then once a day, with no new dependency
+    # (the project has no scheduler library, so APScheduler/Celery would mean a
+    # new install for one job). The trade-off is deliberate: if the process stays
+    # up for days the loop still fires, and if the process is restarted the
+    # startup run catches anything the loop missed.
+    #
+    # The purge runs in a worker thread so a slow DELETE can never delay or
+    # fail app startup, and it swallows its own errors (see the service).
+    try:
+        from app.services.report_retention_service import (
+            purge_expired_reports, retention_status)
+        status = retention_status()
+        if not status["enabled"]:
+            logger.info("Report retention purge disabled by configuration")
+        else:
+            logger.info("Report retention purge enabled: window=%s day(s)",
+                        status["retention_days"])
+            app.state._retention_task = asyncio.create_task(
+                _report_retention_loop())
+    except Exception:
+        logger.exception("Could not start the report retention purge")
+
+
+async def _report_retention_loop():
+    """Purge expired soft-deleted reports once at startup, then daily."""
+    import asyncio
+    from app.services.report_retention_service import purge_expired_reports
+    loop = asyncio.get_running_loop()
+    while True:
+        try:
+            # DB work is blocking; keep it off the event loop.
+            await loop.run_in_executor(None, purge_expired_reports)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Report retention loop iteration failed")
+        await asyncio.sleep(24 * 60 * 60)
 
 
 # =========================
@@ -233,6 +275,7 @@ app.include_router(mapping_routes.router)
 app.include_router(operations_execution_routes.router)
 app.include_router(control_dependencies_routes.router)
 app.include_router(report_suite_routes.router)
+app.include_router(report_studio_routes.router)
 app.include_router(permissions_routes.router)
 app.include_router(diagnostics_routes.router)
 app.include_router(lead_routes.router)

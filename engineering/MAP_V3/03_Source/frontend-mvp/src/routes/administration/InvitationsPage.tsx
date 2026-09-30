@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Mail, RotateCcw, Trash2, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { apiGet, apiPost, apiDelete } from '../../utils/apiClient';
+import { useAuth } from '../../context/AuthContext';
+import { useTenantScope } from '../../tenant/TenantContext';
 import { PageContainer } from '../../components/PageContainer/PageContainer';
 import { InvitationModal } from '../../components/invitation/InvitationModal';
 
@@ -14,6 +16,18 @@ interface Invitation {
 }
 
 export function InvitationsPage() {
+  // Phase C: tenant working scope. Super Admin may scope the list to one
+  // tenant via ?tenant_id= (backend SA-only override); All-Tenants has no
+  // safe aggregate, so the list is unavailable there (amendment 2).
+  const { scope, scopeTenantId, isSuperAdmin } = useTenantScope();
+  const isAllTenants = isSuperAdmin && scope.kind === 'all';
+  // Phase E (E4): action affordances follow the envelope — Invite, Resend
+  // and Revoke render only with their grants (backend still enforces).
+  const { userRoles, user } = useAuth();
+  const grants = user?.permissions ?? [];
+  const canInvite = grants.includes('invitations:create') || userRoles.includes('Super Admin');
+  const canResend = grants.includes('invitations:resend') || userRoles.includes('Super Admin');
+  const canRevoke = grants.includes('invitations:revoke') || userRoles.includes('Super Admin');
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,22 +35,33 @@ export function InvitationsPage() {
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
 
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiGet<{ invitations: Invitation[] }>('/invitations');
+      const response = await apiGet<{ invitations: Invitation[] }>(
+        '/invitations',
+        scopeTenantId ? { tenant_id: scopeTenantId } : undefined,
+      );
       setInvitations(response.invitations || []);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to load invitations');
+    } catch (err: unknown) {
+      const detail =
+        typeof err === 'object' && err !== null && 'response' in err
+          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined;
+      setError(detail || 'Failed to load invitations');
     } finally {
       setLoading(false);
     }
-  };
+  }, [scopeTenantId]);
 
   useEffect(() => {
+    if (isAllTenants) {
+      setLoading(false);
+      return;
+    }
     fetchInvitations();
-  }, []);
+  }, [fetchInvitations, isAllTenants]);
 
   const handleCreateInvitation = async (email: string, message?: string) => {
     try {
@@ -92,13 +117,16 @@ export function InvitationsPage() {
             <h1 className="text-2xl font-bold text-gray-900">Invitations</h1>
             <p className="text-gray-600 mt-1">Manage user invitations for your tenant</p>
           </div>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Invite User
-          </button>
+          {canInvite && (
+            <button
+              onClick={() => setModalOpen(true)}
+              aria-label="Invite user"
+              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Invite User
+            </button>
+          )}
         </div>
 
         {error && (
@@ -108,7 +136,13 @@ export function InvitationsPage() {
         )}
 
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-          {loading ? (
+          {isAllTenants ? (
+            <div className="p-12 text-center">
+              <Mail className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Not available for All Tenants</h3>
+              <p className="text-gray-600 mb-6">Select a tenant scope to list invitations.</p>
+            </div>
+          ) : loading ? (
             <div className="p-8 text-center">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
               <p className="text-gray-600">Loading invitations...</p>
@@ -118,12 +152,15 @@ export function InvitationsPage() {
               <Mail className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No invitations yet</h3>
               <p className="text-gray-600 mb-6">Invite team members to join your tenant</p>
-              <button
-                onClick={() => setModalOpen(true)}
-                className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
-              >
-                Invite User
-              </button>
+              {canInvite && (
+                <button
+                  onClick={() => setModalOpen(true)}
+                  aria-label="Invite user"
+                  className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
+                >
+                  Invite User
+                </button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -166,10 +203,11 @@ export function InvitationsPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {inv.status === 'pending' && !isExpired(inv.expires_at) && (
+                          {inv.status === 'pending' && !isExpired(inv.expires_at) && canResend && (
                             <button
                               onClick={() => handleResend(inv.invitation_id)}
                               disabled={resendingId === inv.invitation_id}
+                              aria-label={`Resend invitation to ${inv.email}`}
                               className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="Resend invitation"
                             >
@@ -180,10 +218,11 @@ export function InvitationsPage() {
                               )}
                             </button>
                           )}
-                          {inv.status === 'pending' && (
+                          {inv.status === 'pending' && canRevoke && (
                             <button
                               onClick={() => handleRevoke(inv.invitation_id)}
                               disabled={revokingId === inv.invitation_id}
+                              aria-label={`Revoke invitation for ${inv.email}`}
                               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Revoke invitation"
                             >

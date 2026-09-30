@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/apiClient';
 import type { User, UserListResponse, UserCreateRequest, UserUpdateRequest, UserRole } from '../types/user';
 
-export function useUserList(params?: { page?: number; page_size?: number; status?: string; search?: string }) {
+export function useUserList(params?: { page?: number; page_size?: number; status?: string; search?: string; tenant_id?: string }) {
   const [data, setData] = useState<UserListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +18,7 @@ export function useUserList(params?: { page?: number; page_size?: number; status
     } finally {
       setLoading(false);
     }
-  }, [params?.page, params?.page_size, params?.status, params?.search]);
+  }, [params?.page, params?.page_size, params?.status, params?.search, params?.tenant_id]);
 
   useEffect(() => {
     fetchUsers();
@@ -27,7 +27,7 @@ export function useUserList(params?: { page?: number; page_size?: number; status
   return { data, loading, error, refetch: fetchUsers };
 }
 
-export function useUser(userId: string | null) {
+export function useUser(userId: string | null, tenantId?: string) {
   const [data, setData] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,16 +37,16 @@ export function useUser(userId: string | null) {
 
     setLoading(true);
     setError(null);
-    apiGet<User>(`/users/${userId}`)
+    apiGet<User>(`/users/${userId}`, tenantId ? { tenant_id: tenantId } : undefined)
       .then(setData)
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to fetch user'))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, tenantId]);
 
   return { data, loading, error };
 }
 
-export function useUserRoles(userId: string | null) {
+export function useUserRoles(userId: string | null, tenantId?: string) {
   const [data, setData] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,14 +57,17 @@ export function useUserRoles(userId: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiGet<UserRole[]>(`/users/${userId}/roles`);
+      const result = await apiGet<UserRole[]>(
+        `/users/${userId}/roles`,
+        tenantId ? { tenant_id: tenantId } : undefined,
+      );
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch user roles');
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, tenantId]);
 
   useEffect(() => {
     fetchRoles();

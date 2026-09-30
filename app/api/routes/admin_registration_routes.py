@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Body, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from app.services.tenant_service import TenantService
 from app.db.connection import get_db_connection
@@ -10,6 +11,10 @@ from app.api.routes.rate_limit_phase1 import rate_limit_authenticated_admin
 from app.api.core.auth.rbac import require_admin
 
 router = APIRouter(prefix="/api/v1/admin", tags=["Admin"])
+
+
+class ConvertLeadRequest(BaseModel):
+    admin_password: str
 
 
 @router.get("/registrations", summary="Super Admin: List pending lead registrations")
@@ -64,7 +69,7 @@ def admin_list_registrations(
 )
 def admin_convert_lead(
     lead_id: str,
-    admin_password: str = Body(..., description="Password for the first admin user"),
+    payload: ConvertLeadRequest,
     request: Request = None,
     current_user=Depends(require_admin),
 ):
@@ -73,8 +78,9 @@ def admin_convert_lead(
     Creates tenant + first admin user via TenantService.create_tenant().
     Sends verification email (Phase 4 flow).
     Marks lead as converted.
-    Idempotent: if already converted, returns success.
+    Re-converting an already-converted lead returns 404.
     """
+    admin_password = payload.admin_password
     if not admin_password:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -89,7 +95,7 @@ def admin_convert_lead(
         from psycopg2.extras import RealDictCursor
         with db.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT lead_id, full_name, work_email, company, source_form, plan_tier
+                SELECT lead_id, full_name, work_email, company, source_form, plan_interest
                 FROM core.leads
                 WHERE lead_id = %s AND status = 'pending'
                 FOR UPDATE
@@ -103,13 +109,15 @@ def admin_convert_lead(
             )
 
         # 2. Create tenant + first admin user
-        # The admin_password is provided by Super Admin
+        # The admin_password is provided by Super Admin.
+        # plan_interest (lead's stated interest) doubles as the tier argument
+        # and is validated against platform.plans by create_tenant.
         tenant_service = TenantService(db.conn)
         create_result = tenant_service.create_tenant(
             tenant_name=lead_row["full_name"] or "New Tenant",
             admin_email=lead_row["work_email"] or "",
             admin_password=admin_password,
-            plan_tier=lead_row["plan_tier"] or "professional",
+            plan_tier=lead_row["plan_interest"] or "professional",
         )
 
         if not create_result["success"]:

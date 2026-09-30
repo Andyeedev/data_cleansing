@@ -46,7 +46,7 @@ describe('RolesPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -70,7 +70,7 @@ describe('RolesPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       const viewButtons = screen.getAllByText('View');
@@ -92,7 +92,7 @@ describe('RolesPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -124,7 +124,7 @@ describe('RolesPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Previous page' })).toBeInTheDocument();
@@ -147,7 +147,7 @@ describe('RolesPage Integration', () => {
       }),
     });
 
-    renderWithProviders(<RolesPage />, { initialRole: 'admin' });
+    renderWithProviders(<RolesPage />, { initialRole: 'admin', initialPermissions: ['roles:list'] });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);

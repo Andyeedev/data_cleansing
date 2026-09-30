@@ -1,0 +1,233 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="mockup.css">
+<title>OC-REPORT-001 v2 — Option B Dashboard Studio (selected) + Report Assistant</title>
+<style>
+.wiz{width:206px;flex:0 0 206px;background:#fff;border-right:1px solid #e2e8f0;padding:11px;overflow:auto}
+.tpl{border:1px solid #e2e8f0;border-radius:7px;padding:8px;margin-bottom:6px;background:#fff}
+.tpl.on{border-color:#3b82f6;box-shadow:0 0 0 2px #dbeafe}
+.tpl .n{font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:5px}
+.tpl .d{font-size:10px;color:#64748b;margin-top:2px;line-height:1.4}
+.tpl .p{display:flex;gap:3px;margin-top:5px}
+.tpl .p i{flex:1;height:13px;background:#f1f5f9;border-radius:2px}
+.tpl .p i.h{height:22px}
+.tpl .lk{font-size:9px;color:#94a3b8;margin-top:4px;font-family:Consolas,monospace}
+.wchip{width:100%;display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;margin-bottom:4px;font-size:11.5px;color:#334155}
+.wchip .ic{width:20px;height:20px;flex:0 0 20px;border-radius:5px;background:#eff6ff;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1}
+.stage{flex:1;background:#eef2f7;overflow:auto;padding:13px}
+.sheet{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden}
+.sech{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#f8fafc;border-bottom:1px solid #e2e8f0}
+.sech b{font-size:12px}
+.sech .sp{flex:1}
+.mini{font-size:10.5px;color:#475569;border:1px solid #cbd5e1;background:#fff;border-radius:5px;padding:3px 8px;font-weight:600}
+.body{padding:12px}
+.addrow{display:flex;align-items:center;gap:8px;padding:7px 12px;border-top:1px dashed #cbd5e1;background:#fcfdff;font-size:11.5px;color:#2563eb}
+.cfg{width:290px;flex:0 0 290px;background:#fff;border-left:1px solid #e2e8f0;display:flex;flex-direction:column;min-height:0}
+.cfg-t{display:flex;gap:2px;background:#f1f5f9;padding:3px;margin:10px 10px 0;border-radius:6px}
+.cfg-t .t{flex:1;padding:5px 4px;border-radius:5px;font-size:11px;color:#64748b;font-weight:600;text-align:center}
+.cfg-t .t.on{background:#fff;color:#0f172a;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.cfg-b{flex:1;overflow:auto;padding:11px}
+.asec{border:1px solid #e2e8f0;border-radius:7px;margin-bottom:7px;background:#fff}
+.asech{display:flex;align-items:center;gap:7px;padding:7px 9px}
+.asech b{font-size:11.5px}
+.asech .sp{flex:1}
+.asech.on{background:#eff6ff}
+.asecb{padding:9px;border-top:1px solid #e2e8f0}
+</style></head>
+<body>
+<div class="app">
+  <nav class="rail">
+    <div class="rail-brand"><div class="rail-logo">MN</div><div><b>MAP Nexus</b><span>Report Studio</span></div></div>
+    <div class="rail-group"><label>Reporting</label>
+      <div class="rail-item sub">Board Packs</div>
+      <div class="rail-item sub">Report Suite</div>
+      <div class="rail-item active"><span class="ic">▦</span>Studio</div>
+    </div>
+    <div class="rail-group"><label>Start</label>
+      <div class="rail-item"><span class="ic">✦</span>Report Assistant <span class="pill info" style="margin-left:auto;height:15px;font-size:9px">V1</span></div>
+      <div class="rail-item"><span class="ic">▤</span>Templates <span class="pill mute" style="margin-left:auto;height:15px;font-size:9px">5</span></div>
+    </div>
+    <div class="rail-group"><label>Manage</label>
+      <div class="rail-item"><span class="ic">◎</span>My Reports</div>
+      <div class="rail-item"><span class="ic">◇</span>Data Sources</div>
+      <div class="rail-item"><span class="ic">▤</span>Schedules <span class="pill mute" style="margin-left:auto">V2</span></div>
+    </div>
+    <div class="rail-foot">Entitlement · Enterprise<br><b style="color:#4ade80">report_studio</b> active<br><span style="color:#38bdf8">Assistant: built-in</span></div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">Reports <span>&rsaquo;</span> Studio <span>&rsaquo;</span> <b>Migration Health &mdash; Weekly</b></div>
+      <div class="spacer"></div>
+      <div class="select" style="width:146px">Acme Financial</div>
+      <div class="tbtn">◷ Version 2</div>
+      <div class="tbtn">Share</div>
+      <div class="tbtn">Export &nbsp;▾</div>
+      <div class="tbtn pri">Save draft</div>
+      <div class="avatar">SA</div>
+    </div>
+
+    <div class="content">
+      <aside class="wiz">
+        <div class="pal-t">1 &middot; Curated templates</div>
+        <div class="tpl on"><div class="n">Migration Health &mdash; Weekly <span class="pill ok" style="height:14px;font-size:8.5px;margin-left:auto">used</span></div><div class="d">Validation, exceptions and trend for a weekly ops review</div><div class="p"><i class="h"></i><i></i><i></i></div><div class="lk">tpl.migration_health_weekly &middot; v3</div></div>
+        <div class="tpl"><div class="n">Control Failure Deep Dive</div><div class="d">Rules, owners and root causes behind failures</div><div class="p"><i></i><i class="h"></i><i></i></div><div class="lk">tpl.control_failure_deep_dive &middot; v2</div></div>
+        <div class="tpl"><div class="n">Reconciliation</div><div class="d">Source-to-target differences by dataset</div><div class="p"><i></i><i></i><i class="h"></i></div><div class="lk">tpl.reconciliation &middot; v2</div></div>
+        <div class="tpl"><div class="n">Executive Status</div><div class="d">Board-level summary, risk and next steps</div><div class="p"><i class="h"></i><i></i></div><div class="lk">tpl.executive_status &middot; v4 <span class="pill info" style="height:13px;font-size:8px">advanced_reporting</span></div></div>
+        <div class="tpl"><div class="n">Governance Posture</div><div class="d">Controls, exceptions and approvals</div><div class="p"><i></i><i></i><i></i></div><div class="lk">tpl.governance_posture &middot; v2 <span class="pill warn" style="height:13px;font-size:8px">governance</span></div></div>
+        <div class="tpl" style="border-style:dashed;background:#f8fafc"><div class="n" style="color:#475569">+ Blank report</div><div class="d">No template &mdash; start from an empty definition</div></div>
+
+        <div class="pal-t" style="margin-top:14px">2 &middot; Add a section</div>
+        <div class="wchip"><span class="ic">▮</span>KPI row</div>
+        <div class="wchip"><span class="ic">▦</span>Table</div>
+        <div class="wchip"><span class="ic">▁</span>Bar chart</div>
+        <div class="wchip"><span class="ic">◠</span>Trend line</div>
+        <div class="wchip"><span class="ic">◔</span>Donut</div>
+        <div class="wchip"><span class="ic">▬</span>Score bar</div>
+        <div class="wchip" style="opacity:.42"><span class="ic">⁘</span>Scatter <span class="pill mute" style="margin-left:auto;height:14px;font-size:8.5px">V2</span></div>
+        <div class="wchip" style="opacity:.42"><span class="ic">▩</span>Matrix <span class="pill mute" style="margin-left:auto;height:14px;font-size:8.5px">V2</span></div>
+        <div class="wchip" style="opacity:.42"><span class="ic">⊞</span>Pivot <span class="pill mute" style="margin-left:auto;height:14px;font-size:8.5px">V2</span></div>
+
+        <div class="hint" style="margin-top:13px;padding:8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;color:#1e40af">
+          Template instantiates a <b>full copy</b> into an editable definition. The template itself stays system-owned and immutable.
+        </div>
+      </aside>
+
+      <div class="stage">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="tabs"><div class="tab on">Sections (3)</div><div class="tab">Preview</div><div class="tab">Data (1,284)</div><div class="tab">History</div></div>
+          <div style="flex:1"></div>
+          <span class="chip" style="background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;font-weight:600">✦ from template &middot; tpl.migration_health_weekly v3</span>
+          <span class="chip">Filters apply to all sections</span>
+        </div>
+
+        <div class="sheet">
+          <div style="padding:13px 15px;border-bottom:1px solid #e2e8f0">
+            <div class="dash-title"><h1>Migration Health &mdash; Weekly</h1><span class="pill ok">published</span><span class="pill mute">v2</span>
+              <div style="flex:1"></div>
+              <span class="hint">Generated 27 Sep 2026 14:02 UTC &middot; 1,284 rows</span></div>
+            <div class="dash-sub">Operational review &middot; Acme Financial &middot; owner Sarah Admin</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:9px;padding:6px 9px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px">
+              <span class="pill info" style="height:17px;font-size:9.5px">template</span>
+              <span style="font-size:11.5px;color:#1e40af">Derived from <b>tpl.migration_health_weekly</b> v3 &mdash; you have edited 2 of 3 sections</span>
+              <div style="flex:1"></div>
+              <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:#1e40af;font-weight:600"><input type="checkbox" checked style="margin:0">Pin to template updates</label>
+              <span class="mini" style="border-color:#93c5fd;color:#1d4ed8">Template update available &rsaquo; v4</span>
+            </div>
+          </div>
+
+          <div class="body" style="display:flex;flex-direction:column;gap:11px">
+            <div class="card">
+              <div class="card-h"><span class="grip">⠿</span><b>Key metrics</b><span class="sp"></span><span class="pill mute" style="height:15px;font-size:9px">from template</span><span class="mini">Edit</span><span class="x">&times;</span></div>
+              <div class="body" style="padding:12px">
+                <div class="grid-kpi">
+                  <div class="kpi b"><div class="lbl">Batches</div><div class="val">10</div><div class="sub">last 7 days</div></div>
+                  <div class="kpi"><div class="lbl">Controls run</div><div class="val">1,284</div><div class="sub">1,408 rules</div></div>
+                  <div class="kpi g"><div class="lbl">Pass rate</div><div class="val">92.4%</div><div class="sub">+1.1 pts vs prior</div></div>
+                  <div class="kpi y"><div class="lbl">Open CRITICAL</div><div class="val">17</div><div class="sub">3 owners</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-h"><span class="grip">⠿</span><b>Failed controls by owner</b><span class="sp"></span><span class="pill bad">124 failed</span><span class="mini">Edit</span><span class="x">&times;</span></div>
+              <table><thead><tr><th style="width:126px">Owner</th><th style="width:88px">Controls</th><th style="width:84px">Failed</th><th style="width:96px">Pass rate</th><th>Trend</th><th style="width:104px">Open CRIT</th></tr></thead><tbody>
+              <tr><td>Ann Batra</td><td>312</td><td style="color:#b91c1c;font-weight:700">24</td><td>92.3%</td><td><div class="bar-bg" style="width:104px"><div class="bar-fl" style="width:78%;background:#dc2626"></div></div></td><td><span class="pill bad">9</span></td></tr>
+              <tr><td>Raj Patel</td><td>298</td><td style="color:#b91c1c;font-weight:700">31</td><td>89.6%</td><td><div class="bar-bg" style="width:104px"><div class="bar-fl" style="width:100%;background:#dc2626"></div></div></td><td><span class="pill bad">6</span></td></tr>
+              <tr><td>Mei Lin</td><td>241</td><td style="color:#b45309;font-weight:700">18</td><td>92.5%</td><td><div class="bar-bg" style="width:104px"><div class="bar-fl" style="width:58%;background:#f59e0b"></div></div></td><td><span class="pill warn">2</span></td></tr>
+              <tr><td>Tom Byrne</td><td>190</td><td>9</td><td>95.3%</td><td><div class="bar-bg" style="width:104px"><div class="bar-fl" style="width:29%;background:#f59e0b"></div></div></td><td><span class="pill ok">0</span></td></tr>
+              <tr><td>Sara Nilsen</td><td>243</td><td>5</td><td>97.9%</td><td><div class="bar-bg" style="width:104px"><div class="bar-fl" style="width:16%;background:#94a3b8"></div></div></td><td><span class="pill ok">0</span></td></tr>
+              </tbody></table>
+            </div>
+
+            <div class="card">
+              <div class="card-h"><span class="grip">⠿</span><b>Fail rate trend &mdash; last 10 batches</b><span class="sp"></span><span class="mini">Edit</span><span class="x">&times;</span></div>
+              <div class="body" style="padding:12px">
+                <svg viewBox="0 0 880 156" style="width:100%">
+                  <g stroke="#eef2f7" stroke-width="1"><line x1="34" y1="10" x2="872" y2="10"/><line x1="34" y1="46" x2="872" y2="46"/><line x1="34" y1="82" x2="872" y2="82"/><line x1="34" y1="118" x2="872" y2="118"/></g>
+                  <g stroke="#cbd5e1" stroke-width="1"><line x1="34" y1="10" x2="34" y2="118"/></g>
+                  <g font-size="9" fill="#94a3b8" text-anchor="end"><text x="29" y="13">12%</text><text x="29" y="49">9%</text><text x="29" y="85">6%</text><text x="29" y="121">3%</text></g>
+                  <path d="M34,56 L126,62 L218,48 L310,72 L402,64 L494,78 L586,70 L678,88 L770,82 L872,100 L872,118 L34,118 Z" fill="#dbeafe" opacity=".65"/>
+                  <polyline points="34,56 126,62 218,48 310,72 402,64 494,78 586,70 678,88 770,82 872,100" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linejoin="round"/>
+                  <g fill="#2563eb"><circle cx="218" cy="48" r="3"/><circle cx="402" cy="64" r="3"/><circle cx="586" cy="70" r="3"/><circle cx="770" cy="82" r="3"/><circle cx="872" cy="100" r="3.5"/></g>
+                  <g font-size="9" fill="#94a3b8" text-anchor="middle"><text x="34" y="134">b1</text><text x="218" y="134">b3</text><text x="402" y="134">b5</text><text x="586" y="134">b7</text><text x="770" y="134">b9</text><text x="872" y="134">b10</text></g>
+                </svg>
+              </div>
+            </div>
+            <div class="addrow"><b>+</b> Add a section &nbsp;&mdash;&nbsp; KPI row &middot; Table &middot; Bar chart &middot; Trend line &middot; Donut &middot; Score bar</div>
+          </div>
+
+          <div style="padding:9px 12px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <b style="font-size:11px">Filters &mdash; apply to all sections</b>
+            <span class="chip on">severity: CRITICAL, HIGH <span style="color:#94a3b8">&times;</span></span>
+            <span class="chip on">batch: last 10 <span style="color:#94a3b8">&times;</span></span>
+            <span class="chip x">+ Add filter</span>
+            <div style="flex:1"></div>
+            <span class="hint">Re-checked server-side on every read.</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="cfg">
+        <div class="cfg-t">
+          <div class="t on">✦ Assistant</div>
+          <div class="t">Section</div>
+          <div class="t">Report</div>
+        </div>
+        <div class="cfg-b">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+            <span class="pill info" style="height:18px;font-size:10px">built-in &middot; deterministic</span>
+            <div style="flex:1"></div>
+            <span class="hint">no LLM &middot; no API cost</span>
+          </div>
+          <div class="inp" style="height:30px;background:#f8fafc;color:#94a3b8">Describe what you want&hellip;</div>
+          <div class="hint" style="margin-top:5px">Keywords map to a curated recipe. You confirm before anything is applied.</div>
+
+          <div class="pal-t" style="margin-top:12px">Recipe matched</div>
+          <div style="border:1px solid #bfdbfe;background:#eff6ff;border-radius:6px;padding:8px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#1e40af">✦ rcp.migration_health_weekly</div>
+            <div class="hint" style="color:#1e40af;opacity:.85;margin-top:2px">Matched on: <b>failed</b>, <b>controls</b>, <b>weekly</b></div>
+          </div>
+
+          <div class="pal-t" style="margin-top:12px">Assistant steps &mdash; all answered</div>
+          <div class="asec"><div class="asech on"><span class="pill ok" style="height:15px;font-size:9px">1</span><b>Subject</b><div class="sp"></div><span style="font-size:11px;color:#334155">Control failures</span></div>
+            <div class="asecb"><label class="fld-lbl">Data source</label><div class="select" style="width:100%;height:27px;font-size:11px">migration.exceptions &mdash; v1</div></div></div>
+          <div class="asec"><div class="asech"><span class="pill ok" style="height:15px;font-size:9px">2</span><b>Group by</b><div class="sp"></div><span style="font-size:11px;color:#334155">Owner</span></div>
+            <div class="asecb"><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="chip on">owner</span><span class="chip">control_id</span><span class="chip">entity</span></div></div></div>
+          <div class="asec"><div class="asech"><span class="pill ok" style="height:15px;font-size:9px">3</span><b>Time window</b><div class="sp"></div><span style="font-size:11px;color:#334155">Last 10 batches</span></div>
+            <div class="asecb"><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="chip on">last 10</span><span class="chip">last 30</span><span class="chip">custom</span></div></div></div>
+          <div class="asec"><div class="asech"><span class="pill ok" style="height:15px;font-size:9px">4</span><b>Severity</b><div class="sp"></div><span style="font-size:11px;color:#334155">Critical + High</span></div>
+            <div class="asecb"><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="chip on">CRITICAL</span><span class="chip on">HIGH</span><span class="chip">MEDIUM</span></div></div></div>
+
+          <div class="pal-t" style="margin-top:12px">What it will do</div>
+          <div style="border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#f8fafc">
+            <div style="display:flex;gap:6px;font-size:11.5px;margin-bottom:4px"><span class="pill ok" style="height:15px;font-size:9px">add</span> Instantiate template <b>tpl.migration_health_weekly v3</b></div>
+            <div style="display:flex;gap:6px;font-size:11.5px;margin-bottom:4px"><span class="pill info" style="height:15px;font-size:9px">set</span> 3 sections, 2 saved filters</div>
+            <div style="display:flex;gap:6px;font-size:11.5px"><span class="pill mute" style="height:15px;font-size:9px">copy</span> Definition becomes <b>editable &mdash; yours</b></div>
+          </div>
+
+          <div style="display:flex;gap:7px;margin-top:11px">
+            <div class="tbtn" style="flex:1;justify-content:center">Apply to report</div>
+            <div class="tbtn pri" style="flex:1;justify-content:center">Apply &amp; save draft</div>
+          </div>
+
+          <div class="hint" style="margin-top:11px;padding:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px">
+            <b>Deterministic by design.</b> The assistant is a curated recipe catalogue, not a model. Same input &rarr; same definition, every time. It proposes a definition; it never queries data and never bypasses the source allowlist.
+          </div>
+          <div class="hint" style="margin-top:7px;padding:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px">
+            <b>Recipes are data.</b> Adding a recipe is a row in the catalogue, not a code change &mdash; same maintainability property as templates.
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="foot-bar">
+      <span>Data sources <b style="color:#334155">control_summary v1, exceptions v1</b></span>
+      <span>Tenant <b style="color:#334155">Acme Financial</b></span>
+      <span>Server-side aggregation</span>
+      <span class="sp"></span>
+      <span>Assistant <b style="color:#15803d">built-in</b></span>
+      <span>Generated 27 Sep 2026 14:02</span>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -77,7 +77,10 @@ class RoleService:
                 return "Only custom tenant-scoped roles can be modified"
         return None
 
-    def list_roles(self, tenant_id=None, page: int = 1, page_size: int = 50, status: Optional[str] = None):
+    def list_roles(self, tenant_id=None, page: int = 1, page_size: int = 50, status: Optional[str] = None, include_global: bool = False):
+        # Phase C: include_global is Super-Admin-only (route passes
+        # is_super_admin(caller)). It adds the platform-global system roles
+        # (tenant_id IS NULL) alongside the tenant's own roles.
         offset = (page - 1) * page_size
         query = """
             SELECT id, name, description, type, is_system, is_default, 
@@ -88,7 +91,10 @@ class RoleService:
         params = []
 
         if tenant_id:
-            query += " AND tenant_id = %s"
+            if include_global:
+                query += " AND (tenant_id = %s OR tenant_id IS NULL)"
+            else:
+                query += " AND tenant_id = %s"
             params.append(tenant_id)
 
         if status:
@@ -106,7 +112,10 @@ class RoleService:
             count_query = "SELECT COUNT(*) FROM platform.roles WHERE deleted_at IS NULL"
             count_params = []
             if tenant_id:
-                count_query += " AND tenant_id = %s"
+                if include_global:
+                    count_query += " AND (tenant_id = %s OR tenant_id IS NULL)"
+                else:
+                    count_query += " AND tenant_id = %s"
                 count_params.append(tenant_id)
             cur.execute(count_query, count_params)
             total = cur.fetchone()[0]
@@ -121,7 +130,7 @@ class RoleService:
             }
         }
 
-    def get_role(self, role_id: str, tenant_id=None):
+    def get_role(self, role_id: str, tenant_id=None, include_global: bool = False):
         query = """
             SELECT id, name, description, type, is_system, is_default, 
                    status, metadata, created_at
@@ -131,7 +140,10 @@ class RoleService:
         params = [role_id]
 
         if tenant_id:
-            query += " AND tenant_id = %s"
+            if include_global:
+                query += " AND (tenant_id = %s OR tenant_id IS NULL)"
+            else:
+                query += " AND tenant_id = %s"
             params.append(tenant_id)
 
         with self.conn.cursor() as cur:
@@ -315,12 +327,18 @@ class RoleService:
 
         return {"success": True, "message": "Permission removed"}
 
-    def get_role_permissions(self, role_id: str, tenant_id=None):
+    def get_role_permissions(self, role_id: str, tenant_id=None, include_global: bool = False):
         if tenant_id:
-            role_check_query = """
-                SELECT id FROM platform.roles
-                WHERE id = %s AND tenant_id = %s AND deleted_at IS NULL
-            """
+            if include_global:
+                role_check_query = """
+                    SELECT id FROM platform.roles
+                    WHERE id = %s AND (tenant_id = %s OR tenant_id IS NULL) AND deleted_at IS NULL
+                """
+            else:
+                role_check_query = """
+                    SELECT id FROM platform.roles
+                    WHERE id = %s AND tenant_id = %s AND deleted_at IS NULL
+                """
             with self.conn.cursor() as cur:
                 cur.execute(role_check_query, (role_id, tenant_id))
                 if not cur.fetchone():

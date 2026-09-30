@@ -41,7 +41,9 @@ function renderUnauthenticated(ui: React.ReactElement, path: string) {
 function renderWithRole(ui: React.ReactElement, role: string, initialEntries: string[]) {
   return renderWithProviders(
     <ProtectedRoute requiredRoles={['admin']}>{ui}</ProtectedRoute>,
-    { initialRole: role, initialEntries },
+    // Phase C: canonical permissions so permission-guarded pages (Users,
+    // Roles) render under test; role assertions below are unaffected.
+    { initialRole: role, initialEntries, initialPermissions: ['users:list', 'roles:list', 'invitations:read', 'settings:read'] },
   );
 }
 
