@@ -46,13 +46,58 @@ class PmaWorkingSet:
         return sum(len(t.columns) for t in self.tables)
 
 
-def build_working_set(adapter, system_id: str) -> PmaWorkingSet:
-    """Build the working set from one adapter's list_tables/list_columns (no mapping writes)."""
+def resolve_schema_scope(system=None, adapter_config=None, connection_config=None) -> str | None:
+    """Phase 5B schema-filtering decision: resolve the schema scope for PMA discovery.
+
+    First truthy candidate wins:
+      1. connection_config["schema"] — explicit per-system schema declaration
+         (e.g. Snowflake CERT_SCHEMA)
+      2. system["schema_name"] — core.system_registry.schema_name when surfaced
+         by the caller
+      3. adapter_config.schema — adapter-class configured default
+         (postgres "public", sqlserver "dbo")
+      4. adapter_config.dataset — dataset-style schema attribute where a config
+         exposes it
+      5. None — no scope; adapter decides (pre-5B behaviour, unchanged)
+
+    PMA-only: only the PMA working-set path consults this; MA discovery paths are untouched.
+    """
+
+    if connection_config is None and isinstance(system, dict):
+        connection_config = system.get("connection_config")
+
+    candidates = []
+    if isinstance(connection_config, dict):
+        candidates.append(connection_config.get("schema"))
+    if isinstance(system, dict):
+        candidates.append(system.get("schema_name"))
+    candidates.append(getattr(adapter_config, "schema", None))
+    candidates.append(getattr(adapter_config, "dataset", None))
+
+    for candidate in candidates:
+        if candidate:
+            return str(candidate)
+    return None
+
+
+def build_working_set(adapter, system_id: str, schema_scope: str | None = None) -> PmaWorkingSet:
+    """Build the working set from one adapter's list_tables/list_columns (no mapping writes).
+
+    When schema_scope is truthy it is passed to list_tables and the returned tables are
+    defensively filtered (case-insensitive) to that schema; otherwise discovery is
+    unfiltered exactly as before Phase 5B.
+    """
 
     working_set = PmaWorkingSet(system_id=system_id)
-    tables = adapter.list_tables() or []
+    if schema_scope:
+        tables = adapter.list_tables(schema_scope) or []
+    else:
+        tables = adapter.list_tables() or []
+    scope_folded = schema_scope.casefold() if schema_scope else None
     for table in tables:
         if not table.table_name:
+            continue
+        if scope_folded is not None and (table.schema_name or "").casefold() != scope_folded:
             continue
         raw_columns = adapter.list_columns(table.schema_name, table.table_name) or []
         columns = []

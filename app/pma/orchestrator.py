@@ -7,7 +7,7 @@ from app.adapters.registry import AdapterRegistry
 from app.execution_engine import ExecutionEngine
 from app.pma.assessment_context import PmaAssessmentContext
 from app.pma.errors import PmaAssessmentError, PmaHealthCheckError
-from app.pma.working_set import build_working_set
+from app.pma.working_set import build_working_set, resolve_schema_scope
 from app.services.credential_service import CredentialService
 from app.services.system_service import DB_TYPE_MAP, SystemService
 
@@ -52,7 +52,10 @@ class PmaAssessmentOrchestrator:
             context.adapter = adapter
             context.health_check = self._health_check(adapter, adapter_config, context.system_id)
 
-            context.working_set = build_working_set(adapter, context.system_id)
+            schema_scope = resolve_schema_scope(system=system, adapter_config=adapter_config)
+            context.working_set = build_working_set(
+                adapter, context.system_id, schema_scope=schema_scope
+            )
             context.batch_name = build_batch_name(context.system_name, when=clock)
             self._register_batch(context, tenant_id)
 
